@@ -70,7 +70,7 @@ workspace "iw3xo-dev"
 		flags { "MultiProcessorCompile", "No64BitChecks" }
 		optimize "Debug"
 
-	project "iw3xo"
+	project "iw3x"
 		kind "SharedLib"
 		language "C++"
 		files {

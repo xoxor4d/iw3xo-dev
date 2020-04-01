@@ -360,24 +360,30 @@ namespace Components
 						Game::Globals::dynBrushModels.initiated = false;
 					}
 					
-					return;
+					continue; // we still want to draw all the brushes
 				}
 
 				// one time message that we failed to find the brushmodels + disable continuous searching
-				if (!Game::Globals::dynBrushModels.mapped_bmodels && !Game::Globals::dynBrushModels.initiated)
+				if (!Game::Globals::dynBrushModels.mapped_bmodels)
 				{
-					Game::Com_PrintMessage(0, "RadiantDebugBrush:: ^1could not find any dynamic brushmodels on the map!^7\n|-> ^1Make sure that you placed the \"dynamic_collision_bmodels.map\" prefab at origin/angles [0,0,0] in your map!", 0);
-					Game::Globals::dynBrushModels.initiated = true;
+					if (!Game::Globals::dynBrushModels.initiated)
+					{
+						Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Disabled debug-brush collision. Could not find any dynamic brushmodels on the map!^7\n|-> ^1Make sure that you included the \"dynamic_collision_bmodels.map\" prefab within your map -> RE-BSP!", 0);
+						Game::Globals::dynBrushModels.initiated = true;
 
-					return;
+						continue; // we still want to draw all the brushes
+					}
+
+					continue; // we still want to draw all the brushes
+					
 				}
 
-				if (!Game::Globals::dynBrushModels.mapped_bmodels || b >= Game::Globals::dynBrushModels.mapped_bmodels - 1)
+				if (b >= Game::Globals::dynBrushModels.mapped_bmodels - 1)
 				{
 					// if we ran out of avail. brushmodels, stop updating collision and notify the user
 					if (Game::Globals::rad_savedBrushes.wasModified)
 					{
-						Game::Com_PrintMessage(0, "RadiantDebugBrush:: ^1not enough dynamic brushmodels available! Using oldest selection for collision ...\n", 0);
+						Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Not enough dynamic brushmodels available! Using oldest selection for collision ...\n", 0);
 						Game::Globals::rad_savedBrushes.wasModified = false;
 					}
 

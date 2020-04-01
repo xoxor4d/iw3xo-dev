@@ -1,5 +1,7 @@
 #include "STDInclude.hpp"
 
+#define CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS 128
+
 #ifdef EXP_MAP_EXPORT
 int collisionFlickerCounter; // just a frame counter for brush flickering
 bool map_exportAllFilteredBrushes = false;
@@ -350,9 +352,10 @@ namespace Components
 			}
 		}
 
-		if (ptCount >= 128) // T5: 1024 ...
+		if (ptCount > CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS - 2) // T5: 1024 ...
 		{
 			Game::Com_PrintMessage(0, Utils::VA("CM_AddSimpleBrushPoint :: More than %i points from plane intersections on %i-sided brush\n", ptCount, brush->numsides), 0);
+			return ptCount;
 		}
 
 		brushPts[ptCount].xyz[0] = xyz[0];
@@ -431,6 +434,11 @@ namespace Components
 
 								// if the planes intersected, put verts into brushPts and increase our pointCount
 								ptCount = CM_AddSimpleBrushPoint(brush, axialPlanes, sideIndex, xyz, ptCount, brushPts);
+
+								if (ptCount >= CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS - 1)
+								{
+									return ptCount;
+								}
 							}
 						}
 					}
@@ -560,11 +568,13 @@ namespace Components
 	{
 		float delta; int axis; 
 
-		if (DEBUG && w->p[index0][i] == w->p[index1][i] && w->p[index0][j] == w->p[index1][j])
+#if DEBUG
+		if (w->p[index0][i] == w->p[index1][i] && w->p[index0][j] == w->p[index1][j])
 		{
 			Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf == w->p[%d][%d] %.2lf && w->p[%d][%d] %.2lf == w->p[%d][%d] %.2lf \n", 
 												__LINE__, index0, i, w->p[index0][i], index1, i, w->p[index1][i], index0, j, w->p[index0][j], index1, j, w->p[index1][j]), 0);
 		}
+#endif
 
 		if (fabs(float(uint32_t(w->p[index1][i] - w->p[index0][i]))) < fabs(float(uint32_t(w->p[index1][j] - w->p[index0][j]))))
 		{
@@ -579,11 +589,14 @@ namespace Components
 
 		if (delta <= 0.0f)
 		{
-			if (DEBUG && w->p[index0][axis] <= w->p[index1][axis])
+
+#if DEBUG
+			if (w->p[index0][axis] <= w->p[index1][axis])
 			{
 				Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf <= w->p[%d][%d] %.2lf \n", 
 													__LINE__, index0, axis, w->p[index0][axis], index1, axis, w->p[index1][axis]), 0);
 			}
+#endif
 
 			if (pt[axis] <= w->p[index0][axis]) 
 			{
@@ -604,11 +617,14 @@ namespace Components
 
 		else
 		{
-			if (DEBUG && w->p[index1][axis] <= w->p[index0][axis])
+
+#if DEBUG
+			if ( w->p[index1][axis] <= w->p[index0][axis])
 			{
 				Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf < w->p[%d][%d] %.2lf \n", 
 													__LINE__, index1, axis, w->p[index1][axis], index0, axis, w->p[index0][axis]), 0);
 			}
+#endif
 
 			if (w->p[index0][axis] <= pt[axis]) 
 			{
@@ -1274,7 +1290,7 @@ namespace Components
 #endif
 
 		int ptCount, sideIndex;
-		Game::ShowCollisionBrushPt brushPts[128]; // T5: 1024 .. wtf
+		Game::ShowCollisionBrushPt brushPts[CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS]; // T5: 1024 .. wtf
 
 		if (!brush) 
 		{
