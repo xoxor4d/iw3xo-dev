@@ -28,7 +28,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -59,7 +60,8 @@ Temporary Items
 
 # Additional stuff
 build
-#premake5.exe
+PETool.exe
+verpatch.exe
 user*.bat
 
 # IDA

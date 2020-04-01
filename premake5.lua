@@ -34,6 +34,7 @@ workspace "iw3xo-dev"
 	architecture "x32"
 	platforms "x86"
 	systemversion "10.0.17763.0"
+	startproject "iw3xo"
 
 	disablewarnings {
 		"4100",
@@ -69,7 +70,7 @@ workspace "iw3xo-dev"
 		flags { "MultiProcessorCompile", "No64BitChecks" }
 		optimize "Debug"
 
-	project "iw3x"
+	project "iw3xo"
 		kind "SharedLib"
 		language "C++"
 		files {

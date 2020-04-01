@@ -14,14 +14,9 @@ echo "Updating the icon..."
 winresourcer --operation=delete "--exeFile=$PSScriptRoot\iw3x.tmp" --resourceType=Icongroup --resourceName=1
 winresourcer --operation=add "--exeFile=$PSScriptRoot\iw3x.tmp" --resourceType=Icongroup --resourceName=1 --lang=1033 "--resourceFile=$PSScriptRoot\..\assets\ico_3xo.ico"
 
-# Change window title -> resets stats
-#echo "Updating the title..."
-#replace-string-keepoffset "$PSScriptRoot\iw3x.tmp" "Call of Duty 4" "IW3xo b2939"
-
 # Make it load iw3x.dll instead of d3d9.dll
 echo "Updating the D3D9 library path..."
 replace-string-keepoffset "$PSScriptRoot\iw3x.tmp" "d3d9.dll" "iw3x.dll"
-
 
 # Let's place it into the root directory
 mv -Force "$PSScriptRoot\iw3x.tmp" "$PSScriptRoot\..\iw3xo.exe"
