@@ -231,6 +231,7 @@ namespace Game
 		}
 	}
 
+	// wrapper not correct ?!
 	void R_AddCmdDrawTextASM(const char *text, int maxChars, void *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style)
 	{
 		const static uint32_t R_AddCmdDrawText_Func = 0x5F6B00;
@@ -986,7 +987,7 @@ namespace Game
 	//}
 
 	// Registering StringDvars is a pain, so heres a workaround
-	void Dvar_RegisterString(const char *dvarName, const char *dvarValue, const char *description)
+	Game::dvar_s* Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description)
 	{
 		Game::dvar_s *dvarToRegister;
 
@@ -997,7 +998,9 @@ namespace Game
 		dvarToRegister = Game::Dvar_FindVar(dvarName);
 
 		if (!dvarToRegister)
-			return;
+		{
+			return nullptr;
+		}
 
 		// if our dvar was created successfully, our description will be "External Dvar"
 		std::string external = dvarToRegister->description;
@@ -1007,10 +1010,10 @@ namespace Game
 			dvarToRegister->description = description;
 			dvarToRegister->flags = Game::dvar_flags::none;
 
-			//return dvarToRegister;
+			return dvarToRegister;
 		}
 
-		//return nullptr;
+		return nullptr;
 	}
 
 	char* Dvar_EnumToString(const dvar_s *dvar)

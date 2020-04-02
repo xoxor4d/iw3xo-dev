@@ -333,6 +333,15 @@ namespace Game
 		return Dvar_RegisterEnum_r(dvarName, DvarType::DVAR_TYPE_ENUM, flags, description, defaultValue, 0, 0, 0, enumSize, enumData);
 	}
 
+	// using RegisterNew - STRING (03)
+	static utils::function<dvar_s * (const char* dvarName, DvarType typeString, std::uint16_t flags, const char* description, const char* defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t null4, std::int32_t null5)>
+		Dvar_RegisterString_r = 0x56C130;
+
+	// * do not use on module load (crash)
+	inline dvar_s* Dvar_RegisterString(const char* dvarName, const char* description, const char* defaultValue, std::uint16_t flags) {
+		return Dvar_RegisterString_r(dvarName, DvarType::DVAR_TYPE_STRING, flags, description, defaultValue, 0, 0, 0, 0, 0);
+	}
+
 	void Dvar_SetValue(dvar_s* _dvar, int _dvarValue);
 	void Dvar_SetValue(dvar_s* _dvar, bool _dvarValue);
 	void Dvar_SetValue(dvar_s* _dvar, const float _dvarValue);
@@ -340,7 +349,7 @@ namespace Game
 
 	//dvar_s* Dvar_RegisterVariant(int dvarName /*eax*/, int dvarType, int flags, int description, int defaultValue, int y, int z, int w, float min, int max); // ASM
 
-	void  Dvar_RegisterString(const char *dvarName, const char *dvarValue, const char *description);
+	Game::dvar_s* Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description);
 	char* Dvar_EnumToString(const dvar_s *a1);
 
 	void Dvar_SetString(const char *text /*eax*/, dvar_s *dvar /*esi*/); //ASM

@@ -312,8 +312,8 @@ namespace Components
 		{
 			mainmenu_fadeTime -= 0.5f;
 			mainmenu_fadeColor[3] = (mainmenu_fadeTime * (1.0f / mainmenu_init_fadeTime));
+			
 			Game::ConDraw_Box(mainmenu_fadeColor, 0.0f, 0.0f, (float)Game::_uiContext->screenWidth, (float)Game::_uiContext->screenHeight);
-
 			return;
 		}
 
@@ -328,48 +328,41 @@ namespace Components
 			return;
 		}
 
-		auto	ui_smallFont = Game::Dvar_FindVar("ui_smallFont")->current.value;
-		auto	ui_extraBigFont = Game::Dvar_FindVar("ui_extraBigFont")->current.value;
-		auto	ui_bigFont = Game::Dvar_FindVar("ui_bigFont")->current.value;
-
-		char*		font; 
-		const char* textForeground; 
-		const char* textBackground;
-
 		float	scale, scale_x, scale_y, offs_x, offs_y;
-
 		float	max = Game::scrPlace->scaleVirtualToReal[1] * 0.3f;
 
-		if (ui_smallFont < max)
+		char* font;
+
+		if (Game::Dvar_FindVar("ui_smallFont")->current.value < max)
 		{
-			if (ui_extraBigFont > max)
+			if (Game::Dvar_FindVar("ui_extraBigFont")->current.value > max)
 			{
 				font = FONT_BIG;
 
-				if (ui_bigFont > max)
+				if (Game::Dvar_FindVar("ui_bigFont")->current.value > max)
 				{
 					font = FONT_NORMAL;
 				}
 			}
-			else font = FONT_EXTRA_BIG;
+			else 
+				font = FONT_EXTRA_BIG;
 		}
-		else font = FONT_SMALL;
+		else 
+			font = FONT_SMALL;
 
 		// get font handle
 		void* fontHandle = Game::R_RegisterFont(font, sizeof(font));
-		Game::Font_s *_font = reinterpret_cast<Game::Font_s*>(fontHandle);
 
-		offs_x = 10.0f; offs_y = -10.0f;
-		scale = 0.25f;
+		offs_x = 10.0f; offs_y = -10.0f; scale = 0.25f;
 
-		scale_x = scale * 48.0f / _font->pixelHeight;
+		scale_x = scale * 48.0f / static_cast<Game::Font_s*>(fontHandle)->pixelHeight;
 		scale_y = scale_x;
 
 		// place container
 		_UI::ScrPlace_ApplyRect(&offs_x, &scale_x, &offs_y, &scale_y, HORIZONTAL_ALIGN_LEFT, VERTICAL_ALIGN_BOTTOM);
 
-		textForeground = Utils::VA("IW3xo :: %.lf :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE);
-		textBackground = textForeground;
+		const char* textForeground = Utils::VA("IW3xo :: %.lf :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE);
+		const char* textBackground = textForeground;
 
 		if (DEBUG)
 		{
@@ -378,7 +371,7 @@ namespace Components
 		}
 
 		// We currently need to draw 2 strings otherwise we won't see any text on a release build
-		// So we draw a string with a backdrop shadow :p
+		// So we draw another one using that as a backdrop shadow :p
 
 		// Background String
 		float colorBackground[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
@@ -427,6 +420,7 @@ namespace Components
 
 	// --------------------------------------------------------------
 
+	// gameTime constant is only updated in-game, so .. lets fix that
 	float menu_gameTime = 0.0f;
 
 	void UI_SetCustom_CodeConstants()

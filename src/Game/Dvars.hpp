@@ -31,6 +31,8 @@ namespace Dvars
 	extern Game::dvar_s* ui_developer;
 	extern Game::dvar_s* ui_developer_script;
 
+	extern Game::dvar_s* ui_main_title;
+
 	// Console -------------------------------------------
 
 	extern Game::dvar_s* con_minicon_position;

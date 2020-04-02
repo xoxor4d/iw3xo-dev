@@ -10,6 +10,8 @@
 Game::dvar_s* snaps = nullptr;
 Game::dvar_s* cg_fovScale = nullptr;
 
+char* MENU_CHANGELOG_TITLE_FMT = "IW3XO :: %.lf :: %s\n"; // IW3X_BUILDNUMBER, __TIMESTAMP__
+
 namespace Components
 {
 	void QuickPatch::PerformInit()
@@ -384,6 +386,31 @@ namespace Components
 		}
 	}
 
+	void R_RegisterStringDvars()
+	{
+		Dvars::ui_main_title = Game::Dvar_RegisterString(
+			/* name		*/ "ui_changelog_title",
+			/* desc		*/ "menu helper",
+			/* value	*/ Utils::VA(MENU_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, __TIMESTAMP__),
+			/* flags	*/ Game::dvar_flags::read_only);
+	}
+
+	__declspec(naked) void R_RegisterStringDvars_stub()
+	{
+
+		const static uint32_t R_RegisterSunDvars_Func = 0x636FC0;
+		const static uint32_t rtnPt = 0x629D7F;
+		__asm
+		{
+			pushad
+			Call R_RegisterStringDvars
+			popad
+
+			Call R_RegisterSunDvars_Func
+			jmp rtnPt
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// Set fs_game
@@ -433,6 +460,9 @@ namespace Components
 		// ----
 		// Init
 
+		// Register String Dvars (doing so on module load crashes the game (SL_GetStringOfSize))
+		Utils::Hook(0x629D7A, R_RegisterStringDvars_stub, HOOK_JUMP).install()->quick();
+
 		Utils::Hook(0x46FD00, CL_PreInitRenderer_stub, HOOK_JUMP).install()->quick();
 		
 		// fixing default console prints
@@ -466,6 +496,7 @@ namespace Components
 		// Load "iw_" and "xcommon_" iwds as localized (works in all situations + elements in xcommon files can overwrite prior files)
 		Utils::Hook(0x55DBB4, FS_MakeIWDsLocalized, HOOK_JUMP).install()->quick();
 
+
 		// --------
 		// Commands
 
@@ -476,6 +507,11 @@ namespace Components
 				RadiantRemote::CM_FindDynamicBrushModels();
 			});
 		}
+
+		Command::Add("iw3xo_github", [](Command::Params)
+		{
+			ShellExecute(0, 0, L"https://xoxor4d.github.io/projects/iw3xo/", 0, 0, SW_SHOW);
+		});
 
 		// extend
 		Command::Add("ent_rotateTo", [](Command::Params params)

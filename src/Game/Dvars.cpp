@@ -30,6 +30,8 @@ namespace Dvars
 	Game::dvar_s* ui_developer = nullptr;
 	Game::dvar_s* ui_developer_script = nullptr;
 
+	Game::dvar_s* ui_main_title = nullptr;
+
 	// Console -------------------------------------------
 
 	Game::dvar_s* con_minicon_position = nullptr;

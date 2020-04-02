@@ -1880,7 +1880,7 @@ namespace Components
 		{
 			// register a hacky dvar
 			auto dvarName = "r_drawCollision_brushIndexFilter";
-			Game::Dvar_RegisterString(dvarName, "null", "Specifies which brushes to draw. Ignores all other filters and will disable brush sorting.\nInput example: \"101 99 2\" :: \"^1null^7\" disables this filter");
+			Game::Dvar_RegisterString_hacky(dvarName, "null", "Specifies which brushes to draw. Ignores all other filters and will disable brush sorting.\nInput example: \"101 99 2\" :: \"^1null^7\" disables this filter");
 
 			// assign the dvar to the global dvar
 			Dvars::r_drawCollision_brushIndexFilter = Game::Dvar_FindVar(dvarName);
