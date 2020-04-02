@@ -5,17 +5,20 @@ A compatible Radiant, built for use with IW3xo, that enables a live-link between
 
 Build project:
 1. Hit "generate.bat" to build project files
-2. Load the project and open project-settings to setup paths (Debug/Release):
+2. Load the project in Visual Studio and open project->settings to setup paths (Debug/Release):
    - General: output directory path -> "path-to-cod4-root\"
    - Debugging: command -> "path-to-cod4-root\iw3xo.exe"
    - Debugging: working directory -> "path-to-cod4-root\"
-3. Build
+   - You may need to change the Toolset of both glm and iw3x if you do not have v142 installed. For each go to General -> Platform Toolset -> set to your installed version
+3. Build -> Build Solution
    
 Generate the exe:   
 1. Copy a non-steam (1.7) "iw3mp.exe" into the "\assets" folder
 2. Install required resource tools by running "res\res-tools.ps1"
 3. "res\generate-exe.ps1" will generate and place "iw3xo.exe" into the project root
 4. Copy the generated exe into your cod4-root
+
+When you make changes you only need to build solution again.
 
 Requires:
 1. https://github.com/xoxor4d/xcommon_iw3xo
