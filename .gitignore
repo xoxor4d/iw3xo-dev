@@ -63,6 +63,7 @@ build
 PETool.exe
 verpatch.exe
 user*.bat
+*.zip
 
 # IDA
 # =========================

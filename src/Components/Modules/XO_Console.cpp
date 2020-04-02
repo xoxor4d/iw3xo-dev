@@ -2047,13 +2047,6 @@ CON_MATCH_PREFIX_ONLY:
 		//	}
 		//});
 
-		Command::Add("help", [](Command::Params)
-		{
-			Game::Com_PrintMessage(0, "\n", 0);
-			Game::Com_PrintMessage(0, Utils::VA("%s", CON_HELP_PRINT), 0);
-		});
-
-
 		// -----
 		// Hooks
 		
