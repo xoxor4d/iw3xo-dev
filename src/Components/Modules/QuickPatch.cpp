@@ -500,17 +500,27 @@ namespace Components
 		// --------
 		// Commands
 
-		if (Components::active.RadiantRemote)
-		{
-			Command::Add("dynbrushmodels", [](Command::Params)
-			{
-				RadiantRemote::CM_FindDynamicBrushModels();
-			});
-		}
+		//if (Components::active.RadiantRemote)
+		//{
+		//	Command::Add("dynbrushmodels", [](Command::Params)
+		//	{
+		//		RadiantRemote::CM_FindDynamicBrushModels();
+		//	});
+		//}
 
 		Command::Add("iw3xo_github", [](Command::Params)
 		{
-			ShellExecute(0, 0, L"https://xoxor4d.github.io/projects/iw3xo/", 0, 0, SW_SHOW);
+			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-dev/", 0, 0, SW_SHOW);
+		});
+
+		Command::Add("iw3xo_radiant_github", [](Command::Params)
+		{
+			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-radiant/", 0, 0, SW_SHOW);
+		});
+
+		Command::Add("help", [](Command::Params)
+		{
+			ShellExecute(0, 0, L"https://xoxor4d.github.io/projects/iw3xo/#in-depth", 0, 0, SW_SHOW);
 		});
 
 		// extend
@@ -518,7 +528,7 @@ namespace Components
 		{
 			if (params.Length() < 3) 
 			{
-				Game::Com_PrintMessage(0, "Usage :: rotateTo entityID <angles vec3>\n", 0);
+				Game::Com_PrintMessage(0, "Usage :: ent_rotateTo entityID <angles vec3>\n", 0);
 				return;
 			}
 
@@ -588,6 +598,7 @@ namespace Components
 				/* flags	*/ Game::dvar_flags::saved);
 		});
 
+		// needs work :x
 		Command::Add("loadzone", [](Command::Params params) // unload zone and load zone again
 		{
 			if (params.Length() < 2) 
@@ -614,6 +625,5 @@ namespace Components
 	}
 
 	QuickPatch::~QuickPatch()
-	{
-	}
+	{ }
 }
