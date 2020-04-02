@@ -1,7 +1,7 @@
 ## IW3xo - A Call of Duty 4 Modification
-This project is aimed at developers and includes various modifications and additions.  
+This project is aimed at developers and includes various modifications/additions.  
 IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
-A compatible Radiant, build for use with IW3xo, that enables a live-link between CoD4 <-> Radiant is available here: <url>
+A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
 
 Build project:
 1. Hit "generate.bat" to build project files
@@ -20,3 +20,6 @@ Generate the exe:
 Requires:
 1. https://github.com/xoxor4d/xcommon_iw3xo
 2. https://github.com/xoxor4d/xcommon_iw3xo_menu
+
+Optional:
+- https://github.com/xoxor4d/iw3xo-radiant
