@@ -1,8 +1,6 @@
 #pragma once
 #include "Utils/function.hpp"
 
-//#define g_entities ((Game::gentity_s*)(0x841ffe0))
-
 namespace Game
 {
 	//extern bool DEBUG
@@ -44,11 +42,7 @@ namespace Game
 	extern float COLOR_WHITE[4];
 	extern float COLOR_BLACK[4];
 
-
-	
-
-	
-	// ------------------------------------------------------
+	// ---------------
 	// RADIANT / CGAME
 
 	extern const char* g_entityBeginParsePoint;
@@ -59,7 +53,7 @@ namespace Game
 	char* Com_Parse(const char **data_p /*edi*/); // ASM
 	bool CL_GetUserCmd(int cmdNumber /*eax*/, Game::usercmd_s *ucmd);
 
-	// ------------------------------------------------------
+	// ---------
 	// FASTFILES
 
 	extern HANDLE dbHandle;
@@ -77,7 +71,7 @@ namespace Game
 
 	extern bool DB_FileExists(const char* fileName, Game::DB_FILE_EXISTS_PATH);
 	
-	// ------------------------------------------------------
+	// ---------
 	// COLLISION 
 
 	extern int* vertexCount;
@@ -96,7 +90,7 @@ namespace Game
 	
 	extern Game::MaterialTechniqueType* OverflowTessTech;
 	extern Game::Material* OverflowTessSurf;
-	extern Game::Material* TECHNIQUE_UNLIT_Surf;
+	extern Game::Material* builtIn_material_unlit;
 	extern Game::Material* builtIn_material_unlit_depth;
 	extern Game::materialCommands_t* tess;
 	
@@ -121,7 +115,7 @@ namespace Game
 	void R_AddDebugPolygon(int pointCount, const float(*points)[3]);
 	void R_AddDebugPolygonNew(Game::DebugGlobals* debugGlobalsEntry, int pointCount, const float(*points)[3]);
 
-	// -----------------------------------------------------------------------
+	// --------
 	// RENDERER
 
 	extern bool* gfxRenderTargets;
@@ -172,11 +166,11 @@ namespace Game
 	void CG_DrawRotatedPicPhysical(ScreenPlacement* place, float a2, float a3, float a4, float a5, float a6, float *color, void *material);
 	int R_TextWidth(const char *text /*<eax*/, int maxChars, Game::Font_s *font); // ASM
 
-	// ------------------------------------------------------
+	// ---------
 	// UI / MENU
 
-	extern int* gameTypeEnum; // [0x2 * *(ui_netGameType + 12)]
-	extern int* mapNameEnum; // [0x28 * *(ui_currentNetMap + 12)]
+	extern int* gameTypeEnum; 
+	extern int* mapNameEnum;
 	extern Game::UiContext* _uiContext;
 	extern Game::PlayerKeyState* playerKeys; // 0x8F1DB8 (missing field_t)
 	extern Game::clientUIActive_t* clientUI;
@@ -192,7 +186,7 @@ namespace Game
 	extern void Menus_CloseByName(const char* menuName, Game::UiContext *uiDC);
 	extern void Menus_CloseAll(Game::UiContext *uiDC);
 	
-	// ------------------------------------------------------
+	// ---
 	// GSC 
 
 	extern DWORD*	gScrMemTreePub;
@@ -211,7 +205,6 @@ namespace Game
 	static utils::function<Game::gentity_s*()> G_Spawn = 0x4E37F0;
 	static utils::function<bool(Game::gentity_s*)> G_CallSpawnEntity = 0x4DFFA0;
 	static utils::function<void(Game::trajectory_t *pTr, const float *vPos, float fTotalTime, float fAccelTime, float fDecelTime, float *vCurrPos, float *pfSpeed, float *pfMidTime, float *pfDecelTime, float *vPos1, float *vPos2, float *vPos3)> ScriptMover_SetupMove = 0x4D9440;
-	//void __cdecl ScriptMover_SetupMove(trajectory_t *pTr, const float *vPos, float fTotalTime, float fAccelTime, float fDecelTime, float *vCurrPos, float *pfSpeed, float *pfMidTime, float *pfDecelTime, float *vPos1, float *vPos2, float *vPos3)
 
 	void G_SetOrigin(Game::gentity_s* ent, float *origin);
 	void G_SetAngles(Game::gentity_s* ent, float *angles);
@@ -224,7 +217,7 @@ namespace Game
 
 	int isButtonPressed(int button, int buttonData);
 
-	// ------------------------------------------------------
+	// ----
 	// IWDs
 
 	extern const char* fs_gamedir;
@@ -239,7 +232,7 @@ namespace Game
 	int SEH_GetLanguageIndexForName(const char *pszLanguageName, int *piLanguageIndex); //ASM
 	int unzClose(const char *file /*edi*/); //ASM
 
-	// ------------------------------------------------------
+	// --------
 	// MOVEMENT
 
 	extern int* g_entities;
@@ -355,7 +348,7 @@ namespace Game
 	void Dvar_SetString(const char *text /*eax*/, dvar_s *dvar /*esi*/); //ASM
 	dvar_s* Dvar_FindVar(const char* dvar);
 	
-	// -----------------------------------------------------------------------
+	// -------
 	// CONSOLE 
 
 	extern float* con_matchtxtColor_currentDvar;
@@ -380,7 +373,6 @@ namespace Game
 	extern float*	conScreenMax1; // bottom
 
 	extern bool*	extvar_con_ignoreMatchPrefixOnly;
-	extern DWORD*	whiteMaterial;
 
 	// cmd args
 	extern int* argc_1410B84;
@@ -437,7 +429,7 @@ namespace Game
 	typedef bool(*Con_IsAutoCompleteMatch_t)(char *a1, char *a2, int a3);
 		extern Con_IsAutoCompleteMatch_t Con_IsAutoCompleteMatch;
 
-		void Con_DrawMessageWindowOldToNew(DWORD* msgWindow /*esi*/, int localClientNum, int xPos, int yPos, int charHeight, int horzAlign, int vertAlign, int mode, Font_s* font, const float* color, int textStyle, float msgwndScale, int textAlignMode); // ASM
+	void Con_DrawMessageWindowOldToNew(DWORD* msgWindow /*esi*/, int localClientNum, int xPos, int yPos, int charHeight, int horzAlign, int vertAlign, int mode, Font_s* font, const float* color, int textStyle, float msgwndScale, int textAlignMode); // ASM
 
 	void Cmd_ForEachXO(void(__cdecl *callback)(const char *));
 
@@ -451,12 +443,12 @@ namespace Game
 	void Dvar_ForEachName(void(__cdecl *func)(const char *)); // ASM
 	void Cmd_ForEach(void(__cdecl *func)(const char *)); // ASM
 	
-	// -----------------------------------------------------------------------
+	// -----
 	// ANIMS
 	
 	void BG_AnimScriptEvent(scriptAnimEventTypes_t event, Game::playerState_s *ps, int force); // ASM
 	
-	// -----------------------------------------------------------------------
+	// ------
 	// COMMON
 
 	extern Game::playerState_s* ps_loc;
@@ -469,9 +461,6 @@ namespace Game
 	extern XAssetEntry* g_assetEntryPool;
 	extern unsigned short* db_hashTable;
 	extern infoParm_t* infoParams;
-
-	//typedef void(*Cbuf_AddText_t)(const char *text, int localClientNum);
-	//	extern Cbuf_AddText_t Cbuf_AddText;
 
 	typedef void(*Cmd_ExecuteSingleCommand_t)(int controller, int a2, const char* cmd);
 		extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
@@ -495,13 +484,7 @@ namespace Game
 		extern DB_LoadXAssets_t DB_LoadXAssets;
 
 	void Cbuf_AddText(const char *text /*eax*/, int localClientNum /*ecx*/);
-	int FS_ReadFile(const char* path, char** buffer);
-	void FS_FreeFile(void* buffer);
-
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides);
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char);
-	unsigned int R_HashString(const char* string);
-	const char* FindHash(unsigned int hash);
 	const char* SL_ConvertToString(int idx);
 
 	Game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);

@@ -10,7 +10,6 @@
 // DrawCollision
 
 #define EXP_MAP_EXPORT			// uncomment to use exp. map exporting
-//#define COLLISION_CUST_MATERIAL	// uncomment to use a custom material for filling polys
 
 
 // -------

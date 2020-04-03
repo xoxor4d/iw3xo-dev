@@ -110,6 +110,7 @@ namespace Dvars
 	Game::dvar_s* r_drawCollision_polyAlpha = nullptr;
 	Game::dvar_s* r_drawCollision_polyDepth = nullptr;
 	Game::dvar_s* r_drawCollision_polyFace = nullptr;
+	Game::dvar_s* r_drawCollision_polyLit = nullptr;
 
 #if DEBUG
 	Game::dvar_s* r_drawCollision_brushDebug = nullptr; 

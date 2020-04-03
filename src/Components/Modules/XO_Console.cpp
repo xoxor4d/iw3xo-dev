@@ -1776,6 +1776,8 @@ CON_MATCH_PREFIX_ONLY:
 		}
 	}
 
+	// *
+	// minicon drawing
 	void Con_DrawMessageWindowOldToNew_Proxy(DWORD* msgWnd, int s_xPos, int s_yPos, int s_charHeight, int s_horzAlign, int s_vertAlign, int s_mode, Game::Font_s* s_font, const float* s_color, int s_textStyle, float s_msgwndScale, int s_textAlignMode)
 	{
 		// get font handle

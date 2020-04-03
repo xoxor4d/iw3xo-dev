@@ -111,8 +111,9 @@ namespace Dvars
 	extern Game::dvar_s* r_drawCollision_polyAlpha;
 	extern Game::dvar_s* r_drawCollision_polyDepth;
 	extern Game::dvar_s* r_drawCollision_polyFace;
+	extern Game::dvar_s* r_drawCollision_polyLit;
 
-#ifdef DEBUG
+#if DEBUG
 	extern Game::dvar_s* r_drawCollision_brushDebug;
 #endif
 

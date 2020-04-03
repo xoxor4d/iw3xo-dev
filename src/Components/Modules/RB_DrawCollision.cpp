@@ -1001,251 +1001,6 @@ namespace Components
 		return 1;
 	}
 
-
-	bool s_addingDebugLines = false;
-	bool s_lastDepthTest = false;
-
-	// add debugLines
-	int RB_AddDebugLine(const float *start, const float *end, const float *color, bool depthTest, int vertCount, int vertLimit, Game::GfxPointVertex *verts)
-	{
-		if (vertCount + 2 > vertLimit || s_addingDebugLines && s_lastDepthTest != depthTest) 
-		{
-			Game::RB_DrawLines3D(vertCount / 2, Dvars::r_drawCollision_lineWidth->current.integer, verts, s_lastDepthTest);
-			vertCount = 0;
-		}
-
-		s_lastDepthTest = depthTest;
-		s_addingDebugLines = 1;
-
-		Game::R_ConvertColorToBytes(color, verts[vertCount].color);
-
-		*(DWORD*)verts[vertCount + 1].color = *(DWORD*)verts[vertCount].color;
-
-		verts[vertCount].xyz[0] = start[0];
-		verts[vertCount].xyz[1] = start[1];
-		verts[vertCount].xyz[2] = start[2];
-		
-		verts[vertCount + 1].xyz[0] = end[0];
-		verts[vertCount + 1].xyz[1] = end[1];
-		verts[vertCount + 1].xyz[2] = end[2];
-
-		return vertCount + 2;
-	}
-
-	// draw all created debugLines 
-	int RB_EndDebugLines(int vertCount, Game::GfxPointVertex *verts)
-	{
-		if (vertCount) 
-		{
-			Game::RB_DrawLines3D(vertCount, Dvars::r_drawCollision_lineWidth->current.integer, verts, s_lastDepthTest);
-			s_addingDebugLines = 0;
-		}
-
-		return 0;
-	}
-
-	// set vertices for current render-surface
-	void RB_SetPolyVert(const float *xyz, Game::GfxColor color, int vertCount)
-	{
-		Game::tess->verts[vertCount].xyzw[0] = xyz[0];
-		Game::tess->verts[vertCount].xyzw[1] = xyz[1];
-		Game::tess->verts[vertCount].xyzw[2] = xyz[2];
-		Game::tess->verts[vertCount].xyzw[3] = 1.0f; // 0.0 to make it a sky
-
-		Game::tess->verts[vertCount].color.packed = color.packed;
-		Game::tess->verts[vertCount].texCoord[0] = 0.0f;
-		Game::tess->verts[vertCount].texCoord[1] = 0.0f;
-		Game::tess->verts[vertCount].normal.packed = 1073643391;
-	}
-
-	// only used for debugLines
-	Game::GfxPointVertex debugLineVerts[2725];
-
-	// draw the current poly
-	void RB_DrawCollisionPoly(const int numPoints, float(*points)[3], const float *colorFloat)
-	{
-		int vertCount, vertIndex, vertIndexPrev;
-		Game::GfxColor color;
-		
-		if (numPoints < 3) 
-		{
-			return;
-		}
-
-		// ----------
-		// Draw Polys
-
-		if (Dvars::r_drawCollision->current.integer == 2 || Dvars::r_drawCollision->current.integer == 3)
-		{
-			Game::R_ConvertColorToBytes(colorFloat, (char *)&color);
-
-			// check that we did not overflow the render-surface
-			if (Game::OverflowTessSurf != Game::builtIn_material_unlit_depth || *Game::OverflowTessTech != Game::MaterialTechniqueType::TECHNIQUE_UNLIT)
-			{
-				if (Game::tessSurface) 
-				{
-					// draw any left-over polys/lines 
-					Game::RB_EndTessSurface();
-				}
-
-				if (Dvars::r_drawCollision_polyDepth->current.enabled)
-				{
-#ifdef COLLISION_CUST_MATERIAL
-					// use a custom material for polygons
-					Game::Material *xo_showcollision_depth = reinterpret_cast<Game::Material *>(Game::Material_RegisterHandle("xo_showcollision_depth", 3));
-					Game::RB_BeginSurface_NonExternMaterial(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, xo_showcollision_depth);
-						
-					// stock material for comparison
-					Game::Material* UNLIT_Surf_Depth = reinterpret_cast<Game::Material*>(*(DWORD32 *)(Game::TECHNIQUE_UNLIT_Surf_Depth));
-#else
-					// Patching default Line Material so that it uses Blend and PolyOffset
-					Game::Material* unlit_material = reinterpret_cast<Game::Material*>(*(DWORD32 *)(Game::builtIn_material_unlit_depth));
-
-					if (Dvars::r_drawCollision_polyFace->current.enabled) 
-					{
-						// draw both sides of the polygon :: blendFunc Blend + cullFace "None"
-						unlit_material->stateBitsTable->loadBits[0] = 422072677;
-					}
-					else 
-					{
-						// 1 sided polygon :: blendFunc Blend + cullFace "Back"
-						unlit_material->stateBitsTable->loadBits[0] = 422089061;
-					}
-
-					// stop z-fighting :: polyOffset StaticDecal
-					unlit_material->stateBitsTable->loadBits[1] = 44;
-
-					// render with depth check
-					Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, *Game::builtIn_material_unlit_depth);
-#endif
-				}
-
-				else 
-				{
-					// render without depth check
-					Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, *Game::TECHNIQUE_UNLIT_Surf);
-				}
-			}
-
-			// render polys and free surface afterwards if we would overflow the surface
-			_Debug::RB_CheckTessOverflow(numPoints);
-			
-			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex) 
-			{
-				RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex);
-			}
-
-			for (vertIndex = 0; vertIndex < numPoints - 2; ++vertIndex) // SOURCE WAY
-			{
-				Game::tess->indices[Game::tess->indexCount + 0] = (unsigned short int)(0);
-				Game::tess->indices[Game::tess->indexCount + 1] = (unsigned short int)(vertIndex + 2);
-				Game::tess->indices[Game::tess->indexCount + 2] = (unsigned short int)(vertIndex + 1);
-				Game::tess->indexCount += 3;
-			}
-
-			Game::tess->vertexCount += numPoints;
-
-			// Draw all added polys
-			Game::RB_EndTessSurface();
-
-			// ------------------------------
-			// Draw Polys as wireframe on top
-
-			if (Dvars::r_drawCollision->current.integer == 3)
-			{
-				if (Game::OverflowTessSurf != Game::builtIn_material_unlit_depth || *Game::OverflowTessTech != Game::MaterialTechniqueType::TECHNIQUE_WIREFRAME_SOLID)
-				{
-					if (Game::tessSurface) 
-					{
-						// if we have any undrawn polys/lines left in our render-surf, draw them now 
-						Game::RB_EndTessSurface();
-					}
-
-					if (Dvars::r_drawCollision_polyDepth->current.enabled)
-					{
-						// Patching default Line Material so that it uses Blend and PolyOffset
-						Game::Material* unlit_material = reinterpret_cast<Game::Material*>(*(DWORD32 *)(Game::builtIn_material_unlit_depth));
-
-						if (Dvars::r_drawCollision_polyFace->current.enabled)
-						{
-							// draw both sides of the polygon :: blendFunc Blend + cullFace "None" (wireframe)
-							unlit_material->stateBitsTable->loadBits[0] = 2282899474;
-							unlit_material->stateBitsEntry[28] = '\0';
-						}
-						else 
-						{
-							// 1 sided polygon
-							unlit_material->stateBitsEntry[28] = '\x2';
-						}
-
-						// stop z-fighting :: polyOffset StaticDecal
-						unlit_material->stateBitsTable->loadBits[1] = 44;
-
-						// render with depth check
-						Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_WIREFRAME_SOLID, *Game::builtIn_material_unlit_depth);
-					}
-
-					else
-					{
-						// render without depth check
-						Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_WIREFRAME_SOLID, *Game::TECHNIQUE_UNLIT_Surf);
-					}
-				}
-
-				// render polys and free surface afterwards if we would overflow the surface
-				_Debug::RB_CheckTessOverflow(numPoints);
-
-				Game::R_ConvertColorToBytes(Dvars::r_drawCollision_lineColor->current.vector, (char *)&color);
-
-				// set surface verts (tess->verts)
-				for (vertIndex = 0; vertIndex < numPoints; ++vertIndex) 
-				{
-					RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex);
-				}
-
-				// counter-clockwise polys?
-				for (vertIndex = 0; vertIndex < numPoints - 2; ++vertIndex)
-				{
-					Game::tess->indices[Game::tess->indexCount + 0] = (unsigned short int)(0);
-					Game::tess->indices[Game::tess->indexCount + 1] = (unsigned short int)(vertIndex + 2);
-					Game::tess->indices[Game::tess->indexCount + 2] = (unsigned short int)(vertIndex + 1);
-
-					Game::tess->indexCount += 3;
-				}
-
-				Game::tess->vertexCount += numPoints;
-
-				// Draw all added polys
-				Game::RB_EndTessSurface();
-			}
-		}
-
-		// ------------------------------------
-		// Draw brush outlines using debugLines
-
-		if (Dvars::r_drawCollision->current.integer == 1)
-		{
-			vertCount = 0;
-			vertIndexPrev = numPoints - 1;
-
-			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
-			{
-				vertCount = RB_AddDebugLine(&(*points)[3 * vertIndexPrev],
-											&(*points)[3 * vertIndex],
-											Dvars::r_drawCollision_lineColor->current.vector,
-											Dvars::r_drawCollision_polyDepth->current.enabled,
-											vertCount,
-											2725,
-											debugLineVerts);
-
-				vertIndexPrev = vertIndex;
-			}
-
-			// Draw all added debuglines
-			RB_EndDebugLines(vertCount / 2, debugLineVerts);
-		}
-	}
-
 #ifdef EXP_MAP_EXPORT
 	// Allocates a single brushside
 	Game::map_brushSide_t *Alloc_BrushSide(void)
@@ -1379,7 +1134,22 @@ namespace Components
 				// build winding for the current brushside and check if it is visible (culling)
 				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, planeNormal, sideIndex, brushPts, ptCount)) 
 				{
-					RB_DrawCollisionPoly(*(DWORD *)windingPool, (float(*)[3])&windingPool[4], color);
+					//RB_DrawCollisionPoly(*(DWORD *)windingPool, (float(*)[3])&windingPool[4], color);
+
+					if (Dvars::r_drawCollision->current.integer == 1)
+					{
+						_Debug::RB_AddAndDrawDebugLines(*(DWORD*)windingPool, (float(*)[3])& windingPool[4], Dvars::r_drawCollision_lineColor->current.vector);
+					}
+					else
+					{
+						_Debug::RB_DrawPoly(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], color, 
+							Dvars::r_drawCollision_polyLit->current.enabled, 
+							Dvars::r_drawCollision->current.integer == 3 ? true : false, 
+							Dvars::r_drawCollision_lineColor->current.vector,
+							Dvars::r_drawCollision_polyDepth->current.enabled,
+							Dvars::r_drawCollision_polyFace->current.enabled);
+					}
+					
 					Game::Globals::drawnPlanesAmountTemp++;
 				}
 				
@@ -1414,7 +1184,22 @@ namespace Components
 				// map_exportAllFilteredBrushes :: drawing polys doesnt really impact performance while exporting
 				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, brush->sides[sideIndex - 6].plane->normal, sideIndex, brushPts, ptCount)) 
 				{
-					RB_DrawCollisionPoly(*(DWORD *)windingPool, (float(*)[3])&windingPool[4], color);
+					//RB_DrawCollisionPoly(*(DWORD *)windingPool, (float(*)[3])&windingPool[4], color);
+
+					if (Dvars::r_drawCollision->current.integer == 1)
+					{
+						_Debug::RB_AddAndDrawDebugLines(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], Dvars::r_drawCollision_lineColor->current.vector);
+					}
+					else
+					{
+						_Debug::RB_DrawPoly(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], color,
+							Dvars::r_drawCollision_polyLit->current.enabled,
+							Dvars::r_drawCollision->current.integer == 3 ? true : false,
+							Dvars::r_drawCollision_lineColor->current.vector,
+							Dvars::r_drawCollision_polyDepth->current.enabled,
+							Dvars::r_drawCollision_polyFace->current.enabled);
+					}
+
 					Game::Globals::drawnPlanesAmountTemp++;
 				}
 
@@ -2715,7 +2500,7 @@ namespace Components
 			}
 		}
 
-		// ------------------------------------------------------------------------------------------------------------------------------------------
+		// ----------------------------------------------------------------------------------------------------------------------------------------------
 		// Unsorted Brushes -- Brush Index Filter -- Brush Index Drawing (r_drawCollision_brushIndexFilter (brushFilterSet) / brush index drawing enabled)
 
 		else
@@ -2785,7 +2570,7 @@ namespace Components
 
 					Utils::extractIntegerWords(brushFilterStr, Integers, true);
 
-					// draw our filtered debug polys
+					// draw filtered debug polys
 					for (int filterElem = 0; filterElem < (int)Integers.size(); filterElem++)
 					{
 						int brushIndex = Integers[filterElem];
@@ -3488,6 +3273,12 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
+		Dvars::r_drawCollision_polyLit = Game::Dvar_RegisterBool(
+			/* name		*/ "r_drawCollision_polyLit",
+			/* desc		*/ "Enable fake lighting for polygons.",
+			/* default	*/ true,
+			/* flags	*/ Game::dvar_flags::saved);
+
 		Dvars::r_drawCollision_material = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_material",
 			/* desc		*/ "Will be populated when a map is loaded and r_drawCollision is enabled.",
@@ -3623,6 +3414,19 @@ namespace Components
 			/* minValue	*/ 0.0f,
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
+
+		// --------
+		// Commands
+
+		Command::Add("mapexport", [](Command::Params)
+		{
+			Game::Cbuf_AddText( "r_drawcollision 1; r_drawcollision_materialinclude 4; r_drawcollision_brushamount 0; r_drawcollision_brushbegin 0; pm_hud_enable 0", 0);
+
+			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision_export 1\n");
+			Game::Cmd_ExecuteSingleCommand(0, 0, "say \"Export Done!\"\n");
+
+			Game::Cbuf_AddText("r_drawcollision 0", 0);
+		});
 	}
 
 	RB_DrawCollision::~RB_DrawCollision()

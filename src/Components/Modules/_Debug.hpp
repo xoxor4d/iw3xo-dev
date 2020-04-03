@@ -19,6 +19,10 @@ namespace Components
 		static void DebugLines_InitSync(Game::dbgLinesDelaySync_t *sync);
 		static bool DebugLines_Sync(Game::dbgLinesDelaySync_t *sync);
 
+		static int  RB_AddDebugLine(const float* start, const float* end, const float* color, bool depthTest, int vertCount, int vertLimit, Game::GfxPointVertex* verts);
+		static void RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts);
+		static void RB_AddAndDrawDebugLines(const int numPoints, float(*points)[3], const float* colorFloat);
+
 
 		// -------------------
 		// Strings
@@ -32,8 +36,7 @@ namespace Components
 		static void		RB_CheckTessOverflow(int vertexCount);
 		static void		RB_SetPolyVertWithNormal(const float* xyz, const float* normal, Game::GfxColor color, int vertCount, int vertNum);
 		static void		RB_SetPolyVert(const float *xyz, Game::GfxColor color, int vertCount, int vertNum = 0);
-		static void		RB_DrawPoly(const int numPoints, float(*points)[3], const float* brushColor, bool brushLit, bool outlines, const float* outlineColor);
-
+		static void		RB_DrawPoly(const int numPoints, float(*points)[3], const float* brushColor, bool brushLit, bool outlines, const float* outlineColor, bool depthCheck, bool twoSidesPoly);
 
 	private:
 	};

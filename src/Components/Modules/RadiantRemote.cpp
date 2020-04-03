@@ -9,22 +9,13 @@ namespace Components
 {
 	Game::radiantBrush_t RadiantDB_BrushSortingContainer[RADIANT_MAX_SEL_BRUSHES];
 
-	// ------------------------------------------------------------------
+	// ---------------------
 	// Radiant debug brushes
 
 	void RadiantRemote::CM_FindDynamicBrushModels()
 	{
-		//save ent->targetname and compare to children
-		//ent->target = 0
-		//ent->r.bmodel = 1
-		//ent->r.currentOrigin = 0x012940ac {994.000000, 1008.00000, 992.000000}
-
 		bool ent_found_bbModel = false;
 		Game::Globals::dynBrushModels.mapped_bmodels = 0; // re-map already mapped brushmodels
-
-		// base brushmodel origin
-		//float ent_bbModelOrigin[3] =
-		//{ 992.0f, 1008.0f, 992.0f };
 
 		// if map is loaded
 		if (Game::cm->name && Game::cm->isInUse)
@@ -44,9 +35,6 @@ namespace Components
 				{
 					continue;
 				}
-
-				/*if (!Utils::vector::_VectorCompare(Game::scr_g_entities[ent].r.currentOrigin, ent_bbModelOrigin))
-					continue;*/
 
 				// found it
 				ent_found_bbModel = true;
@@ -88,8 +76,6 @@ namespace Components
 						continue;
 					}
 
-					//if(Utils::Q_stricmp(_Game::gEnt_GetGScrString(Game::scr_g_entities[ent].targetname), "dynbrush01"))
-					// if brushmodel is not a child of our base brush (no need to get the target / targetname)
 					if (Game::scr_g_entities[ent].target != Game::Globals::dynBrushModels.brushes[0].ent->targetname)
 					{
 						continue;
@@ -115,7 +101,6 @@ namespace Components
 
 			std::vector<int> mapped_cmodels;
 
-			// *
 			// find the corrosponding cmodels in the clipmap
 			for (auto bModel = 0; bModel < Game::Globals::dynBrushModels.mapped_bmodels; bModel++)
 			{
@@ -192,8 +177,6 @@ namespace Components
 	// Remove saved brushes and sort debug brush array (keeping the current non-saved selection)
 	bool RadiantDB_RemoveSaved()
 	{
-		//auto RadiantDB_temp = Game::savedRadiantBrushes();
-		//memcpy(&RadiantDB_temp, &Game::Globals::rad_savedBrushes, sizeof(Game::savedRadiantBrushes));
 		memcpy(&RadiantDB_BrushSortingContainer, &Game::Globals::rad_savedBrushes.brush, sizeof(Game::radiantBrush_t) * RADIANT_MAX_SEL_BRUSHES);
 
 		int currSelected_count = Game::Globals::rad_savedBrushes.brushSelectedCount;
@@ -340,8 +323,13 @@ namespace Components
 					}
 
 					// draw the face
-					_Debug::RB_DrawPoly(Game::Globals::rad_savedBrushes.brush[b].face[f].windingCount, windingPts, (const float*)&Dvars::radiant_brushColor->current.integer, Dvars::radiant_brushLit->current.enabled, 
-						Dvars::radiant_brushWireframe->current.enabled, (const float*)&Dvars::radiant_brushWireframeColor->current.integer);
+					_Debug::RB_DrawPoly(Game::Globals::rad_savedBrushes.brush[b].face[f].windingCount, windingPts, 
+						Dvars::radiant_brushColor->current.vector, 
+						Dvars::radiant_brushLit->current.enabled, 
+						Dvars::radiant_brushWireframe->current.enabled, 
+						Dvars::radiant_brushWireframeColor->current.vector,
+						true,
+						false);
 				}
 
 				// *
@@ -698,7 +686,6 @@ namespace Components
 	// spawn/update the radiant cam model when not using syncCamera or player moved
 	void Radiant_CamUpdateModelPos()
 	{
-		//if (Radiant_CamModelSpawned)
 		if(Game::Globals::cgsAddons.radiantCamModelSpawned)
 		{
 			Radiant_CamModel->r.svFlags = 0x04; // visible
@@ -920,13 +907,7 @@ namespace Components
 	// process camera commands from radiant
 	void RadiantRemote::Cmd_ProcessCamera(Game::SpawnVar *spawnVar)
 	{
-		char* origin_string;
-		origin_string = _Game::GetPairValue(spawnVar, "origin");
-
-		char *angles_string;
-		angles_string = _Game::GetPairValue(spawnVar, "angles");
-		
-		if (origin_string)
+		if (auto origin_string = _Game::GetPairValue(spawnVar, "origin"))
 		{
 			if (!sscanf(origin_string, "%f %f %f", &Game::Globals::cgsAddons.radiantCamOrigin[0], &Game::Globals::cgsAddons.radiantCamOrigin[1], &Game::Globals::cgsAddons.radiantCamOrigin[2]))
 			{
@@ -934,7 +915,7 @@ namespace Components
 			}
 		}
 
-		if (angles_string)
+		if (auto angles_string = _Game::GetPairValue(spawnVar, "angles"))
 		{
 			if (!sscanf(angles_string, "%f %f %f", &Game::Globals::cgsAddons.radiantCamAngles[0], &Game::Globals::cgsAddons.radiantCamAngles[1], &Game::Globals::cgsAddons.radiantCamAngles[2]))
 			{
@@ -957,10 +938,7 @@ namespace Components
 	// bool :: if valid selection or nothing selected
 	void RadiantRemote::Cmd_ProcessBrushSelect(Game::SpawnVar *spawnVar)
 	{
-		char *brushselect_string;
-		brushselect_string = _Game::GetPairValue(spawnVar, "brushselect");
-
-		if (brushselect_string)
+		if (auto brushselect_string = _Game::GetPairValue(spawnVar, "brushselect"))
 		{
 			int temp;
 
@@ -982,10 +960,7 @@ namespace Components
 	// int :: amount of selected brushes
 	void RadiantRemote::Cmd_ProcessBrushAmount(Game::SpawnVar *spawnVar)
 	{
-		char *brushcount_string;
-		brushcount_string = _Game::GetPairValue(spawnVar, "brushcount");
-
-		if (brushcount_string)
+		if (auto brushcount_string = _Game::GetPairValue(spawnVar, "brushcount"))
 		{
 			if (!sscanf(brushcount_string, "%d", &Game::Globals::rad_savedBrushes.brushSelectedCount))
 			{
@@ -1018,10 +993,7 @@ namespace Components
 	// int :: the index of the current brush being transmitted
 	void RadiantRemote::Cmd_ProcessBrushNum(Game::SpawnVar *spawnVar)
 	{
-		char *brushnum_string;
-		brushnum_string = _Game::GetPairValue(spawnVar, "brushnum");
-
-		if (brushnum_string)
+		if (auto brushnum_string = _Game::GetPairValue(spawnVar, "brushnum"))
 		{
 			if (!sscanf(brushnum_string, "%d", &Game::Globals::rad_savedBrushes.brushSelectedNum))
 			{
@@ -1039,10 +1011,7 @@ namespace Components
 	// int :: how many faces we transmit in total
 	void RadiantRemote::Cmd_ProcessBrushFaceCount(Game::SpawnVar *spawnVar, int brushNum)
 	{
-		char *brushFaceCount_str;
-		brushFaceCount_str = _Game::GetPairValue(spawnVar, "brushfacecount");
-
-		if (brushFaceCount_str)
+		if (auto brushFaceCount_str = _Game::GetPairValue(spawnVar, "brushfacecount"))
 		{
 			// set brush face-count
 			if (!sscanf(brushFaceCount_str, "%d", &Game::Globals::rad_savedBrushes.brush[brushNum].faceCount))
@@ -1062,16 +1031,10 @@ namespace Components
 	// vec3_t :: face-normal (sent before windings)
 	void RadiantRemote::Cmd_ProcessBrushFaceNormals(Game::SpawnVar *spawnVar, int brushNum)
 	{
-		char *brushFaceNormal_str;
-		brushFaceNormal_str = _Game::GetPairValue(spawnVar, "normal");
-
-		char *brushFaceDist_str;
-		brushFaceDist_str = _Game::GetPairValue(spawnVar, "dist");
-
 		// next free face in rad_savedBrushes.brush.face (0 on new brush, ++ on each new face (do not increment here!))
 		int fIdx = Game::Globals::rad_savedBrushes.brush[brushNum].nextFreeFaceIdx;
 
-		if (brushFaceNormal_str)
+		if (auto brushFaceNormal_str = _Game::GetPairValue(spawnVar, "normal"))
 		{
 			if (!sscanf(brushFaceNormal_str, "%f %f %f",
 				&Game::Globals::rad_savedBrushes.brush[brushNum].face[fIdx].normal[0],
@@ -1082,7 +1045,7 @@ namespace Components
 			}
 		}
 
-		if (brushFaceDist_str)
+		if (auto brushFaceDist_str = _Game::GetPairValue(spawnVar, "dist"))
 		{
 			if (!sscanf(brushFaceDist_str, "%f",
 				&Game::Globals::rad_savedBrushes.brush[brushNum].face[fIdx].dist))
@@ -1096,17 +1059,11 @@ namespace Components
 	// int / vec3 :: how many windings per face we transmit + the points themselfs 
 	void RadiantRemote::Cmd_ProcessBrushFace(Game::SpawnVar *spawnVar, int brushNum)
 	{
-		char *brushWindingCount_str;
-		brushWindingCount_str = _Game::GetPairValue(spawnVar, "windingcount");
-		
-		char *brushWindings_str;
-		brushWindings_str = _Game::GetPairValue(spawnVar, "windingpoints");
-
 		// next free face in rad_savedBrushes.brush.face (0 on new brush, ++ on each new face)
 		int fIdx = Game::Globals::rad_savedBrushes.brush[brushNum].nextFreeFaceIdx;
 
 		// get the amount of winding points for the current face
-		if (brushWindingCount_str)
+		if (auto brushWindingCount_str = _Game::GetPairValue(spawnVar, "windingcount"))
 		{
 			if (!sscanf(brushWindingCount_str, "%d", &Game::Globals::rad_savedBrushes.brush[brushNum].face[fIdx].windingCount))
 			{
@@ -1115,7 +1072,7 @@ namespace Components
 		}
 
 		// build winding points for the current face
-		if (brushWindings_str)
+		if (auto brushWindings_str = _Game::GetPairValue(spawnVar, "windingpoints"))
 		{
 			if (!sscanf(brushWindings_str, "%f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f",
 				&Game::Globals::rad_savedBrushes.brush[brushNum].face[fIdx].windingPts[0][0], &Game::Globals::rad_savedBrushes.brush[brushNum].face[fIdx].windingPts[0][1], &Game::Globals::rad_savedBrushes.brush[brushNum].face[fIdx].windingPts[0][2],
@@ -1268,7 +1225,7 @@ namespace Components
 			// parse it
 			_Game::G_ParseSpawnVars(&spawnVar);
 
-			// parse the following commands in order (see IW3R :: onBrush_SelectDeselect) 
+			// parse the following commands in order (see IW3xRadiant :: onBrush_SelectDeselect) 
 			// parse select first (once)
 			if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_SELECT)
 			{
@@ -1286,7 +1243,6 @@ namespace Components
 				if (Dvars::radiant_liveDebug->current.enabled)
 					Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_COUNT).\n", 0);
 			}
-
 
 			// on each brush
 			// per brush current brush number (once)
@@ -1481,9 +1437,6 @@ namespace Components
 					// first iter bool
 					Game::Globals::rad_savedBrushes.resetCollision = true;
 
-					//RadiantDB_BrushSortingContainer
-					//auto RadiantDB_temp = Game::savedRadiantBrushes();
-					//memcpy(&RadiantDB_temp, &Game::Globals::rad_savedBrushes, sizeof(Game::savedRadiantBrushes));
 					memcpy(&RadiantDB_BrushSortingContainer, &Game::Globals::rad_savedBrushes.brush, sizeof(Game::radiantBrush_t) * RADIANT_MAX_SEL_BRUSHES);
 
 					int firstNonSavedDB_idx = Game::Globals::rad_savedBrushes.brushSavedCount;

@@ -273,7 +273,8 @@ namespace Components
 
 		if (serverTime >= commandTime)
 		{
-			if (serverTime > commandTime + 1000) {
+			if (serverTime > commandTime + 1000) 
+			{
 				pm->ps->commandTime = serverTime - 1000;
 			}
 
@@ -293,7 +294,8 @@ namespace Components
 
 					memcpy(&pm->oldcmd, &pm->cmd, sizeof(pm->oldcmd));
 
-					if (pm->ps->commandTime == serverTime) {
+					if (pm->ps->commandTime == serverTime) 
+					{
 						break;
 					}
 				}

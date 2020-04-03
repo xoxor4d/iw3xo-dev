@@ -128,6 +128,78 @@ namespace Components
 		return false;
 	}
 
+	// *
+	// directly draw 3D lines
+	Game::GfxPointVertex debugLineVerts[2725];
+
+	bool rb_addingDebugLines = false;
+	bool rb_lastDepthTest = false;
+
+	// add debugLines
+	int _Debug::RB_AddDebugLine(const float* start, const float* end, const float* color, bool depthTest, int vertCount, int vertLimit, Game::GfxPointVertex* verts)
+	{
+		if (vertCount + 2 > vertLimit || rb_addingDebugLines && rb_lastDepthTest != depthTest)
+		{
+			Game::RB_DrawLines3D(vertCount / 2, Dvars::r_drawCollision_lineWidth->current.integer, verts, rb_lastDepthTest);
+			vertCount = 0;
+		}
+
+		rb_lastDepthTest = depthTest;
+		rb_addingDebugLines = true;
+
+		Game::R_ConvertColorToBytes(color, verts[vertCount].color);
+
+		*(DWORD*)verts[vertCount + 1].color = *(DWORD*)verts[vertCount].color;
+
+		verts[vertCount].xyz[0] = start[0];
+		verts[vertCount].xyz[1] = start[1];
+		verts[vertCount].xyz[2] = start[2];
+
+		verts[vertCount + 1].xyz[0] = end[0];
+		verts[vertCount + 1].xyz[1] = end[1];
+		verts[vertCount + 1].xyz[2] = end[2];
+
+		return vertCount + 2;
+	}
+
+	// draw all created debugLines 
+	void _Debug::RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts)
+	{
+		if (vertCount >= 2)
+		{
+			Game::RB_DrawLines3D(vertCount, Dvars::r_drawCollision_lineWidth->current.integer, verts, rb_lastDepthTest);
+			rb_addingDebugLines = false;
+		}
+	}
+
+	// add and draw debuglines
+	void _Debug::RB_AddAndDrawDebugLines(const int numPoints, float(*points)[3], const float* colorFloat)
+	{
+		if (numPoints < 2)
+		{
+			return;
+		}
+
+		int vertCount = 0;
+		int vertIndexPrev = numPoints - 1;
+
+		for (auto vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+		{
+			vertCount = _Debug::RB_AddDebugLine(&(*points)[3 * vertIndexPrev],
+				&(*points)[3 * vertIndex],
+				colorFloat,
+				Dvars::r_drawCollision_polyDepth->current.enabled,
+				vertCount,
+				2725,
+				debugLineVerts);
+
+			vertIndexPrev = vertIndex;
+		}
+
+		// Draw all added debuglines
+		_Debug::RB_EndDebugLines(vertCount / 2, debugLineVerts);
+	}
+
 
 	// -------------------------------------------------------------------------
 	// Strings
@@ -264,7 +336,7 @@ namespace Components
 
 	// *
 	// draws a debug polygon :: needs atleast 3 valid points
-	void _Debug::RB_DrawPoly(const int numPoints, float(*points)[3], const float *brushColor, bool brushLit, bool outlines = false, const float *outlineColor = nullptr)
+	void _Debug::RB_DrawPoly(const int numPoints, float(*points)[3], const float *brushColor, bool brushLit, bool outlines, const float *outlineColor, bool depthCheck, bool twoSidesPoly)
 	{
 		int vertIndex;
 		Game::GfxColor color;
@@ -312,7 +384,7 @@ namespace Components
 				Game::Material* unlit_material = reinterpret_cast<Game::Material*>(*(DWORD32*)(Game::builtIn_material_unlit_depth));
 
 				// fill poly on both sides
-				if (Dvars::r_drawCollision_polyFace->current.enabled)
+				if (twoSidesPoly)
 				{
 					// blendFunc Blend + cullFace "None"
 					unlit_material->stateBitsTable->loadBits[0] = 422072677;
@@ -327,7 +399,7 @@ namespace Components
 				unlit_material->stateBitsTable->loadBits[1] = 44;
 
 				// start poly
-				Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, *Game::builtIn_material_unlit_depth);
+				Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, depthCheck ? *Game::builtIn_material_unlit_depth : *Game::builtIn_material_unlit);
 			}
 		}
 
@@ -389,33 +461,10 @@ namespace Components
 				if (!unlit_material)
 				{
 					Game::Com_Error(0, Utils::VA("^1_Debug::RB_DrawPoly L#%d ^7:: unlit_material was null\n", __LINE__));
+					return;
 				}
 
 				Game::RB_BeginSurface_CustomMaterial(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, unlit_material);
-
-				// patch default Line Material so that it uses Blend and PolyOffset
-				//Game::Material* unlit_material = reinterpret_cast<Game::Material*>(*(DWORD32 *)(Game::builtIn_material_unlit_depth));
-
-				//// fill poly on both sides
-				//if (Dvars::r_drawCollision_polyFace->current.enabled)
-				//{
-				//	// blendFunc Blend + cullFace "None" for wireframe
-				//	unlit_material->stateBitsTable->loadBits[0] = 2282899474;
-
-				//	// 2 sided wireframe
-				//	unlit_material->stateBitsEntry[28] = '\0';
-				//}
-				//else // 1 sided poly
-				//{
-				//	// 1 sided wireframe
-				//	unlit_material->stateBitsEntry[28] = '\x2';
-				//}
-
-				//// give poly a slight offset to stop z-fighting :: polyOffset StaticDecal
-				//unlit_material->stateBitsTable->loadBits[1] = 44;
-
-				//// render with depth check
-				//Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_WIREFRAME_SOLID, *Game::builtIn_material_unlit_depth);
 			}
 
 			// Check if we would overflow our Surface and if we would, render all added polys
@@ -436,13 +485,6 @@ namespace Components
 			{
 				_Debug::RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex);
 			}
-
-			/*float origin[3] = { 0.0, 0.0, 0.0 };
-			float custcol[4] = { 1.0, 0.0, 0.0, 1.0 };
-			for (vertIndex = 0; vertIndex < 2; ++vertIndex)
-			{
-				_Debug::AddDebugLineServer(origin, &(*points)[3 * vertIndex], custcol, true, 10);
-			}*/
 
 			// counter-clockwise polys?
 			for (vertIndex = 0; vertIndex < numPoints - 2; ++vertIndex)

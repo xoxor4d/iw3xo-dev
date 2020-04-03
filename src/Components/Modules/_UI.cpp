@@ -370,8 +370,8 @@ namespace Components
 			textBackground = Utils::VA("IW3xo :: %.lf :: %s :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE, "DEBUG");
 		}
 
-		// We currently need to draw 2 strings otherwise we won't see any text on a release build
-		// So we draw another one using that as a backdrop shadow :p
+		// I was drawing 2 strings, because there was a problem with the R_AddCmdDrawText wrapper
+		// I somehow fixed that .. but we are still drawing 2 because I like it with a backdrop shadow :x
 
 		// Background String
 		float colorBackground[4] = { 0.2f, 0.2f, 0.2f, 1.0f };

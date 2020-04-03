@@ -40,16 +40,13 @@ namespace Game
 	float COLOR_BLACK[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 
-	// ------------------------------------------------------
+	// ---------------
 	// RADIANT / CGAME
 
 	const char* g_entityBeginParsePoint		= reinterpret_cast<const char*>(0x1113674);
 	const char* g_entityEndParsePoint		= reinterpret_cast<const char*>(0x1113678);
 	int* clientActive_cmdNumber				= reinterpret_cast<int*>(0xCC5FF8); // part of clientActive_t
 	Game::cg_s *cgs					= reinterpret_cast<Game::cg_s*>(0x74E338);
-
-	// ----------
-	// > ASM
 
 	char* Com_Parse(const char **data_p /*edi*/)
 	{
@@ -74,7 +71,7 @@ namespace Game
 		}
 	}
 
-	// ------------------------------------------------------
+	// ---------
 	// FASTFILES
 
 	extern HANDLE dbHandle							= reinterpret_cast<HANDLE>(0x14E89A4);
@@ -86,24 +83,20 @@ namespace Game
 	const char** zone_localized_common_mp			= reinterpret_cast<const char**>(0xCC9D138);
 	const char** zone_mod							= reinterpret_cast<const char**>(0xCC9D13C);
 
-	// ----------
-	// > ASM
-
 	bool DB_FileExists(const char* fileName, Game::DB_FILE_EXISTS_PATH source)
 	{
 		const static uint32_t DB_FileExists_Func = 0x48B9B0;
-
 		__asm
 		{
 			push	source
 			mov		eax, fileName
-			Call	DB_FileExists_Func
 
+			Call	DB_FileExists_Func
 			add     esp, 4h
 		}
 	}
 
-	// ------------------------------------------------------
+	// ---------
 	// COLLISION 
 
 	int* vertexCount = reinterpret_cast<int*>(0xD2B082C);
@@ -122,7 +115,7 @@ namespace Game
 
 	Game::MaterialTechniqueType* OverflowTessTech = reinterpret_cast<Game::MaterialTechniqueType*>(0xD540EFC);
 	Game::Material* OverflowTessSurf = reinterpret_cast<Game::Material*>(0xD540EF8);
-	Game::Material* TECHNIQUE_UNLIT_Surf = reinterpret_cast<Game::Material*>(0xCC9A2C4); // 0xCC9A2B4
+	Game::Material* builtIn_material_unlit = reinterpret_cast<Game::Material*>(0xCC9A2C4); // 0xCC9A2B4
 	Game::Material* builtIn_material_unlit_depth = reinterpret_cast<Game::Material*>(0xCC9A2C0);
 
 	Game::materialCommands_t* tess = reinterpret_cast<Game::materialCommands_t*>(0xD085EE0);
@@ -138,22 +131,18 @@ namespace Game
 	Game::clientStatic_t *cls = reinterpret_cast<Game::clientStatic_t *>(0x956D80);
 	Game::clientDebugStringInfo_t *clsDebugSV_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B044);
 	Game::clientDebugStringInfo_t *clsDebugCL_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B024);
-	
-	// ----------
-	// > ASM
 
 	void R_AddDebugPolygon(int pointCount, const float(*points)[3])
 	{
 		const static uint32_t R_AddDebugPolygon_Func = 0x60DAC0;
 		__asm
 		{
-			//pushad
 			mov		esi, debugGlob
 			push	points
 			push	pointCount
+
 			Call	R_AddDebugPolygon_Func
 			add     esp, 8
-			//popad
 		}
 	}
 
@@ -162,18 +151,17 @@ namespace Game
 		const static uint32_t R_AddDebugPolygon_Func = 0x60DAC0;
 		__asm
 		{
-			//pushad
 			mov		esi, debugGlobalsEntry
 			push	points
 			push	pointCount
+
 			Call	R_AddDebugPolygon_Func
 			add     esp, 8
-			//popad
 		}
 	}
 
 	
-	// -----------------------------------------------------------------------
+	// --------
 	// RENDERER
 
 	bool* gfxRenderTargets = reinterpret_cast<bool*>(0xD573F18);
@@ -202,18 +190,18 @@ namespace Game
 		R_AddCmdDrawTextASM(text, 0x7FFFFFFF, fontHandle, x, y, scaleX, scaleY, 0.0f, color, 0);
 	}
 	
-	// ----------
-	// > ASM
-
 	Game::MaterialTechnique * RB_BeginSurface(Game::MaterialTechniqueType techType, Game::Material material)
 	{
 		const static uint32_t RB_BeginSurface_Func = 0x61A220;
 		__asm
 		{
 			pushad
+
 			mov		edi, techType
-			mov		esi, [material] // works when moving pointed to adress: 0xFA4EC8 //material points to 0xFA4EC8 .. 
+			mov		esi, [material]
+
 			Call	RB_BeginSurface_Func
+
 			popad
 		}
 	}
@@ -224,9 +212,12 @@ namespace Game
 		__asm
 		{
 			pushad
+
 			mov		edi, techType
 			mov		esi, material
+
 			Call	RB_BeginSurface_Func
+
 			popad
 		}
 	}
@@ -241,19 +232,19 @@ namespace Game
 			sub     esp, 14h
 
 			fld		rotation
-			fstp[esp + 10h]
+			fstp	[esp + 10h]
 
 			fld		yScale
-			fstp[esp + 0Ch]
+			fstp	[esp + 0Ch]
 
 			fld		xScale
-			fstp[esp + 8]
+			fstp	[esp + 8]
 
 			fld		y
-			fstp[esp + 4]
+			fstp	[esp + 4]
 
 			fld		x
-			fstp[esp]
+			fstp	[esp]
 
 			push	font
 			push	maxChars
@@ -283,40 +274,37 @@ namespace Game
 		{
 			pushad
 
-			//fldz
-
 			push	color
 			mov		eax, [material]
-
 			sub		esp, 20h
 
-			fld	null4
-			fstp[esp + 1Ch]
+			fld		null4
+			fstp	[esp + 1Ch]
 
-			fld	null3
-			fstp[esp + 18h]
+			fld		null3
+			fstp	[esp + 18h]
 
-			fld	null2
-			fstp[esp + 14h]
+			fld		null2
+			fstp	[esp + 14h]
 
-			fld	null1
-			fstp[esp + 10h]
+			fld		null1
+			fstp	[esp + 10h]
 
-			fld	h
-			fstp[esp + 0Ch]
+			fld		h
+			fstp	[esp + 0Ch]
 
-			fld w
-			fstp[esp + 8h]
+			fld		w
+			fstp	[esp + 8h]
 
-			fld y
-			fstp[esp + 4h]
+			fld		y
+			fstp	[esp + 4h]
 
-			fld x
-			fstp[esp]
+			fld		x
+			fstp	[esp]
 
-			call R_AddCmdDrawStretchPic_Func
+			call	R_AddCmdDrawStretchPic_Func
+			add		esp, 24h
 
-			add esp, 24h
 			popad
 		}
 	}
@@ -330,15 +318,14 @@ namespace Game
 		__asm
 		{
 			pushad
-			push	_gfxCmdBufSourceSource // eax
-			//mov     esi, target
-			push	_gfxCmdBufSourceState // ecx
-			//mov     eax, esi
 
+			push	_gfxCmdBufSourceSource // eax
+			push	_gfxCmdBufSourceState // ecx
 			mov     eax, target
 
 			call	R_SetRenderTarget_Func
 			add     esp, 8
+
 			popad
 		}
 	}
@@ -351,9 +338,10 @@ namespace Game
 		__asm
 		{
 			pushad
-			mov edi, [_gfxCmdBufSourceState]
 
-			call R_Set2D_Func
+			mov		edi, [_gfxCmdBufSourceState]
+			call	R_Set2D_Func
+
 			popad
 		}
 	}
@@ -361,41 +349,41 @@ namespace Game
 	void RB_DrawStretchPic(Game::Material *material, float x, float y, float w, float h, float texcoord0, float texcoord1, float texcoord2, float texcoord3 /*-1 pushed*/)
 	{
 		const static uint32_t RB_DrawStretchPic_Func = 0x610E10;
-
 		__asm
 		{
 			pushad
+
 			mov		eax, material
 			push    0FFFFFFFFh // -1
 			sub     esp, 20h
 
-			fld	texcoord3
-			fstp[esp + 1Ch]
+			fld		texcoord3
+			fstp	[esp + 1Ch]
 
-			fld	texcoord2
-			fstp[esp + 18h]
+			fld		texcoord2
+			fstp	[esp + 18h]
 
-			fld	texcoord1
-			fstp[esp + 14h]
+			fld		texcoord1
+			fstp	[esp + 14h]
 
-			fld	texcoord0
-			fstp[esp + 10h]
+			fld		texcoord0
+			fstp	[esp + 10h]
 
-			fld	h
-			fstp[esp + 0Ch]
+			fld		h
+			fstp	[esp + 0Ch]
 
-			fld w
-			fstp[esp + 8h]
+			fld		w
+			fstp	[esp + 8h]
 
-			fld y
-			fstp[esp + 4h]
+			fld		y
+			fstp	[esp + 4h]
 
-			fld x
-			fstp[esp]
+			fld		x
+			fstp	[esp]
 
-			Call RB_DrawStretchPic_Func
-
+			Call	RB_DrawStretchPic_Func
 			add     esp, 24h
+
 			popad
 		}
 	}
@@ -403,34 +391,34 @@ namespace Game
 	void CG_DrawRotatedPicPhysical(ScreenPlacement* place, float a2, float a3, float a4, float a5, float a6, float *color, void *material)
 	{
 		const static uint32_t CG_DrawRotatedPicPhysical_Func = 0x431490;
-
 		__asm
 		{
 			pushad
-			push[material]
-			push[color]
+
+			push	[material]
+			push	[color]
 			sub     esp, 14h
 
-			fld	a6
-			fstp[esp + 10h]
+			fld		a6
+			fstp	[esp + 10h]
 
 			mov     edx, place
 
-			fld	a5
-			fstp[esp + 0Ch]
+			fld		a5
+			fstp	[esp + 0Ch]
 
-			fld a4
-			fstp[esp + 8h]
+			fld		a4
+			fstp	[esp + 8h]
 
-			fld a3
-			fstp[esp + 4h]
+			fld		a3
+			fstp	[esp + 4h]
 
-			fld a2
-			fstp[esp]
+			fld		a2
+			fstp	[esp]
 
-			call CG_DrawRotatedPicPhysical_Func
-
+			call	CG_DrawRotatedPicPhysical_Func
 			add     esp, 1Ch
+
 			popad
 		}
 	}
@@ -449,20 +437,17 @@ namespace Game
 		}
 	}
 
-	// ------------------------------------------------------
+	// ---------
 	// UI / MENU
 
-	int* gameTypeEnum = reinterpret_cast<int*>(0xCAF1820); // [0x2 * *(ui_netGameType + 12)]
-	int* mapNameEnum = reinterpret_cast<int*>(0xCAF2330); // [0x28 * *(ui_currentNetMap + 12)]
+	int* gameTypeEnum = reinterpret_cast<int*>(0xCAF1820);
+	int* mapNameEnum = reinterpret_cast<int*>(0xCAF2330);
 	Game::UiContext* _uiContext = reinterpret_cast<Game::UiContext*>(0xCAEE200);
 	Game::PlayerKeyState* playerKeys = reinterpret_cast<Game::PlayerKeyState*>(0x8F1DB8);
 	Game::clientUIActive_t* clientUI = reinterpret_cast<Game::clientUIActive_t*>(0xC5F8F4);
 
 	ScreenPlacement* scrPlace = reinterpret_cast<ScreenPlacement*>(0xE34420);
 	ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0xE343D8);
-
-	// ----------
-	// > ASM
 
 	int String_Parse(const char **p /*eax*/, char *outStr, int len)
 	{
@@ -488,6 +473,7 @@ namespace Game
 
 			mov		esi, uiDC
 			mov		edi, menuName
+
 			Call	Menus_OpenByName_Func
 
 			popad
@@ -503,6 +489,7 @@ namespace Game
 
 			mov		eax, menuName
 			mov		esi, uiDC
+
 			Call	Menus_CloseByName_Func
 
 			popad
@@ -534,7 +521,6 @@ namespace Game
 	char* errortype /*char[1023]*/		= reinterpret_cast<char*>(0x1798777);
 	int* scr_numParam					= reinterpret_cast<int*>(0x1794074);
 
-	// actually the real gentity?
 	Game::gentity_s* scr_g_entities = reinterpret_cast<Game::gentity_s*>(0x1288500);
 	Game::level_locals_t* level_locals = reinterpret_cast<Game::level_locals_t*>(0x13EB6A8);
 
@@ -576,9 +562,6 @@ namespace Game
 		}
 	}
 
-	// ----------
-	// > ASM
-
 	std::int16_t G_ModelIndex(const char *modelName /*eax*/)
 	{
 		const static uint32_t G_ModelIndex_Func = 0x4E21F0;
@@ -614,11 +597,10 @@ namespace Game
 		const static uint32_t Scr_GetVector_Func = 0x5236E0;
 		__asm
 		{
-			//lea		edx, [floatOut]
 			mov		edx, [floatOut]
 			mov		eax, argIndex
 			xor		eax, eax
-			//xor		argIndex, argIndex
+
 			Call	Scr_GetVector_Func
 		}
 	}
@@ -663,14 +645,11 @@ namespace Game
 	}
 
 	
-	// ------------------------------------------------------
+	// ----
 	// IWDs
 
 	const char* fs_gamedir = reinterpret_cast<const char*>(0xCB19898);
 	Game::searchpath_s* fs_searchpaths = reinterpret_cast<Game::searchpath_s*>(0xD5EC4DC);
-
-	// ----------
-	// > ASM
 
 	char ** Sys_ListFiles(const char *filter /*eax*/, const char *directory, const char *extension, int *numfiles, int wantsubs)
 	{
@@ -678,17 +657,12 @@ namespace Game
 		__asm
 		{
 			push	0 // wantsubs
-			//lea		ecx, numfiles
-			//push	ecx // numfiles
 			push	numfiles
-			//lea		edx, [directory]
 			push	[extension] // ext
-			//push	edx // dir
 			push	directory
 			xor		eax, eax // filter
 
 			Call	Sys_ListFiles_Func
-
 			add     esp, 10h
 		}
 	}
@@ -703,7 +677,6 @@ namespace Game
 			mov		edi, [pszLanguageName] //langName
 
 			Call	SEH_GetLanguageIndexForName_Func
-
 			add     esp, 4
 		}
 	}
@@ -719,7 +692,7 @@ namespace Game
 	}
 
 	
-	// ------------------------------------------------------
+	// --------
 	// MOVEMENT
 
 	int* g_entities = reinterpret_cast<int*>(0x12885C4);
@@ -727,22 +700,20 @@ namespace Game
 	int* currentTime = reinterpret_cast<int*>(0x13EB894);
 	int* CanDamageContentMask = reinterpret_cast<int*>(0x802011);
 
-	// ----------
-	// > ASM
-
-	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml) // ASM
+	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml)
 	{
 		const static uint32_t PM_Friction_Func = 0x40E860;
 
 		__asm
 		{
 			pushad
+
 			push	pml
 			mov		esi, ps
 
 			Call	PM_Friction_Func
-
 			add     esp, 4h
+
 			popad
 		}
 	}
@@ -753,18 +724,17 @@ namespace Game
 		__asm
 		{
 			pushad
-			//push ecx
 
-			push velocityOut
-			mov esi, traceNormal
-			mov edi, velocityIn
-			//mov ecx, 40E2B0h
-			call PM_ClipVelocity_Adr
+			push	velocityOut
+			mov		esi, traceNormal
+			mov		edi, velocityIn
 
-			add esp, 4h
+			call	PM_ClipVelocity_Adr
+			add		esp, 4h
+
 			popad
 			retn
-			//pop ecx
+
 		}
 	}
 
@@ -873,11 +843,11 @@ namespace Game
 		__asm
 		{
 			push	contentmask
-			push[coneDirection]
+			push	[coneDirection]
 			push	0 // ??
 
 			fld		coneAngleCos
-			fstp[esp]
+			fstp	[esp]
 
 			push	ent
 
@@ -895,9 +865,10 @@ namespace Game
 		__asm
 		{
 			pushad
+
 			push	timeOffset
 			push	hitLoc
-			push[point]
+			push	[point]
 			push	weapon
 			push	_mod
 			push	dflags
@@ -908,8 +879,7 @@ namespace Game
 			mov		eax, [dir]
 
 			call Scr_PlayerDamage_Func
-
-			add esp, 28h
+			add		esp, 28h
 			popad
 		}
 	}
@@ -932,7 +902,7 @@ namespace Game
 		}
 	}
 	
-	// -----------------------------------------------------------------------
+	// -----
 	// DVARs 
 
 	void Dvar_SetValue(dvar_s* _dvar, int _dvarValue)
@@ -1020,19 +990,17 @@ namespace Game
 	{
 		char *result;
 
-		if (dvar->domain.enumeration.stringCount) {
+		if (dvar->domain.enumeration.stringCount) 
+		{
 			result = *(char **)(dvar->domain.integer.max + 4 * dvar->current.integer);
 		}
-
-		else {
+		else 
+		{
 			result = "";
 		}
 
 		return result;
 	}
-
-	// ----------
-	// > ASM
 
 	void Dvar_SetString(const char *text /*eax*/, dvar_s *dvar /*esi*/)
 	{
@@ -1040,10 +1008,12 @@ namespace Game
 		__asm
 		{
 			pushad
+
 			mov		eax, [text]
 			mov		esi, [dvar]
 
 			Call	Dvar_SetString_Func
+
 			popad
 		}
 	}
@@ -1052,14 +1022,14 @@ namespace Game
 	{
 		__asm
 		{
-			push eax
+			push	eax
 			pushad
 
-			mov edi, [esp + 28h]
-			mov eax, 56B5D0h
-			call eax
+			mov		edi, [esp + 28h]
+			mov		eax, 56B5D0h
+			call	eax
 
-			mov[esp + 20h], eax
+			mov		[esp + 20h], eax
 			popad
 
 			pop eax
@@ -1068,7 +1038,7 @@ namespace Game
 	}
 
 
-	// -----------------------------------------------------------------------
+	// -------
 	// CONSOLE 
 
 	float* con_matchtxtColor_currentDvar = reinterpret_cast<float*>(0x6BDF14); // 0x6BDF14
@@ -1093,7 +1063,6 @@ namespace Game
 	float*	conScreenMax1 = reinterpret_cast<float*>(0x8ECB20); // bottom
 
 	bool*	extvar_con_ignoreMatchPrefixOnly = reinterpret_cast<bool*>(0x736BB1);
-	DWORD*	whiteMaterial = reinterpret_cast<DWORD*>(0xC5AE8C);
 
 	// cmd args
 	int* argc_1410B84 = reinterpret_cast<int*>(0x1410B84);
@@ -1124,9 +1093,7 @@ namespace Game
 		__asm
 		{
 			push	textAlignMode
-			push	0 // ? (ecx)
-
-			//sub     esp, 4h // ?
+			push	0
 
 			fld		msgwndScale
 			fstp	dword ptr[esp]
@@ -1151,18 +1118,17 @@ namespace Game
 
 	void Cmd_ForEachXO(void(__cdecl *callback)(const char *))
 	{
-		cmd_function_s *cmd; // [esp+0h] [ebp-4h]
+		cmd_function_s *cmd;
 
-		// skip the first cmd as its null / name can become 0x1?
+		// skip the first cmd (nullptr)?
 		for (cmd = cmd_functions->next; cmd; cmd = cmd->next)
 		{
 			if (cmd->name)
+			{
 				callback(cmd->name);
+			}
 		}
 	}
-
-	// ----------
-	// > ASM
 
 	void AddBaseDrawConsoleTextCmd(int charCount /*eax*/, const float *colorFloat /*ecx*/, const char *textPool, int poolSize, int firstChar, Game::Font_s *font, float x, float y, float xScale, float yScale, int style)
 	{
@@ -1170,19 +1136,19 @@ namespace Game
 		__asm
 		{
 			push    style
-			sub     esp, 10h		// sub esp because we store and pop 4 floats
+			sub     esp, 10h
 
-			fld[yScale]		// load float
-			fstp[esp + 0Ch]		// store and pop
+			fld		[yScale]
+			fstp	[esp + 0Ch]
 
-			fld[xScale]
-			fstp[esp + 8]
+			fld		[xScale]
+			fstp	[esp + 8]
 
-			fld[y]
-			fstp[esp + 4]
+			fld		[y]
+			fstp	[esp + 4]
 
-			fld[x]
-			fstp[esp]
+			fld		[x]
+			fstp	[esp]
 
 			push    font
 			push    firstChar
@@ -1203,12 +1169,13 @@ namespace Game
 		__asm
 		{
 			pushad
-			mov esi, [color]
-			push lineHeightMulti
 
-			call ConDrawInput_Box_Func
+			mov		esi, [color]
+			push	lineHeightMulti
 
-			add esp, 4h
+			call	ConDrawInput_Box_Func
+			add		esp, 4h
+
 			popad
 		}
 	}
@@ -1219,8 +1186,10 @@ namespace Game
 		__asm
 		{
 			pushad
-			mov esi, [text]
-			call ConDrawInput_TextAndOver_Func
+
+			mov		esi, [text]
+			call	ConDrawInput_TextAndOver_Func
+
 			popad
 		}
 	}
@@ -1231,22 +1200,25 @@ namespace Game
 		__asm
 		{
 			pushad
-			mov esi, [color]
 
-			sub esp, 10h
+			mov		esi, [color]
+			sub		esp, 10h
 
 			fld		height
-			fstp[esp + 0Ch]
+			fstp	[esp + 0Ch]
+
 			fld		width
-			fstp[esp + 8h]
+			fstp	[esp + 8h]
+
 			fld		y
-			fstp[esp + 4h]
+			fstp	[esp + 4h]
+
 			fld		x
-			fstp[esp]
+			fstp	[esp]
 
-			call ConDraw_Box_Func
+			call	ConDraw_Box_Func
+			add		esp, 10h
 
-			add esp, 10h
 			popad
 		}
 	}
@@ -1257,12 +1229,13 @@ namespace Game
 		__asm
 		{
 			pushad
+
 			mov eax, a1
 			push a2
 
 			call Con_DrawAutoCompleteChoice_Func
-
 			add esp, 4h
+
 			popad
 		}
 	}
@@ -1272,8 +1245,8 @@ namespace Game
 		const static uint32_t Cmd_Argv_Func = 0x42A950;
 		__asm
 		{
-			mov eax, argIndex
-			call Cmd_Argv_Func
+			mov		eax, argIndex
+			call	Cmd_Argv_Func
 		}
 	}
 
@@ -1283,8 +1256,10 @@ namespace Game
 		__asm
 		{
 			pushad
-			mov edi, [func]
-			call Dvar_ForEachName_Func
+
+			mov		edi, [func]
+			call	Dvar_ForEachName_Func
+
 			popad
 		}
 	}
@@ -1295,35 +1270,39 @@ namespace Game
 		__asm
 		{
 			pushad
-			mov edi, [func]
-			call Cmd_ForEach_Func
-			popad // fail
+
+			mov		edi, [func]
+			call	Cmd_ForEach_Func
+
+			popad
 		}
 	}
 
 	
-	// -----------------------------------------------------------------------
+	// -----
 	// ANIMS
 
+	// prob. broken af
 	void BG_AnimScriptEvent(scriptAnimEventTypes_t event, Game::playerState_s *ps, int force)
 	{
 		const static uint32_t BG_AnimScriptEvent_Func = 0x405720;
 		__asm
 		{
 			pushad
+
 			mov     edi, [ps]
 			push    force
 			mov     eax, event
 
 			call BG_AnimScriptEvent_Func
-
 			add esp, 4h
+
 			popad
 		}
 	}
 
 
-	// -----------------------------------------------------------------------
+	// ------
 	// COMMON
 
 	Game::playerState_s* ps_loc = reinterpret_cast<Game::playerState_s*>(0x13255A8);
@@ -1337,8 +1316,6 @@ namespace Game
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0xE62A80);
 	infoParm_t* infoParams = reinterpret_cast<Game::infoParm_t*>(0x71FBD0); // Count 0x1C
 
-
-	//Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x4F8D90);
 	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x4F9AB0);
 	Com_Error_t Com_Error = Com_Error_t(0x4FD330);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4FCA50);
@@ -1352,82 +1329,10 @@ namespace Game
 		const static uint32_t Cbuf_AddText_Func = 0x4F8D90;
 		__asm
 		{
-			mov		eax, text
 			mov		ecx, localClientNum
+			mov		eax, text
 			Call	Cbuf_AddText_Func
 		}
-	}
-
-	int FS_ReadFile(const char* path, char** buffer)
-	{
-		__asm
-		{
-			push ecx
-
-			push buffer
-			mov eax, path
-			mov ecx, 55C440h
-			call ecx
-
-			add esp, 4h
-			pop ecx
-		}
-	}
-
-	void FS_FreeFile(void* buffer)
-	{
-		__asm
-		{
-			push esi
-
-			mov esi, buffer
-			mov eax, 564240h
-			call eax
-
-			pop esi
-		}
-	}
-
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides)
-	{
-		volatile long* lock = reinterpret_cast<volatile long*>(0x10D01A4);
-		InterlockedIncrement(lock);
-
-		while (*reinterpret_cast<volatile long*>(0x10D01A8)) std::this_thread::sleep_for(1ms);
-
-		unsigned int index = 0;
-		do
-		{
-			unsigned short hashIndex = db_hashTable[index];
-			if (hashIndex)
-			{
-				do
-				{
-					XAssetEntry* asset = &g_assetEntryPool[hashIndex];
-					hashIndex = asset->nextHash;
-					if (asset->asset.type == type)
-					{
-						callback(asset);
-						if (overrides)
-						{
-							unsigned short overrideIndex = asset->nextOverride;
-							if (asset->nextOverride)
-							{
-								do
-								{
-									asset = &g_assetEntryPool[overrideIndex];
-									callback(asset);
-									overrideIndex = asset->nextOverride;
-								} while (overrideIndex);
-							}
-						}
-					}
-				} while (hashIndex);
-			}
-			++index;
-		} while (index < 0x10000);
-
-		InterlockedDecrement(lock);
 	}
 
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char)
@@ -1438,70 +1343,6 @@ namespace Game
 		data->function = callback;
 		data->next = *cmd_ptr;
 		*cmd_ptr = data;
-	}
-
-	unsigned int R_HashString(const char* string)
-	{
-		unsigned int hash = 0;
-
-		while (*string)
-		{
-			hash = (*string | 0x20) ^ (33 * hash);
-			string++;
-		}
-
-		return hash;
-	}
-
-	const char* FindHash(unsigned int hash)
-	{
-		static const char* textureMaps[]
-		{
-			"colorMap",
-			"colorDetailMap",
-			"normalMap",
-			"specularMap",
-			"occlusionMap",
-			"detailMap",
-			"waterMap",
-
-			"colorMap00",
-			"colorMap01",
-			"colorMap02",
-			"colorMap03",
-			"colorMap04",
-			"colorMap05",
-			"colorMap06",
-			"colorMap07",
-			"colorMap08",
-			"colorMap09",
-			"colorMap10",
-			"colorMap11",
-			"colorMap12",
-			"colorMap13",
-			"colorMap14",
-			"colorMap15", // T6's occlusion map?
-
-			"Detail_Map",
-			"Normal_Map",
-			"Diffuse_MapSampler",
-			"RadiantDiffuse",
-			nullptr
-		};
-
-		const char** ptr = textureMaps;
-
-		while (*ptr)
-		{
-			if (hash == R_HashString(*ptr))
-			{
-				return *ptr;
-			}
-			
-			ptr++;
-		}
-
-		return "error";
 	}
 
 	const char* SL_ConvertToString(int idx)
