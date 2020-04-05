@@ -116,8 +116,6 @@ namespace Dvars
 	Game::dvar_s* r_drawCollision_brushDebug = nullptr; 
 #endif
 
-#ifdef EXP_MAP_EXPORT
-	
 	Game::dvar_s* r_drawCollision_export = nullptr;
 	Game::dvar_s* r_drawCollision_export_writeTriangles = nullptr;
 	Game::dvar_s* r_drawCollision_export_writeQuads = nullptr;
@@ -126,7 +124,6 @@ namespace Dvars
 	Game::dvar_s* r_drawCollision_flickerBrushes = nullptr;
 	Game::dvar_s* r_drawCollision_flickerOnTime = nullptr;
 	Game::dvar_s* r_drawCollision_flickerOffTime = nullptr;
-#endif
 
 	Game::dvar_s* r_drawCollision_hud = nullptr;
 	Game::dvar_s* r_drawCollision_hud_x = nullptr;

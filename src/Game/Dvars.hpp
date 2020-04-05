@@ -117,7 +117,6 @@ namespace Dvars
 	extern Game::dvar_s* r_drawCollision_brushDebug;
 #endif
 
-#ifdef EXP_MAP_EXPORT
 	extern Game::dvar_s* r_drawCollision_export;
 	extern Game::dvar_s* r_drawCollision_export_writeTriangles;
 	extern Game::dvar_s* r_drawCollision_export_writeQuads;
@@ -126,7 +125,6 @@ namespace Dvars
 	extern Game::dvar_s* r_drawCollision_flickerBrushes;
 	extern Game::dvar_s* r_drawCollision_flickerOnTime;
 	extern Game::dvar_s* r_drawCollision_flickerOffTime;
-#endif
 
 	extern Game::dvar_s* r_drawCollision_hud;
 	extern Game::dvar_s* r_drawCollision_hud_x;

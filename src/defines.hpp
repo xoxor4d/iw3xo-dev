@@ -9,8 +9,6 @@
 // -------------
 // DrawCollision
 
-#define EXP_MAP_EXPORT			// uncomment to use exp. map exporting
-
 
 // -------
 // General

@@ -13,6 +13,8 @@ namespace Utils
 		std::string build();
 
 		std::vector<std::string> getModels();
+		std::vector<Game::brushmodelEnt_t> getBrushModels();
+
 		void deleteTriggers();
 		void deleteWeapons(bool keepTurrets);
 		void convertTurrets();

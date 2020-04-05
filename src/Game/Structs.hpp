@@ -2806,7 +2806,10 @@ namespace Game
 			char edgeCount[2][3];
 			__int16 colorCounter;
 			__int16 cmBrushIndex;
-			float distFromCam;
+			//float distFromCam;
+			__int16 cmSubmodelIndex;
+			bool isSubmodel;
+			bool pad;
 		};
 #pragma pack(pop)
 //
@@ -6159,6 +6162,15 @@ namespace Game
 			bool initiated;
 			int mapped_bmodels;
 			dynBrushModel_t brushes[16];
+		};
+
+		struct brushmodelEnt_t
+		{
+			int cmSubmodelIndex;
+			cmodel_t* cmSubmodel;
+			float cmSubmodelOrigin[3];
+			int cmBrushIndex;
+			cbrush_t* cmBrush;
 		};
 
 #ifdef __cplusplus

@@ -55,6 +55,7 @@
 
 #include <glm.hpp>
 
+#include "Game/Structs.hpp"
 #include "Utils/Utils.hpp"
 #include "Utils/Memory.hpp"
 #include "Utils/Stream.hpp"
@@ -62,7 +63,6 @@
 #include "Utils/Entities.hpp"
 #include "Utils/function.hpp"
 
-#include "Game/Structs.hpp"
 #include "Game/Functions.hpp"
 #include "Game/Dvars.hpp"
 #include "Utils/vector.hpp"

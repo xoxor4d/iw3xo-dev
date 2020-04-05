@@ -2,20 +2,18 @@
 
 #define CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS 128
 
-#ifdef EXP_MAP_EXPORT
 int collisionFlickerCounter; // just a frame counter for brush flickering
 bool map_exportAllFilteredBrushes = false;
 int map_exportCurrentBrushIndex = 0;
 std::string map_exportMapWorldspawn_str;
 std::string map_exportMapEnts_str;
 std::ofstream mapFile;
-#endif
 
-const char *cmCurrMapName = "";
+const char *g_mapNameCm = "";
 char *globCharShowCollisionTextUpdate = "";
-std::vector<Game::dmaterial_t*> globMatList;
-std::vector<std::string> globMatListDuplicates;
-std::vector<std::string> globMatListSingle;
+std::vector<Game::dmaterial_t*> g_mapMaterialList;
+std::vector<std::string> g_mapMaterialListDuplicates;
+std::vector<std::string> g_mapMaterialListSingle;
 
 // view-frustum planes
 const Game::vec4_t frustumSidePlanes[5] = 
@@ -801,7 +799,7 @@ namespace Components
 	}
 
 	// CM_BuildBrushWindingForSideMapExport
-#ifdef EXP_MAP_EXPORT
+
 	bool CM_BuildBrushWindingForSideMapExport(Game::winding_t *winding, const float *planeNormal, const int sideIndex, Game::ShowCollisionBrushPt *pts, int ptCount, Game::map_brushSide_t *bSide)
 	{
 		int xyzCount, i, i0, i1, i2, j, k;
@@ -913,7 +911,6 @@ namespace Components
 		
 		return 1;
 	}
-#endif
 
 	// build winding (poly) for side
 	bool CM_BuildBrushWindingForSide(Game::winding_t *winding, const float *planeNormal, const int sideIndex, Game::ShowCollisionBrushPt *pts, int ptCount)
@@ -1001,7 +998,6 @@ namespace Components
 		return 1;
 	}
 
-#ifdef EXP_MAP_EXPORT
 	// Allocates a single brushside
 	Game::map_brushSide_t *Alloc_BrushSide(void)
 	{
@@ -1017,7 +1013,6 @@ namespace Components
 		Game::Com_Error(0, "Alloc_BrushSide :: alloc failed!");
 		return 0;
 	}
-#endif
 	
 	// create a winding pool
 	char windingPool[12292];
@@ -1025,8 +1020,6 @@ namespace Components
 	// rebuild and draw brush from bounding box and dynamic sides
 	void CM_ShowSingleBrushCollision(Game::cbrush_t *brush, const float *color, int brushIndex)
 	{
-
-#ifdef EXP_MAP_EXPORT
 		// skip all brush calculations when flicker mode is on and not exporting a map file
 		if (Dvars::r_drawCollision_flickerBrushes->current.enabled && !map_exportAllFilteredBrushes)
 		{
@@ -1042,7 +1035,6 @@ namespace Components
 				return;
 			}
 		}
-#endif
 
 		int ptCount, sideIndex;
 		Game::ShowCollisionBrushPt brushPts[CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS]; // T5: 1024 .. wtf
@@ -1114,10 +1106,9 @@ namespace Components
 		if (ptCount >= 4)
 		{
 
-#ifdef EXP_MAP_EXPORT
 			// list of brushsides we are going to create within "CM_BuildBrushWindingForSideMapExport"
 			std::vector<Game::map_brushSide_t*> mapBrush;
-#endif
+
 			// -------------------------------
 			// brushside [0]-[5] (axialPlanes)
 
@@ -1153,7 +1144,6 @@ namespace Components
 					Game::Globals::drawnPlanesAmountTemp++;
 				}
 				
-#ifdef EXP_MAP_EXPORT
 				// create brushsides from brush bounds (side [0]-[5])
 				if (map_exportAllFilteredBrushes)
 				{
@@ -1173,7 +1163,6 @@ namespace Components
 						free(bSide);
 					}
 				}
-#endif
 			}
 
 			// ---------------------------------
@@ -1203,7 +1192,6 @@ namespace Components
 					Game::Globals::drawnPlanesAmountTemp++;
 				}
 
-#ifdef EXP_MAP_EXPORT
 				// create brushsides from cm->brush->sides (side [6] and up)
 				if (map_exportAllFilteredBrushes)
 				{
@@ -1223,10 +1211,8 @@ namespace Components
 						free(bSide);
 					}
 				}
-#endif
 			}
 
-#ifdef EXP_MAP_EXPORT
 			// if we are exporting the map
 			if (map_exportAllFilteredBrushes)
 			{
@@ -1382,8 +1368,6 @@ namespace Components
 				//	}
 				//}
 			}
-#endif
-			
 		}
 	}
 
@@ -1509,8 +1493,8 @@ namespace Components
 
 		case 4:
 			includeString = "all"; 
-			//return true; // no need to check any material so return true
-			break; // removing brushes using a trigger texture
+			return true; // no need to check any material so return true
+			//break; // removing brushes using a trigger texture
 
 		case 5:
 			includeString = "all-no-tools";
@@ -1521,8 +1505,8 @@ namespace Components
 		}
 
 		// bridge dupe materials list with the cleaned list
-		std::string materialNameFromDuplicates = globMatListDuplicates[(int)brush->axialMaterialNum[0][0]];
-		std::string materialNameFromSingle = globMatListSingle[materialNumFromDvar];
+		std::string materialNameFromDuplicates = g_mapMaterialListDuplicates[(int)brush->axialMaterialNum[0][0]];
+		std::string materialNameFromSingle = g_mapMaterialListSingle[materialNumFromDvar];
 		
 		// instantly found our material
 		if (materialNameFromDuplicates == materialNameFromSingle) 
@@ -1542,11 +1526,11 @@ namespace Components
 			// draw all materials (mainly for map exporting)
 			else if (includeString == "all") 
 			{
-				// skip trigger brushes
-				if (materialNameFromDuplicates.find("trigger") != std::string::npos)
+				// no longer skip triggers
+				/*if (materialNameFromDuplicates.find("trigger") != std::string::npos)
 				{
 					return false;
-				}
+				}*/
 
 				return true;
 			}
@@ -1616,7 +1600,7 @@ namespace Components
 				for (int matIndex = 0; matIndex < 3; matIndex++)
 				{
 					// if one of the sides uses our material
-					if (globMatListDuplicates[(int)brush->axialMaterialNum[currentMatArray][matIndex]] == materialNameFromSingle) 
+					if (g_mapMaterialListDuplicates[(int)brush->axialMaterialNum[currentMatArray][matIndex]] == materialNameFromSingle) 
 					{
 						return true;
 					}
@@ -1625,7 +1609,7 @@ namespace Components
 					if (Dvars::r_drawCollision_materialInclude->current.integer != 0)
 					{
 						// if one of the sides matches our substring
-						if (globMatListDuplicates[(int)brush->axialMaterialNum[currentMatArray][matIndex]].find(includeString) != std::string::npos) 
+						if (g_mapMaterialListDuplicates[(int)brush->axialMaterialNum[currentMatArray][matIndex]].find(includeString) != std::string::npos) 
 						{
 							return true;
 						}
@@ -1640,12 +1624,12 @@ namespace Components
 
 
 	// create a brush list once, so we can sort them by distance
-	std::vector<Game::cbrush_t*> globBrushList;
-	std::vector<Game::cbrush_t*> currBrushesDrawnList;
+	std::vector<Game::cbrush_t*> g_mapBrushList;
+	std::vector<Game::cbrush_t*> g_mapBrushListForIndexFiltering;
+	std::vector<Game::brushmodelEnt_t> g_mapBrushModelList;
 
-
-	/* ---------------------------------------------------------- */
-	/* CM_BuildMaterialListForMapOnce */
+	// -------------
+	// CM_OnceOnInit
 
 	// :: create "matListDuplicates" and write all materials without \0
 	// :: create "matListSingle" add all material from matListDuplicates without creating duplicates
@@ -1654,15 +1638,19 @@ namespace Components
 	// :: compare "matListDuplicates" materialName with the choosen dvar Material name
 	// :: draw the brush if they match
 	
-	// builds a list of materials used by brushes on a map once / ++ r_drawCollision_brushIndexFilter init
-	void CM_BuildMaterialListForMapOnce()
+	// stuff we only do once per map after r_drawcollision was turned on
+	void CM_OnceOnInit()
 	{
 		// assign a color to each brush (modified cbrush_t struct) so we use persistent colors even when sorting brushes
 		int colorCounter = 0;
 
-		// build a list of materials with its materialnum once for the map we are on
-		if (cmCurrMapName != Game::cm->name)
+		// only once per map
+		if (g_mapNameCm != Game::cm->name)
 		{
+			// list of all brushmodels within the current map mapped to their respective brushes in cm->brushes
+			Utils::Entities mapEnts(Game::cm->mapEnts->entityString, Game::cm->mapEnts->numEntityChars - 1);
+			g_mapBrushModelList = mapEnts.getBrushModels();
+
 			// register a hacky dvar
 			auto dvarName = "r_drawCollision_brushIndexFilter";
 			Game::Dvar_RegisterString_hacky(dvarName, "null", "Specifies which brushes to draw. Ignores all other filters and will disable brush sorting.\nInput example: \"101 99 2\" :: \"^1null^7\" disables this filter");
@@ -1680,15 +1668,13 @@ namespace Components
 			// reset brush distance filter on map load (if a user had drawn all brushes on a simple map and now loads strike or sth.)
 			Game::Dvar_SetValue(Dvars::r_drawCollision_brushDist, 800.0f);
 
-			// clear our global vectors
-			globMatList.clear();
-			globMatListDuplicates.clear();
-			globMatListSingle.clear();
+			// clear global vectors
+			g_mapBrushList.clear();
+			g_mapMaterialList.clear();
+			g_mapMaterialListDuplicates.clear();
+			g_mapMaterialListSingle.clear();
 
 			globCharShowCollisionTextUpdate = "";
-
-			// clear our brushList
-			globBrushList.clear();
 
 			// create a dmaterial_t vector with the size of numMaterials
 			std::int32_t cmMaterialNum = Game::cm->numMaterials;
@@ -1700,12 +1686,11 @@ namespace Components
 				currMapMaterials[num] = &Game::cm->materials[num];
 			}
 
-			// create a cbrush_t vector with the size of brushNum
-			std::int32_t cmBrushNum = Game::cm->numBrushes;
-			std::vector<Game::cbrush_t*> currBrushList(cmBrushNum);
+			// create a cbrush_t vector with the size of numBrushes
+			std::vector<Game::cbrush_t*> currBrushList(Game::cm->numBrushes);
 
 			// assign clipMap Brush Pointers to our globBrushList vector
-			for (int num = 0; num < cmBrushNum; num++) 
+			for (int num = 0; num < Game::cm->numBrushes; num++)
 			{
 				currBrushList[num] = &Game::cm->brushes[num];
 				currBrushList[num]->colorCounter = (short)colorCounter++;
@@ -1715,37 +1700,34 @@ namespace Components
 			}
 
 			// only run this procedure if we change a map or load one for the first time
-			cmCurrMapName = Game::cm->name;
-			globMatList = currMapMaterials;
-			globBrushList = currBrushList;
+			g_mapNameCm = Game::cm->name;
+			g_mapMaterialList = currMapMaterials;
+			g_mapBrushList = currBrushList;
 
 			// create a string vector of all material ( can contain duplicates )
-			auto globMatListCount = globMatList.size();
-
-			for (std::uint32_t num = 0; num < globMatListCount; num++)
+			for (std::uint32_t num = 0; num < g_mapMaterialList.size(); num++)
 			{
-				std::string materialName = Utils::convertToString(globMatList[num]->material, sizeof(globMatList[num]->material));
+				std::string materialName = Utils::convertToString(g_mapMaterialList[num]->material, sizeof(g_mapMaterialList[num]->material));
 				materialName.erase(std::remove(materialName.begin(), materialName.end(), '\0'), materialName.end());
 
-				globMatListDuplicates.push_back(materialName);
+				g_mapMaterialListDuplicates.push_back(materialName);
 			}
 
 			// create a string vector that does not include duplicate materials ( to be used for dvar description )
-			auto globMatListDuplicatesCount = globMatListDuplicates.size();
-			for (std::uint32_t num = 0; num < globMatListDuplicatesCount; num++)
+			for (std::uint32_t num = 0; num < g_mapMaterialListDuplicates.size(); num++)
 			{
-				std::string materialName = globMatListDuplicates[num];
+				std::string materialName = g_mapMaterialListDuplicates[num];
 
 				// if the vector is empty or the materialName does not exist within the array
-				if (globMatListSingle.empty() || std::find(globMatListSingle.begin(), globMatListSingle.end(), materialName) == globMatListSingle.end()) 
+				if (g_mapMaterialListSingle.empty() || std::find(g_mapMaterialListSingle.begin(), g_mapMaterialListSingle.end(), materialName) == g_mapMaterialListSingle.end()) 
 				{
-					globMatListSingle.push_back(materialName);
+					g_mapMaterialListSingle.push_back(materialName);
 				}
 			}
 
 			// create the dvar string
 			std::string showCollisionTextUpdate = "";
-			auto globMatListSingleCount = globMatListSingle.size();
+			auto globMatListSingleCount = g_mapMaterialListSingle.size();
 
 			//print the material list to the large console if the list has more then 20 materials
 			bool descriptionToLarge = false;
@@ -1757,7 +1739,7 @@ namespace Components
 
 			for (std::uint32_t num = 0; num < globMatListSingleCount; num++) 
 			{
-				showCollisionTextUpdate += std::to_string(num) + ": " + globMatListSingle[num] + "\n";
+				showCollisionTextUpdate += std::to_string(num) + ": " + g_mapMaterialListSingle[num] + "\n";
 			}
 
 			// convert the dvar string to a char*
@@ -1803,7 +1785,7 @@ namespace Components
 	}
 
 	// last origin we sorted our brushes at
-	glm::vec3 prev_Origin = glm::vec3(0.0f);
+	glm::vec3 g_oldSortingOrigin = glm::vec3(0.0f);
 
 	// sort globBrushList depending on distance from brush to camera
 	void CM_SortBrushListOnDistanceCamera(bool farToNear = true, bool useCurrentBrushesDrawnList = false, bool updateAlways = false)
@@ -1811,12 +1793,12 @@ namespace Components
 		if (!useCurrentBrushesDrawnList)
 		{
 			// sort brushes by distance from brush midpoint(xy) to camera origin :: only sort if the players origin has changed
-			if (prev_Origin[0] != Game::Globals::locPmove_playerOrigin[0] || prev_Origin[1] != Game::Globals::locPmove_playerOrigin[1] || updateAlways)
+			if (g_oldSortingOrigin[0] != Game::Globals::locPmove_playerOrigin[0] || g_oldSortingOrigin[1] != Game::Globals::locPmove_playerOrigin[1] || updateAlways)
 			{
 				// sort from far to near (used for rendering)
 				if (farToNear)
 				{
-					std::sort(globBrushList.begin(), globBrushList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
+					std::sort(g_mapBrushList.begin(), g_mapBrushList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
 					{
 						glm::vec3 b1_mid = (glm::vec3(brush1->mins[0], brush1->mins[1], 0.0f)
 							+ glm::vec3(brush1->maxs[0], brush1->maxs[1], 0.0f)) * 0.5f;
@@ -1834,7 +1816,7 @@ namespace Components
 				// sort from near to far (get closest brush)
 				else
 				{
-					std::sort(globBrushList.begin(), globBrushList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
+					std::sort(g_mapBrushList.begin(), g_mapBrushList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
 					{
 						glm::vec3 b1_mid = (glm::vec3(brush1->mins[0], brush1->mins[1], 0.0f)
 							+ glm::vec3(brush1->maxs[0], brush1->maxs[1], 0.0f)) * 0.5f;
@@ -1850,20 +1832,20 @@ namespace Components
 				}
 
 				//memcpy(prev_Origin, Game::Globals::locPmove_playerOrigin, sizeof(prev_Origin));
-				prev_Origin = Game::Globals::locPmove_playerOrigin;
+				g_oldSortingOrigin = Game::Globals::locPmove_playerOrigin;
 			}
 		}
 
 		// use drawn brushes list if not empty
-		else if(!currBrushesDrawnList.empty())
+		else if(!g_mapBrushListForIndexFiltering.empty())
 		{
 			// sort brushes by distance from brush midpoint(xy) to camera origin :: only sort if the players origin has changed
-			if (prev_Origin[0] != Game::Globals::locPmove_playerOrigin[0] || prev_Origin[1] != Game::Globals::locPmove_playerOrigin[1] || updateAlways)
+			if (g_oldSortingOrigin[0] != Game::Globals::locPmove_playerOrigin[0] || g_oldSortingOrigin[1] != Game::Globals::locPmove_playerOrigin[1] || updateAlways)
 			{
 				// sort from far to near (used for rendering)
 				if (farToNear)
 				{
-					std::sort(currBrushesDrawnList.begin(), currBrushesDrawnList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
+					std::sort(g_mapBrushListForIndexFiltering.begin(), g_mapBrushListForIndexFiltering.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
 					{
 						glm::vec3 b1_mid = (glm::vec3(brush1->mins[0], brush1->mins[1], 0.0f)
 							+ glm::vec3(brush1->maxs[0], brush1->maxs[1], 0.0f)) * 0.5f;
@@ -1881,7 +1863,7 @@ namespace Components
 				// sort from near to far (get closest brush)
 				else
 				{
-					std::sort(currBrushesDrawnList.begin(), currBrushesDrawnList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
+					std::sort(g_mapBrushListForIndexFiltering.begin(), g_mapBrushListForIndexFiltering.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
 					{
 						glm::vec3 b1_mid = (glm::vec3(brush1->mins[0], brush1->mins[1], 0.0f)
 							+ glm::vec3(brush1->maxs[0], brush1->maxs[1], 0.0f)) * 0.5f;
@@ -1896,7 +1878,7 @@ namespace Components
 					});
 				}
 
-				prev_Origin = Game::Globals::locPmove_playerOrigin;
+				g_oldSortingOrigin = Game::Globals::locPmove_playerOrigin;
 			}
 		}
 	}
@@ -1933,7 +1915,7 @@ namespace Components
 	int SvFramerateToRendertime_Counter = 0;
 	int SvFramerateToRendertime_CurrentDelta = 0;
 
-#ifdef EXP_MAP_EXPORT
+
 	bool PatchTriangle_SharesEdge(const Game::map_patchTris_t *pTri1, const Game::map_patchTris_t *pTri2)
 	{
 		int matchedPoints = 0;
@@ -2295,7 +2277,7 @@ namespace Components
 
 		return false;
 	}
-#endif
+
 
 	// main logic for brush drawing
 	void CM_ShowBrushCollision(Game::GfxViewParms *viewParms, Game::cplane_s *frustumPlanes, int frustumPlaneCount)
@@ -2313,20 +2295,18 @@ namespace Components
 			return;
 		}
 
-		// check if r_drawCollision_brushIndexFilter is defined (once on mapload)
-		if (Dvars::r_drawCollision_brushIndexFilter != nullptr) 
+		if (Dvars::r_drawCollision_brushIndexFilter) 
 		{
 			// set bool brushFilterSet depending on the string in r_drawCollision_brushIndexFilter
-			brushFilterSet = (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null";
+			brushFilterSet = (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null"; // do "" ?
 		}
 
-		// build a list of materials used for filtering
-		CM_BuildMaterialListForMapOnce();
+		// One time init per map when r_drawcollison was enabled
+		CM_OnceOnInit();
 
-		// print it
+		// cmd :: print material list to console
 		if (Dvars::r_drawCollision_materialList->current.enabled)
 		{
-			// clear the console
 			Game::Cmd_ExecuteSingleCommand(0, 0, "clear\n");
 
 			// add spaces to the console so we can scroll the mini console
@@ -2337,7 +2317,7 @@ namespace Components
 			Game::Com_PrintMessage(0, Utils::VA("%s\n", globCharShowCollisionTextUpdate), 0);
 		}
 
-		// brush selection section
+		// brush selection (remove brush begin later, not longer of any use)
 		int dvarBrush = Dvars::r_drawCollision_brushBegin->current.integer;
 		int dvarBrushCount = Dvars::r_drawCollision_brushAmount->current.integer;
 		
@@ -2361,24 +2341,27 @@ namespace Components
 			Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, dvarBrushCount);
 		}
 
+		// loop all brushes when index filtering is enabled
 		if (brushFilterSet) 
 		{
-			// loop all brushes when using a brush filter
 			customBrushCountDvar = Game::cm->numBrushes;
 		} 
+		// use a custom amount of brushes otherwise
 		else 
 		{
-			// use a custom amount of brushes otherwise
 			customBrushCountDvar = dvarBrush + dvarBrushCount;
 		}
 
-#ifdef EXP_MAP_EXPORT
+		// 
+		// Map Export Stuff
+		
 		map_exportAllFilteredBrushes = false;	// global ( should reset itself after all brushes were exported and the draw collision code runs again )
 		map_exportCurrentBrushIndex = 0;		// brush index for .map file brushes
 
 		std::chrono::time_point<std::chrono::steady_clock> map_exportStart;
 		std::chrono::time_point<std::chrono::steady_clock> map_brushBuildingStart;
 		
+		// cmd :: export current map
 		if (Dvars::r_drawCollision_export->current.enabled)
 		{
 			map_exportAllFilteredBrushes = true;
@@ -2386,9 +2369,6 @@ namespace Components
 			// reset the dvar value (used like a command)
 			Game::Dvar_SetValue(Dvars::r_drawCollision_export, false);
 
-
-			// *
-			// Export to Map
 
 			std::string mapName = Game::cm->name;
 			Utils::replaceAll(mapName, std::string("maps/mp/"), std::string(""));
@@ -2403,7 +2383,7 @@ namespace Components
 			Game::Com_PrintMessage(0, "\n------------------------------------------------------\n", 0);
 			map_exportStart = Utils::Clock_StartTimerPrint(Utils::VA("[MAP-EXPORT]: Starting to export %s to %s ...\n", Game::cm->name, filePath.c_str()));
 
-			// create directory /map_export if it doesnt exist
+			// create directory root/map_export if it doesnt exist
 			if (!CreateDirectoryA(basePath.c_str(), NULL) ) 
 			{
 				if (ERROR_ALREADY_EXISTS != GetLastError())
@@ -2432,269 +2412,213 @@ namespace Components
 			map_exportMapEnts_str = map_exportMapWorldspawn_str.substr(brushStartPos);
 			map_exportMapWorldspawn_str = map_exportMapWorldspawn_str.substr(0, brushStartPos);
 			
-
 			// write header and worldspawn
 			mapFile << "iwmap 4\n\"000_Global\" flags expanded  active\n\"000_Global/Brushes\" flags\n\"000_Global/SingleQuads\" flags\n\"000_Global/Triangles\" flags\n\"000_Global/Models\" flags\n\"The Map\" flags \n// entity 0" << std::endl; // header
 			mapFile << map_exportMapWorldspawn_str.c_str(); // worldspawn
 
 			Game::Com_PrintMessage(0, "|- Writing header and world entity ...\n\n", 0);
 
-			
-			// *
-			// Build Brushes
-
+			// Use debug collision methods to create our brushes ...
 			map_brushBuildingStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Creating brushes ...\n");
-
-			/* .. CM_ShowSingleBrushCollision .. */
 		}
-#endif
 
-		// ----------------------------------------
-		// Brush Sorting -- org without indexFilter
+		// --------
 
-		// if brush sorting is used and NOT r_drawCollision_brushIndexFilter (brushFilterSet)
-		if (Dvars::r_drawCollision_brushSorting->current.enabled && !brushFilterSet)
+		bool brushSorting = Dvars::r_drawCollision_brushSorting->current.enabled;
+		bool brushIndexVisible = Dvars::r_drawCollision_brushIndexVisible->current.enabled;
+
+		if (brushSorting && !brushFilterSet)
 		{
 			// sort current map brushes (globBrushList)
 			CM_SortBrushListOnDistanceCamera();
-			
-			// if sorted brushList is not empty
-			if (!globBrushList.empty())
+
+			// disable sorting if sorted brushList is empty .. should not happen
+			if (g_mapBrushList.empty())
 			{
-				// reset drawn planes
-				Game::Globals::drawnPlanesAmountTemp = 0;
-
-				for (int brushIndex = dvarBrush; brushIndex < customBrushCountDvar; ++brushIndex)
-				{
-					// get current brush from globBrushList
-					brush = globBrushList[brushIndex];
-
-					// check if our brush uses the material we want
-					if (CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer))
-					{
-#ifndef EXP_MAP_EXPORT
-						// check if our brush is in our frustum (does not check visibility per se)
-						if (CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
-						{
-							// we use the brush's index in cm->brushes as our colorcounter, because sorting the brushlist would result in flickering colors
-							CM_GetShowCollisionColor(colorFloat, globBrushList[brushIndex]->colorCounter);
-
-							// draw our current brush
-							CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-							lastDrawnBrushAmount++;
-						}				
-#else
-						// do not cull brushes when exporting the map :: overwise check if our brush is in our frustum (does not check visibility per se)
-						if (map_exportAllFilteredBrushes || CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
-						{
-							// we use the brush's index in cm->brushes as our colorcounter, because sorting the brushlist would result in flickering colors
-							CM_GetShowCollisionColor(colorFloat, globBrushList[brushIndex]->colorCounter);
-
-							// draw our current brush
-							CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-							lastDrawnBrushAmount++;
-						}
-#endif				
-					}
-				}
+				// somethings wrong, disable brush sorting and notify user
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, false);
+				brushSorting = false;
 			}
 		}
 
-		// ----------------------------------------------------------------------------------------------------------------------------------------------
-		// Unsorted Brushes -- Brush Index Filter -- Brush Index Drawing (r_drawCollision_brushIndexFilter (brushFilterSet) / brush index drawing enabled)
+		// clear drawn brushes vector
+		g_mapBrushListForIndexFiltering.clear();
 
+		// reset hud element
+		Game::Globals::drawnPlanesAmountTemp = 0;
+
+		int BRUSH_INDEX, BRUSH_START, BRUSH_COUNT;
+		std::vector<int> Integers;
+
+		// brush index filtering
+		if (brushFilterSet)
+		{
+			Utils::extractIntegerWords(Dvars::r_drawCollision_brushIndexFilter->current.string, Integers, true);
+
+			BRUSH_START = 0;
+			BRUSH_COUNT = (int)Integers.size();
+		}
+		// sorted / unsorted
 		else
 		{
-			// *
-			// unsorted brushes NOT using brush index filtering
+			BRUSH_START = dvarBrush;
+			BRUSH_COUNT = customBrushCountDvar;
+		}
 
-			if (!brushFilterSet)
+		for (BRUSH_INDEX = BRUSH_START; BRUSH_INDEX < BRUSH_COUNT; ++BRUSH_INDEX)
+		{
+			int brushIndex;
+
+			// brush index filtering
+			if (brushFilterSet)
 			{
-				// reset drawn planes
-				Game::Globals::drawnPlanesAmountTemp = 0;
+				brushIndex = Integers[BRUSH_INDEX];
 
-				// reset drawn brushes list
-				currBrushesDrawnList.clear();
-
-				// draw our debug polys
-				for (int brushIndex = dvarBrush; brushIndex < customBrushCountDvar; ++brushIndex)
+				// check if the index is within bounds
+				if (brushIndex < 0 || brushIndex > Game::cm->numBrushes)
 				{
-					brush = &Game::cm->brushes[brushIndex];
+					// find and remove the <out of bounds> index
+					Integers.erase(std::remove(Integers.begin(), Integers.end(), brushIndex), Integers.end());
 
-					// if valid material
-					if (CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer))
+					// vector to string
+					std::string vecToString = "";
+					for (int num = 0; num < (int)Integers.size(); num++)
 					{
-						CM_GetShowCollisionColor(colorFloat, colorCounter++);
-						colorCounter %= 8;
-#ifndef EXP_MAP_EXPORT
-						// check if our brush is in view-frustum (does not check visibility per se)
-						if (CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
-						{
-							// draw our current brush
-							CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-
-							currBrushesDrawnList.push_back(brush);
-							lastDrawnBrushAmount++;
-						}
-#else
-						// do not cull brushes when exporting the map :: overwise check if our brush is in our frustum (does not check visibility per se)
-						if (map_exportAllFilteredBrushes || CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
-						{
-							// draw our current brush
-							CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-
-							currBrushesDrawnList.push_back(brush);
-							lastDrawnBrushAmount++;
-						}
-#endif
+						vecToString += std::to_string(Integers[num]) + " ";
 					}
+
+					// string to const char*
+					char* cleanedString = new char[vecToString.size() + 1];
+					strcpy(cleanedString, vecToString.c_str());
+
+					Game::Dvar_SetString(cleanedString, Dvars::r_drawCollision_brushIndexFilter);
+					Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision_brushIndexFilter ^7:: found and removed <out of bounds> index: %d \n", brushIndex), 0);
+
+					return;
 				}
 			}
-
-			// ------------------------
-			// using brush index filter
-
+			// sorted / unsorted
 			else
 			{
-				// reset drawn planes
-				Game::Globals::drawnPlanesAmountTemp = 0;
-
-				// reset drawn brushes list
-				currBrushesDrawnList.clear();
-
-				// if we use brush index filtering
-				if (brushFilterSet)
-				{
-					std::vector<int> Integers;
-					std::string brushFilterStr = Dvars::r_drawCollision_brushIndexFilter->current.string;
-
-					Utils::extractIntegerWords(brushFilterStr, Integers, true);
-
-					// draw filtered debug polys
-					for (int filterElem = 0; filterElem < (int)Integers.size(); filterElem++)
-					{
-						int brushIndex = Integers[filterElem];
-
-						// check if the index is within bounds
-						if (brushIndex < 0 || brushIndex > Game::cm->numBrushes) 
-						{
-							// find and remove the <out of bounds> index
-							Integers.erase(std::remove(Integers.begin(), Integers.end(), brushIndex), Integers.end());
-							
-							// vector to string
-							std::string vecToString = "";
-							for (int num = 0; num < (int)Integers.size(); num++) 
-							{
-								vecToString += std::to_string(Integers[num]) + " ";
-							}
-
-							// string to const char*
-							char* cleanedString = new char[vecToString.size() + 1];
-							strcpy(cleanedString, vecToString.c_str());
-
-							Game::Dvar_SetString(cleanedString, Dvars::r_drawCollision_brushIndexFilter);
-							Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision_brushIndexFilter ^7:: found and removed <out of bounds> index: %d \n", brushIndex), 0);
-							
-							return;
-						}
-
-						// get brushindexes from r_drawCollision_brushIndexFilter string
-						brush = &Game::cm->brushes[brushIndex];
-
-						CM_GetShowCollisionColor(colorFloat, colorCounter++);
-						colorCounter %= 8;
-#ifndef EXP_MAP_EXPORT
-						// check if our brush is in view-frustum (does not check visibility per se)
-						if (CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
-						{
-							// draw our current brush
-							CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-							currBrushesDrawnList.push_back(brush);
-							lastDrawnBrushAmount++;				
-						}
-#else
-						// do not cull brushes when exporting the map :: overwise check if our brush is in our frustum (does not check visibility per se)
-						if (map_exportAllFilteredBrushes || CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
-						{
-							// draw our current brush
-							CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-
-							currBrushesDrawnList.push_back(brush);
-							lastDrawnBrushAmount++;
-						}
-#endif
-					}
-				}
+				brushIndex = BRUSH_INDEX;
 			}
 
-			// -----------------------------------------------------------------------------------------
-			// draw debug prints (brush indexes) for both unsorted brushes or when using index filtering
-
-			if (Dvars::r_drawCollision_brushIndexVisible->current.enabled && !currBrushesDrawnList.empty())
+			if (brushSorting && !brushFilterSet)
 			{
-				// debug strings are handled winthin the server thread which is running @ 20fps, so we have to skip drawing them -> ((renderfps / sv_fps)) times
-
-				// if new loop allowed
-				if (!SvFramerateToRendertime_Counter) 
-				{
-					SvFramerateToRendertime_CurrentDelta = (1000 / Game::Globals::pmlFrameTime) / Game::Dvar_FindVar("sv_fps")->current.integer;
-					SvFramerateToRendertime_CurrentDelta = (int)floor(SvFramerateToRendertime_CurrentDelta);
-				}
-
-				// increase counter
-				SvFramerateToRendertime_Counter++;
-
-				// if we reached the delta, we can draw strings again
-				if (SvFramerateToRendertime_Counter >= SvFramerateToRendertime_CurrentDelta)
-				{
-					// reset counter
-					SvFramerateToRendertime_Counter = 0;
-
-					// sort brushes from near to far
-					CM_SortBrushListOnDistanceCamera(false, true, true);
-
-					// should not happen
-					if (currBrushesDrawnList.empty())
-					{
-						Game::Dvar_SetValue(Dvars::r_drawCollision_brushIndexVisible, false);
-						Game::Com_PrintMessage(0, Utils::VA("^1CM_ShowBrushCollision L#%d ^7:: GlobalBrushList was empty. Disabled r_drawCollision_brushIndexVisible! \n", __LINE__), 0);
-					}
-
-					// maximum amount of strings (brush indexes) to draw
-					int debugPrintsMax = 64;
-
-					// if we have less then 64 brushes, use the amount of brushes the map has
-					if ((int)currBrushesDrawnList.size() < debugPrintsMax) 
-					{
-						debugPrintsMax = currBrushesDrawnList.size();
-					}
-
-					// draw strings near - far
-					for (debugPrints = 0; debugPrints < debugPrintsMax; ++debugPrints)
-					{
-						// get distance-sorted brush
-						brush = currBrushesDrawnList[debugPrints];
-
-						// get midpoint of brush bounds (xyz)
-						glm::vec3 printOrigin = CM_GetBrushMidpoint(brush, true);
-
-						// draw original brush index in the middle of the collision poly
-						CM_ShowBrushIndexNumbers(viewParms, brush->cmBrushIndex, printOrigin, debugPrints, debugPrintsMax);
-					}
-				}
+				brush = g_mapBrushList[brushIndex];
 			}
-
 			else 
 			{
-				// if not drawing debug strings
-				SvFramerateToRendertime_Counter = 0;
+				brush = &Game::cm->brushes[brushIndex];
+			}
+
+			// check if brush uses the material we want
+			if (CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer))
+			{
+				// if brush is part of a submodel, translate brushmodel bounds by the submodel origin
+				if (brush->isSubmodel)
+				{
+					Game::cbrush_t dupe = Game::cbrush_t();
+					memcpy(&dupe, brush, sizeof(Game::cbrush_t));
+					Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
+					Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
+
+					brush = &dupe;
+				}
+
+				// do not cull brushes when exporting the map :: overwise check if our brush is in our frustum (does not check visibility per se)
+				if (map_exportAllFilteredBrushes || CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
+				{
+					// always use the brush index within clipmap->brushes to define its color
+					CM_GetShowCollisionColor(colorFloat, brush->colorCounter);
+
+					// draw the current brush
+					CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
+
+					if (brushIndexVisible)
+					{
+						g_mapBrushListForIndexFiltering.push_back(brush);
+					}
+
+					lastDrawnBrushAmount++;
+				}
 			}
 		}
 
-#ifdef EXP_MAP_EXPORT
+		// -----------------------------------------------------------------------------
+		// draw brush indices as 3D text (only when: unsorted brushes / index filtering)
+
+		if (brushIndexVisible && !g_mapBrushListForIndexFiltering.empty())
+		{
+			// debug strings are handled winthin the server thread which is running @ 20fps, so we have to skip drawing them -> ((renderfps / sv_fps)) times
+			// ^ meme, fix later
+
+			// if new loop allowed
+			if (!SvFramerateToRendertime_Counter)
+			{
+				SvFramerateToRendertime_CurrentDelta = (1000 / Game::Globals::pmlFrameTime) / Game::Dvar_FindVar("sv_fps")->current.integer;
+				SvFramerateToRendertime_CurrentDelta = (int)floor(SvFramerateToRendertime_CurrentDelta);
+			}
+
+			// increase counter
+			SvFramerateToRendertime_Counter++;
+
+			// if we reached the delta, we can draw strings again
+			if (SvFramerateToRendertime_Counter >= SvFramerateToRendertime_CurrentDelta)
+			{
+				// reset counter
+				SvFramerateToRendertime_Counter = 0;
+
+				// sort brushes from near to far
+				CM_SortBrushListOnDistanceCamera(false, true, true);
+
+				// should not happen
+				if (g_mapBrushListForIndexFiltering.empty())
+				{
+					Game::Dvar_SetValue(Dvars::r_drawCollision_brushIndexVisible, false);
+					Game::Com_PrintMessage(0, Utils::VA("^1CM_ShowBrushCollision L#%d ^7:: GlobalBrushList was empty. Disabled r_drawCollision_brushIndexVisible! \n", __LINE__), 0);
+				}
+
+				// maximum amount of brush indices to draw
+				int debugPrintsMax = 64;
+
+				// only draw as many indices as the map has brushes
+				if ((int)g_mapBrushListForIndexFiltering.size() < debugPrintsMax)
+				{
+					debugPrintsMax = g_mapBrushListForIndexFiltering.size();
+				}
+
+				// draw strings near - far
+				for (debugPrints = 0; debugPrints < debugPrintsMax; ++debugPrints)
+				{
+					// get distance-sorted brush
+					brush = g_mapBrushListForIndexFiltering[debugPrints];
+
+					// get midpoint of brush bounds (xyz)
+					glm::vec3 printOrigin = CM_GetBrushMidpoint(brush, true);
+
+					// draw original brush index in the middle of the collision poly
+					CM_ShowBrushIndexNumbers(viewParms, brush->cmBrushIndex, printOrigin, debugPrints, debugPrintsMax);
+				}
+			}
+		}
+		else
+		{
+			// if not drawing debug strings
+			SvFramerateToRendertime_Counter = 0;
+		}
+
+
+		// 
+		// Map Export Stuff
+
 		if (map_exportAllFilteredBrushes)
 		{
-			Utils::Clock_EndTimerPrintSeconds(map_brushBuildingStart, Utils::VA("|- Building (%d) brushes took (%.4f)\n\n", map_exportCurrentBrushIndex));
+			const char* brush_str = Utils::VA("|- Building (%d) brushes took", map_exportCurrentBrushIndex);
+			std::string timefmt = " took (%.4f)\n\n";
+			timefmt = brush_str + timefmt;
+
+			Utils::Clock_EndTimerPrintSeconds(map_brushBuildingStart, timefmt.c_str());
 
 			// *
 			// Create Tris
@@ -2973,6 +2897,9 @@ namespace Components
 			"classname" "reflection_probe"
 			}*/
 
+			//Utils::Entities mapEnts(Game::cm->mapEnts->entityString, Game::cm->mapEnts->numEntityChars - 1);
+			//g_mapBrushModelList = mapEnts.getBrushModels();
+
 			if (Dvars::r_drawCollision_export_writeEntities->current.enabled)
 			{
 				// measure regex time
@@ -3062,7 +2989,8 @@ namespace Components
 			Utils::Clock_EndTimerPrintSeconds(map_exportStart, ">> DONE! Map export took (%.4f) seconds!\n");
 			Game::Com_PrintMessage(0, "------------------------------------------------------\n\n", 0);
 		}
-#endif
+
+		// ------------
 
 		// update hud elements after we drew all brushes / planes
 		if (Game::Globals::drawnPlanesAmount != Game::Globals::drawnPlanesAmountTemp) {
@@ -3074,8 +3002,7 @@ namespace Components
 		}
 	}
 
-	// called from _Debug::RB_AdditionalDebug
-	// entry for collision drawing (create view frustum)
+	// _Debug::RB_AdditionalDebug :: entry for collision drawing (create view frustum)
 	void RB_DrawCollision::RB_ShowCollision(Game::GfxViewParms *viewParms)
 	{
 		char frustumType;
@@ -3116,13 +3043,11 @@ namespace Components
 				return;
 			}
 
-#ifdef EXP_MAP_EXPORT
 			// increment our frame counter if we use flickering brush mode
 			if (Dvars::r_drawCollision_flickerBrushes->current.enabled)
 			{
 				collisionFlickerCounter++;
 			}
-#endif
 
 			// *
 			// Build culling frustum
@@ -3312,7 +3237,6 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-#ifdef EXP_MAP_EXPORT 
 		Dvars::r_drawCollision_export = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_export",
 			/* desc		*/ "[MAP-EXPORT] Export all selected brushes (+ options) to a map file.\n|- Collision draw distance and view culling will be ignored.\n|- Use < map_export_all > to quickly export everything (with respect to export options).",
@@ -3364,7 +3288,6 @@ namespace Components
 			/* minVal	*/ 0,
 			/* maxVal	*/ INT_MAX,
 			/* flags	*/ Game::dvar_flags::none);
-#endif
 
 		Dvars::r_drawCollision_hud = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_hud",
@@ -3424,8 +3347,7 @@ namespace Components
 
 			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision_export 1\n");
 			Game::Cmd_ExecuteSingleCommand(0, 0, "say \"Export Done!\"\n");
-
-			Game::Cbuf_AddText("r_drawcollision 0", 0);
+			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision 0\n");
 		});
 	}
 
