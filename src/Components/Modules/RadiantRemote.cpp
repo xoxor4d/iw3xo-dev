@@ -12,6 +12,7 @@ namespace Components
 	// ---------------------
 	// Radiant debug brushes
 
+	// search brushmodels from prefab "dynamic_collision_bmodels.map"
 	void RadiantRemote::CM_FindDynamicBrushModels()
 	{
 		bool ent_found_bbModel = false;
@@ -168,7 +169,7 @@ namespace Components
 		// Entity Remote :: local bounds
 		_Game::gEnt_BrushModelBounds(bModel, localMins, localMaxs);
 
-		// ~ relink this entity, because it may have moved out of the current leave
+		// ~ relink this entity, because it may have moved out of the current leaf
 		// Update the clipmap leafs and absolute world bounds
 		Game::SV_LinkEntity(bModel->ent);
 	}
@@ -293,7 +294,7 @@ namespace Components
 
 					if (RadiantDB_IsSelectionSaved(b))
 					{
-						// current non-saved selection is already saved
+						// current selection is already saved
 						continue;
 					}
 				}
@@ -310,10 +311,10 @@ namespace Components
 
 					for (auto coord = 0; coord < Game::Globals::rad_savedBrushes.brush[b].face[f].windingCount; coord++)
 					{
-						// windings are reversed in radiant or the game
+						// windings are reversed in radiant or the game, dunno
 						int invcoord = coord;
 
-						// uncomment to inverse faces
+						// comment to reverse faces
 						invcoord = Game::Globals::rad_savedBrushes.brush[b].face[f].windingCount - 1 - coord;
 
 						// create the coord
@@ -433,6 +434,7 @@ namespace Components
 
 					// *
 					// brush rotation => not needed anymore
+
 					// calculate rotation angles by using the top/right brushface normals (facing Z (0 0 1)) (facing X (1 0 0))
 					glm::vec3 angles(0.0f);
 

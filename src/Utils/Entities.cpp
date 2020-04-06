@@ -2,7 +2,8 @@
 
 namespace Utils
 {
-	std::string Entities::build()
+	// build all entities (includes brushmodel pointers "*")
+	std::string Entities::buildAll()
 	{
 		std::string entityString;
 
@@ -20,6 +21,124 @@ namespace Utils
 			}
 
 			entityString.append("}\n");
+		}
+
+		return entityString;
+	}
+
+	// build all entities and fix brushmodels
+	std::string Entities::buildAll_FixBrushmodels(const std::vector<Game::brushmodelEnt_t> &bModelList)
+	{
+		int entityNum = 1; // worldspawn is 0
+		int submodelNum = 0;
+		std::string entityString;
+
+		for (auto& entity : this->entities)
+		{
+			std::string model = entity["model"];
+
+			// if ent is a brushmodel/submodel
+			if (!model.empty() && model[0] == '*')
+			{
+				// get the submodel index 
+				auto p_index = std::stoi(model.erase(0, 1));
+
+				if (p_index < static_cast<int>(bModelList.size()))
+				{
+					auto bModelSideCount = static_cast<int>(bModelList[p_index].brushSides.size());
+					
+					// skip submodel entity if we have less then 6 brushsides (we could also create a temp. cube at its origin)
+					if (bModelSideCount < 6)
+					{
+						continue;
+					}
+
+					// start submodel
+					entityString.append(Utils::VA("// submodel %d\n", submodelNum));
+					entityString.append("{\n");
+
+					// write submodel keys
+					for (auto& property : entity)
+					{
+						// do not write model/origin keys
+						if (property.first == "model" || property.first == "origin")
+						{
+							continue;
+						}
+
+						entityString.push_back('"');
+						entityString.append(property.first);
+						entityString.append("\" \"");
+						entityString.append(property.second);
+						entityString.append("\"\n");
+					}
+
+					// start submodel brush
+					entityString.append("{\n");
+
+					for (auto bSide = 0; bSide < bModelSideCount; bSide++)
+					{
+						entityString.append(bModelList[p_index].brushSides[bSide]);
+					}
+
+					// close submodel brush
+					entityString.append("}\n");
+
+					// close submodel
+					entityString.append("}\n");
+
+					submodelNum++;
+				}
+			}
+
+			else
+			{
+				// start entity
+				entityString.append(Utils::VA("// entity %d\n", entityNum));
+				entityString.append("{\n");
+
+				for (auto& property : entity)
+				{
+					entityString.push_back('"');
+					entityString.append(property.first);
+					entityString.append("\" \"");
+					entityString.append(property.second);
+					entityString.append("\"\n");
+				}
+
+				// close entity
+				entityString.append("}\n");
+
+				entityNum++;
+			}
+		}
+
+		return entityString;
+	}
+
+	// only build worldspawn keys/values without opening/closing brackets
+	std::string Entities::buildWorldspawnKeys()
+	{
+		std::string entityString;
+
+		for (auto& entity : this->entities)
+		{
+			if (entity.find("classname") != entity.end())
+			{
+				if (entity["classname"] == "worldspawn"s)
+				{
+					for (auto& property : entity)
+					{
+						entityString.push_back('"');
+						entityString.append(property.first);
+						entityString.append("\" \"");
+						entityString.append(property.second);
+						entityString.append("\"\n");
+					}
+
+					break;
+				}
+			}
 		}
 
 		return entityString;
@@ -91,9 +210,10 @@ namespace Utils
 						currBModel.cmSubmodel = &Game::cm->cmodels[p_index];
 					}
 					
-					if (Game::cm->cmodels[p_index].leaf.leafBrushNode != 0 && Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes)
+					// this is giving me cancer
+					if (Game::cm->cmodels[p_index].leaf.leafBrushNode != 0 && Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes != nullptr)
 					{
-						currBModel.cmBrushIndex = (int)*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes;
+						currBModel.cmBrushIndex = static_cast<int>(*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes);
 							
 						//currBModel.cmBrush = &Game::cm->brushes[*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes];
 						currBModel.cmBrush = &Game::cm->brushes[currBModel.cmBrushIndex];
@@ -124,6 +244,24 @@ namespace Utils
 		return bModels;
 	}
 
+	void Entities::deleteWorldspawn()
+	{
+		for (auto i = this->entities.begin(); i != this->entities.end();)
+		{
+			if (i->find("classname") != i->end())
+			{
+				std::string classname = (*i)["classname"];
+				if (Utils::StartsWith(classname, "worldspawn"))
+				{
+					i = this->entities.erase(i);
+					continue;
+				}
+			}
+
+			++i;
+		}
+	}
+
 	void Entities::deleteTriggers()
 	{
 		for (auto i = this->entities.begin(); i != this->entities.end();)
@@ -139,21 +277,6 @@ namespace Utils
 			}
 
 			++i;
-		}
-	}
-
-	void Entities::convertTurrets()
-	{
-		for (auto& entity : this->entities)
-		{
-			if (entity.find("classname") != entity.end())
-			{
-				if (entity["classname"] == "misc_turret"s)
-				{
-					entity["weaponinfo"] = "turret_minigun_mp";
-					entity["model"] = "weapon_minigun";
-				}
-			}
 		}
 	}
 

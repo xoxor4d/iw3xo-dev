@@ -13,7 +13,7 @@ namespace Components
 		Loader::MemAllocator.clear();
 
 		// global bools for more dynamic modules (no module sorting needed)
-		// modules to be loaded ::
+		// choose which modules to load
 		active._UI = true;
 		active._CG = true;
 		active._Pmove = true;
@@ -47,31 +47,6 @@ namespace Components
 		REGISTER_MODULE(RB_ShaderOverlays);
 		REGISTER_MODULE(RadiantRemote);
 		REGISTER_MODULE(Scheduler);
-		
-		// General Modules that need to be loaded
-		/*Loader::Register(new _CG(),	active._CG);
-		Loader::Register(new _UI(),	active._UI);
-		Loader::Register(new _Pmove(), active._Pmove);
-		Loader::Register(new _Debug(), active._Debug);
-		Loader::Register(new _Game(), active._Game);
-		Loader::Register(new _Map(), active._Map);
-		Loader::Register(new Command(),	active.Command);
-		Loader::Register(new GScr_Methods(), active.GScr_Methods);
-		Loader::Register(new QuickPatch(), active.QuickPatch);*/
-
-		// ---------
-		
-		// Addons - undefine to disable modules
-		/*Loader::Register(new PM_Movement(), active.PM_Movement);
-		Loader::Register(new XO_Console(), active.XO_Console);
-		Loader::Register(new RB_DrawCollision(), active.RB_DrawCollision);
-		Loader::Register(new RB_ShaderOverlays(), active.RB_ShaderOverlays);
-		Loader::Register(new RadiantRemote(), active.RadiantRemote);*/
-
-		// ---------
-
-		// General Modules with dynamic hooks depending on addon component loading needs to be loaded last
-		//Loader::Register(new Scheduler(), active.Scheduler); // checks if XO_Console is registered
 	}
 
 	void Loader::Uninitialize()
@@ -84,17 +59,14 @@ namespace Components
 
 		Loader::Components.clear();
 		Loader::MemAllocator.clear();
-		//fflush(stdout);
-		//fflush(stderr);
 	}
 
-	void Loader::Register(Component* component)//bool& registered)
+	void Loader::Register(Component* component)
 	{
 		if (component)
 		{
 			Game::Globals::loadedModules.append(Utils::VA("Component registered: %s\n", component->getName()));
 			Loader::Components.push_back(component);
-			//registered = true;
 		}
 	}
 

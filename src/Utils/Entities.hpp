@@ -10,14 +10,16 @@ namespace Utils
 		Entities(std::string buffer) : Entities() { this->parse(buffer); };
 		Entities(const Entities &obj) : entities(obj.entities) {};
 
-		std::string build();
+		std::string buildAll();
+		std::string buildAll_FixBrushmodels(const std::vector<Game::brushmodelEnt_t>& bModelList);
+		std::string buildWorldspawnKeys();
 
 		std::vector<std::string> getModels();
 		std::vector<Game::brushmodelEnt_t> getBrushModels();
 
+		void deleteWorldspawn();
 		void deleteTriggers();
 		void deleteWeapons(bool keepTurrets);
-		void convertTurrets();
 
 	private:
 		enum

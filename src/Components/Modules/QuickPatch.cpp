@@ -35,9 +35,9 @@ namespace Components
 	// Runs prior to CL_PreInitRenderer ("----- Initializing Renderer ----")
 	void CL_PreInit()
 	{
-#if DEBUG
+//#if DEBUG
 		Game::Com_PrintMessage(0, Utils::VA("-------------- Loading Modules -------------- \n%s\n", Game::Globals::loadedModules.c_str()), 0);
-#endif
+//#endif
 	}
 
 	// :: CL_PreInit
@@ -99,7 +99,7 @@ namespace Components
 			test    eax, eax
 			
 			je		MATCH			// jump if iwd matched xcommon_
-			jmp		errMsg			// if not yeet out
+			jmp		errMsg			// yeet
 
 		MATCH :
 			mov     ebx, [ebp - 4]		// whatever df that is
@@ -158,8 +158,7 @@ namespace Components
 					XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_MOD | Game::XZONE_FLAGS::XZONE_DEBUG;
 					++i;
 
-					// we have to sync assets or we run into issues when the game is trying to access unloaded assets?
-					// (eg. crash in R_AddCmdDrawStretchPic because it was reading a NULL technique on connecting to a server .. )
+					// we have to sync assets or we run into issues when the game is trying to access unloaded assets
 					Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
 
 					Game::R_BeginRemoteScreenUpdate();
@@ -201,7 +200,7 @@ namespace Components
 
 		// ---------------------------------------------------------------------------------------------------------
 
-		if (*Game::zone_ui_mp) // not loaded on when starting dedicated servers
+		if (*Game::zone_ui_mp) // not loaded when starting dedicated servers
 		{
 			XZoneInfoStack[i].name			= *Game::zone_ui_mp;
 			XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_UI;
@@ -235,8 +234,8 @@ namespace Components
 			if (FF_ADDON_REQ_NAME && Game::DB_FileExists(FF_ADDON_REQ_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
 			{
 				XZoneInfoStack[i].name = FF_ADDON_REQ_NAME;
-				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD; // never unload
-				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO;  // never free?
+				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
 				++i;
 			}
 
@@ -414,7 +413,7 @@ namespace Components
 	QuickPatch::QuickPatch()
 	{
 		// Set fs_game
-		//Utils::Hook::Set<char*>(0x55E509, "mods/iw3-exp");
+		//Utils::Hook::Set<char*>(0x55E509, "mods/q3");
 		//Utils::Hook(0x4FF20A, QuickPatch::OnInitStub, HOOK_CALL).install()->quick();
 
 		// Disable dvar cheat / write protection
@@ -441,8 +440,7 @@ namespace Components
 		// Disable AutoUpdate Check?
 		Utils::Hook::Nop(0x4D76DA, 5);
 
-		// Remove debug prints from console
-		// ++ setstat: developer_script must be false
+		// Remove "setstat: developer_script must be false"
 		Utils::Hook::Nop(0x46FCFB, 5);
 
 		// Precaching beyond level load
@@ -463,13 +461,14 @@ namespace Components
 		// Register String Dvars (doing so on module load crashes the game (SL_GetStringOfSize))
 		Utils::Hook(0x629D7A, R_RegisterStringDvars_stub, HOOK_JUMP).install()->quick();
 
+		// Print loaded modules to console
 		Utils::Hook(0x46FD00, CL_PreInitRenderer_stub, HOOK_JUMP).install()->quick();
 		
-		// fixing default console prints
+		// fix default console prints
 		Utils::Hook(0x5F4EE1, Fix_ConsolePrints01, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x57769D, Fix_ConsolePrints02, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x52F3EE, Fix_ConsolePrints03, HOOK_JUMP).install()->quick();
-		
+
 		// we replace the first printf call with our print
 		Utils::Hook(0x4BF04A, Fix_ConsolePrints04, HOOK_JUMP).install()->quick(); 
 
@@ -499,14 +498,6 @@ namespace Components
 
 		// --------
 		// Commands
-
-		//if (Components::active.RadiantRemote)
-		//{
-		//	Command::Add("dynbrushmodels", [](Command::Params)
-		//	{
-		//		RadiantRemote::CM_FindDynamicBrushModels();
-		//	});
-		//}
 
 		Command::Add("iw3xo_github", [](Command::Params)
 		{
@@ -620,7 +611,6 @@ namespace Components
 			info[1].freeFlags	= Game::XZONE_FLAGS::XZONE_ZERO;
 
 			Game::DB_LoadXAssets(info, 2, 1);
-
 		});
 	}
 

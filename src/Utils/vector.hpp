@@ -14,81 +14,6 @@ namespace glm
 	void setFloat4(float *dest, const glm::vec4 &src);
 }
 
-//class vec3_c {
-//public:
-//	float x, y, z;
-//
-//	vec3_c() :x(0.0f), y(0.0f), z(0.0f) {}
-//	vec3_c(float nx, float ny, float nz) :x(nx), y(ny), z(nz) {}
-//	vec3_c(const float *src)
-//	{
-//		if (!src[0]) x = 0.0f;
-//		else x = src[0];
-//
-//		if (!src[1]) y = 0.0f;
-//		else y = src[1];
-//
-//		if (!src[2]) z = 0.0f;
-//		else z = src[2];
-//	}
-//
-//	vec3_c operator + (vec3_c &vec) { return vec3_c(this->x + vec.x, this->y + vec.y, this->z + vec.z); };
-//	vec3_c operator - (vec3_c &vec) { return vec3_c(this->x - vec.x, this->y - vec.y, this->z - vec.z); };
-//	vec3_c operator * (vec3_c &vec) { return vec3_c(this->x * vec.x, this->y * vec.y, this->z * vec.z); };
-//	vec3_c operator / (vec3_c &vec) { return vec3_c(this->x / vec.x, this->y / vec.y, this->z / vec.z); };
-//	vec3_c operator = (vec3_c &vec) { return vec3_c(this->x = vec.x, this->y = vec.y, this->z = vec.z); };
-//
-//	/*float x() { return this->x; }
-//	float y() { return this->y; }
-//	float z() { return this->z; }*/
-//
-//	float distance1D(vec3_c &vec) { return (this->x - vec.x); }
-//	float distance1D(const float x) { return (this->x - x); }
-//
-//	float distance2D(vec3_c &vec) { 
-//		return sqrtf((this->x - vec.x) * (this->x - vec.x) +
-//					 (this->y - vec.y) * (this->y - vec.y)); 
-//	}
-//
-//	float distance2D(const float x, const float y) {
-//		return sqrtf((this->x - x) * (this->x - x) +
-//					 (this->y - y) * (this->y - y));
-//	}
-//
-//	float distance3D(vec3_c &vec) {
-//		return sqrtf((this->x - vec.x) * (this->x - vec.x) +
-//					 (this->y - vec.y) * (this->y - vec.y) +
-//					 (this->z - vec.z) * (this->z - vec.z));
-//	}
-//
-//	float distance3D(const float x, const float y, const float z) {
-//		return sqrtf((this->x - x) * (this->x - x) +
-//					 (this->y - y) * (this->y - y) +
-//					 (this->z - z) * (this->z - z));
-//	}
-//
-//	vec3_c scale(float scalar) {
-//		return vec3_c(this->x *= scalar, this->y *= scalar, this->z *= scalar);
-//	}
-//
-//	void self_scale(float scalar) {
-//		this->x *= scalar;
-//		this->y *= scalar;
-//		this->z *= scalar;
-//	}
-//
-//	void setFloat2(float *dest) {
-//		if (dest[0]) dest[0] = this->x;
-//		if (dest[1]) dest[1] = this->y;
-//	}
-//
-//	void setFloat3(float *dest) {
-//		if (dest[0]) dest[0] = this->x;
-//		if (dest[1]) dest[1] = this->y;
-//		if (dest[2]) dest[2] = this->z;
-//	}
-//};
-
 namespace Utils
 {
 	namespace vector // https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_shared.h
@@ -115,11 +40,6 @@ namespace Utils
 		void	_getEulerAnglesXYZ(vec4_t *matrix, vec3_t out);
 		void	_getEulerAnglesXYZDegrees(vec4_t *matrix, vec3_t out);
 
-		float	_ToDegrees(float value);
-		void	_ToQuaternion(const float *Values, vec4_t out);
-		void	_ToEuler(const float *Values, vec3_t out);
-
-		// just in case you do't want to use the macros
 		int		_VectorCompare(const vec3_t v1, const vec3_t v2);
 		int		_VectorCompareEpsilon(const vec3_t v1, const vec3_t v2, float epsilonV1);
 		int		_VectorCompareInt(const int *v1, const int *v2);

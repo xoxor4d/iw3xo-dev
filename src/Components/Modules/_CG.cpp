@@ -4,7 +4,7 @@ namespace Components
 {
 	// *
 	// return font string for style
-	char *_CG::GetFontForStyle(int fontStyle)
+	char* _CG::GetFontForStyle(int fontStyle)
 	{
 		return	fontStyle == 0 ? FONT_SMALL_DEV : fontStyle == 1 ? FONT_BIG_DEV		: fontStyle == 2 ? FONT_CONSOLE :
 				fontStyle == 3 ? FONT_BIG		: fontStyle == 4 ? FONT_SMALL		: fontStyle == 5 ? FONT_BOLD :
@@ -15,12 +15,8 @@ namespace Components
 	// custom huds
 	void CG_DrawCustomHud()
 	{
-		// defaults
-		char* font		= FONT_CONSOLE;
-		float color[4]	= { 1.0f, 0.6f, 0.6f, 1.0f };
-
 		// Pmove Speed Hud
-		if (Dvars::pm_hud_enable != nullptr && Dvars::pm_hud_enable->current.enabled)
+		if (Dvars::pm_hud_enable && Dvars::pm_hud_enable->current.enabled)
 		{
 			char* movementType	= Dvars::pm_movementType->current.integer == Game::PM_MTYPE::STOCK ? "Stock" 
 								: Dvars::pm_movementType->current.integer == Game::PM_MTYPE::DEFRAG ? "Defrag" : "CS-Surf";
@@ -29,29 +25,29 @@ namespace Components
 								+ Game::Globals::locPmove_playerVelocity.y * Game::Globals::locPmove_playerVelocity.y);
 
 			Game::DrawTextWithEngine(
-				/*  x  */ Dvars::pm_hud_x->current.value,
-				/*  y  */ Dvars::pm_hud_y->current.value,
-				/* scX */ Dvars::pm_hud_fontScale->current.value,
-				/* scY */ Dvars::pm_hud_fontScale->current.value,
-				/* fot */ _CG::GetFontForStyle(Dvars::pm_hud_fontStyle->current.integer),
-				/* col */ color,
-				/* txt */ Utils::VA("Current Mode: %s\nCurrent Speed: %.2lf", movementType, xySpeed));
+				/* x	*/ Dvars::pm_hud_x->current.value,
+				/* y	*/ Dvars::pm_hud_y->current.value,
+				/* scaX */ Dvars::pm_hud_fontScale->current.value,
+				/* scaY */ Dvars::pm_hud_fontScale->current.value,
+				/* font */ _CG::GetFontForStyle(Dvars::pm_hud_fontStyle->current.integer),
+				/* colr */ Dvars::pm_hud_fontColor->current.vector,
+				/* txt	*/ Utils::VA("Current Mode: %s\nCurrent Speed: %.2lf", movementType, xySpeed));
 		}
 
 		// Debug Collision Hud
-		if (Dvars::r_drawCollision_hud != nullptr && Dvars::r_drawCollision_hud->current.enabled)
+		if (Dvars::r_drawCollision_hud && Dvars::r_drawCollision_hud->current.enabled)
 		{
-			if (Dvars::r_drawCollision != nullptr && Dvars::r_drawCollision->current.integer != 0)
+			if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer != 0)
 			{
 				Game::DrawTextWithEngine(
-					/*  x  */ Dvars::r_drawCollision_hud_x->current.value,
-					/*  y  */ Dvars::r_drawCollision_hud_y->current.value,
-					/* scX */ Dvars::r_drawCollision_hud_fontScale->current.value,
-					/* scY */ Dvars::r_drawCollision_hud_fontScale->current.value,
-					/* fot */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),
-					/* col */ color,
-					/* txt */ Utils::VA("Total amount of Brushes used for calculations: %d \n"
-										"Total amount of Polygons drawn: %d", Game::Globals::drawnBrushAmount, Game::Globals::drawnPlanesAmount));
+					/* x	*/ Dvars::r_drawCollision_hud_x->current.value,
+					/* y	*/ Dvars::r_drawCollision_hud_y->current.value,
+					/* scaX */ Dvars::r_drawCollision_hud_fontScale->current.value,
+					/* scaY */ Dvars::r_drawCollision_hud_fontScale->current.value,
+					/* font */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),
+					/* colr */ Dvars::pm_hud_fontColor->current.vector,
+					/* txt	*/ Utils::VA("Total amount of Brushes used for calculations: %d \n"
+										 "Total amount of Polygons drawn: %d", Game::Globals::drawnBrushAmount, Game::Globals::drawnPlanesAmount));
 			}
 		}
 	}

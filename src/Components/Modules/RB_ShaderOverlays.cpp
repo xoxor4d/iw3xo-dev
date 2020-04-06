@@ -7,21 +7,20 @@ namespace Components
 		int srcWidth, srcHeight, dstWidth, dstHeight;
 		float radiusX, radiusY;
 
-		Game::GfxImageFilter filter;
-
 		radiusY = *Game::wnd_SceneHeight * radius / 480.0f; // sceneHeight
 		radiusX = *Game::wnd_SceneAspect * radiusY; // sceneHeight * AspectRatio(1.7778) / sceneWidth
 
-		srcWidth = Game::RenderTargetWidth[5 * srcRenderTargetId]; // because src cannot be equal to dst? wtf
+		srcWidth = Game::RenderTargetWidth[5 * srcRenderTargetId];
 		srcHeight = Game::RenderTargetHeight[5 * srcRenderTargetId];
 
 		dstWidth = (std::int32_t)(Game::RenderTargetWidth[5 * dstRenderTargetId] * 0.25);
 		dstHeight = (std::int32_t)(Game::RenderTargetHeight[5 * dstRenderTargetId] * 0.25);
 
+		Game::GfxImageFilter filter;
 		filter.sourceImage = (Game::GfxImage *)Game::RenderTargetArray[5 * srcRenderTargetId];
 		filter.finalTarget = dstRenderTargetId;
 
-		// only generates 1 pass if src is only 2 bigger then dst
+		// generates 1 pass if src is 2x bigger then dest
 		filter.passCount = Game::RB_GenerateGaussianFilterChain( radiusX, radiusY, srcWidth, srcHeight, dstWidth, dstHeight, filter.passes );
 
 		if (filter.passCount) 
@@ -48,10 +47,11 @@ namespace Components
 			Game::RB_EndTessSurface();
 		}
 
-		float fullscreenX = Game::scrPlace->realViewableMax[0];
-		float fullscreenY = Game::scrPlace->realViewableMax[1];
 		float _SSAO_DBG_MATSCALE = 0.33f;
 
+		float fullscreenX = Game::scrPlace->realViewableMax[0];
+		float fullscreenY = Game::scrPlace->realViewableMax[1];
+		
 		// POSTFX_SSAO || POSTFX_SSAO_NORMAL
 		if (Dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_SSAO || Dvars::xo_ssao_debugnormal->current.enabled)
 		{

@@ -6171,6 +6171,7 @@ namespace Game
 			float cmSubmodelOrigin[3];
 			int cmBrushIndex;
 			cbrush_t* cmBrush;
+			std::vector<std::string> brushSides;
 		};
 
 #ifdef __cplusplus
