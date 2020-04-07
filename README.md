@@ -4,16 +4,17 @@ IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1
 A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
 
 #### Building the project:
-1. Hit "generate.bat" to build project files with premake
-2. Load the project in Visual Studio and open project->settings to setup paths (Debug/Release):
-   - General: output directory path -> "path-to-cod4-root\"
+1. Clone the repo (zip does not include deps)
+2. Hit "generate.bat" to build project files with premake
+3. Load the project in Visual Studio and open project->settings to setup paths (Debug/Release):
+   - General: output directory path -> "path-to-cod4-root\\"
    - Debugging: command -> "path-to-cod4-root\iw3xo.exe"
-   - Debugging: working directory -> "path-to-cod4-root\"
+   - Debugging: working directory -> "path-to-cod4-root\\"
    - You may need to change the Toolset of both glm and iw3x if you do not have v142 installed. For each go to General -> Platform Toolset -> set to your installed version
-3. Build -> Build Solution
+4. Build -> Build Solution
    
 #### Generating the exe:   
-1. Copy a non-steam (1.7) "iw3mp.exe" into the "\assets\" folder
+1. Copy a non-steam (1.7) "iw3mp.exe" into the "\assets\\" folder
 2. Install required resource tools by running "\res\res-tools.ps1"
 3. "\res\generate-exe.ps1" will generate and place "iw3xo.exe" into the project root
 4. Copy the generated exe into your cod4-root
