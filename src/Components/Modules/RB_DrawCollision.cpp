@@ -2402,7 +2402,6 @@ namespace Components
 
 			// build entity list
 			g_mapEnts = Utils::Entities(Game::cm->mapEnts->entityString);
-
 			Game::Com_PrintMessage(0, "|- Writing header and world entity ...\n\n", 0);
 
 			// write header
@@ -2880,6 +2879,7 @@ namespace Components
 
 			// close the worldspawn entity with all its brushes
 			mapFile << "}" << std::endl;
+			Game::Com_PrintMessage(0, "|- Finished writing the world entity\n\n", 0);
 
 			// *
 			// Map Entities + Submodels/Brushmodels + Reflection Probes
@@ -2913,6 +2913,8 @@ namespace Components
 
 			if (Dvars::r_drawCollision_export_writeEntities->current.enabled)
 			{
+				Game::Com_PrintMessage(0, "[MAP-EXPORT]: Building entities ...\n", 0);
+
 				// already exported the worldspawn entity, so delete it from our list
 				g_mapEnts.deleteWorldspawn();
 
@@ -3248,25 +3250,25 @@ namespace Components
 			/* name		*/ "r_drawCollision_export_writeTriangles",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export leftover unmerged triangles if enabled.",
 			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::r_drawCollision_export_writeQuads = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_export_writeQuads",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export resulting quads after triangle merging if enabled.",
 			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::r_drawCollision_export_writeEntities = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_export_writeEntities",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export map entities if enabled (no brushmodel support).",
 			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::r_drawCollision_export_writeModels = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_export_writeModels",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export all static models if enabled.",
 			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::r_drawCollision_flickerBrushes = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_flickerBrushes",

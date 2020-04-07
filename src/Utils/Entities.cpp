@@ -171,6 +171,10 @@ namespace Utils
 	{
 		std::vector<Game::brushmodelEnt_t> bModels;
 
+		// geting the total clipmap size would prob. be better
+		uintptr_t leafBrushesStart = reinterpret_cast<uintptr_t>(&*Game::cm->leafbrushNodes);
+		uintptr_t leafBrushesEnd = leafBrushesStart + sizeof(Game::cLeafBrushNode_s) * (Game::cm->leafbrushNodesCount + Game::cm->numLeafBrushes); // wrong
+
 		// first element is always empty because
 		// the first submodel within the entsMap starts at 1 and we want to avoid subtracting - 1 everywhere 
 		bModels.push_back(Game::brushmodelEnt_t()); 
@@ -193,12 +197,12 @@ namespace Utils
 					// the index should always match the size of our vector or we did something wrong
 					if (p_index != (int)bModels.size())
 					{
-						Game::Com_PrintMessage(0, Utils::VA("[!]: Something went wrong while parsing submodels. (%d != %d)", p_index, bModels.size()), 0);
+						Game::Com_PrintMessage(0, Utils::VA("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d != %d)", p_index, bModels.size()), 0);
 					}
 
 					if (p_index >= static_cast<int>(Game::cm->numSubModels))
 					{
-						Game::Com_PrintMessage(0, Utils::VA("[!]: Something went wrong while parsing submodels. (%d >= %d numSubModels)", p_index, Game::cm->numSubModels), 0);
+						Game::Com_PrintMessage(0, Utils::VA("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d >= %d numSubModels)", p_index, Game::cm->numSubModels), 0);
 						break;
 					}
 
@@ -209,12 +213,23 @@ namespace Utils
 					{
 						currBModel.cmSubmodel = &Game::cm->cmodels[p_index];
 					}
-					
+
+					// fix me daddy
+					auto brushIdx_ptr = Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes;
+					currBModel.cmBrushIndex = 0;
+
 					// this is giving me cancer
-					if (Game::cm->cmodels[p_index].leaf.leafBrushNode != 0 && Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes != nullptr)
+					if (Game::cm->cmodels[p_index].leaf.leafBrushNode != 0 && brushIdx_ptr)
 					{
-						currBModel.cmBrushIndex = static_cast<int>(*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes);
-							
+						if ((uintptr_t)&*brushIdx_ptr >= leafBrushesStart && (uintptr_t) & *brushIdx_ptr < leafBrushesEnd)
+						{
+							currBModel.cmBrushIndex = static_cast<int>(*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes);
+						}
+						else
+						{
+							Game::Com_PrintMessage(0, Utils::VA("[Entities::getBrushModels]: Skipping faulty brush-index pointer at leafbrushNodes[%d].data.leaf.brushes ...\n", p_index), 0);
+						}
+						
 						//currBModel.cmBrush = &Game::cm->brushes[*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes];
 						currBModel.cmBrush = &Game::cm->brushes[currBModel.cmBrushIndex];
 
@@ -222,10 +237,7 @@ namespace Utils
 						currBModel.cmBrush->isSubmodel = true;
 						currBModel.cmBrush->cmSubmodelIndex = static_cast<__int16>(p_index);
 					}
-					else
-					{
-						currBModel.cmBrushIndex = 0;
-					}
+
 
 					// save entity origin
 					if (!sscanf_s(origin.c_str(), "%f %f %f", &currBModel.cmSubmodelOrigin[0], &currBModel.cmSubmodelOrigin[1], &currBModel.cmSubmodelOrigin[2]))

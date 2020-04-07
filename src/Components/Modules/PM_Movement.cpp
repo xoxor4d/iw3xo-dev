@@ -1098,7 +1098,7 @@ namespace Components
 
 		Game::gentity_s *m;
 
-		if (!Dvars::pm_cpm_useQuakeDamage->current.enabled)
+		if (!Dvars::pm_cpm_useQuakeDamage || !Dvars::pm_cpm_useQuakeDamage->current.enabled)
 		{
 			_spread = tan(spread * 0.017453292f) * 16.0f;
 			Weapon_GunRandom(&x, &y);
@@ -1152,7 +1152,7 @@ namespace Components
 		m = Game::G_FireRocket(kickBack, ent, weaponIndex, dir, gunVel, 0, targetOffset);
 		//m->damage *= 
 
-		if (!Dvars::pm_cpm_useQuakeDamage->current.enabled)
+		if (!Dvars::pm_cpm_useQuakeDamage || !Dvars::pm_cpm_useQuakeDamage->current.enabled)
 		{
 			auto velocity = ent->client->ps.velocity;
 
@@ -2527,8 +2527,8 @@ namespace Components
 
 		Dvars::pm_cpm_useQuakeDamage = Game::Dvar_RegisterBool(
 			/* name		*/ "pm_cpm_useQuakeDamage",
-			/* desc		*/ "pm_movementType Defrag :: enables knockback on damage (q3 rocketjumps)",
-			/* default	*/ true,
+			/* desc		*/ "pm_movementType All :: enables quake 3 damange knockback",
+			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
 		Dvars::pm_cpm_damageKnockback = Game::Dvar_RegisterFloat(

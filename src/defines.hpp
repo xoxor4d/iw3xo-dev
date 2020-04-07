@@ -14,7 +14,7 @@
 // General
 
 #define IW3XO_BUILDVERSION_DATE __TIMESTAMP__  
-#define IW3XO_BUILDSTRING "#xoxor4d :: private cod4 build %.lf :: %s", IW3X_BUILDNUMBER, __TIMESTAMP__
+#define IW3XO_BUILDSTRING "IW3xo :: build %.lf :: %s", IW3X_BUILDNUMBER, __TIMESTAMP__
 
 #define FONT_SMALL_DEV  "fonts/smallDevFont"
 #define FONT_BIG_DEV    "fonts/bigDevFont"
