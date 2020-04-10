@@ -21,13 +21,17 @@ A compatible Radiant, built for use with IW3xo, that enables a live-link between
 5. You only need to do this once
 
 Requires:
-1. https://github.com/xoxor4d/xcommon_iw3xo
-2. https://github.com/xoxor4d/xcommon_iw3xo_menu
+1. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
+2. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
+3. English localization (other languages work when renamed:)
+  - __root/localization.txt__ -> change first line to "english"
+  - __root/main/__ -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
+  - __root/zone/__ -> rename folder "yourlanguage" to "english"
 
-Optional:
-- https://github.com/xoxor4d/iw3xo-radiant
+Optional:  
+https://github.com/xoxor4d/iw3xo-radiant
 
-Project Page:
+Project Page:  
 https://xoxor4d.github.io/projects/iw3xo/
 
 ## Credits
