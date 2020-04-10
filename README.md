@@ -3,6 +3,8 @@ This project is aimed at developers and includes various modifications/additions
 IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
 A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
 
+___
+
 #### Building the project:
 1. Clone the repo (zip does not include deps)
 2. Hit "generate.bat" to build project files with premake
@@ -20,6 +22,8 @@ A compatible Radiant, built for use with IW3xo, that enables a live-link between
 4. Copy the generated exe into your cod4-root
 5. You only need to do this once
 
+___
+
 Requires:
 1. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
 2. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
@@ -27,6 +31,8 @@ Requires:
   - __root/localization.txt__ -> change first line to "english"
   - __root/main/__ -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
   - __root/zone/__ -> rename folder "yourlanguage" to "english"
+
+___
 
 Optional:  
 https://github.com/xoxor4d/iw3xo-radiant
