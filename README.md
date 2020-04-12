@@ -3,6 +3,9 @@ This project is aimed at developers and includes various modifications/additions
 IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
 A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
 
+Pre-build binaries: https://github.com/xoxor4d/iw3xo-dev/releases  
+Changelog: https://github.com/xoxor4d/iw3xo-dev/wiki/Changelog
+
 ___
 
 #### Building the project:
