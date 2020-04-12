@@ -234,7 +234,7 @@ namespace Components
 			if (FF_ADDON_REQ_NAME && Game::DB_FileExists(FF_ADDON_REQ_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
 			{
 				XZoneInfoStack[i].name = FF_ADDON_REQ_NAME;
-				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
 				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
 				++i;
 			}
@@ -385,8 +385,11 @@ namespace Components
 		}
 	}
 
+	// register string dvars
 	void R_RegisterStringDvars()
 	{
+		_UI::MainMenu_Changelog();
+
 		Dvars::ui_main_title = Game::Dvar_RegisterString(
 			/* name		*/ "ui_changelog_title",
 			/* desc		*/ "menu helper",

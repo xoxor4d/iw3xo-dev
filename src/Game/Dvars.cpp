@@ -2,7 +2,7 @@
 
 namespace Dvars
 {
-	// Radiant -------------------------------------------
+	// Radiant
 	Game::dvar_s* radiant_live = nullptr;
 	Game::dvar_s* radiant_livePort = nullptr;
 	Game::dvar_s* radiant_liveDebug = nullptr;
@@ -13,27 +13,30 @@ namespace Dvars
 	Game::dvar_s* radiant_brushWireframe = nullptr;
 	Game::dvar_s* radiant_brushWireframeColor = nullptr;
 
-	// Display -------------------------------------------
-	Game::dvar_s* r_aspectRatio = nullptr;
+
+	// Display
 	Game::dvar_s* ui_ultrawide = nullptr;
 	Game::dvar_s* ui_button_highlight_radius = nullptr;
 	Game::dvar_s* ui_button_highlight_brightness = nullptr;
 	Game::dvar_s* ui_button_outline_radius = nullptr;
 	Game::dvar_s* ui_button_outline_brightness = nullptr;
-	Game::dvar_s* xo_menu_dbg = nullptr;
 	Game::dvar_s* ui_subnavbar = nullptr;
 	Game::dvar_s* ui_subnavbar_item = nullptr;
 	Game::dvar_s* ui_renderWidth = nullptr;
 	Game::dvar_s* ui_renderHeight = nullptr;
-
 	Game::dvar_s* ui_devmap = nullptr;
 	Game::dvar_s* ui_developer = nullptr;
 	Game::dvar_s* ui_developer_script = nullptr;
-
 	Game::dvar_s* ui_main_title = nullptr;
+	Game::dvar_s* ui_changelog01 = nullptr;
+	Game::dvar_s* ui_changelog02 = nullptr;
+	Game::dvar_s* ui_changelog03 = nullptr;
+	Game::dvar_s* ui_changelog04 = nullptr;
+	Game::dvar_s* r_aspectRatio = nullptr;
+	Game::dvar_s* xo_menu_dbg = nullptr;
 
-	// Console -------------------------------------------
 
+	// Console 
 	Game::dvar_s* con_minicon_position = nullptr;
 	Game::dvar_s* con_minicon_font = nullptr;
 	Game::dvar_s* con_minicon_fontHeight = nullptr;
@@ -61,7 +64,8 @@ namespace Dvars
 	Game::dvar_s* xo_con_hintBoxTxtColor_dvarDescription = nullptr;
 	Game::dvar_s* xo_con_hintBoxTxtColor_domainDescription = nullptr; 
 
-	// Custom Movement -----------------------------------
+
+	// Custom movement
 	Game::dvar_s* pm_movementType = nullptr;
 	Game::dvar_s* pm_crashland = nullptr;
 	Game::dvar_s* pm_rocketJumpHeight = nullptr;
@@ -94,10 +98,9 @@ namespace Dvars
 	Game::dvar_s* pm_debug_lineDuration = nullptr;
 
 
-	// Debug Collision ------------------------------------
+	// Debug Collision
 	Game::dvar_s* r_drawCollision = nullptr;
 	Game::dvar_s* r_drawCollision_brushAmount = nullptr;
-	Game::dvar_s* r_drawCollision_brushBegin = nullptr;
 	Game::dvar_s* r_drawCollision_brushDist = nullptr;
 	Game::dvar_s* r_drawCollision_brushSorting = nullptr;
 	Game::dvar_s* r_drawCollision_brushIndexFilter = nullptr;
@@ -111,29 +114,32 @@ namespace Dvars
 	Game::dvar_s* r_drawCollision_polyDepth = nullptr;
 	Game::dvar_s* r_drawCollision_polyFace = nullptr;
 	Game::dvar_s* r_drawCollision_polyLit = nullptr;
+	Game::dvar_s* r_drawCollision_flickerBrushes = nullptr;
+	Game::dvar_s* r_drawCollision_flickerOnTime = nullptr;
+	Game::dvar_s* r_drawCollision_flickerOffTime = nullptr;
+	Game::dvar_s* r_drawCollision_hud = nullptr;
+	Game::dvar_s* r_drawCollision_hud_position = nullptr;
+	Game::dvar_s* r_drawCollision_hud_fontScale = nullptr;
+	Game::dvar_s* r_drawCollision_hud_fontStyle = nullptr;
+	Game::dvar_s* r_drawCollision_hud_fontColor = nullptr;
 
 #if DEBUG
 	Game::dvar_s* r_drawCollision_brushDebug = nullptr; 
 #endif
 
-	Game::dvar_s* r_drawCollision_export = nullptr;
-	Game::dvar_s* r_drawCollision_export_writeTriangles = nullptr;
-	Game::dvar_s* r_drawCollision_export_writeQuads = nullptr;
-	Game::dvar_s* r_drawCollision_export_writeEntities = nullptr;
-	Game::dvar_s* r_drawCollision_export_writeModels = nullptr;
-	Game::dvar_s* r_drawCollision_flickerBrushes = nullptr;
-	Game::dvar_s* r_drawCollision_flickerOnTime = nullptr;
-	Game::dvar_s* r_drawCollision_flickerOffTime = nullptr;
 
-	Game::dvar_s* r_drawCollision_hud = nullptr;
-	Game::dvar_s* r_drawCollision_hud_x = nullptr;
-	Game::dvar_s* r_drawCollision_hud_y = nullptr;
-	Game::dvar_s* r_drawCollision_hud_fontScale = nullptr;
-	Game::dvar_s* r_drawCollision_hud_fontStyle = nullptr;
-	Game::dvar_s* r_drawCollision_hud_fontColor = nullptr;
+	// Map exporting
+	Game::dvar_s* mapexport_brushEpsilon1 = nullptr;
+	Game::dvar_s* mapexport_brushEpsilon2 = nullptr;
+	Game::dvar_s* mapexport_brushMinSize = nullptr;
+	Game::dvar_s* mapexport_selectionMode = nullptr;
+	Game::dvar_s* mapexport_writeTriangles = nullptr;
+	Game::dvar_s* mapexport_writeQuads = nullptr;
+	Game::dvar_s* mapexport_writeEntities = nullptr;
+	Game::dvar_s* mapexport_writeModels = nullptr;
 
 
-	// Shader Overlays ------------------------------------
+	// Shader Overlays
 	Game::dvar_s* xo_shaderoverlay = nullptr;
 	Game::dvar_s* xo_ssao_noisescale = nullptr;
 	Game::dvar_s* xo_ssao_quality = nullptr;

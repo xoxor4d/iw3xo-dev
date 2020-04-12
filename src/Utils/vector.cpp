@@ -59,7 +59,7 @@ namespace Utils
 			return radians * (180.0f / M_PI);
 		}
 
-		void _getEulerAnglesXYZ(vec4_t *matrix, vec3_t out)
+		void _ToEulerAngles(vec4_t *matrix, vec3_t out)
 		{
 			float a = asinf(-matrix[0][2]);
 			float ca = cos(a);
@@ -78,10 +78,10 @@ namespace Utils
 			}
 		}
 
-		void _getEulerAnglesXYZDegrees(vec4_t *matrix, vec3_t out)
+		void _ToEulerAnglesDegrees(vec4_t *matrix, vec3_t out)
 		{
 			vec3_t eulerRad;
-			_getEulerAnglesXYZ(matrix, eulerRad);
+			_ToEulerAngles(matrix, eulerRad);
 
 			out[0] = _radians_to_degrees(eulerRad[0]);
 			out[1] = _radians_to_degrees(eulerRad[1]);
@@ -105,6 +105,7 @@ namespace Utils
 			return y;
 		}
 
+		// return true if vec 1 == vec 2
 		int _VectorCompare(const vec3_t v1, const vec3_t v2) 
 		{
 			if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2]) 
@@ -115,6 +116,7 @@ namespace Utils
 			return 1;
 		}
 
+		// return true if vector 1 +- epsilon equals vector 2
 		int _VectorCompareEpsilon(const vec3_t v1, const vec3_t v2, float epsilonV1) 
 		{
 			if ((   v1[0] - epsilonV1 <= v2[0] && v1[0] + epsilonV1 >= v2[0]) 
@@ -126,6 +128,7 @@ namespace Utils
 			return 0;
 		}
 
+		// return true if vec 1 == vec 2
 		int _VectorCompareInt(const int *v1, const int *v2) 
 		{
 			if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2]) 

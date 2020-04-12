@@ -116,6 +116,106 @@ namespace Utils
 		return entityString;
 	}
 
+	// build all selected entities and fix brushmodels
+	std::string Entities::buildSelection_FixBrushmodels(const Game::boundingBox_t* box, const std::vector<Game::brushmodelEnt_t>& bModelList)
+	{
+		int entityNum = 1; // worldspawn is 0
+		int submodelNum = 0;
+		std::string entityString;
+
+		for (auto& entity : this->entities)
+		{
+			std::string model = entity["model"];
+			std::string origin = entity["origin"];
+
+			// if ent is a brushmodel/submodel
+			if (!model.empty() && model[0] == '*')
+			{
+				// get the submodel index 
+				auto p_index = std::stoi(model.erase(0, 1));
+
+				if (p_index < static_cast<int>(bModelList.size()))
+				{
+					auto bModelSideCount = static_cast<int>(bModelList[p_index].brushSides.size());
+
+					// skip submodel entity if we have less then 6 brushsides (we could also create a temp. cube at its origin)
+					if (bModelSideCount < 6)
+					{
+						continue;
+					}
+
+					// start submodel
+					entityString.append(Utils::VA("// submodel %d\n", submodelNum));
+					entityString.append("{\n");
+
+					// write submodel keys
+					for (auto& property : entity)
+					{
+						// do not write model/origin keys
+						if (property.first == "model" || property.first == "origin")
+						{
+							continue;
+						}
+
+						entityString.push_back('"');
+						entityString.append(property.first);
+						entityString.append("\" \"");
+						entityString.append(property.second);
+						entityString.append("\"\n");
+					}
+
+					// start submodel brush
+					entityString.append("{\n");
+
+					for (auto bSide = 0; bSide < bModelSideCount; bSide++)
+					{
+						entityString.append(bModelList[p_index].brushSides[bSide]);
+					}
+
+					// close submodel brush
+					entityString.append("}\n");
+
+					// close submodel
+					entityString.append("}\n");
+
+					submodelNum++;
+				}
+			}
+
+			else
+			{
+				float tempOrigin[3] = {0.0f, 0.0f, 0.0f};
+
+				if (!sscanf_s(origin.c_str(), "%f %f %f", &tempOrigin[0], &tempOrigin[1], &tempOrigin[2]))
+				{
+					Game::Com_PrintMessage(0, Utils::VA("[!]: sscanf failed for entity %d", entityNum), 0);
+				}
+
+				if (Utils::polylib::PointWithinBounds(glm::toVec3(tempOrigin), box->mins, box->maxs, 0.25f))
+				{
+					// start entity
+					entityString.append(Utils::VA("// entity %d\n", entityNum));
+					entityString.append("{\n");
+
+					for (auto& property : entity)
+					{
+						entityString.push_back('"');
+						entityString.append(property.first);
+						entityString.append("\" \"");
+						entityString.append(property.second);
+						entityString.append("\"\n");
+					}
+
+					// close entity
+					entityString.append("}\n");
+					entityNum++;
+				}
+			}
+		}
+
+		return entityString;
+	}
+
 	// only build worldspawn keys/values without opening/closing brackets
 	std::string Entities::buildWorldspawnKeys()
 	{

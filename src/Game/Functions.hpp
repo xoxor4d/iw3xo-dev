@@ -118,6 +118,8 @@ namespace Game
 	// --------
 	// RENDERER
 
+	extern Game::MaterialLoadGlob* mtlLoadGlob; // 0xD541330;
+
 	extern bool* gfxRenderTargets;
 	extern bool* tessSurface;
 	extern int* tessSurfaceInt;

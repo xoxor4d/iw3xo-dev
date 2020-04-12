@@ -2,7 +2,7 @@
 
 namespace Dvars
 {
-	// Radiant -------------------------------------------
+	// Radiant
 	extern Game::dvar_s* radiant_live;
 	extern Game::dvar_s* radiant_livePort;
 	extern Game::dvar_s* radiant_liveDebug; 
@@ -13,28 +13,30 @@ namespace Dvars
 	extern Game::dvar_s* radiant_brushWireframe;
 	extern Game::dvar_s* radiant_brushWireframeColor;
 	
-	// Display -------------------------------------------
-	extern Game::dvar_s* r_aspectRatio;
+
+	// Display
 	extern Game::dvar_s* ui_ultrawide;
 	extern Game::dvar_s* ui_button_highlight_radius;
 	extern Game::dvar_s* ui_button_highlight_brightness;
 	extern Game::dvar_s* ui_button_outline_radius;
 	extern Game::dvar_s* ui_button_outline_brightness;
-
-	extern Game::dvar_s* xo_menu_dbg;
 	extern Game::dvar_s* ui_subnavbar;
 	extern Game::dvar_s* ui_subnavbar_item;
 	extern Game::dvar_s* ui_renderWidth;
 	extern Game::dvar_s* ui_renderHeight;
-
 	extern Game::dvar_s* ui_devmap;
 	extern Game::dvar_s* ui_developer;
 	extern Game::dvar_s* ui_developer_script;
-
 	extern Game::dvar_s* ui_main_title;
+	extern Game::dvar_s* ui_changelog01;
+	extern Game::dvar_s* ui_changelog02;
+	extern Game::dvar_s* ui_changelog03;
+	extern Game::dvar_s* ui_changelog04;
+	extern Game::dvar_s* r_aspectRatio;
+	extern Game::dvar_s* xo_menu_dbg;
 
-	// Console -------------------------------------------
 
+	// Console 
 	extern Game::dvar_s* con_minicon_position;
 	extern Game::dvar_s* con_minicon_font;
 	extern Game::dvar_s* con_minicon_fontHeight;
@@ -62,7 +64,8 @@ namespace Dvars
 	extern Game::dvar_s* xo_con_hintBoxTxtColor_dvarDescription;
 	extern Game::dvar_s* xo_con_hintBoxTxtColor_domainDescription;
 
-	// Custom Movement -----------------------------------
+
+	// Custom movement
 	extern Game::dvar_s* pm_movementType;
 	extern Game::dvar_s* pm_crashland;
 	extern Game::dvar_s* pm_rocketJumpHeight;
@@ -95,10 +98,9 @@ namespace Dvars
 	extern Game::dvar_s* pm_debug_lineDuration;
 
 
-	// Debug Collision ------------------------------------
+	// Debug collision
 	extern Game::dvar_s* r_drawCollision;
 	extern Game::dvar_s* r_drawCollision_brushAmount;
-	extern Game::dvar_s* r_drawCollision_brushBegin;
 	extern Game::dvar_s* r_drawCollision_brushDist;
 	extern Game::dvar_s* r_drawCollision_brushSorting;
 	extern Game::dvar_s* r_drawCollision_brushIndexFilter;
@@ -112,29 +114,31 @@ namespace Dvars
 	extern Game::dvar_s* r_drawCollision_polyDepth;
 	extern Game::dvar_s* r_drawCollision_polyFace;
 	extern Game::dvar_s* r_drawCollision_polyLit;
+	extern Game::dvar_s* r_drawCollision_flickerBrushes;
+	extern Game::dvar_s* r_drawCollision_flickerOnTime;
+	extern Game::dvar_s* r_drawCollision_flickerOffTime;
+	extern Game::dvar_s* r_drawCollision_hud;
+	extern Game::dvar_s* r_drawCollision_hud_position;
+	extern Game::dvar_s* r_drawCollision_hud_fontScale;
+	extern Game::dvar_s* r_drawCollision_hud_fontStyle;
+	extern Game::dvar_s* r_drawCollision_hud_fontColor;
 
 #if DEBUG
 	extern Game::dvar_s* r_drawCollision_brushDebug;
 #endif
 
-	extern Game::dvar_s* r_drawCollision_export;
-	extern Game::dvar_s* r_drawCollision_export_writeTriangles;
-	extern Game::dvar_s* r_drawCollision_export_writeQuads;
-	extern Game::dvar_s* r_drawCollision_export_writeEntities;
-	extern Game::dvar_s* r_drawCollision_export_writeModels;
-	extern Game::dvar_s* r_drawCollision_flickerBrushes;
-	extern Game::dvar_s* r_drawCollision_flickerOnTime;
-	extern Game::dvar_s* r_drawCollision_flickerOffTime;
-
-	extern Game::dvar_s* r_drawCollision_hud;
-	extern Game::dvar_s* r_drawCollision_hud_x;
-	extern Game::dvar_s* r_drawCollision_hud_y;
-	extern Game::dvar_s* r_drawCollision_hud_fontScale;
-	extern Game::dvar_s* r_drawCollision_hud_fontStyle;
-	extern Game::dvar_s* r_drawCollision_hud_fontColor;
+	// Map exporting
+	extern Game::dvar_s* mapexport_brushEpsilon1;
+	extern Game::dvar_s* mapexport_brushEpsilon2;
+	extern Game::dvar_s* mapexport_brushMinSize;
+	extern Game::dvar_s* mapexport_selectionMode;
+	extern Game::dvar_s* mapexport_writeTriangles;
+	extern Game::dvar_s* mapexport_writeQuads;
+	extern Game::dvar_s* mapexport_writeEntities;
+	extern Game::dvar_s* mapexport_writeModels;
 
 
-	// Shader Overlays ------------------------------------
+	// Shader overlays
 	extern Game::dvar_s* xo_shaderoverlay;
 	extern Game::dvar_s* xo_ssao_noisescale;
 	extern Game::dvar_s* xo_ssao_quality;

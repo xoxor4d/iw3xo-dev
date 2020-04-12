@@ -640,7 +640,6 @@ namespace Game
 		int brushSelectedNum;	// index of current processing brush
 		int brushSavedCount;
 		radiantBrush_t brush[RADIANT_MAX_SEL_BRUSHES];	// [16] max brushes? 
-
 	};
 
 	struct SpawnVar
@@ -6133,6 +6132,92 @@ namespace Game
 			scr_vehicle_s *vehicles;
 		};
 
+		struct GfxCachedShaderText
+		{
+			const char* name;
+			const char* text;
+			int textSize;
+		};
+
+		struct MaterialString
+		{
+			const char* string;
+			unsigned int hash;
+		};
+
+		struct MaterialStateMapRule
+		{
+			unsigned int stateBitsMask[2];
+			unsigned int stateBitsValue[2];
+			unsigned int stateBitsSet[2];
+			unsigned int stateBitsClear[2];
+		};
+
+		struct MaterialStateMapRuleSet
+		{
+			int ruleCount;
+			MaterialStateMapRule rules[1];
+		};
+
+		struct MaterialStateMap
+		{
+			const char* name;
+			MaterialStateMapRuleSet* ruleSet[10];
+		};
+
+		struct MaterialInfoRaw
+		{
+			unsigned int nameOffset;
+			unsigned int refImageNameOffset;
+			char gameFlags;
+			char sortKey;
+			char textureAtlasRowCount;
+			char textureAtlasColumnCount;
+			float maxDeformMove;
+			char deformFlags;
+			char usage;
+			unsigned __int16 toolFlags;
+			unsigned int locale;
+			unsigned __int16 autoTexScaleWidth;
+			unsigned __int16 autoTexScaleHeight;
+			float tessSize;
+			int surfaceFlags;
+			int contents;
+		};
+
+		struct MaterialRaw
+		{
+			MaterialInfoRaw info;
+			unsigned int refStateBits[2];
+			unsigned __int16 textureCount;
+			unsigned __int16 constantCount;
+			unsigned int techSetNameOffset;
+			unsigned int textureTableOffset;
+			unsigned int constantTableOffset;
+		};
+
+		struct MaterialLoadGlob
+		{
+			unsigned int cachedShaderCount;
+			GfxCachedShaderText* cachedShaderText;
+			unsigned int vertexDeclCount;
+			MaterialVertexDeclaration vertexDeclHashTable[32];
+			unsigned int literalCount;
+			float literalTable[16][4];
+			unsigned int stringCount;
+			MaterialString stringHashTable[64];
+			unsigned int vertexShaderCount;
+			MaterialVertexShader* vertexShaderHashTable[2][2048];
+			unsigned int pixelShaderCount;
+			MaterialPixelShader* pixelShaderHashTable[2][2048];
+			unsigned int stateMapCount;
+			MaterialStateMap* stateMapHashTable[32];
+			unsigned int techniqueCount;
+			MaterialTechnique* techniqueHashTable[2][4096];
+			MaterialRaw* sortMtlRaw;
+		};
+
+
 		struct dynBrush_t
 		{
 			int cmBrushIndex;
@@ -6172,6 +6257,19 @@ namespace Game
 			int cmBrushIndex;
 			cbrush_t* cmBrush;
 			std::vector<std::string> brushSides;
+		};
+
+		struct boundingBox_t
+		{
+			int numPoints;
+			glm::vec3 points[3];
+			glm::vec3 mins;
+			glm::vec3 maxs;
+			cbrush_t box;
+			bool keyFlagInsert;
+			bool keyFlagReset;
+			bool isBoxValid;
+			bool wasReset;
 		};
 
 #ifdef __cplusplus

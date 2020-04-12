@@ -1,13 +1,30 @@
 #include "STDInclude.hpp"
 
+#define CM_CONTENTS_SOLID       0x1
+#define CM_CONTENTS_CLIPSHOT    0x2000      // weapon clip
+#define CM_CONTENTS_DETAIL      0x8000000   // detail
+
 #define CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS 128
 
-int collisionFlickerCounter;
-bool map_exportAllFilteredBrushes = false;
-int map_exportCurrentBrushIndex = 0;
-std::ofstream mapFile;
+bool  export_mapExportCmd = false;
+bool  export_inProgress = false;
+bool  export_selectionAdd;
+int	  export_currentBrushIndex = 0;
+float export_quadEpsilon = 0.0f;
+std::ofstream	export_mapFile;
+Utils::Entities	export_mapEntities;
+Game::boundingBox_t export_selectionBox;
 
+int collisionFlickerCounter;
 const char *g_mapNameCm = "";
+
+// last origin we sorted brushes at
+glm::vec3 g_oldSortingOrigin = glm::vec3(0.0f);
+
+// winding pool
+char windingPool[12292];
+
+// dynamic dvar strings
 std::string g_dvarMaterialList_str;
 
 // material lists
@@ -19,6 +36,10 @@ std::vector<std::string> g_mapMaterialListSingle;
 std::vector<Game::cbrush_t*> g_mapBrushList;
 std::vector<Game::cbrush_t*> g_mapBrushListForIndexFiltering;
 std::vector<Game::brushmodelEnt_t> g_mapBrushModelList;
+
+// used to calculate the delta between sv_fps and client fps
+int SvFramerateToRendertime_Counter = 0;
+int SvFramerateToRendertime_CurrentDelta = 0;
 
 // view-frustum planes
 const Game::vec4_t frustumSidePlanes[5] = 
@@ -805,19 +826,19 @@ namespace Components
 
 		if (!winding)
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_BuildBrushWindingForSide L#%d ^7:: winding \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: winding \n", __LINE__));
 			return false;
 		}
 
 		if (!planeNormal)
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_BuildBrushWindingForSide L#%d ^7:: planeNormal \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: planeNormal \n", __LINE__));
 			return false;
 		}
 
 		if (!pts)
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_BuildBrushWindingForSide L#%d ^7:: pts \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: pts \n", __LINE__));
 			return false;
 		}
 
@@ -864,11 +885,11 @@ namespace Components
 		for (auto _i = 0; _i < 3; _i++)
 		{ for (auto _j = 0; _j < 3; _j++)
 		  {
-			if (fabs(w->p[_i][_j]) < 0.2f)
+			if (fabs(w->p[_i][_j]) < Dvars::mapexport_brushEpsilon1->current.value)
 			{
 				w->p[_i][_j] = 0;
 			}
-			else if (fabs((int)w->p[_i][_j] - w->p[_i][_j]) < 0.3f)
+			else if (fabs((int)w->p[_i][_j] - w->p[_i][_j]) < Dvars::mapexport_brushEpsilon2->current.value)
 			{
 				w->p[_i][_j] = (float)(int)w->p[_i][_j];
 			}
@@ -902,6 +923,12 @@ namespace Components
 		{
 			bSide->brushPlane[2].point[idx] = w->p[2][idx];
 		}
+
+		/*if (!Utils::polylib::CheckWinding(w))
+		{
+			Game::Com_PrintMessage(0, "removed degenerate brushside.\n", 0);
+			return false;
+		}*/
 		
 		return true;
 	}
@@ -1008,15 +1035,30 @@ namespace Components
 		Game::Com_Error(0, "Alloc_BrushSide :: alloc failed!");
 		return 0;
 	}
-	
-	// create a winding pool
-	char windingPool[12292];
 
+	bool CM_IsMapBrushSideWithinBounds(const Game::map_brushSide_t* bSide, const glm::vec3& mins, const glm::vec3& maxs)
+	{
+		if (!bSide)
+		{
+			return false;
+		}
+
+		for (auto plane = 0; plane < 3; plane++)
+		{
+			if (!Utils::polylib::PointWithinBounds(glm::toVec3(bSide->brushPlane[plane].point), mins, maxs, 0.25f))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
 	// rebuild and draw brush from bounding box and dynamic sides
-	void CM_ShowSingleBrushCollision(Game::cbrush_t *brush, const float *color, int brushIndex)
+	void CM_ShowSingleBrushCollision(Game::cbrush_t *brush, const float *color, int brushIndex, bool enableExport = true)
 	{
 		// skip all brush calculations when flicker mode is on and not exporting a map file
-		if (Dvars::r_drawCollision_flickerBrushes->current.enabled && !map_exportAllFilteredBrushes)
+		if (Dvars::r_drawCollision_flickerBrushes->current.enabled && !export_inProgress)
 		{
 			// on-time :: if amount of passed frames > flickerOn + flickerOff
 			if (collisionFlickerCounter > Dvars::r_drawCollision_flickerOnTime->current.integer + Dvars::r_drawCollision_flickerOffTime->current.integer)
@@ -1094,7 +1136,7 @@ namespace Components
 
 		toAdd.shrink_to_fit();
 
-		// intersect all planes, 3 at a time, to to reconstruct the face->windings 
+		// intersect all planes, 3 at a time, to to reconstruct face windings 
 		ptCount = CM_ForEachBrushPlaneIntersection(brush, axialPlanes, brushPts);
 
 		// we need atleast 4 valid points
@@ -1115,12 +1157,9 @@ namespace Components
 					axialPlanes[sideIndex][2] 
 				};
 
-				// map_exportAllFilteredBrushes :: drawing polys doesnt really impact performance while exporting
 				// build winding for the current brushside and check if it is visible (culling)
 				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, planeNormal, sideIndex, brushPts, ptCount)) 
 				{
-					//RB_DrawCollisionPoly(*(DWORD *)windingPool, (float(*)[3])&windingPool[4], color);
-
 					if (Dvars::r_drawCollision->current.integer == 1)
 					{
 						_Debug::RB_AddAndDrawDebugLines(*(DWORD*)windingPool, (float(*)[3])& windingPool[4], Dvars::r_drawCollision_lineColor->current.vector);
@@ -1139,12 +1178,12 @@ namespace Components
 				}
 
 				// create brushsides from brush bounds (side [0]-[5])
-				if (map_exportAllFilteredBrushes)
+				if (export_inProgress && enableExport)
 				{
 					// allocate a brushside
 					Game::map_brushSide_t *bSide = Alloc_BrushSide();
 
-					// try to create the brushside from windings
+					// create a brushside from windings
 					if (CM_BuildBrushWindingForSideMapExport((Game::winding_t *)windingPool, planeNormal, sideIndex, brushPts, ptCount, bSide))
 					{
 						// brushside is valid
@@ -1164,11 +1203,8 @@ namespace Components
 
 			for (sideIndex = 6; sideIndex < (std::int32_t)brush->numsides + 6; ++sideIndex)
 			{
-				// map_exportAllFilteredBrushes :: drawing polys doesnt really impact performance while exporting
 				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, brush->sides[sideIndex - 6].plane->normal, sideIndex, brushPts, ptCount)) 
 				{
-					//RB_DrawCollisionPoly(*(DWORD *)windingPool, (float(*)[3])&windingPool[4], color);
-
 					if (Dvars::r_drawCollision->current.integer == 1)
 					{
 						_Debug::RB_AddAndDrawDebugLines(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], Dvars::r_drawCollision_lineColor->current.vector);
@@ -1187,12 +1223,12 @@ namespace Components
 				}
 
 				// create brushsides from cm->brushes->sides (side [6] and up)
-				if (map_exportAllFilteredBrushes)
+				if (export_inProgress && enableExport)
 				{
 					// allocate a brushside
 					Game::map_brushSide_t *bSide = Alloc_BrushSide();
 
-					// try to create the brushside from windings
+					// create a brushside from windings
 					if (CM_BuildBrushWindingForSideMapExport((Game::winding_t *)windingPool, brush->sides[sideIndex - 6].plane->normal, sideIndex, brushPts, ptCount, bSide))
 					{
 						// brushside is valid
@@ -1208,12 +1244,32 @@ namespace Components
 			}
 
 			// if we are exporting the map
-			if (map_exportAllFilteredBrushes)
+			if (export_inProgress && enableExport)
 			{
+				glm::vec3 bMins = glm::toVec3(brush->mins);
+				glm::vec3 bMaxs = glm::toVec3(brush->maxs);
+
 				// we need atleast 6 valid brushsides
 				if (mapBrush.size() < 6)
 				{
 					return;
+				}
+
+				// check brushes defined by more then their axialplanes
+				if(mapBrush.size() > 6)
+				{
+					if (glm::distance(bMins, bMaxs) < Dvars::mapexport_brushMinSize->current.value)
+					{
+						return;
+					}
+				}
+
+				for (auto side = 0; side < static_cast<int>(mapBrush.size()); side++)
+				{
+					if (!CM_IsMapBrushSideWithinBounds(mapBrush[side], bMins, bMaxs))
+					{
+						return;
+					}
 				}
 
 				// swap brushsides (bottom, top, right, back, left, front)
@@ -1234,22 +1290,22 @@ namespace Components
 				else
 				{
 					// start brush
-					mapFile << Utils::VA("// brush %d\n{", map_exportCurrentBrushIndex) << std::endl;
-					mapFile << "layer \"000_Global/Brushes\"" << std::endl;
+					export_mapFile << Utils::VA("// brush %d\n{", export_currentBrushIndex) << std::endl;
+					export_mapFile << "layer \"000_Global/Brushes\"" << std::endl;
 
 					// global brush exporting index count
-					map_exportCurrentBrushIndex++;
-				}
+					export_currentBrushIndex++;
 
-				/* brush contents defined like:
-				// brush 11
-				{
-				  contents nonColliding;
-				  ( side ) ( side ) ( side ) ...
-				  ( side ) ( side ) ( side ) ...
-				  ...
+					// write brush contents
+					if (brush->contents & CM_CONTENTS_DETAIL)
+					{
+						export_mapFile << "contents detail;" <<  std::endl;
+					}
+					else if (brush->contents & CM_CONTENTS_CLIPSHOT)
+					{
+						export_mapFile << "contents weaponClip;" << std::endl;
+					}
 				}
-				*/
 
 				// print brush sides and material info
 				for (auto bs = 0; bs < (int)mapBrush.size(); bs++)
@@ -1261,7 +1317,7 @@ namespace Components
 
 					if (!brush->isSubmodel)
 					{
-						mapFile << currBrushSide.c_str();
+						export_mapFile << currBrushSide.c_str();
 					}
 
 					// get material index for the current brush side
@@ -1270,7 +1326,7 @@ namespace Components
 					// for the 6 brush sides created from axialplanes (brush bounds)
 					if (bs < 6)
 					{
-						// get the material (brush->axialMaterialNum[array][index]) for the current brush side
+						// get material (brush->axialMaterialNum[array][index]) for the current brush side
 						// mapping axialnum order to .map brush side order
 						switch (bs)
 						{
@@ -1332,15 +1388,20 @@ namespace Components
 								{
 									texWidth = (int)(Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->width * 0.25f); // assuming 0.25 horizontal stretch
 									texHeight = (int)(Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->height * 0.25f); // assuming 0.25 vertical stretch
+
+									break;
 								}
 							}
+
+							// we found the correct material
+							break;
 						}
 					}
 
 					if (!brush->isSubmodel)
 					{
 						// materialname, width, height, xpos, ypos, rotation, ?, lightmapMat, lmap_sampleSizeX, lmap_sampleSizeY, lmap_xpos, lmap_ypos, lmap_rotation, ?
-						mapFile << Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", materialForSide.c_str(), texWidth, texHeight);
+						export_mapFile << Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", materialForSide.c_str(), texWidth, texHeight);
 					}
 					else
 					{
@@ -1352,7 +1413,7 @@ namespace Components
 				if (!brush->isSubmodel)
 				{
 					// end brush
-					mapFile << "}" << std::endl;
+					export_mapFile << "}" << std::endl;
 				}
 	
 
@@ -1390,7 +1451,6 @@ namespace Components
 		}
 	}
 
-	
 	// Brush View Culling
 	int BoxOnPlaneSide(const float *emins, const float *emaxs, const Game::cplane_s *p)
 	{
@@ -1474,13 +1534,13 @@ namespace Components
 
 		if (!frustumPlanes && DEBUG) 
 		{ 
-			Game::Com_Error(0, Utils::VA("^1CM_BrushInView L#%d ^7:: frustumPlanes\n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BrushInView L#%d :: frustumPlanes\n", __LINE__));
 			return false;
 		}
 
 		for (frustumPlaneIndex = 0; frustumPlaneIndex < frustumPlaneCount; ++frustumPlaneIndex)
 		{
-			if (!(BoxOnPlaneSide(brush->mins, brush->maxs, &frustumPlanes[frustumPlaneIndex]) & 1)) 
+			if (!(BoxOnPlaneSide(brush->mins, brush->maxs, &frustumPlanes[frustumPlaneIndex]) & 1))
 			{
 				return 0;
 			}
@@ -1641,6 +1701,78 @@ namespace Components
 		return false;
 	}
 
+	// resets a selection bounding box
+	void CM_ResetSelectionBox(Game::boundingBox_t* box)
+	{
+		memset(box, 0, sizeof(Game::boundingBox_t));
+
+		box->mins = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+		box->maxs = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+		box->wasReset = true;
+	}
+
+	// get mins/maxs from points
+	void CM_BoundsFromPoints(const int& numPoints, const glm::vec3* points, glm::vec3& mins, glm::vec3& maxs)
+	{
+		mins = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+		maxs = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+		for (auto sPoint = 0; sPoint < numPoints; sPoint++)
+		{
+			for (auto pAxis = 0; pAxis < 3; pAxis++)
+			{
+				// mins :: find the closest point on each axis
+				if (mins[pAxis] > points[sPoint][pAxis])
+					mins[pAxis] = points[sPoint][pAxis];
+
+				// maxs :: find the furthest point on each axis
+				if (maxs[pAxis] < points[sPoint][pAxis])
+					maxs[pAxis] = points[sPoint][pAxis];
+			}
+		}
+	}
+
+	// calculate brush midpoint
+	glm::vec3 CM_GetBrushMidpoint(const Game::cbrush_t* brush, bool xyzMidpoint = false)
+	{
+		if (!xyzMidpoint)
+		{
+			return (glm::vec3(brush->mins[0], brush->mins[1], 0.0f)
+				+ glm::vec3(brush->maxs[0], brush->maxs[1], 0.0f)) * 0.5f;
+		}
+
+		else
+		{
+			return (glm::vec3(brush->mins[0], brush->mins[1], brush->mins[2])
+				+ glm::vec3(brush->maxs[0], brush->maxs[1], brush->maxs[2])) * 0.5f;
+		}
+	}
+
+	// check if a brushes midpoint is within a selection box
+	bool CM_IsBrushWithinSelectionBox(const Game::cbrush_t* brush, const Game::boundingBox_t* selectionBox)
+	{
+		if (brush && selectionBox->isBoxValid)
+		{
+			return Utils::polylib::PointWithinBounds(CM_GetBrushMidpoint(brush, true), selectionBox->mins, selectionBox->maxs, 0.25f);
+		}
+		
+		return false;
+	}
+
+	// check if a triangles midpoint is within a selection box
+	bool CM_IsTriangleWithinSelectionBox(const Game::map_patchTris_t* tris, Game::boundingBox_t* selectionBox)
+	{
+		for (auto triCoord = 0; triCoord < 3; triCoord++)
+		{
+			if(!Utils::polylib::PointWithinBounds(glm::toVec3(tris->coords[triCoord].xyz), selectionBox->mins, selectionBox->maxs, 0.25f))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	// -------------
 	// CM_OnceOnInit
 
@@ -1664,21 +1796,20 @@ namespace Components
 			Utils::Entities mapEnts(Game::cm->mapEnts->entityString);
 			g_mapBrushModelList = mapEnts.getBrushModels();
 
-			// register a hacky dvar
+			// hacky string dvar
 			auto dvarName = "r_drawCollision_brushIndexFilter";
 			Game::Dvar_RegisterString_hacky(dvarName, "null", "Specifies which brushes to draw. Ignores all other filters and will disable brush sorting.\nInput example: \"101 99 2\" :: \"^1null^7\" disables this filter");
 
-			// assign the dvar to the global dvar
+			// assign hacky dvar to the global dvar
 			Dvars::r_drawCollision_brushIndexFilter = Game::Dvar_FindVar(dvarName);
 
 			// change dvar to only draw 1 brush when using a debug build (debug build has really bad performance)
 			if (DEBUG)
 			{
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushBegin, 0);
 				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, 1);
 			}
 
-			// reset brush distance filter on map load (if a user had drawn all brushes on a simple map and now loads strike or sth.)
+			// reset brush distance filter
 			Game::Dvar_SetValue(Dvars::r_drawCollision_brushDist, 800.0f);
 
 			// clear global vectors
@@ -1688,20 +1819,23 @@ namespace Components
 			g_mapMaterialListSingle.clear();
 			g_dvarMaterialList_str.clear();
 
-			// create a dmaterial_t vector with the size of numMaterials
+			// init/reset the selection box
+			CM_ResetSelectionBox(&export_selectionBox);
+
+			// create a dmaterial_t vector
 			std::int32_t cmMaterialNum = Game::cm->numMaterials;
 			std::vector<Game::dmaterial_t*> currMapMaterials(cmMaterialNum);
 
-			// assign clipMap Material Pointers to our currMapMaterials vector
+			// assign clipMap material pointers
 			for (int num = 0; num < cmMaterialNum; num++) 
 			{
 				currMapMaterials[num] = &Game::cm->materials[num];
 			}
 
-			// create a cbrush_t vector with the size of numBrushes
+			// create a cbrush_t vector
 			std::vector<Game::cbrush_t*> currBrushList(Game::cm->numBrushes);
 
-			// assign clipMap Brush Pointers to our globBrushList vector
+			// assign clipMap brush pointers
 			for (int num = 0; num < Game::cm->numBrushes; num++)
 			{
 				currBrushList[num] = &Game::cm->brushes[num];
@@ -1711,12 +1845,12 @@ namespace Components
 				colorCounter %= 8;
 			}
 
-			// only run this procedure if we change a map or load one for the first time
+			// assign to globals
 			g_mapNameCm = Game::cm->name;
 			g_mapMaterialList = currMapMaterials;
 			g_mapBrushList = currBrushList;
 
-			// create a string vector of all material ( can/will contain duplicates )
+			// create a string vector of all material (contains duplicates)
 			for (std::uint32_t num = 0; num < g_mapMaterialList.size(); num++)
 			{
 				std::string materialName = Utils::convertToString(g_mapMaterialList[num]->material, sizeof(g_mapMaterialList[num]->material));
@@ -1725,7 +1859,7 @@ namespace Components
 				g_mapMaterialListDuplicates.push_back(materialName);
 			}
 
-			// create a string vector that does not include duplicate materials ( to be used for dvar description )
+			// create a string vector that without duplicate materials (used for dvar description)
 			for (std::uint32_t num = 0; num < g_mapMaterialListDuplicates.size(); num++)
 			{
 				std::string materialName = g_mapMaterialListDuplicates[num];
@@ -1765,25 +1899,6 @@ namespace Components
 		}
 	}
 
-	// calculate brush midpoint
-	glm::vec3 CM_GetBrushMidpoint(Game::cbrush_t* brush, bool xyzMidpoint = false)
-	{
-		if (!xyzMidpoint) 
-		{
-			return (glm::vec3(brush->mins[0], brush->mins[1], 0.0f)
-				  + glm::vec3(brush->maxs[0], brush->maxs[1], 0.0f)) * 0.5f; 
-		} 
-
-		else 
-		{
-			return (glm::vec3(brush->mins[0], brush->mins[1], brush->mins[2])
-				  + glm::vec3(brush->maxs[0], brush->maxs[1], brush->maxs[2])) * 0.5f; 
-		}
-	}
-
-	// last origin we sorted our brushes at
-	glm::vec3 g_oldSortingOrigin = glm::vec3(0.0f);
-
 	// sort globBrushList depending on distance from brush to camera
 	void CM_SortBrushListOnDistanceCamera(bool farToNear = true, bool useCurrentBrushesDrawnList = false, bool updateAlways = false)
 	{
@@ -1815,11 +1930,11 @@ namespace Components
 				{
 					std::sort(g_mapBrushList.begin(), g_mapBrushList.end(), [](Game::cbrush_t *brush1, Game::cbrush_t *brush2)
 					{
-						glm::vec3 b1_mid = (glm::vec3(brush1->mins[0], brush1->mins[1], 0.0f)
-							+ glm::vec3(brush1->maxs[0], brush1->maxs[1], 0.0f)) * 0.5f;
+						glm::vec3 b1_mid = (glm::vec3(brush1->mins[0], brush1->mins[1], brush1->mins[2])
+							+ glm::vec3(brush1->maxs[0], brush1->maxs[1], brush1->maxs[2])) * 0.5f;
 
-						glm::vec3 b2_mid = (glm::vec3(brush2->mins[0], brush2->mins[1], 0.0f)
-							+ glm::vec3(brush2->maxs[0], brush2->maxs[1], 0.0f)) * 0.5f;
+						glm::vec3 b2_mid = (glm::vec3(brush2->mins[0], brush2->mins[1], brush2->mins[2])
+							+ glm::vec3(brush2->maxs[0], brush2->maxs[1], brush2->maxs[2])) * 0.5f;
 
 						float dist1 = glm::distance(b1_mid, Game::Globals::locPmove_playerOrigin);
 						float dist2 = glm::distance(b2_mid, Game::Globals::locPmove_playerOrigin);
@@ -1907,12 +2022,7 @@ namespace Components
 		colorFloat[3] = Dvars::r_drawCollision_polyAlpha->current.value;
 	}
 	
-	// used to calculate the delta between sv_fps and current render fps
-	// should use scheduler or a buffer and call a func within the game thread
-	int SvFramerateToRendertime_Counter = 0;
-	int SvFramerateToRendertime_CurrentDelta = 0;
-
-
+	// check if 2 triangles share an edge
 	bool PatchTriangle_SharesEdge(const Game::map_patchTris_t *pTri1, const Game::map_patchTris_t *pTri2)
 	{
 		int matchedPoints = 0;
@@ -2116,8 +2226,6 @@ namespace Components
 		return false;
 	}
 
-	float g_quadBoundsInc = 0.0f;
-
 	// quad in map format order (tiangles need to share an edge or it will fail)
 	bool PatchQuad_SingleFromTris(Game::map_patchQuads_t *pQuad, const Game::map_patchTris_t *pTri1, const Game::map_patchTris_t *pTri2, const bool checkSkewness = false)
 	{
@@ -2231,8 +2339,8 @@ namespace Components
 				{ 
 					/*x*/ pt0[0], 
 					/*y*/ pt0[1], 
-					/*w*/ fabs(pt2[0] - pt0[0]) + g_quadBoundsInc,
-					/*h*/ fabs(pt1[1] - pt0[1]) + g_quadBoundsInc
+					/*w*/ fabs(pt2[0] - pt0[0]) + export_quadEpsilon,
+					/*h*/ fabs(pt1[1] - pt0[1]) + export_quadEpsilon
 				};
 
 				// discard point if not within bounds 
@@ -2249,8 +2357,8 @@ namespace Components
 				{
 					/*x*/ pt0[0],
 					/*y*/ pt0[1],
-					/*w*/ fabs(pt3[0] - pt0[0]) + g_quadBoundsInc,
-					/*h*/ fabs(pt1[1] - pt0[1]) + g_quadBoundsInc
+					/*w*/ fabs(pt3[0] - pt0[0]) + export_quadEpsilon,
+					/*h*/ fabs(pt1[1] - pt0[1]) + export_quadEpsilon
 				};
 				
 				// discard point if not within bounds 
@@ -2275,34 +2383,70 @@ namespace Components
 		return false;
 	}
 
-	Utils::Entities g_mapEnts;
-
-	// main logic for brush drawing
-	void CM_ShowBrushCollision(Game::GfxViewParms *viewParms, Game::cplane_s *frustumPlanes, int frustumPlaneCount)
+	// handle filters
+	void CM_BrushFilters(int &filter_BrushAmount, bool &filter_BrushIndex, bool &filter_BrushSorting, bool &filter_BrushSelection)
 	{
-		int debugPrints, colorCounter = 0, lastDrawnBrushAmount = 0, customBrushCountDvar = 0;
-		
-		bool brushFilterSet = false;
-		float colorFloat[4];
+		int cmTotalBrushAmount = static_cast<int>(Game::cm->numBrushes);
 
-		Game::cbrush_t *brush;
-
-		if (!frustumPlanes) 
+		// brush bounding box filter
+		if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_ShowBrushCollision L#%d ^7:: frustumPlanes \n", __LINE__));
+			if(Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
+
+			if (Dvars::r_drawCollision_brushSorting && Dvars::r_drawCollision_brushSorting->current.integer != 0)
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
+
+			if (Dvars::r_drawCollision_brushIndexFilter && (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null")
+				Game::Dvar_SetString("null", Dvars::r_drawCollision_brushIndexFilter);
+
+			filter_BrushAmount = cmTotalBrushAmount;
+			filter_BrushSelection = true;
+
 			return;
 		}
 
-		if (Dvars::r_drawCollision_brushIndexFilter) 
+		// brush index filter & none of the above
+		else if(Dvars::r_drawCollision_brushIndexFilter && (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null")
 		{
-			brushFilterSet = (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null"; // do "" ?
+			if (Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
+
+			if (Dvars::r_drawCollision_brushSorting && Dvars::r_drawCollision_brushSorting->current.integer != 0)
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
+
+			filter_BrushAmount = cmTotalBrushAmount;
+			filter_BrushIndex = true;
+
+			return;
 		}
 
-		// One time init per map when r_drawcollison was enabled
-		CM_OnceOnInit();
+		// brush sorting & none of the above
+		else if(Dvars::r_drawCollision_brushSorting && Dvars::r_drawCollision_brushSorting->current.integer != 0)
+		{
+			filter_BrushSorting = true;
+		}
 
+		// brush amount filter & none of the above
+		if (Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != 0 && Dvars::r_drawCollision_brushAmount->current.integer <= cmTotalBrushAmount)
+		{
+			filter_BrushAmount = Dvars::r_drawCollision_brushAmount->current.integer;
+			return;
+		}
+		else
+		{
+			if (Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
+
+			filter_BrushAmount = cmTotalBrushAmount;
+		}
+	}
+
+	// handle brush dvar commands
+	void CM_BrushCommands()
+	{
 		// cmd :: print material list to console
-		if (Dvars::r_drawCollision_materialList->current.enabled)
+		if (Dvars::r_drawCollision_materialList && Dvars::r_drawCollision_materialList->current.enabled)
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, "clear\n");
 
@@ -2313,58 +2457,109 @@ namespace Components
 			Game::Dvar_SetValue(Dvars::r_drawCollision_materialList, false);
 			Game::Com_PrintMessage(0, Utils::VA("%s\n", g_dvarMaterialList_str.c_str()), 0);
 		}
+	}
 
-		// brush selection (remove brush begin later, not longer of any use)
-		int dvarBrush = Dvars::r_drawCollision_brushBegin->current.integer;
-		int dvarBrushCount = Dvars::r_drawCollision_brushAmount->current.integer;
+	// create a bounding box to select things that should be exported
+	void CM_BrushSelectionBox(bool isActive)
+	{
+		if (isActive)
+		{
+			float selectionBoxColor[4] = { 0.0f, 1.0f, 0.0f, 0.6f };
+			export_selectionBox.wasReset = false;
+
+			if (!export_selectionBox.isBoxValid)
+			{
+				// we need atleast 2 valid points to define the selection box
+				if (export_selectionBox.numPoints < 2)
+				{
+					if(export_selectionAdd)
+					{
+						export_selectionBox.points[export_selectionBox.numPoints] = Game::Globals::locPmove_playerOrigin;
+						export_selectionBox.numPoints++;
+
+						export_selectionAdd = false;
+					}
+
+					// use the players origin as a temporary second point till a second point was defined
+					if (export_selectionBox.numPoints == 1)
+					{
+						export_selectionBox.points[1] = Game::Globals::locPmove_playerOrigin;
+
+						CM_BoundsFromPoints(2, export_selectionBox.points, export_selectionBox.mins, export_selectionBox.maxs);
+						glm::setFloat3(export_selectionBox.box.mins, export_selectionBox.mins);
+						glm::setFloat3(export_selectionBox.box.maxs, export_selectionBox.maxs);
+
+						CM_ShowSingleBrushCollision(&export_selectionBox.box, selectionBoxColor, 0, false);
+					}
+				}
+				else
+				{
+					// calculate mins and maxs for our selection box once
+					if (export_selectionBox.numPoints == 2 && !export_selectionBox.isBoxValid)
+					{
+						CM_BoundsFromPoints(export_selectionBox.numPoints, export_selectionBox.points, export_selectionBox.mins, export_selectionBox.maxs);
+						glm::setFloat3(export_selectionBox.box.mins, export_selectionBox.mins);
+						glm::setFloat3(export_selectionBox.box.maxs, export_selectionBox.maxs);
+
+						export_selectionBox.isBoxValid = true;
+					}
+				}
+			}
+			else
+			{
+				CM_ShowSingleBrushCollision(&export_selectionBox.box, selectionBoxColor, 0, false);
+			}
+		}
+		else
+		{
+			if (!export_selectionBox.wasReset)
+			{
+				CM_ResetSelectionBox(&export_selectionBox);
+			}
+		}
+	}
+
+	// main logic for brush drawing
+	void CM_ShowBrushCollision(Game::GfxViewParms *viewParms, Game::cplane_s *frustumPlanes, int frustumPlaneCount)
+	{
+		int debugPrints, colorCounter = 0, lastDrawnBrushAmount = 0, filter_BrushAmount = 0;
+		bool filter_BrushIndex = false, filter_BrushSorting = false, filter_ExportSelection = false;
+
+		float colorFloat[4];
+		Game::cbrush_t *brush;
 		
-		// if we disabled the brush amount filter
-		if (dvarBrushCount == 0) 
+		if (!frustumPlanes) 
 		{
-			dvarBrushCount = INT_MAX;
+			Game::Com_Error(0, Utils::VA("CM_ShowBrushCollision L#%d :: frustumPlanes \n", __LINE__));
+			return;
 		}
 
-		// check if r_drawCollision_brushBegin is greater then the total amount of brushes
-		if (dvarBrush > Game::cm->numBrushes) 
-		{
-			dvarBrush = Game::cm->numBrushes;
-			Game::Dvar_SetValue(Dvars::r_drawCollision_brushBegin, dvarBrush);
-		}
+		// One time init per map when r_drawcollison was enabled
+		CM_OnceOnInit();
 
-		// check if CollisionBegin + CollisionAmount is greater then the total amount of brushes
-		if (dvarBrush + dvarBrushCount > Game::cm->numBrushes) 
-		{
-			dvarBrushCount = (std::int32_t)Game::cm->numBrushes - dvarBrush;
-			Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, dvarBrushCount);
-		}
+		// Handle filter dvars
+		CM_BrushFilters(filter_BrushAmount, filter_BrushIndex, filter_BrushSorting, filter_ExportSelection);
 
-		// loop all brushes when index filtering is enabled
-		if (brushFilterSet) 
-		{
-			customBrushCountDvar = Game::cm->numBrushes;
-		} 
-		// use a custom amount of brushes otherwise
-		else 
-		{
-			customBrushCountDvar = dvarBrush + dvarBrushCount;
-		}
+		// Handle commands
+		CM_BrushCommands();
 
-		// 
-		// Map Export Stuff
+		// *
+		// Map Export
 		
-		map_exportAllFilteredBrushes = false;	// global ( should reset itself after all brushes were exported and the draw collision code runs again )
-		map_exportCurrentBrushIndex = 0;		// brush index for .map file brushes
+		export_inProgress = false;		// reset after exporting
+		export_currentBrushIndex = 0;	// brush index for .map file brushes
 
-		std::chrono::time_point<std::chrono::steady_clock> map_exportStart;
-		std::chrono::time_point<std::chrono::steady_clock> map_brushBuildingStart;
+		std::chrono::time_point<std::chrono::steady_clock> export_time_exportStart;
+		std::chrono::time_point<std::chrono::steady_clock> export_time_brushGenerationStart;
 		
 		// cmd :: export current map
-		if (Dvars::r_drawCollision_export->current.enabled)
+		if (export_mapExportCmd)
 		{
-			map_exportAllFilteredBrushes = true;
+			// reset the the command bool
+			export_mapExportCmd = false;
 
-			// reset the dvar value (used like a command)
-			Game::Dvar_SetValue(Dvars::r_drawCollision_export, false);
+			// let our code know that we are about to export a map
+			export_inProgress = true;
 
 			// map file name
 			std::string mapName = Game::cm->name;
@@ -2378,7 +2573,7 @@ namespace Components
 			std::string filePath = basePath + mapName;
 
 			Game::Com_PrintMessage(0, "\n------------------------------------------------------\n", 0);
-			map_exportStart = Utils::Clock_StartTimerPrint(Utils::VA("[MAP-EXPORT]: Starting to export %s to %s ...\n", Game::cm->name, filePath.c_str()));
+			export_time_exportStart = Utils::Clock_StartTimerPrint(Utils::VA("[MAP-EXPORT]: Starting to export %s to %s ...\n", Game::cm->name, filePath.c_str()));
 
 			// create directory root/map_export if it doesnt exist
 			if (!CreateDirectoryA(basePath.c_str(), NULL) ) 
@@ -2398,46 +2593,61 @@ namespace Components
 			}
 
 			// steam to .map file
-			mapFile.open(filePath.c_str());
+			export_mapFile.open(filePath.c_str());
 
 			// build entity list
-			g_mapEnts = Utils::Entities(Game::cm->mapEnts->entityString);
+			export_mapEntities = Utils::Entities(Game::cm->mapEnts->entityString);
 			Game::Com_PrintMessage(0, "|- Writing header and world entity ...\n\n", 0);
 
 			// write header
-			mapFile <<	"iwmap 4\n"
-						"\"000_Global\" flags expanded  active\n"
-						"\"000_Global/Brushes\" flags\n"
-						"\"000_Global/SingleQuads\" flags\n"
-						"\"000_Global/Triangles\" flags\n"
-						"\"000_Global/Models\" flags\n"
-						"\"The Map\" flags" << std::endl; // header
+			export_mapFile <<	"iwmap 4\n"
+								"\"000_Global\" flags expanded  active\n"
+								"\"000_Global/Brushes\" flags\n"
+								"\"000_Global/SingleQuads\" flags\n"
+								"\"000_Global/Triangles\" flags\n"
+								"\"000_Global/Models\" flags\n"
+								"\"The Map\" flags" << std::endl; // header
 
 			// write worldspawn
-			mapFile <<	"// entity 0\n" 
-						"{\n"  
-						+ g_mapEnts.buildWorldspawnKeys();
+			export_mapFile <<	"// entity 0\n" 
+								"{\n"  
+								+ export_mapEntities.buildWorldspawnKeys();
 
 			// Use debug collision methods to create our brushes ...
-			map_brushBuildingStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Creating brushes ...\n");
+			export_time_brushGenerationStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Creating brushes ...\n");
+		}
+
+		// Handle box selection
+		CM_BrushSelectionBox(filter_ExportSelection);
+
+		// do not highlight brushes when using the selection box
+		if (!export_inProgress && filter_ExportSelection)
+		{
+			return;
 		}
 
 		// --------
 
-		bool brushSorting = Dvars::r_drawCollision_brushSorting->current.enabled;
-		bool brushIndexVisible = Dvars::r_drawCollision_brushIndexVisible->current.enabled;
+		bool brushIndexVisible = Dvars::r_drawCollision_brushIndexVisible && Dvars::r_drawCollision_brushIndexVisible->current.enabled;
 
-		if (brushSorting && !brushFilterSet)
+		if (filter_BrushSorting)
 		{
-			// sort current map brushes (globBrushList)
-			CM_SortBrushListOnDistanceCamera();
+			// sort brushes far to near
+			if (Dvars::r_drawCollision_brushSorting->current.integer == 1)
+			{
+				CM_SortBrushListOnDistanceCamera();
+			}
+			// sort brushes near to far
+			else
+			{
+				CM_SortBrushListOnDistanceCamera(false);
+			}
 
 			// disable sorting if sorted brushList is empty .. should not happen
 			if (g_mapBrushList.empty())
 			{
-				// somethings wrong, disable brush sorting and notify user
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, false);
-				brushSorting = false;
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
+				filter_BrushSorting = false;
 			}
 		}
 
@@ -2447,30 +2657,34 @@ namespace Components
 		// reset hud element
 		Game::Globals::drawnPlanesAmountTemp = 0;
 
-		int BRUSH_INDEX, BRUSH_START, BRUSH_COUNT;
+		int BRUSH_INDEX, BRUSH_COUNT;
 		std::vector<int> Integers;
 
 		// brush index filtering
-		if (brushFilterSet)
+		if (filter_BrushIndex)
 		{
 			Utils::extractIntegerWords(Dvars::r_drawCollision_brushIndexFilter->current.string, Integers, true);
-
-			BRUSH_START = 0;
-			BRUSH_COUNT = (int)Integers.size();
+			BRUSH_COUNT = static_cast<int>(Integers.size());
 		}
+
 		// sorted / unsorted
 		else
 		{
-			BRUSH_START = dvarBrush;
-			BRUSH_COUNT = customBrushCountDvar;
+			BRUSH_COUNT = Game::cm->numBrushes;
 		}
 
-		for (BRUSH_INDEX = BRUSH_START; BRUSH_INDEX < BRUSH_COUNT; ++BRUSH_INDEX)
+		for (BRUSH_INDEX = 0; BRUSH_INDEX < BRUSH_COUNT; ++BRUSH_INDEX)
 		{
 			int brushIndex;
 
+			// break after we drew the amount of brushes we set (works best with brushSorting)
+			if (lastDrawnBrushAmount >= filter_BrushAmount)
+			{
+				break;
+			}
+
 			// brush index filtering
-			if (brushFilterSet)
+			if (filter_BrushIndex)
 			{
 				brushIndex = Integers[BRUSH_INDEX];
 
@@ -2493,53 +2707,82 @@ namespace Components
 					return;
 				}
 			}
+
 			// sorted / unsorted
 			else
 			{
 				brushIndex = BRUSH_INDEX;
 			}
 
-			if (brushSorting && !brushFilterSet)
+			if (filter_BrushSorting)
 			{
 				brush = g_mapBrushList[brushIndex];
-			}
+			} 
 			else 
 			{
 				brush = &Game::cm->brushes[brushIndex];
 			}
 
-			// check if brush uses the material we want
-			if (brushFilterSet || CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer))
+			// when not exporting a map
+			if (!export_inProgress)
 			{
-				// if brush is part of a submodel, translate brushmodel bounds by the submodel origin
-				if (brush->isSubmodel)
-				{
-					Game::cbrush_t dupe = Game::cbrush_t();
-					memcpy(&dupe, brush, sizeof(Game::cbrush_t));
-
-					Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
-					Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
-
-					brush = &dupe;
+				// always cull if not exporting
+				if (!CM_BrushInView(brush, frustumPlanes, frustumPlaneCount)) {
+					continue;
 				}
 
-				// do not cull brushes when exporting the map :: overwise check if our brush is in our frustum (does not check visibility per se)
-				if (map_exportAllFilteredBrushes || CM_BrushInView(brush, frustumPlanes, frustumPlaneCount))
+				// disable material filter when using index filter
+				if (!filter_BrushIndex)
 				{
-					// always use the brush index within clipmap->brushes to define its color
-					CM_GetShowCollisionColor(colorFloat, brush->colorCounter);
-
-					// draw the current brush
-					CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
-
-					if (brushIndexVisible)
-					{
-						g_mapBrushListForIndexFiltering.push_back(brush);
+					// check if its a material we selected otherwise
+					if (!CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer)) {
+						continue;
 					}
-
-					lastDrawnBrushAmount++;
 				}
 			}
+
+			// on exporting
+			else
+			{
+				// exclude current brush if its not part of the selection box (when using selectionMode)
+				if (filter_ExportSelection && !CM_IsBrushWithinSelectionBox(brush, &export_selectionBox)) {
+					continue;
+				}
+
+				// skip material check if using index filtering or selectionMode
+				if (!filter_BrushIndex && !filter_ExportSelection)
+				{
+					// check if its a material we selected otherwise
+					if (!CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer)) {
+						continue;
+					}
+				}
+			}
+
+			// if brush is part of a submodel, translate brushmodel bounds by the submodel origin
+			if (brush->isSubmodel)
+			{
+				Game::cbrush_t dupe = Game::cbrush_t();
+				memcpy(&dupe, brush, sizeof(Game::cbrush_t));
+
+				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
+				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
+
+				brush = &dupe;
+			}
+
+			// always use the brush index within clipmap->brushes to define its color
+			CM_GetShowCollisionColor(colorFloat, brush->colorCounter);
+
+			// draw the current brush
+			CM_ShowSingleBrushCollision(brush, colorFloat, brushIndex);
+
+			if (brushIndexVisible)
+			{
+				g_mapBrushListForIndexFiltering.push_back(brush);
+			}
+
+			lastDrawnBrushAmount++;	
 		}
 
 		// -----------------------------------------------------------------------------
@@ -2547,7 +2790,7 @@ namespace Components
 
 		if (brushIndexVisible && !g_mapBrushListForIndexFiltering.empty())
 		{
-			// debug strings are handled winthin the server thread which is running @ 20fps, so we have to skip drawing them -> ((renderfps / sv_fps)) times
+			// debug strings are handled within the server thread which is running @ 20fps, so we have to skip drawing them -> ((renderfps / sv_fps)) times
 			// ^ meme, fix me daddy
 
 			// if new loop allowed
@@ -2605,37 +2848,33 @@ namespace Components
 			SvFramerateToRendertime_Counter = 0;
 		}
 
+		// *
+		// Map Export
 
-		// 
-		// Map Export Stuff
-
-		if (map_exportAllFilteredBrushes)
+		if (export_inProgress)
 		{
-			const char* brush_str = Utils::VA("|- Building (%d) brushes took", map_exportCurrentBrushIndex);
+			const char* brush_str = Utils::VA("|- Building (%d) brushes took", export_currentBrushIndex);
 			std::string timefmt = " took (%.4f)\n\n";
 			timefmt = brush_str + timefmt;
 
-			Utils::Clock_EndTimerPrintSeconds(map_brushBuildingStart, timefmt.c_str());
+			Utils::Clock_EndTimerPrintSeconds(export_time_brushGenerationStart, timefmt.c_str());
 
 			// *
 			// Create Tris
 
-			// create a list of single patch triangles
-			std::vector<Game::map_patchTris_t*> singlePatchTriangles;
-
-			// true when we build a list of triangles
-			bool map_allocatedTriangles = false;
+			std::vector<Game::map_patchTris_t*> singleTriangles;
+			bool export_needsTriangles = false;
 
 			// only generate triangles if exporting triangles/quads or both
-			if (Dvars::r_drawCollision_export_writeQuads->current.enabled || Dvars::r_drawCollision_export_writeTriangles->current.enabled)
+			if (Dvars::mapexport_writeQuads->current.enabled || Dvars::mapexport_writeTriangles->current.enabled)
 			{
-				map_allocatedTriangles = true;
+				export_needsTriangles = true;
 
-				auto map_createTrisStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Building triangles ...\n");
+				auto export_time_createTrisStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Building triangles ...\n");
 
-				for (auto triNum = 0; triNum < (int)Game::cm->triCount; triNum++)
+				for (auto triNum = 0; triNum < static_cast<int>(Game::cm->triCount); triNum++)
 				{
-					// get the incides that define our triangle
+					// get incides that define the triangle
 					unsigned short triIncides1[3] =
 					{
 						Game::cm->triIndices[triNum * 3 + 0],
@@ -2644,30 +2883,41 @@ namespace Components
 					};
 
 					Game::map_patchTris_t *pTris = Alloc_PatchTriangle();
-
 					pTris->triIndex = triNum;
 
 					PatchTriangle_FromIncides(pTris, triIncides1);
 
-					singlePatchTriangles.push_back(pTris);
+					if (filter_ExportSelection)
+					{
+						if (CM_IsTriangleWithinSelectionBox(pTris, &export_selectionBox))
+						{
+							singleTriangles.push_back(pTris);
+						}
+					}
+					else
+					{
+						singleTriangles.push_back(pTris);
+					}
 				}
 
-				Utils::Clock_EndTimerPrintSeconds(map_createTrisStart, "|- Building triangles took (%.4f) seconds!\n");
-				Game::Com_PrintMessage(0, Utils::VA("|- Initial amount of triangles = (%d)\n\n", (int)singlePatchTriangles.size()), 0);
+				Utils::Clock_EndTimerPrintSeconds(export_time_createTrisStart, "|- Building triangles took (%.4f) seconds!\n");
+				Game::Com_PrintMessage(0, Utils::VA("|- Initial amount of triangles = (%d)\n\n", static_cast<int>(singleTriangles.size())), 0);
 			}
-
 
 			// *
 			// Merge Tris to Quads
 
 			// fix me daddy
 
-			if (Dvars::r_drawCollision_export_writeQuads->current.enabled)
+			if (Dvars::mapexport_writeQuads->current.enabled)
 			{
-				auto map_createQuadsStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Merging triangles to quads ...\n");
+				auto export_time_createQuadsStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Merging triangles to quads ...\n");
 
 				// create a list of merged patch triangles (quads)
-				std::vector<Game::map_patchQuads_t*> singlePatchQuads;
+				std::vector<Game::map_patchQuads_t*> singleQuads;
+
+				// reset quad epsilon
+				export_quadEpsilon = 0.0f;
 
 				// count the amount of iterations till we are no longer able to merge any triangles to quads
 				int quadFromTrisLoopCount = 0;
@@ -2685,33 +2935,33 @@ namespace Components
 				bool easyQuadsFirst = true;
 
 				// build single quads from triangles; iterate for as long as we have enough triangles & if we actually decreased the amount of triangles after merging
-				for (quadFromTrisLoopCount = 0; (int)singlePatchTriangles.size() > 1; quadFromTrisLoopCount++)
+				for (quadFromTrisLoopCount = 0; static_cast<int>(singleTriangles.size()) > 1; quadFromTrisLoopCount++)
 				{
 					// get amount of triangles before merging
-					int startTris = (int)singlePatchTriangles.size();
+					int startTris = (int)singleTriangles.size();
 
 					// merge triangles if they share an edge to create quads ... we will decrease the size of singlePatchTriangles, so do this for x amount of times ^
-					for (auto triNum = 0 + triNumOffset; triNum < (int)singlePatchTriangles.size(); triNum++)
+					for (auto triNum = 0 + triNumOffset; triNum < (int)singleTriangles.size(); triNum++)
 					{
 						// if we have atleast 2 triangles to work with
-						if (triNum + triFowardOffset < (int)singlePatchTriangles.size())
+						if (triNum + triFowardOffset < (int)singleTriangles.size())
 						{
-							if (PatchTriangle_SharesEdge(singlePatchTriangles[triNum], singlePatchTriangles[triNum + triFowardOffset]))
+							if (PatchTriangle_SharesEdge(singleTriangles[triNum], singleTriangles[triNum + triFowardOffset]))
 							{
 								Game::map_patchQuads_t *pQuad = Alloc_PatchQuad();
 								pQuad->quadIndex = triNum; // for debugging :)
 
 								// try to merge both triangles to create a quad
-								if (PatchQuad_SingleFromTris(pQuad, singlePatchTriangles[triNum], singlePatchTriangles[triNum + triFowardOffset], easyQuadsFirst))
+								if (PatchQuad_SingleFromTris(pQuad, singleTriangles[triNum], singleTriangles[triNum + triFowardOffset], easyQuadsFirst))
 								{
-									singlePatchQuads.push_back(pQuad);
+									singleQuads.push_back(pQuad);
 
 									// free triangles and erase them from singlePatchTriangles
-									free(singlePatchTriangles[triNum]);
-									free(singlePatchTriangles[triNum + triFowardOffset]);
+									free(singleTriangles[triNum]);
+									free(singleTriangles[triNum + triFowardOffset]);
 
-									singlePatchTriangles.erase(singlePatchTriangles.begin() + triNum + triFowardOffset);
-									singlePatchTriangles.erase(singlePatchTriangles.begin() + triNum);
+									singleTriangles.erase(singleTriangles.begin() + triNum + triFowardOffset);
+									singleTriangles.erase(singleTriangles.begin() + triNum);
 
 									// decrease triNum by one
 									if (triNum - 1 > 0)
@@ -2725,65 +2975,56 @@ namespace Components
 
 					// check if we merged any triangles in this iteration
 					// stop trying to merge triangles if we didnt decrease the amount of triangles
-					if (startTris - (int)singlePatchTriangles.size() == 0)
+					if (startTris - (int)singleTriangles.size() == 0)
 					{
 						// catch :: tri 1-4 / 2-3 => offset triangle index on first fail so we catch 2-3
 						triNumOffset = 1;
 
 						// still no merge? catch :: tri 1-3 / 2-4 => reset triNumOffset and add 1 to triFowardOffset 
-						if (mergeIterationFailCount == 1)
-						{
+						if (mergeIterationFailCount == 1) {
 							triNumOffset = 0;
 							triFowardOffset = 2;
 						}
 
 						// reset triFowardOffset after we swizzeled the triangles once
-						if (mergeIterationFailCount == 2)
-						{
+						if (mergeIterationFailCount == 2) {
 							triFowardOffset = 1;
 						}
 
 						// still unable to merge? .. (following doesnt seem to help)
-						if (mergeIterationFailCount == 3)
-						{
+						if (mergeIterationFailCount == 3) {
 							triFowardOffset = 3;
 						}
 
-						if (mergeIterationFailCount == 4)
-						{
+						if (mergeIterationFailCount == 4) {
 							triFowardOffset = 4;
 						}
 
-						if (mergeIterationFailCount == 5) 
-						{
+						if (mergeIterationFailCount == 5) {
 							triFowardOffset = 1;
 						}
 
 						// start increasing the bounding box that has to encapsule the 4th coordinate
-						if (mergeIterationFailCount >= 6 && mergeIterationFailCount <= 13)
-						{
-							g_quadBoundsInc += 5.0f;
+						if (mergeIterationFailCount >= 6 && mergeIterationFailCount <= 13) {
+							export_quadEpsilon += 5.0f;
 						}
 
 						// now try to merge skewed quads (might still be valid ones)
-						if (mergeIterationFailCount == 14)
-						{
+						if (mergeIterationFailCount == 14) {
 							easyQuadsFirst = false;
 						}
 
 						mergeIterationFailCount++;
 
-						if (mergeIterationFailCount > 16)
-						{
+						if (mergeIterationFailCount > 16) {
 							break;
 						}
 					}
 				}
 
-				Utils::Clock_EndTimerPrintSeconds(map_createQuadsStart, "|- Merging triangles to quads took (%.4f) seconds!\n");
-				Game::Com_PrintMessage(0, Utils::VA("|- (%d) triangles couldn't be be merged.\n", (int)singlePatchTriangles.size()), 0);
-				Game::Com_PrintMessage(0, Utils::VA("|- (%d) quads after (%d) iterations.\n", (int)singlePatchQuads.size(), quadFromTrisLoopCount), 0);
-
+				Utils::Clock_EndTimerPrintSeconds(export_time_createQuadsStart, "|- Merging triangles to quads took (%.4f) seconds!\n");
+				Game::Com_PrintMessage(0, Utils::VA("|- (%d) triangles couldn't be be merged.\n", (int)singleTriangles.size()), 0);
+				Game::Com_PrintMessage(0, Utils::VA("|- (%d) quads after (%d) iterations.\n", (int)singleQuads.size(), quadFromTrisLoopCount), 0);
 
 				// *
 				// Write Quad Patches
@@ -2791,204 +3032,214 @@ namespace Components
 				// coord x y z .... t .... (tc.x * 1024) (tc.y * 1024) (st.x * 1024 + 2)  -(st.y * 1024 + 2) 
 				// v -108 -102 128 t -1728 5012.7217 -6.75 6.375
 
-				for (auto quadNum = 0; quadNum < (int)singlePatchQuads.size(); quadNum++)
+				for (auto quadNum = 0; quadNum < (int)singleQuads.size(); quadNum++)
 				{
 					// start patch
-					mapFile << Utils::VA("// brush %d", map_exportCurrentBrushIndex) << std::endl;
+					export_mapFile << Utils::VA("// brush %d", export_currentBrushIndex) << std::endl;
 
 					// global brush exporting index count
-					map_exportCurrentBrushIndex++;
+					export_currentBrushIndex++;
 
-					mapFile << " {" << std::endl;
-					mapFile << "  mesh" << std::endl;
-					mapFile << "  {" << std::endl;
-					mapFile << "   layer \"000_Global/SingleQuads\"" << std::endl;
-					mapFile << "   toolFlags splitGeo;" << std::endl;
-					mapFile << "   caulk" << std::endl;
-					mapFile << "   lightmap_gray" << std::endl;
-					mapFile << "   2 2 16 8" << std::endl;
+					export_mapFile << " {" << std::endl;
+					export_mapFile << "  mesh" << std::endl;
+					export_mapFile << "  {" << std::endl;
+					export_mapFile << "   layer \"000_Global/SingleQuads\"" << std::endl;
+					export_mapFile << "   toolFlags splitGeo;" << std::endl;
+					export_mapFile << "   caulk" << std::endl;
+					export_mapFile << "   lightmap_gray" << std::endl;
+					export_mapFile << "   2 2 16 8" << std::endl;
 
-					mapFile << "   (" << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchQuads[quadNum]->coords[0][0], singlePatchQuads[quadNum]->coords[0][1], singlePatchQuads[quadNum]->coords[0][2]) << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchQuads[quadNum]->coords[1][0], singlePatchQuads[quadNum]->coords[1][1], singlePatchQuads[quadNum]->coords[1][2]) << std::endl;
-					mapFile << "   )" << std::endl;
-					mapFile << "   (" << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchQuads[quadNum]->coords[2][0], singlePatchQuads[quadNum]->coords[2][1], singlePatchQuads[quadNum]->coords[2][2]) << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchQuads[quadNum]->coords[3][0], singlePatchQuads[quadNum]->coords[3][1], singlePatchQuads[quadNum]->coords[3][2]) << std::endl;
-					mapFile << "   )" << std::endl;
-					mapFile << "  }" << std::endl;
-					mapFile << " }" << std::endl;
+					export_mapFile << "   (" << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[0][0], singleQuads[quadNum]->coords[0][1], singleQuads[quadNum]->coords[0][2]) << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[1][0], singleQuads[quadNum]->coords[1][1], singleQuads[quadNum]->coords[1][2]) << std::endl;
+					export_mapFile << "   )" << std::endl;
+					export_mapFile << "   (" << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[2][0], singleQuads[quadNum]->coords[2][1], singleQuads[quadNum]->coords[2][2]) << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[3][0], singleQuads[quadNum]->coords[3][1], singleQuads[quadNum]->coords[3][2]) << std::endl;
+					export_mapFile << "   )" << std::endl;
+					export_mapFile << "  }" << std::endl;
+					export_mapFile << " }" << std::endl;
 				}
 
 				// free quads
-				for (auto quad = 0; quad < (int)singlePatchQuads.size(); quad++)
+				for (auto quad = 0; quad < (int)singleQuads.size(); quad++)
 				{
-					free(singlePatchQuads[quad]);
+					free(singleQuads[quad]);
 				}
 
 				Game::Com_PrintMessage(0, "|- Wrote quads to layer \"000_Global/SingleQuads\"\n", 0);
 			}
 
-
 			// *
-			// Write Single Tris
+			// Write Single Triangles
 
-			if (Dvars::r_drawCollision_export_writeTriangles->current.enabled)
+			if (Dvars::mapexport_writeTriangles->current.enabled)
 			{
-				for (auto tri = 0; tri < (int)singlePatchTriangles.size(); tri++)
+				for (auto tri = 0; tri < (int)singleTriangles.size(); tri++)
 				{
 					// start patch
-					mapFile << Utils::VA("// brush %d", map_exportCurrentBrushIndex) << std::endl;
+					export_mapFile << Utils::VA("// brush %d", export_currentBrushIndex) << std::endl;
 
 					// global brush exporting index count
-					map_exportCurrentBrushIndex++;
+					export_currentBrushIndex++;
 
-					mapFile << " {" << std::endl;
-					mapFile << "  mesh" << std::endl;
-					mapFile << "  {" << std::endl;
-					mapFile << "   layer \"000_Global/Triangles\"" << std::endl;
-					mapFile << "   contents nonColliding;" << std::endl;
-					mapFile << "   toolFlags splitGeo;" << std::endl;
-					mapFile << "   caulk" << std::endl;
-					mapFile << "   lightmap_gray" << std::endl;
-					mapFile << "   2 2 16 8" << std::endl;
+					export_mapFile << " {" << std::endl;
+					export_mapFile << "  mesh" << std::endl;
+					export_mapFile << "  {" << std::endl;
+					export_mapFile << "   layer \"000_Global/Triangles\"" << std::endl;
+					export_mapFile << "   contents nonColliding;" << std::endl;
+					export_mapFile << "   toolFlags splitGeo;" << std::endl;
+					export_mapFile << "   caulk" << std::endl;
+					export_mapFile << "   lightmap_gray" << std::endl;
+					export_mapFile << "   2 2 16 8" << std::endl;
 
-					mapFile << "   (" << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchTriangles[tri]->coords[2].xyz[0], singlePatchTriangles[tri]->coords[2].xyz[1], singlePatchTriangles[tri]->coords[2].xyz[2]) << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchTriangles[tri]->coords[0].xyz[0], singlePatchTriangles[tri]->coords[0].xyz[1], singlePatchTriangles[tri]->coords[0].xyz[2]) << std::endl;
-					mapFile << "   )" << std::endl;
-					mapFile << "   (" << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchTriangles[tri]->coords[1].xyz[0], singlePatchTriangles[tri]->coords[1].xyz[1], singlePatchTriangles[tri]->coords[1].xyz[2]) << std::endl;
-					mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singlePatchTriangles[tri]->coords[1].xyz[0], singlePatchTriangles[tri]->coords[1].xyz[1], singlePatchTriangles[tri]->coords[1].xyz[2]) << std::endl;
-					mapFile << "   )" << std::endl;
-					mapFile << "  }" << std::endl;
-					mapFile << " }" << std::endl;
+					export_mapFile << "   (" << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[2].xyz[0], singleTriangles[tri]->coords[2].xyz[1], singleTriangles[tri]->coords[2].xyz[2]) << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[0].xyz[0], singleTriangles[tri]->coords[0].xyz[1], singleTriangles[tri]->coords[0].xyz[2]) << std::endl;
+					export_mapFile << "   )" << std::endl;
+					export_mapFile << "   (" << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[1].xyz[0], singleTriangles[tri]->coords[1].xyz[1], singleTriangles[tri]->coords[1].xyz[2]) << std::endl;
+					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[1].xyz[0], singleTriangles[tri]->coords[1].xyz[1], singleTriangles[tri]->coords[1].xyz[2]) << std::endl;
+					export_mapFile << "   )" << std::endl;
+					export_mapFile << "  }" << std::endl;
+					export_mapFile << " }" << std::endl;
 				}
 
 				Game::Com_PrintMessage(0, "|- Wrote triangles to layer \"000_Global/Triangles\"\n\n", 0);
 			}
 
 			// free triangles
-			if (map_allocatedTriangles)
+			if (export_needsTriangles)
 			{
-				for (auto tri = 0; tri < (int)singlePatchTriangles.size(); tri++)
+				for (auto tri = 0; tri < (int)singleTriangles.size(); tri++)
 				{
-					free(singlePatchTriangles[tri]);
+					free(singleTriangles[tri]);
 				}
 			}
 
 			// close the worldspawn entity with all its brushes
-			mapFile << "}" << std::endl;
+			export_mapFile << "}" << std::endl;
 			Game::Com_PrintMessage(0, "|- Finished writing the world entity\n\n", 0);
 
 			// *
 			// Map Entities + Submodels/Brushmodels + Reflection Probes
 
-			/* // convert submodels in format:
-			{
-				"script_gameobjectname" "bombzone"
-				"classname" "trigger_use_touch"
-				"targetname" "bombtrigger"
-				"origin" "-1280 3774 1579"
-				"model" "*13"
-			}
-			// to:
-			{
-				"script_gameobjectname" "bombzone"
-				"classname" "trigger_use_touch"
-				"targetname" "bombtrigger"
-				{
-				 ( bSide ) ( bSide ) ( bSide ) material ...
-				 ( bSide ) ( bSide ) ( bSide ) material ...
-				 ....
-				}
-			}
-
-			// reflectionProbes
-			{ 
-				"angles" "0 90 0"
-				"origin" "-688.0 672.0 112.0"
-				"classname" "reflection_probe"
-			}*/
-
-			if (Dvars::r_drawCollision_export_writeEntities->current.enabled)
+			if (Dvars::mapexport_writeEntities->current.enabled)
 			{
 				Game::Com_PrintMessage(0, "[MAP-EXPORT]: Building entities ...\n", 0);
 
-				// already exported the worldspawn entity, so delete it from our list
-				g_mapEnts.deleteWorldspawn();
+				// already exported the worldspawn entity, so delete it from the list
+				export_mapEntities.deleteWorldspawn();
 
-				// build all other entities and fix up brushmodels
-				mapFile << g_mapEnts.buildAll_FixBrushmodels(g_mapBrushModelList);
+				// *
+				// map entities and brushmodels
 
-				// reflection probes :: always skip the first one (not defined within the map file)
-				for (auto probe = 1; probe < (int)Game::_gfxWorld->reflectionProbeCount; probe++)
+				if (filter_ExportSelection) // only exporting entities within the selection box
 				{
-					mapFile << Utils::VA("// reflection probe %d", probe - 1) << std::endl;
-					mapFile << "{" << std::endl;
-					mapFile << "\"angles\" \"0 0 0\"" << std::endl;
-					mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->reflectionProbes[probe].origin[0], Game::_gfxWorld->reflectionProbes[probe].origin[1], Game::_gfxWorld->reflectionProbes[probe].origin[2]) << std::endl;
-					mapFile << "\"classname\" \"reflection_probe\"" << std::endl;
-					mapFile << "}" << std::endl;
+					export_mapFile << export_mapEntities.buildSelection_FixBrushmodels(&export_selectionBox, g_mapBrushModelList);
+				}
+				else // build all other entities and fix up brushmodels
+				{
+					export_mapFile << export_mapEntities.buildAll_FixBrushmodels(g_mapBrushModelList);
 				}
 
-				Game::Com_PrintMessage(0, Utils::VA("|- (%d) reflection probes.\n", (int)Game::_gfxWorld->reflectionProbeCount - 1), 0);
-			}
+				// *
+				// reflection probes (always skip the first one (not defined within the map file))
 
+				int exportedProbes = 0;
+
+				for (auto probe = 1; probe < (int)Game::_gfxWorld->reflectionProbeCount; probe++)
+				{
+					if (filter_ExportSelection && 
+						!Utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->reflectionProbes[probe].origin[0],
+																	 Game::_gfxWorld->reflectionProbes[probe].origin[1],
+																	 Game::_gfxWorld->reflectionProbes[probe].origin[2]),
+																	 export_selectionBox.mins, export_selectionBox.maxs, 0.25f))
+					{
+						// skip probe if not in selection box
+						continue;
+					}
+					else
+					{
+						export_mapFile << Utils::VA("// reflection probe %d", exportedProbes) << std::endl;
+						export_mapFile << "{" << std::endl;
+						export_mapFile << "\"angles\" \"0 0 0\"" << std::endl;
+						export_mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->reflectionProbes[probe].origin[0], Game::_gfxWorld->reflectionProbes[probe].origin[1], Game::_gfxWorld->reflectionProbes[probe].origin[2]) << std::endl;
+						export_mapFile << "\"classname\" \"reflection_probe\"" << std::endl;
+						export_mapFile << "}" << std::endl;
+
+						exportedProbes++;
+					}
+				}
+
+				Game::Com_PrintMessage(0, Utils::VA("|- (%d) reflection probes.\n", exportedProbes), 0);
+			}
 
 			// *
 			// Static Models
 
-			if (Dvars::r_drawCollision_export_writeModels->current.enabled)
+			if (Dvars::mapexport_writeModels->current.enabled)
 			{
-				// write static models
 				auto map_mapModelsStart = Utils::Clock_StartTimer();
+				int exportedSModels = 0;
 
 				for (auto sModel = 0u; sModel < Game::_gfxWorld->dpvs.smodelCount; sModel++)
 				{
-					// copy model rotation axis
-					Game::vec4_t matrix[4];
+					// only export static models within the selection box
+					if (filter_ExportSelection &&
+						!Utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0],
+																	 Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[1],
+																	 Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[2]),
+																	 export_selectionBox.mins, export_selectionBox.maxs, 0.25f)) 
+					{
+						// skip static model if not in selection box
+						continue;
+					}
+					else
+					{
+						// copy model rotation axis
+						Game::vec4_t matrix[4];
 
-					// Copy X
-					matrix[0][0] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[0][0];
-					matrix[0][1] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[0][1];
-					matrix[0][2] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[0][2];
+						// X
+						matrix[0][0] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[0][0];
+						matrix[0][1] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[0][1];
+						matrix[0][2] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[0][2];
 
-					// Copy Y
-					matrix[1][0] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[1][0];
-					matrix[1][1] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[1][1];
-					matrix[1][2] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[1][2];
+						// Y
+						matrix[1][0] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[1][0];
+						matrix[1][1] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[1][1];
+						matrix[1][2] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[1][2];
 
-					// Copy Z
-					matrix[2][0] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[2][0];
-					matrix[2][1] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[2][1];
-					matrix[2][2] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[2][2];
+						// Z
+						matrix[2][0] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[2][0];
+						matrix[2][1] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[2][1];
+						matrix[2][2] = Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.axis[2][2];
 
-					// calculate model angles
-					Game::vec3_t angles;
-					Utils::vector::_getEulerAnglesXYZDegrees(matrix, angles);
+						// calculate model angles
+						Game::vec3_t angles;
+						Utils::vector::_ToEulerAnglesDegrees(matrix, angles);
 
-					mapFile << Utils::VA("// static model %d\n{", sModel) << std::endl;
-					mapFile << "layer \"000_Global/Models\"" << std::endl;
-					mapFile << Utils::VA("\"modelscale\" \"%.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.scale) << std::endl;
-					mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[1], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[2]) << std::endl;
-					mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", angles[1], angles[2], angles[0]) << std::endl;
-					mapFile << Utils::VA("\"model\" \"%s\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].model->name) << std::endl;
-					mapFile << "\"classname\" \"misc_model\"" << std::endl;
-					mapFile << "}" << std::endl;
+						export_mapFile << Utils::VA("// static model %d\n{", exportedSModels) << std::endl;
+						export_mapFile << "layer \"000_Global/Models\"" << std::endl;
+						export_mapFile << Utils::VA("\"modelscale\" \"%.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.scale) << std::endl;
+						export_mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[1], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[2]) << std::endl;
+						export_mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", angles[1], angles[2], angles[0]) << std::endl;
+						export_mapFile << Utils::VA("\"model\" \"%s\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].model->name) << std::endl;
+						export_mapFile << "\"classname\" \"misc_model\"" << std::endl;
+						export_mapFile << "}" << std::endl;
+					}
 				}
 
 				Utils::Clock_EndTimerPrintSeconds(map_mapModelsStart, "|- Building static models took (%.4f) seconds!\n\n");
 			}
 
-
 			// *
 			// Map Export End
 
-			mapFile.close();
-			map_exportCurrentBrushIndex = 0;
+			export_mapFile.close();
+			export_currentBrushIndex = 0;
 
-			Utils::Clock_EndTimerPrintSeconds(map_exportStart, ">> DONE! Map export took (%.4f) seconds!\n");
+			Utils::Clock_EndTimerPrintSeconds(export_time_exportStart, ">> DONE! Map export took (%.4f) seconds!\n");
 			Game::Com_PrintMessage(0, "------------------------------------------------------\n\n", 0);
 		}
 
@@ -3015,16 +3266,22 @@ namespace Components
 
 		if (!viewParms) 
 		{
-			Game::Com_Error(0, Utils::VA("^1RB_ShowCollision L#%d ^7:: viewparams\n", __LINE__));
+			Game::Com_Error(0, Utils::VA("RB_ShowCollision L#%d ^7:: viewparams\n", __LINE__));
 			return;
 		}
 
-		if (Dvars::r_drawCollision->current.integer > 0)
+		// enable drawcollision on mapexport_selectionMode
+		if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0 && Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer == 0)
+		{
+			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision 3\n");
+		}
+
+		if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer > 0)
 		{
 			// turn off brush sorting if displaying brushIndices
-			if (Dvars::r_drawCollision_brushIndexVisible->current.enabled && Dvars::r_drawCollision_brushSorting->current.enabled)
+			if (Dvars::r_drawCollision_brushIndexVisible->current.enabled && Dvars::r_drawCollision_brushSorting->current.integer != 0)
 			{
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, false);
+				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
 				Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision_brushSorting ^7:: disabled due to r_drawCollision_brushIndexVisible \n"), 0);
 			}
 
@@ -3071,19 +3328,25 @@ namespace Components
 
 			frustumPlanes[5].dist = -frustumPlanes[4].dist - drawDistance;
 
-			if (frustumPlanes[5].normal[0] == 1.0f) 
-			{	frustumType = 0;	} 
-			
-			else 
+			if (frustumPlanes[5].normal[0] == 1.0f)
 			{
-				if (frustumPlanes[5].normal[1] == 1.0) 
-				{	frustumType = 1;	} 
-				
-				else 
+				frustumType = 0;
+			}
+
+			else
+			{
+				if (frustumPlanes[5].normal[1] == 1.0)
+				{
+					frustumType = 1;
+				}
+
+				else
 				{
 					frustumType = 2;
-					if (frustumPlanes[5].normal[2] != 1.0) 
-					{	frustumType = 3;	}
+					if (frustumPlanes[5].normal[2] != 1.0)
+					{
+						frustumType = 3;
+					}
 				}
 			}
 
@@ -3118,19 +3381,11 @@ namespace Components
 
 		Dvars::r_drawCollision_brushAmount = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_brushAmount",
-			/* desc		*/ "Draw x amount of brushes, starting at r_drawCollision_brushBegin and will limit itself to the total amount of brushes within the clipMap.\n0: disables this filter.",
+			/* desc		*/ "Draw x amount of brushes, starting at brush index 0 and will limit itself to the total amount of brushes within the clipMap.\n0: disables this filter.",
 			/* default	*/ 0,
 			/* minVal	*/ 0,
 			/* maxVal	*/ INT_MAX,
 			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::r_drawCollision_brushBegin = Game::Dvar_RegisterInt(
-			/* name		*/ "r_drawCollision_brushBegin",
-			/* desc		*/ "Index from where to start drawing brushes contained in the clipMap and will limit itself to the total amount of brushes within the clipMap.",
-			/* default	*/ 0,
-			/* minVal	*/ 0,
-			/* maxVal	*/ INT_MAX,
-			/* flags	*/ Game::dvar_flags::none);
 
 		Dvars::r_drawCollision_brushDist = Game::Dvar_RegisterFloat(
 			/* name		*/ "r_drawCollision_brushDist",
@@ -3148,10 +3403,12 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_brushSorting = Game::Dvar_RegisterBool(
+		Dvars::r_drawCollision_brushSorting = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_brushSorting",
-			/* desc		*/ "Sort brushes based on distance from the camera",
-			/* default	*/ false,
+			/* desc		*/ "Sort brushes based on distance from the camera.\n0: Off\n1: Far to near\n2: Near to far",
+			/* default	*/ 0,
+			/* minVal	*/ 0,
+			/* maxVal	*/ 2,
 			/* flags	*/ Game::dvar_flags::saved);
 
 #if DEBUG
@@ -3240,36 +3497,6 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_export = Game::Dvar_RegisterBool(
-			/* name		*/ "r_drawCollision_export",
-			/* desc		*/ "[MAP-EXPORT] Export all selected brushes (+ options) to a map file.\n|- Collision draw distance and view culling will be ignored.\n|- Use < map_export_all > to quickly export everything (with respect to export options).",
-			/* default	*/ false,
-			/* flags	*/ Game::dvar_flags::none);
-
-		Dvars::r_drawCollision_export_writeTriangles = Game::Dvar_RegisterBool(
-			/* name		*/ "r_drawCollision_export_writeTriangles",
-			/* desc		*/ "[MAP-EXPORT-OPTION] Export leftover unmerged triangles if enabled.",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::r_drawCollision_export_writeQuads = Game::Dvar_RegisterBool(
-			/* name		*/ "r_drawCollision_export_writeQuads",
-			/* desc		*/ "[MAP-EXPORT-OPTION] Export resulting quads after triangle merging if enabled.",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::r_drawCollision_export_writeEntities = Game::Dvar_RegisterBool(
-			/* name		*/ "r_drawCollision_export_writeEntities",
-			/* desc		*/ "[MAP-EXPORT-OPTION] Export map entities if enabled (no brushmodel support).",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::r_drawCollision_export_writeModels = Game::Dvar_RegisterBool(
-			/* name		*/ "r_drawCollision_export_writeModels",
-			/* desc		*/ "[MAP-EXPORT-OPTION] Export all static models if enabled.",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::saved);
-
 		Dvars::r_drawCollision_flickerBrushes = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_flickerBrushes",
 			/* desc		*/ "[VIS] Enable debug collision flicker mode. Remove me.",
@@ -3298,18 +3525,11 @@ namespace Components
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_hud_x = Game::Dvar_RegisterFloat(
-			/* name		*/ "r_drawCollision_hud_x",
-			/* desc		*/ "text offset x",
-			/* default	*/ 10.0f,
-			/* minVal	*/ -1000.0f,
-			/* maxVal	*/ 1000.0f,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::r_drawCollision_hud_y = Game::Dvar_RegisterFloat(
-			/* name		*/ "r_drawCollision_hud_y",
-			/* desc		*/ "text offset y",
-			/* default	*/ 250.0f,
+		Dvars::r_drawCollision_hud_position = Game::Dvar_RegisterVec2(
+			/* name		*/ "r_drawCollision_hud_position",
+			/* desc		*/ "hud position offset",
+			/* def x	*/ 10.0f,
+			/* def y	*/ 250.0f,
 			/* minVal	*/ -1000.0f,
 			/* maxVal	*/ 1000.0f,
 			/* flags	*/ Game::dvar_flags::saved);
@@ -3341,16 +3561,103 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
+		// ---------------
+
+		Dvars::mapexport_brushEpsilon1 = Game::Dvar_RegisterFloat(
+			/* name		*/ "mapexport_brushEpsilon1",
+			/* desc		*/ "brushside epsilon 1 (debug)",
+			/* default	*/ 0.4f,
+			/* minVal	*/ 0.0f,
+			/* maxVal	*/ 1.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_brushEpsilon2 = Game::Dvar_RegisterFloat(
+			/* name		*/ "mapexport_brushEpsilon2",
+			/* desc		*/ "brushside epsilon 2 (debug)",
+			/* default	*/ 1.0f,
+			/* minVal	*/ 0.0f,
+			/* maxVal	*/ 1.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_brushMinSize = Game::Dvar_RegisterFloat(
+			/* name		*/ "mapexport_brushMinSize",
+			/* desc		*/ "only export brushes (with more then 6 sides) if their diagonal length is greater then <this>",
+			/* default	*/ 64.0f,
+			/* minVal	*/ 0.0f,
+			/* maxVal	*/ FLT_MAX,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_selectionMode = Game::Dvar_RegisterInt(
+			/* name		*/ "mapexport_selectionMode",
+			/* desc		*/ "Only export selected things. Use \"mapexport_selectionAdd\" and \"mapexport_selectionClear\" \n0: Off\n1: Bounding box (needs 2 defined points)",
+			/* default	*/ 0,
+			/* minVal	*/ 0,
+			/* maxVal	*/ 1,
+			/* flags	*/ Game::dvar_flags::none);
+
+		Dvars::mapexport_writeTriangles = Game::Dvar_RegisterBool(
+			/* name		*/ "mapexport_writeTriangles",
+			/* desc		*/ "[MAP-EXPORT-OPTION] Export leftover unmerged triangles if enabled.",
+			/* default	*/ true,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_writeQuads = Game::Dvar_RegisterBool(
+			/* name		*/ "mapexport_writeQuads",
+			/* desc		*/ "[MAP-EXPORT-OPTION] Export resulting quads after triangle merging if enabled.",
+			/* default	*/ true,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_writeEntities = Game::Dvar_RegisterBool(
+			/* name		*/ "mapexport_writeEntities",
+			/* desc		*/ "[MAP-EXPORT-OPTION] Export map entities if enabled (no brushmodel support).",
+			/* default	*/ true,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_writeModels = Game::Dvar_RegisterBool(
+			/* name		*/ "mapexport_writeModels",
+			/* desc		*/ "[MAP-EXPORT-OPTION] Export all static models if enabled.",
+			/* default	*/ true,
+			/* flags	*/ Game::dvar_flags::saved);
+
 		// --------
 		// Commands
 
 		Command::Add("mapexport", [](Command::Params)
 		{
-			Game::Cbuf_AddText( "r_drawcollision 1; r_drawcollision_materialinclude 4; r_drawcollision_brushamount 0; r_drawcollision_brushbegin 0; pm_hud_enable 0", 0);
+			if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer == 0)
+			{
+				Game::Com_PrintMessage(0, "Please enable \"r_drawCollision\" and re-run your command.\n", 0);
+				return;
+			}
 
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision_export 1\n");
+			export_mapExportCmd = true;
+
+			Game::Cmd_ExecuteSingleCommand(0, 0, "pm_hud_enable 0\n");
 			Game::Cmd_ExecuteSingleCommand(0, 0, "say \"Export Done!\"\n");
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision 0\n");
+		});
+
+		Command::Add("mapexport_selectionAdd", [](Command::Params)
+		{
+			if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
+			{
+				export_selectionAdd = true;
+			}
+			else
+			{
+				Game::Com_PrintMessage(0, "mapexport_selectionMode needs to be enabled for this to work.\n", 0);
+			}
+		});
+
+		Command::Add("mapexport_selectionClear", [](Command::Params)
+		{
+			if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
+			{
+				CM_ResetSelectionBox(&export_selectionBox);
+			}
+			else
+			{
+				Game::Com_PrintMessage(0, "mapexport_selectionMode needs to be enabled for this to work.\n", 0);
+			}
 		});
 	}
 

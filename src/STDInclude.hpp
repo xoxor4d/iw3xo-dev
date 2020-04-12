@@ -57,6 +57,7 @@
 
 #include "Game/Structs.hpp"
 #include "Utils/Utils.hpp"
+#include "Utils/polylib.hpp"
 #include "Utils/Memory.hpp"
 #include "Utils/Stream.hpp"
 #include "Utils/Hooking.hpp"

@@ -12,6 +12,7 @@ namespace Utils
 
 		std::string buildAll();
 		std::string buildAll_FixBrushmodels(const std::vector<Game::brushmodelEnt_t>& bModelList);
+		std::string buildSelection_FixBrushmodels(const Game::boundingBox_t* box, const std::vector<Game::brushmodelEnt_t>& bModelList);
 		std::string buildWorldspawnKeys();
 
 		std::vector<std::string> getModels();

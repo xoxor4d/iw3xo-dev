@@ -292,7 +292,54 @@ namespace Components
 		*offs_y = _y;
 		*h = _h;
 	}
-	// -------------------------------------------------------------------------------------------------------------------------------
+
+	void _UI::MainMenu_Changelog()
+	{
+		Game::Cbuf_AddText(Utils::VA(
+			"set ui_changelog01_y_offs %d;"
+			"set ui_changelog02_y_offs %d;"
+			"set ui_changelog03_y_offs %d;"
+			"set ui_changelog04_y_offs %d;",
+			IW3XO_CHANGELOG_01_Y_OFFS, IW3XO_CHANGELOG_02_Y_OFFS, IW3XO_CHANGELOG_03_Y_OFFS, IW3XO_CHANGELOG_04_Y_OFFS), 0);
+
+		Game::Cbuf_AddText(Utils::VA(
+			"set ui_changelog01_title %s;"
+			"set ui_changelog02_title %s;"
+			"set ui_changelog03_title %s;"
+			"set ui_changelog04_title %s;",
+			IW3XO_CHANGELOG_01_TITLE, IW3XO_CHANGELOG_02_TITLE, IW3XO_CHANGELOG_03_TITLE, IW3XO_CHANGELOG_04_TITLE), 0);
+
+		Game::Cbuf_AddText(Utils::VA(
+			"set ui_changelog01_sep %d;"
+			"set ui_changelog02_sep %d;"
+			"set ui_changelog03_sep %d;"
+			"set ui_changelog04_sep %d;",
+			IW3XO_CHANGELOG_01_SEP, IW3XO_CHANGELOG_02_SEP, IW3XO_CHANGELOG_03_SEP, IW3XO_CHANGELOG_04_SEP), 0);
+
+		Dvars::ui_changelog01 = Game::Dvar_RegisterString(
+			/* name		*/ "ui_changelog01",
+			/* desc		*/ "menu helper",
+			/* value	*/ IW3XO_CHANGELOG_01,
+			/* flags	*/ Game::dvar_flags::read_only);
+
+		Dvars::ui_changelog02 = Game::Dvar_RegisterString(
+			/* name		*/ "ui_changelog02",
+			/* desc		*/ "menu helper",
+			/* value	*/ IW3XO_CHANGELOG_02,
+			/* flags	*/ Game::dvar_flags::read_only);
+
+		Dvars::ui_changelog03 = Game::Dvar_RegisterString(
+			/* name		*/ "ui_changelog03",
+			/* desc		*/ "menu helper",
+			/* value	*/ IW3XO_CHANGELOG_03,
+			/* flags	*/ Game::dvar_flags::read_only);
+
+		Dvars::ui_changelog04 = Game::Dvar_RegisterString(
+			/* name		*/ "ui_changelog04",
+			/* desc		*/ "menu helper",
+			/* value	*/ IW3XO_CHANGELOG_04,
+			/* flags	*/ Game::dvar_flags::read_only);
+	}
 
 	// fade from black into main menu on first start 
 	#define mainmenu_init_fadeTime 50.0f

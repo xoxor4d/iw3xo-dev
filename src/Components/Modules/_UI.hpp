@@ -53,6 +53,8 @@ namespace Components
 
 		static void		ScrPlace_ApplyRect(float *offs_x, float *w, float *offs_y, float *h, int horzAnker, int vertAnker);
 		static void		ScrPlaceFull_ApplyRect(float *offs_x, float *w, float *offs_y, float *h, int horzAnker, int vertAnker);
+
+		static void		MainMenu_Changelog();
 	private:
 	};
 }

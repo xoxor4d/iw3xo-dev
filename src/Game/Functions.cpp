@@ -164,6 +164,8 @@ namespace Game
 	// --------
 	// RENDERER
 
+	Game::MaterialLoadGlob* mtlLoadGlob = reinterpret_cast<Game::MaterialLoadGlob*>(0xD541330);
+
 	bool* gfxRenderTargets = reinterpret_cast<bool*>(0xD573F18);
 	bool* tessSurface = reinterpret_cast<bool*>(0xD2B0828);
 	int* tessSurfaceInt = reinterpret_cast<int*>(0xD2B0828);

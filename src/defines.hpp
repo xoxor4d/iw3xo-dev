@@ -1,20 +1,49 @@
-// -------------
+﻿// *
 // RadiantRemote
 
 // max amount of selected brushes (from radiant) to parse 
 // should always match REMOTE_MAX_SEL_BRUSHES in radiant
 #define RADIANT_MAX_SEL_BRUSHES 16
 
-
-// -------------
-// DrawCollision
-
-
-// -------
-// General
+// *
+// Version
 
 #define IW3XO_BUILDVERSION_DATE __TIMESTAMP__  
 #define IW3XO_BUILDSTRING "IW3xo :: build %.lf :: %s", IW3X_BUILDNUMBER, __TIMESTAMP__
+#define IW3XO_BUILDSTRING_CHANGELOG "IW3xo :: build %.lf :: %s %s", IW3X_BUILDNUMBER, __TIMESTAMP__
+
+// *
+// Changelog
+
+#define IW3XO_CHANGELOG_01_Y_OFFS	10
+#define IW3XO_CHANGELOG_01_SEP		1
+#define IW3XO_CHANGELOG_01_TITLE	"[Map Exporting]\n"
+#define IW3XO_CHANGELOG_01			"-  Fixed some texture scale issues\n" \
+									"-  Now writes brush contents\n" \
+									"-  Brushside generation fixes\n" \
+									"-  Selection feature [Export only certain parts of the map by defining a bounding box]"
+
+#define IW3XO_CHANGELOG_02_Y_OFFS	-16
+#define IW3XO_CHANGELOG_02_SEP		0
+#define IW3XO_CHANGELOG_02_TITLE	""
+#define IW3XO_CHANGELOG_02			"-  mapexport_selectionMode  [Enables selection mode]\n"	\
+									"-  mapexport_selectionAdd     [Adds a point to the bounding box (needs 2 in total)]\n" \
+									"-  mapexport_selectionClear   [Reset bounding box]"
+
+#define IW3XO_CHANGELOG_03_Y_OFFS	-54
+#define IW3XO_CHANGELOG_03_SEP		0
+#define IW3XO_CHANGELOG_03_TITLE	""
+#define IW3XO_CHANGELOG_03			"-  mapexport_brushMinSize   [Only export complex brushes if their diagonal length is greater then this]\n" \
+									"-  mapexport_brushEpsilon1  [Brushside generation epsilon 1 (adv. only)]\n" \
+									"-  mapexport_brushEpsilon2  [Brushside generation epsilon 2 (adv. only)]\n" 
+
+#define IW3XO_CHANGELOG_04_Y_OFFS	-70
+#define IW3XO_CHANGELOG_04_SEP		1
+#define IW3XO_CHANGELOG_04_TITLE	"[General]\n"
+#define IW3XO_CHANGELOG_04			"-  Changelog :x\n"
+
+// *
+// General
 
 #define FONT_SMALL_DEV  "fonts/smallDevFont"
 #define FONT_BIG_DEV    "fonts/bigDevFont"

@@ -37,11 +37,23 @@ namespace Components
 		// Debug Collision Hud
 		if (Dvars::r_drawCollision_hud && Dvars::r_drawCollision_hud->current.enabled)
 		{
-			if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer != 0)
+			if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
 			{
 				Game::DrawTextWithEngine(
-					/* x	*/ Dvars::r_drawCollision_hud_x->current.value,
-					/* y	*/ Dvars::r_drawCollision_hud_y->current.value,
+					/* x	*/ Dvars::r_drawCollision_hud_position->current.vector[0],
+					/* y	*/ Dvars::r_drawCollision_hud_position->current.vector[1],
+					/* scaX */ Dvars::r_drawCollision_hud_fontScale->current.value,
+					/* scaY */ Dvars::r_drawCollision_hud_fontScale->current.value,
+					/* font */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),
+					/* colr */ Dvars::pm_hud_fontColor->current.vector,
+					/* txt	*/ "Selection Mode Active! Highlighting of brushes disabled.\n[Selection Mode Commands]\n-- mapexport_selectionAdd\n-- mapexport_selectionClear");
+			}
+
+			else if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer != 0)
+			{
+				Game::DrawTextWithEngine(
+					/* x	*/ Dvars::r_drawCollision_hud_position->current.vector[0],
+					/* y	*/ Dvars::r_drawCollision_hud_position->current.vector[1],
 					/* scaX */ Dvars::r_drawCollision_hud_fontScale->current.value,
 					/* scaY */ Dvars::r_drawCollision_hud_fontScale->current.value,
 					/* font */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),

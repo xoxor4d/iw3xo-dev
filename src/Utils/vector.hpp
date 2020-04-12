@@ -37,8 +37,8 @@ namespace Utils
 		#define Vector4Copy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
 
 		float	_radians_to_degrees(float radians);
-		void	_getEulerAnglesXYZ(vec4_t *matrix, vec3_t out);
-		void	_getEulerAnglesXYZDegrees(vec4_t *matrix, vec3_t out);
+		void	_ToEulerAngles(vec4_t *matrix, vec3_t out);
+		void	_ToEulerAnglesDegrees(vec4_t *matrix, vec3_t out);
 
 		int		_VectorCompare(const vec3_t v1, const vec3_t v2);
 		int		_VectorCompareEpsilon(const vec3_t v1, const vec3_t v2, float epsilonV1);
