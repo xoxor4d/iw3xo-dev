@@ -33,6 +33,9 @@ namespace Dvars
 	extern Game::dvar_s* ui_changelog03;
 	extern Game::dvar_s* ui_changelog04;
 	extern Game::dvar_s* r_aspectRatio;
+	extern Game::dvar_s* r_noborder;
+	extern Game::dvar_s* vid_xpos;
+	extern Game::dvar_s* vid_ypos;
 	extern Game::dvar_s* xo_menu_dbg;
 
 
@@ -92,11 +95,16 @@ namespace Dvars
 	extern Game::dvar_s* pm_debug_prints;
 	extern Game::dvar_s* pm_debug_traceOrigin;
 	extern Game::dvar_s* pm_debug_traceVelocity;
-	extern Game::dvar_s* pm_debug_traceVelocityRealtime;
 	extern Game::dvar_s* pm_debug_lineColor;
 	extern Game::dvar_s* pm_debug_lineDepth;
 	extern Game::dvar_s* pm_debug_lineDuration;
-
+	extern Game::dvar_s* pm_debug_lineWidth;
+	extern Game::dvar_s* pm_debug_drawAxis;
+	extern Game::dvar_s* pm_debug_drawAxis_radius;
+	extern Game::dvar_s* pm_debug_drawAxis_height;
+	extern Game::dvar_s* pm_debug_drawAxis_col125;
+	extern Game::dvar_s* pm_debug_drawAxis_col250;
+	extern Game::dvar_s* pm_debug_drawAxis_col333;
 
 	// Debug collision
 	extern Game::dvar_s* r_drawCollision;

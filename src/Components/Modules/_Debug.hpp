@@ -20,9 +20,11 @@ namespace Components
 		static bool DebugLines_Sync(Game::dbgLinesDelaySync_t *sync);
 
 		static int  RB_AddDebugLine(const float* start, const float* end, const float* color, bool depthTest, int vertCount, int vertLimit, Game::GfxPointVertex* verts);
-		static void RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts);
+		static int	RB_AddDebugLine(const glm::vec3& start, const glm::vec3& end, const float* color, bool depthTest, int lineWidth, int vertCount, int vertLimit, Game::GfxPointVertex* verts);
 		static void RB_AddAndDrawDebugLines(const int numPoints, float(*points)[3], const float* colorFloat);
-
+		static void RB_AddAndDrawDebugLines(const int numLines, const Game::dbgLines_t* lines, const float* colorFloat, bool depthTest, int lineWidth);
+		static void RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts);
+		static void RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts, int lineWidth);
 
 		// -------------------
 		// Strings

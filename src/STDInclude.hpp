@@ -56,6 +56,7 @@
 #include <glm.hpp>
 
 #include "Game/Structs.hpp"
+#include "Utils/vector.hpp"
 #include "Utils/Utils.hpp"
 #include "Utils/polylib.hpp"
 #include "Utils/Memory.hpp"
@@ -66,7 +67,6 @@
 
 #include "Game/Functions.hpp"
 #include "Game/Dvars.hpp"
-#include "Utils/vector.hpp"
 
 #include "Components/Loader.hpp"
 

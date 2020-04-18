@@ -33,6 +33,9 @@ namespace Dvars
 	Game::dvar_s* ui_changelog03 = nullptr;
 	Game::dvar_s* ui_changelog04 = nullptr;
 	Game::dvar_s* r_aspectRatio = nullptr;
+	Game::dvar_s* r_noborder = nullptr;
+	Game::dvar_s* vid_xpos = nullptr;
+	Game::dvar_s* vid_ypos = nullptr;
 	Game::dvar_s* xo_menu_dbg = nullptr;
 
 
@@ -92,11 +95,16 @@ namespace Dvars
 	Game::dvar_s* pm_debug_prints = nullptr;
 	Game::dvar_s* pm_debug_traceOrigin = nullptr;
 	Game::dvar_s* pm_debug_traceVelocity = nullptr;
-	Game::dvar_s* pm_debug_traceVelocityRealtime = nullptr;
 	Game::dvar_s* pm_debug_lineColor = nullptr;
 	Game::dvar_s* pm_debug_lineDepth = nullptr;
 	Game::dvar_s* pm_debug_lineDuration = nullptr;
-
+	Game::dvar_s* pm_debug_lineWidth = nullptr;
+	Game::dvar_s* pm_debug_drawAxis = nullptr;
+	Game::dvar_s* pm_debug_drawAxis_radius = nullptr;
+	Game::dvar_s* pm_debug_drawAxis_height = nullptr;
+	Game::dvar_s* pm_debug_drawAxis_col125 = nullptr;
+	Game::dvar_s* pm_debug_drawAxis_col250 = nullptr;
+	Game::dvar_s* pm_debug_drawAxis_col333 = nullptr;
 
 	// Debug Collision
 	Game::dvar_s* r_drawCollision = nullptr;

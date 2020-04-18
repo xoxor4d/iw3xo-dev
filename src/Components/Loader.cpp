@@ -28,6 +28,7 @@ namespace Components
 		active.RB_DrawCollision = true;
 		active.RB_ShaderOverlays = true;
 		active.RadiantRemote = true;
+		active.Window = true;
 		active.Scheduler = true;
 
 		// General Modules that need to be loaded
@@ -46,6 +47,7 @@ namespace Components
 		REGISTER_MODULE(RB_DrawCollision);
 		REGISTER_MODULE(RB_ShaderOverlays);
 		REGISTER_MODULE(RadiantRemote);
+		REGISTER_MODULE(Window);
 		REGISTER_MODULE(Scheduler);
 	}
 

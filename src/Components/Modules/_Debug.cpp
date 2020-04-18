@@ -162,6 +162,27 @@ namespace Components
 		return vertCount + 2;
 	}
 
+	// add debugLines
+	int _Debug::RB_AddDebugLine(const glm::vec3& start, const glm::vec3& end, const float* color, bool depthTest, int lineWidth, int vertCount, int vertLimit, Game::GfxPointVertex* verts)
+	{
+		if (vertCount + 2 > vertLimit || rb_addingDebugLines && rb_lastDepthTest != depthTest)
+		{
+			Game::RB_DrawLines3D(vertCount / 2, lineWidth, verts, rb_lastDepthTest);
+			vertCount = 0;
+		}
+
+		rb_lastDepthTest = depthTest;
+		rb_addingDebugLines = true;
+
+		Game::R_ConvertColorToBytes(color, verts[vertCount].color);
+		*(DWORD*)verts[vertCount + 1].color = *(DWORD*)verts[vertCount].color;
+
+		glm::setFloat3(verts[vertCount].xyz, start);
+		glm::setFloat3(verts[vertCount + 1].xyz, end);
+
+		return vertCount + 2;
+	}
+
 	// draw all created debugLines 
 	void _Debug::RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts)
 	{
@@ -200,6 +221,36 @@ namespace Components
 		_Debug::RB_EndDebugLines(vertCount / 2, debugLineVerts);
 	}
 
+	void _Debug::RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts, int lineWidth)
+	{
+		if (vertCount >= 2)
+		{
+			Game::RB_DrawLines3D(vertCount, lineWidth, verts, rb_lastDepthTest);
+			rb_addingDebugLines = false;
+		}
+	}
+
+	// add and draw debuglines (only call from renderer thread)
+	void _Debug::RB_AddAndDrawDebugLines(const int numLines, const Game::dbgLines_t* lines, const float* colorFloat, bool depthTest, int lineWidth)
+	{
+		int vertCount = 0;
+
+		for (auto line = 0; line < numLines; ++line)
+		{
+			vertCount = _Debug::RB_AddDebugLine(
+				/* start	 */ lines[line].ptFrom,
+				/* end		 */ lines[line].ptTo,
+				/* color	 */ colorFloat,
+				/* depth	 */ depthTest,
+				/* linewidth */ lineWidth,
+				/* vertcount */ vertCount,
+				/* maxverts	 */ 2725,
+				/* buffer	 */ debugLineVerts);
+		}
+
+		// Draw all added debuglines
+		_Debug::RB_EndDebugLines(vertCount / 2, debugLineVerts, lineWidth);
+	}
 
 	// -------------------------------------------------------------------------
 	// Strings
@@ -521,6 +572,8 @@ namespace Components
 			// Radiant Live-Link
 			RadiantRemote::RadiantDebugBrush();
 		}
+
+		_Pmove::PM_DrawDebug();
 	}
 
 	// RB_AdditionalDebug :: Hook RB_DrawDebug call to implement additional debug functions

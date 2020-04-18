@@ -6272,6 +6272,13 @@ namespace Game
 			bool wasReset;
 		};
 
+		struct circleZone_t
+		{
+			//float angleStart;
+			//float angleEnd;
+			glm::vec3 zoneCoords[4];
+		};
+
 #ifdef __cplusplus
 }
 #endif

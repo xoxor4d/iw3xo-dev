@@ -36,7 +36,8 @@ namespace Utils
 		#define VectorSet(v, x, y, z)	((v)[0]=(x), (v)[1]=(y), (v)[2]=(z))
 		#define Vector4Copy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
 
-		float	_radians_to_degrees(float radians);
+		float	_RadiansToDegrees(const float radians);
+		float	_DegreesToRadians(const float degrees);
 		void	_ToEulerAngles(vec4_t *matrix, vec3_t out);
 		void	_ToEulerAnglesDegrees(vec4_t *matrix, vec3_t out);
 

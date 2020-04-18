@@ -6,6 +6,7 @@ namespace Game
 	{
 		// INIT
 		std::string loadedModules;
+		bool loaded_MainMenu;
 
 		// RADIANT ----------------------------------------------------------------
 		Game::cgsAddon cgsAddons = Game::cgsAddon();
@@ -1055,7 +1056,7 @@ namespace Game
 	field_t* g_consoleField = reinterpret_cast<field_t*>(0x8F1B88);
 
 	// console variables
-	Font_s* con_font = reinterpret_cast<Font_s*>(0xF8D65C);
+	//Font_s* con_font = reinterpret_cast<Font_s*>(0xC5AE94));
 	bool*	Key_IsCatcherActive = reinterpret_cast<bool*>(0xC5F8F8);
 
 	// con->screenMin / Max manual defines for use in asm

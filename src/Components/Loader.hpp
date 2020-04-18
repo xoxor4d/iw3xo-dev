@@ -21,6 +21,7 @@ namespace Components
 		bool RB_DrawCollision;
 		bool RB_ShaderOverlays;
 		bool RadiantRemote;
+		bool Window;
 		bool Scheduler;
 	};
 
@@ -72,6 +73,7 @@ namespace Components
 #include "Modules/RB_DrawCollision.hpp"
 #include "Modules/RB_ShaderOverlays.hpp"
 #include "Modules/RadiantRemote.hpp"
+#include "Modules/Window.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

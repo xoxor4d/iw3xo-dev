@@ -8,6 +8,7 @@ namespace Game
 	{
 		// INIT
 		extern std::string loadedModules;
+		extern bool loaded_MainMenu;
 
 		// RADIANT ----------------------------------------------------------------
 		extern Game::cgsAddon cgsAddons;
@@ -365,7 +366,8 @@ namespace Game
 	extern field_t* g_consoleField;
 
 	// console variables
-	extern Font_s* con_font;
+	//extern Font_s* con_font;
+	static DWORD* con_font = (DWORD*)(0xC5AE94);
 	extern bool* Key_IsCatcherActive;
 
 	// con->screenMin / Max manual defines for use in asm

@@ -54,9 +54,14 @@ namespace Utils
 	{
 		// https://github.com/codereader/DarkRadiant/blob/ba5153ec8f39d2aff1214292f0b94928d434ca4d/libs/math/Matrix4.h
 
-		inline float _radians_to_degrees(float radians)
+		float _RadiansToDegrees(const float radians)
 		{
 			return radians * (180.0f / M_PI);
+		}
+
+		float _DegreesToRadians(const float degrees)
+		{
+			return degrees * M_PI / 180.0f;
 		}
 
 		void _ToEulerAngles(vec4_t *matrix, vec3_t out)
@@ -83,9 +88,9 @@ namespace Utils
 			vec3_t eulerRad;
 			_ToEulerAngles(matrix, eulerRad);
 
-			out[0] = _radians_to_degrees(eulerRad[0]);
-			out[1] = _radians_to_degrees(eulerRad[1]);
-			out[2] = _radians_to_degrees(eulerRad[2]);
+			out[0] = _RadiansToDegrees(eulerRad[0]);
+			out[1] = _RadiansToDegrees(eulerRad[1]);
+			out[2] = _RadiansToDegrees(eulerRad[2]);
 		}
 
 		vec3_t	vec3_origin = { 0,0,0 };

@@ -452,6 +452,8 @@ namespace Components
 
 		// fade in the menu on first start
 		UI_MainMenu_FadeIn();
+
+		Game::Globals::loaded_MainMenu = true;
 	}
 
 	// -- UI_MainMenu_Ver

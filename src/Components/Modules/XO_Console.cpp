@@ -2,6 +2,7 @@
 
 #define CON_KEY_TOGGLE_CURSOR	KEYCATCHER_F1
 #define CON_KEY_RESET_FLTCON	KEYCATCHER_F2
+#define GET_CONSOLEFONT (Game::Font_s*) *(DWORD*)(Game::con_font)
 
 const char* CON_HELP_PRINT =	"---------------- CONSOLE HELP ----------------------\"^2help^7\"--------------------------\n"
 								"!     F1 :: Toggle cursor in-game\n"
@@ -340,16 +341,15 @@ namespace Components
 		conAddon.viewportRes.height = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
 
 		// mouse unrelated stuff ---------------------------------------
-
-		if (Game::con_font->fontName)
+		auto consoleFont = GET_CONSOLEFONT;
+		if (consoleFont)
 		{
-			// meh
-			if (Game::con_font->pixelHeight != 16) 
+			if (consoleFont->pixelHeight != 16)
 			{
-				Game::con_font->pixelHeight = 16;
+				Game::Com_PrintMessage(0, Utils::VA("Console :: consoleFont was %d", consoleFont->pixelHeight), 0);
 			}
 
-			Game::con->fontHeight			= (std::int32_t)(Game::con_font->pixelHeight * Dvars::xo_con_fontSpacing->current.value);
+			Game::con->fontHeight			= (std::int32_t)(consoleFont->pixelHeight * Dvars::xo_con_fontSpacing->current.value);
 			Game::con->visibleLineCount		= (std::int32_t)(Game::con->screenMax[1] - Game::con->screenMin[1] - (2 * Game::con->fontHeight)) / Game::con->fontHeight; //  - xo_con_fontPaddingBottom->current.value) / Game::con->fontHeight;
 			Game::con->visiblePixelWidth	= (std::int32_t)(Game::con->screenMax[0] - Game::con->screenMin[0] - -28.0f);
 		}
@@ -682,15 +682,15 @@ namespace Components
 
 
 		// mouse unrelated stuff ---------------------------------------
-
-		if (Game::con_font->fontName) 
+		auto consoleFont = GET_CONSOLEFONT;
+		if (consoleFont)
 		{
-			// meh but works (pixelHeight can change on vid_restart's | cgame changes .. for w/e reason)
-			if (Game::con_font->pixelHeight != 16) {
-				Game::con_font->pixelHeight = 16;
+			if (consoleFont->pixelHeight != 16)
+			{
+				Game::Com_PrintMessage(0, Utils::VA("Console :: consoleFont was %d", consoleFont->pixelHeight), 0);
 			}
 
-			Game::con->fontHeight = (std::int32_t)(Game::con_font->pixelHeight * Dvars::xo_con_fontSpacing->current.value);
+			Game::con->fontHeight = (std::int32_t)(consoleFont->pixelHeight * Dvars::xo_con_fontSpacing->current.value);
 
 			// adjust visibleLineCount for output text so we do not draw more lines then our rect can hold
 			if (Game::con->fontHeight) 
@@ -1028,7 +1028,8 @@ namespace Components
 		memcpy(&loc_inputBoxColor, Game::Dvar_FindVar("con_inputBoxColor")->current.vector, sizeof(loc_inputBoxColor));
 
 		// set con globals
-		Game::conDrawInputGlob->fontHeight = (float)(Game::con_font->pixelHeight);
+		auto consoleFont = GET_CONSOLEFONT;
+		Game::conDrawInputGlob->fontHeight = (float)(consoleFont->pixelHeight);
 		Game::conDrawInputGlob->x = Game::con->screenMin[0];
 		Game::conDrawInputGlob->y = Game::con->screenMin[1];
 		Game::conDrawInputGlob->leftX = Game::conDrawInputGlob->x;

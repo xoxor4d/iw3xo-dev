@@ -106,7 +106,7 @@ namespace Components
 	// build view frustum
 	void R_SetDpvsPlaneSides(Game::DpvsPlane *plane)
 	{
-		plane->side[0] = char(plane->coeffs[0]) <= 0 ? 0 : 0xC;
+		plane->side[0] = char(plane->coeffs[0]) <= 0 ? 0 : 12;
 		plane->side[1] = char(plane->coeffs[1]) <= 0 ? 4 : 16;
 		plane->side[2] = char(plane->coeffs[2]) <= 0 ? 8 : 20;
 	}
@@ -159,13 +159,13 @@ namespace Components
 
 		if (!viewParms) 
 		{
-			Game::Com_Error(0, Utils::VA("^1BuildFrustumPlanes L#%d ^7:: viewparams \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("BuildFrustumPlanes L#%d :: viewparams \n", __LINE__));
 			return;
 		}
 
 		if (!frustumPlanes) 
 		{
-			Game::Com_Error(0, Utils::VA("^1BuildFrustumPlanes L#%d ^7:: frustumPlanes \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("BuildFrustumPlanes L#%d :: frustumPlanes \n", __LINE__));
 			return;
 		}
 
@@ -218,7 +218,7 @@ namespace Components
 		{
 			if (!sides ) 
 			{
-				Game::Com_Error(0, Utils::VA("^1CM_GetPlaneVec4Form L#%d ^7:: sides \n", __LINE__));
+				Game::Com_Error(0, Utils::VA("CM_GetPlaneVec4Form L#%d :: sides \n", __LINE__));
 				return;
 			}
 
@@ -344,13 +344,13 @@ namespace Components
 
 		if (!brush)
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_AddSimpleBrushPoint L#%d ^7:: brush \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_AddSimpleBrushPoint L#%d :: brush \n", __LINE__));
 			return 0;
 		}
 
 		if (!brushPts)
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_AddSimpleBrushPoint L#%d ^7:: brushPts \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_AddSimpleBrushPoint L#%d :: brushPts \n", __LINE__));
 			return 0;
 		}
 
@@ -407,13 +407,13 @@ namespace Components
 
 		if (!brush) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_ForEachBrushPlaneIntersection L#%d ^7:: brush \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_ForEachBrushPlaneIntersection L#%d :: brush \n", __LINE__));
 			return 0;
 		}
 
 		if (!brushPts) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_ForEachBrushPlaneIntersection L#%d ^7:: brushPts \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_ForEachBrushPlaneIntersection L#%d :: brushPts \n", __LINE__));
 			return 0;
 		}
 
@@ -513,7 +513,7 @@ namespace Components
 
 		if (!pts) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_GetXyzList L#%d ^7:: pts\n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_GetXyzList L#%d :: pts\n", __LINE__));
 			return 0;
 		}
 
@@ -530,9 +530,8 @@ namespace Components
 				toAdd[0] = pts[ptIndex].xyz[0];
 				toAdd[1] = pts[ptIndex].xyz[1];
 				toAdd[2] = pts[ptIndex].xyz[2];
-
 #if DEBUG
-				if (Dvars::r_drawCollision_brushDebug->current.enabled) 
+				if (Dvars::r_drawCollision_brushDebug->current.enabled)
 				{
 					Game::Com_PrintMessage(0, Utils::VA("^4CM_GetXyzList L#%d ^7:: Adding X:^2 %.2lf ^7Y:^2 %.2lf ^7Z:^2 %.2lf ^7 \n", __LINE__, toAdd[0], toAdd[1], toAdd[2]), 0);
 				}
@@ -546,7 +545,7 @@ namespace Components
 		}
 
 #if DEBUG
-		if (Dvars::r_drawCollision_brushDebug->current.enabled) 
+		if (Dvars::r_drawCollision_brushDebug->current.enabled)
 		{
 			Game::Com_PrintMessage(0, Utils::VA("^1CM_GetXyzList L#%d ^7:: Total XYZCOUNT: %d \n", __LINE__, xyzCount), 0);
 		}
@@ -636,7 +635,7 @@ namespace Components
 		{
 
 #if DEBUG
-			if ( w->p[index1][axis] <= w->p[index0][axis])
+			if (w->p[index1][axis] <= w->p[index0][axis])
 			{
 				Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf < w->p[%d][%d] %.2lf \n", 
 													__LINE__, index1, axis, w->p[index1][axis], index0, axis, w->p[index0][axis]), 0);
@@ -682,10 +681,12 @@ namespace Components
 			indexPrev = index;
 		}
 
-		if (bestIndex < 0 && DEBUG) 
+#if DEBUG
+		if (bestIndex < 0)
 		{
 			Game::Com_PrintMessage(0, Utils::VA("^1CM_AddExteriorPointToWindingProjected L#%d ^7:: bestIndex < 0 \n", __LINE__), 0);
 		}
+#endif
 
 		if (bestSignedArea < -0.001f)
 		{
@@ -941,19 +942,19 @@ namespace Components
 
 		if (!winding) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_BuildBrushWindingForSide L#%d ^7:: winding \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: winding \n", __LINE__));
 			return false;
 		}
 
 		if (!planeNormal) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_BuildBrushWindingForSide L#%d ^7:: planeNormal \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: planeNormal \n", __LINE__));
 			return false;
 		}
 
 		if (!pts) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_BuildBrushWindingForSide L#%d ^7:: pts \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: pts \n", __LINE__));
 			return false;
 		}
 
@@ -1078,13 +1079,13 @@ namespace Components
 
 		if (!brush) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_ShowSingleBrushCollision L#%d ^7:: brush \n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_ShowSingleBrushCollision L#%d :: brush \n", __LINE__));
 			return;
 		}
 
 		if (!color) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_ShowSingleBrushCollision L#%d ^7:: color\n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_ShowSingleBrushCollision L#%d :: color\n", __LINE__));
 			return;
 		}
 
@@ -1532,7 +1533,7 @@ namespace Components
 	{
 		int frustumPlaneIndex;
 
-		if (!frustumPlanes && DEBUG) 
+		if (!frustumPlanes) 
 		{ 
 			Game::Com_Error(0, Utils::VA("CM_BrushInView L#%d :: frustumPlanes\n", __LINE__));
 			return false;
@@ -2000,7 +2001,7 @@ namespace Components
 	{
 		if (!colorFloat) 
 		{
-			Game::Com_Error(0, Utils::VA("^1CM_GetShowCollisionColor L#%d ^7:: colorFloat\n", __LINE__));
+			Game::Com_Error(0, Utils::VA("CM_GetShowCollisionColor L#%d :: colorFloat\n", __LINE__));
 			return;
 		}
 
@@ -2790,8 +2791,7 @@ namespace Components
 
 		if (brushIndexVisible && !g_mapBrushListForIndexFiltering.empty())
 		{
-			// debug strings are handled within the server thread which is running @ 20fps, so we have to skip drawing them -> ((renderfps / sv_fps)) times
-			// ^ meme, fix me daddy
+			// debug strings are normally handled within G_RunFrame (server running @ 20fps) so we have to skip drawing them -> ((renderfps / sv_fps)) times
 
 			// if new loop allowed
 			if (!SvFramerateToRendertime_Counter)
@@ -3266,7 +3266,7 @@ namespace Components
 
 		if (!viewParms) 
 		{
-			Game::Com_Error(0, Utils::VA("RB_ShowCollision L#%d ^7:: viewparams\n", __LINE__));
+			Game::Com_Error(0, Utils::VA("RB_ShowCollision L#%d :: viewparams\n", __LINE__));
 			return;
 		}
 

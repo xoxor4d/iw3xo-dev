@@ -15,32 +15,31 @@
 // *
 // Changelog
 
+// avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space
+
 #define IW3XO_CHANGELOG_01_Y_OFFS	10
 #define IW3XO_CHANGELOG_01_SEP		1
-#define IW3XO_CHANGELOG_01_TITLE	"[Map Exporting]\n"
-#define IW3XO_CHANGELOG_01			"-  Fixed some texture scale issues\n" \
-									"-  Now writes brush contents\n" \
-									"-  Brushside generation fixes\n" \
-									"-  Selection feature [Export only certain parts of the map by defining a bounding box]"
+#define IW3XO_CHANGELOG_01_TITLE	"[General]\n"
+#define IW3XO_CHANGELOG_01			"-  Fixed font size issues\n" \
+									"-  Borderless fullscreen (r_noborder + vid_xpos/ypos 0) (c) IW4x\n"
 
 #define IW3XO_CHANGELOG_02_Y_OFFS	-16
-#define IW3XO_CHANGELOG_02_SEP		0
-#define IW3XO_CHANGELOG_02_TITLE	""
-#define IW3XO_CHANGELOG_02			"-  mapexport_selectionMode  [Enables selection mode]\n"	\
-									"-  mapexport_selectionAdd     [Adds a point to the bounding box (needs 2 in total)]\n" \
-									"-  mapexport_selectionClear   [Reset bounding box]"
+#define IW3XO_CHANGELOG_02_SEP		1
+#define IW3XO_CHANGELOG_02_TITLE	"[Movement]"
+#define IW3XO_CHANGELOG_02			"-  pm_debug_drawAxis [Draw axial information (Axis/Fps Zones)]\n"	\
+									"-  pm_debug_drawAxis_radius [Radius of axis/zones circle]\n" \
+									"-  pm_debug_drawAxis_height [Height offset (from player origin)]\n" \
+									"-  pm_debug_drawAxis_col125/250/333 [Color of zone]"
 
-#define IW3XO_CHANGELOG_03_Y_OFFS	-54
+#define IW3XO_CHANGELOG_03_Y_OFFS	999
 #define IW3XO_CHANGELOG_03_SEP		0
-#define IW3XO_CHANGELOG_03_TITLE	""
-#define IW3XO_CHANGELOG_03			"-  mapexport_brushMinSize   [Only export complex brushes if their diagonal length is greater then this]\n" \
-									"-  mapexport_brushEpsilon1  [Brushside generation epsilon 1 (adv. only)]\n" \
-									"-  mapexport_brushEpsilon2  [Brushside generation epsilon 2 (adv. only)]\n" 
+#define IW3XO_CHANGELOG_03_TITLE	"."
+#define IW3XO_CHANGELOG_03			"."
 
-#define IW3XO_CHANGELOG_04_Y_OFFS	-70
-#define IW3XO_CHANGELOG_04_SEP		1
-#define IW3XO_CHANGELOG_04_TITLE	"[General]\n"
-#define IW3XO_CHANGELOG_04			"-  Changelog :x\n"
+#define IW3XO_CHANGELOG_04_Y_OFFS	999
+#define IW3XO_CHANGELOG_04_SEP		0
+#define IW3XO_CHANGELOG_04_TITLE	"."
+#define IW3XO_CHANGELOG_04			"."
 
 // *
 // General
