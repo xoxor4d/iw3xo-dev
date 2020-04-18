@@ -43,6 +43,9 @@ https://github.com/xoxor4d/iw3xo-radiant
 Project Page:  
 https://xoxor4d.github.io/projects/iw3xo/
 
+Discord:  
+https://discord.gg/t5jRGbj
+
 ## Credits
 - The IW4x Team (client base)
 - The Plutonium Project Team
