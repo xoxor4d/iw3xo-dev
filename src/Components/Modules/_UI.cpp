@@ -316,6 +316,12 @@ namespace Components
 			"set ui_changelog04_sep %d;",
 			IW3XO_CHANGELOG_01_SEP, IW3XO_CHANGELOG_02_SEP, IW3XO_CHANGELOG_03_SEP, IW3XO_CHANGELOG_04_SEP), 0);
 
+		Dvars::ui_main_title = Game::Dvar_RegisterString(
+			/* name		*/ "ui_changelog_title",
+			/* desc		*/ "menu helper",
+			/* value	*/ Utils::VA(IW3XO_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, __TIMESTAMP__),
+			/* flags	*/ Game::dvar_flags::read_only);
+
 		Dvars::ui_changelog01 = Game::Dvar_RegisterString(
 			/* name		*/ "ui_changelog01",
 			/* desc		*/ "menu helper",

@@ -461,7 +461,7 @@ namespace Components
 
 								if (ptCount >= CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS - 1)
 								{
-									return ptCount;
+									return 0;
 								}
 							}
 						}
@@ -1175,7 +1175,7 @@ namespace Components
 							Dvars::r_drawCollision_polyFace->current.enabled);
 					}
 					
-					Game::Globals::drawnPlanesAmountTemp++;
+					Game::Globals::dbgColl_drawnPlanesAmountTemp++;
 				}
 
 				// create brushsides from brush bounds (side [0]-[5])
@@ -1220,7 +1220,7 @@ namespace Components
 							Dvars::r_drawCollision_polyFace->current.enabled);
 					}
 
-					Game::Globals::drawnPlanesAmountTemp++;
+					Game::Globals::dbgColl_drawnPlanesAmountTemp++;
 				}
 
 				// create brushsides from cm->brushes->sides (side [6] and up)
@@ -1791,11 +1791,16 @@ namespace Components
 		int colorCounter = 0;
 
 		// only once per map
-		if (g_mapNameCm != Game::cm->name)
+		//if (g_mapNameCm != Game::cm->name)
+		if(!Game::Globals::dbgColl_initialized || Utils::Q_stricmp(g_mapNameCm, Game::cm->name))
 		{
+			Game::Com_PrintMessage(0, "[Debug Collision] : initializing ...\n", 0);
+
 			// list of all brushmodels within the current map mapped to their respective brushes in cm->brushes
 			Utils::Entities mapEnts(Game::cm->mapEnts->entityString);
 			g_mapBrushModelList = mapEnts.getBrushModels();
+
+			Game::Com_PrintMessage(0, Utils::VA("|-> found %d submodels\n", static_cast<int>(g_mapBrushModelList.size())), 0);
 
 			// hacky string dvar
 			auto dvarName = "r_drawCollision_brushIndexFilter";
@@ -1804,11 +1809,10 @@ namespace Components
 			// assign hacky dvar to the global dvar
 			Dvars::r_drawCollision_brushIndexFilter = Game::Dvar_FindVar(dvarName);
 
+#if DEBUG
 			// change dvar to only draw 1 brush when using a debug build (debug build has really bad performance)
-			if (DEBUG)
-			{
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, 1);
-			}
+			Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, 1);
+#endif
 
 			// reset brush distance filter
 			Game::Dvar_SetValue(Dvars::r_drawCollision_brushDist, 800.0f);
@@ -1846,7 +1850,8 @@ namespace Components
 				colorCounter %= 8;
 			}
 
-			// assign to globals
+			// set globals
+			Game::Globals::dbgColl_initialized = true;
 			g_mapNameCm = Game::cm->name;
 			g_mapMaterialList = currMapMaterials;
 			g_mapBrushList = currBrushList;
@@ -1884,6 +1889,8 @@ namespace Components
 				}
 			}
 
+			Game::Com_PrintMessage(0, Utils::VA("|-> found %d materials\n", static_cast<int>(singleMaterialCount)), 0);
+
 			// Set material dvar back to 0, update description and max value
 			Game::Dvar_SetValue(Dvars::r_drawCollision_material, 0);
 			Dvars::r_drawCollision_material->domain.integer.max = singleMaterialCount;
@@ -1897,6 +1904,8 @@ namespace Components
 			{
 				Dvars::r_drawCollision_material->description = g_dvarMaterialList_str.c_str();;
 			}
+
+			Game::Com_PrintMessage(0, "|-> done\n", 0);
 		}
 	}
 
@@ -2656,7 +2665,7 @@ namespace Components
 		g_mapBrushListForIndexFiltering.clear();
 
 		// reset hud element
-		Game::Globals::drawnPlanesAmountTemp = 0;
+		Game::Globals::dbgColl_drawnPlanesAmountTemp = 0;
 
 		int BRUSH_INDEX, BRUSH_COUNT;
 		std::vector<int> Integers;
@@ -2724,6 +2733,18 @@ namespace Components
 				brush = &Game::cm->brushes[brushIndex];
 			}
 
+			// if brush is part of a submodel, translate brushmodel bounds by the submodel origin
+			if (brush->isSubmodel)
+			{
+				Game::cbrush_t dupe = Game::cbrush_t();
+				memcpy(&dupe, brush, sizeof(Game::cbrush_t));
+
+				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
+				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
+
+				brush = &dupe;
+			}
+
 			// when not exporting a map
 			if (!export_inProgress)
 			{
@@ -2760,18 +2781,6 @@ namespace Components
 				}
 			}
 
-			// if brush is part of a submodel, translate brushmodel bounds by the submodel origin
-			if (brush->isSubmodel)
-			{
-				Game::cbrush_t dupe = Game::cbrush_t();
-				memcpy(&dupe, brush, sizeof(Game::cbrush_t));
-
-				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
-				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
-
-				brush = &dupe;
-			}
-
 			// always use the brush index within clipmap->brushes to define its color
 			CM_GetShowCollisionColor(colorFloat, brush->colorCounter);
 
@@ -2786,7 +2795,7 @@ namespace Components
 			lastDrawnBrushAmount++;	
 		}
 
-		// -----------------------------------------------------------------------------
+		// *
 		// draw brush indices as 3D text (only when: unsorted brushes / index filtering)
 
 		if (brushIndexVisible && !g_mapBrushListForIndexFiltering.empty())
@@ -3246,12 +3255,12 @@ namespace Components
 		// ------------
 
 		// update hud elements after we drew all brushes / planes
-		if (Game::Globals::drawnPlanesAmount != Game::Globals::drawnPlanesAmountTemp) {
-			Game::Globals::drawnPlanesAmount = Game::Globals::drawnPlanesAmountTemp;
+		if (Game::Globals::dbgColl_drawnPlanesAmount != Game::Globals::dbgColl_drawnPlanesAmountTemp) {
+			Game::Globals::dbgColl_drawnPlanesAmount = Game::Globals::dbgColl_drawnPlanesAmountTemp;
 		}
 
-		if (Game::Globals::drawnBrushAmount != lastDrawnBrushAmount) {
-			Game::Globals::drawnBrushAmount = lastDrawnBrushAmount;
+		if (Game::Globals::dbgColl_drawnBrushAmount != lastDrawnBrushAmount) {
+			Game::Globals::dbgColl_drawnBrushAmount = lastDrawnBrushAmount;
 		}
 	}
 

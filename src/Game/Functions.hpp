@@ -25,9 +25,10 @@ namespace Game
 		extern glm::vec3 locPmove_cameraOrigin;		// grab local camera origin
 
 		// COLLISION ---------------------------------------------------------------
-		extern int drawnBrushAmount; // total amount of brushes used for calculations of planes 
-		extern int drawnPlanesAmount; // total amount of planes rendered 
-		extern int drawnPlanesAmountTemp; // total amount of planes rendered used to count while drawing
+		extern bool dbgColl_initialized;		// debug collision was used
+		extern int dbgColl_drawnBrushAmount;	// total amount of brushes used for calculations of planes 
+		extern int dbgColl_drawnPlanesAmount;	// total amount of planes rendered 
+		extern int dbgColl_drawnPlanesAmountTemp; // total amount of planes rendered used to count while drawing
 
 		// FAMETIME
 		extern int serverTime;
@@ -147,10 +148,13 @@ namespace Game
 	static utils::function<void(std::int32_t a1, std::int32_t a2, std::int32_t a3)> DrawXModelSkinnedCached = 0x646870;
 	static utils::function<bool()> CreateDebugLinesIfNeeded = 0x462080;
 
+	
 	typedef void*(*R_RegisterFont_t)(char* fontName, int fontSize);
+		// get handle using DB_FindXAssetHeader
 		extern R_RegisterFont_t R_RegisterFont;
 
 	typedef void*(*Material_RegisterHandle_t)(char* fontName, int fontSize);
+		// get handle using DB_FindXAssetHeader
 		extern Material_RegisterHandle_t Material_RegisterHandle;
 
 	typedef void(*RB_EndTessSurface_t)();
@@ -172,6 +176,7 @@ namespace Game
 	// ---------
 	// UI / MENU
 
+	extern DWORD* ui_white_material_ptr;
 	extern int* gameTypeEnum; 
 	extern int* mapNameEnum;
 	extern Game::UiContext* _uiContext;
@@ -367,7 +372,7 @@ namespace Game
 
 	// console variables
 	//extern Font_s* con_font;
-	static DWORD* con_font = (DWORD*)(0xC5AE94);
+	static DWORD* con_font_ptr = (DWORD*)(0xC5AE94);
 	extern bool* Key_IsCatcherActive;
 
 	// con->screenMin / Max manual defines for use in asm

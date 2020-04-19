@@ -2,7 +2,7 @@
 
 #define CON_KEY_TOGGLE_CURSOR	KEYCATCHER_F1
 #define CON_KEY_RESET_FLTCON	KEYCATCHER_F2
-#define GET_CONSOLEFONT (Game::Font_s*) *(DWORD*)(Game::con_font)
+#define GET_CONSOLEFONT (Game::Font_s*) *(DWORD*)(Game::con_font_ptr)
 
 const char* CON_HELP_PRINT =	"---------------- CONSOLE HELP ----------------------\"^2help^7\"--------------------------\n"
 								"!     F1 :: Toggle cursor in-game\n"
@@ -1000,25 +1000,15 @@ namespace Components
 		// update globals
 		_local_conScreenMin0 = *Game::conScreenMin0;
 
+		// not registering "Dvars::ui_main_title" in "R_RegisterStringDvars" disables current and stock dvar values in the console if we
+		// assign new colors here .. for whatever reason ??
+
 		// hintbox txt color dvars
-		memcpy(&Game::con_matchtxtColor_currentDvar[0], &Dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_currentValue[0], &Dvars::xo_con_hintBoxTxtColor_currentValue->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_defaultValue[0], &Dvars::xo_con_hintBoxTxtColor_defaultValue->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_dvarDescription[0], &Dvars::xo_con_hintBoxTxtColor_dvarDescription->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_domainDescription[0], &Dvars::xo_con_hintBoxTxtColor_domainDescription->current.vector, sizeof(float[4]));
-
-		//*Game::con_matchtxtColor_currentValue
-		//*Game::con_matchtxtColor_defaultValue =
-		//*Game::con_matchtxtColor_dvarDescription
-		//*Game::con_matchtxtColor_domainDescription
-
-		/*
-		Game::dvar_s* xo_con_hintBoxTxtColor_currentDvar = nullptr;
-		Game::dvar_s* xo_con_hintBoxTxtColor_currentValue = nullptr;
-		Game::dvar_s* xo_con_hintBoxTxtColor_defaultValue = nullptr;
-		Game::dvar_s* xo_con_hintBoxTxtColor_dvarDescription = nullptr;
-		Game::dvar_s* xo_con_hintBoxTxtColor_domainDescription = nullptr;
-		*/
+		//memcpy(&Game::con_matchtxtColor_currentDvar[0], &Dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector, sizeof(float[4]));
+		//memcpy(Game::con_matchtxtColor_currentValue, &Dvars::xo_con_hintBoxTxtColor_currentValue->current.vector, sizeof(float[4]));
+		//memcpy(&Game::con_matchtxtColor_defaultValue[0], &Dvars::xo_con_hintBoxTxtColor_defaultValue->current.vector, sizeof(float[4]));
+		//memcpy(&Game::con_matchtxtColor_dvarDescription[0], &Dvars::xo_con_hintBoxTxtColor_dvarDescription->current.vector, sizeof(float[4]));
+		//memcpy(&Game::con_matchtxtColor_domainDescription[0], &Dvars::xo_con_hintBoxTxtColor_domainDescription->current.vector, sizeof(float[4]));
 
 		// increase max drawing width for console input
 		Game::g_consoleField->drawWidth = 512;

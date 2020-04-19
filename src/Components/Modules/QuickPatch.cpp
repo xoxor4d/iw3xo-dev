@@ -7,40 +7,34 @@
 #define FF_LOAD_ADDON_REQ		true
 #define FF_ADDON_REQ_NAME		"xcommon_iw3xo"
 
-Game::dvar_s* snaps = nullptr;
-Game::dvar_s* cg_fovScale = nullptr;
-
 char* MENU_CHANGELOG_TITLE_FMT = "IW3XO :: %.lf :: %s\n"; // IW3X_BUILDNUMBER, __TIMESTAMP__
 
 namespace Components
 {
-	void QuickPatch::PerformInit()
-	{
-		//Command::Execute("set dedicated 0", true);
-	}
+	//void QuickPatch::PerformInit()
+	//{
+	//	//Command::Execute("set dedicated 0", true);
+	//}
 
-	__declspec(naked) void QuickPatch::OnInitStub()
-	{
-		__asm
-		{
-			pushad
-			call QuickPatch::PerformInit
-			popad
+	//__declspec(naked) void QuickPatch::OnInitStub()
+	//{
+	//	__asm
+	//	{
+	//		pushad
+	//		call QuickPatch::PerformInit
+	//		popad
 
-			push 4FD740h
-			retn
-		}
-	}
+	//		push 4FD740h
+	//		retn
+	//	}
+	//}
 
-	// Runs prior to CL_PreInitRenderer ("----- Initializing Renderer ----")
-	void CL_PreInit()
+	// on renderer initialization
+	void PrintLoadedModules()
 	{
-//#if DEBUG
 		Game::Com_PrintMessage(0, Utils::VA("-------------- Loading Modules -------------- \n%s\n", Game::Globals::loadedModules.c_str()), 0);
-//#endif
 	}
 
-	// :: CL_PreInit
 	__declspec(naked) void CL_PreInitRenderer_stub()
 	{
 		const static uint32_t CL_PreInitRenderer_Func = 0x46CCB0;
@@ -48,7 +42,7 @@ namespace Components
 		__asm
 		{
 			pushad
-			Call	CL_PreInit
+			Call	PrintLoadedModules
 			popad
 
 			Call	CL_PreInitRenderer_Func
@@ -365,20 +359,20 @@ namespace Components
 	}
 
 	// helper function because cba to do that in asm
-	void Fix_ConsolePrints04_Helper() 
+	void PrintBuildOnInit() 
 	{
 		Game::Com_PrintMessage(0, "\n-------- Game Initialization ----------\n", 0);
 		Game::Com_PrintMessage(0, Utils::VA("> Build: IW3xo %0.0lf :: %s\n", IW3X_BUILDNUMBER, __TIMESTAMP__), 0);
 	}
 
-	// game initialization + game name and version
+	// game init + game name and version
 	__declspec(naked) void Fix_ConsolePrints04()
 	{
 		const static uint32_t retnPt = 0x4BF04F;
 		__asm
 		{
-			pushad // just in case
-			Call	Fix_ConsolePrints04_Helper
+			pushad
+			Call	PrintBuildOnInit
 			popad 
 
 			jmp		retnPt
@@ -389,27 +383,48 @@ namespace Components
 	void R_RegisterStringDvars()
 	{
 		_UI::MainMenu_Changelog();
-
-		Dvars::ui_main_title = Game::Dvar_RegisterString(
-			/* name		*/ "ui_changelog_title",
-			/* desc		*/ "menu helper",
-			/* value	*/ Utils::VA(MENU_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, __TIMESTAMP__),
-			/* flags	*/ Game::dvar_flags::read_only);
 	}
 
 	__declspec(naked) void R_RegisterStringDvars_stub()
 	{
-
 		const static uint32_t R_RegisterSunDvars_Func = 0x636FC0;
-		const static uint32_t rtnPt = 0x629D7F;
+		const static uint32_t retnPt = 0x629D7F;
 		__asm
 		{
 			pushad
-			Call R_RegisterStringDvars
+			Call	R_RegisterStringDvars
 			popad
 
-			Call R_RegisterSunDvars_Func
-			jmp rtnPt
+			Call	R_RegisterSunDvars_Func
+			jmp		retnPt
+		}
+	}
+
+	void ForceDvarsOnInit()
+	{
+		// force depthbuffer
+		if (!Game::Dvar_FindVar("r_zFeather")->current.enabled)
+		{
+			Game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
+		}
+
+		if (!Game::Dvar_FindVar("r_distortion")->current.enabled)
+		{
+			Game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
+		}
+	}
+
+	__declspec(naked) void R_BeginRegistration_stub()
+	{
+		const static uint32_t rtnPt = 0x46CB0E;
+		__asm
+		{
+			pushad
+			Call	ForceDvarsOnInit
+			popad
+
+			mov     ecx, 0Ch	// overwritten op
+			jmp		rtnPt
 		}
 	}
 
@@ -461,6 +476,9 @@ namespace Components
 		// ----
 		// Init
 
+		 // Stub after renderer was initialized
+		Utils::Hook(0x46CB09, R_BeginRegistration_stub, HOOK_JUMP).install()->quick();
+
 		// Register String Dvars (doing so on module load crashes the game (SL_GetStringOfSize))
 		Utils::Hook(0x629D7A, R_RegisterStringDvars_stub, HOOK_JUMP).install()->quick();
 
@@ -471,11 +489,7 @@ namespace Components
 		Utils::Hook(0x5F4EE1, Fix_ConsolePrints01, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x57769D, Fix_ConsolePrints02, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x52F3EE, Fix_ConsolePrints03, HOOK_JUMP).install()->quick();
-
-		// we replace the first printf call with our print
 		Utils::Hook(0x4BF04A, Fix_ConsolePrints04, HOOK_JUMP).install()->quick(); 
-
-		// ^ nop the other 2 calls (we need to keep the pushes or we fuck the stack)
 		Utils::Hook::Nop(0x4BF05B, 5); Utils::Hook::Nop(0x4BF06C, 5);
 
 
@@ -575,7 +589,7 @@ namespace Components
 
 		Command::Add("patchdvars", [](Command::Params)
 		{
-			cg_fovScale = Game::Dvar_RegisterFloat(
+			Dvars::cg_fovScale = Game::Dvar_RegisterFloat(
 				/* name		*/ "cg_fovScale",
 				/* desc		*/ "Overwritten non-cheat fovscale",
 				/* default	*/ 1.125f,
@@ -583,7 +597,7 @@ namespace Components
 				/* maxVal	*/ 10.0f,
 				/* flags	*/ Game::dvar_flags::none);
 
-			snaps = Game::Dvar_RegisterInt(
+			Dvars::snaps = Game::Dvar_RegisterInt(
 				/* name		*/ "snaps",
 				/* desc		*/ "re-registered snaps with increased max",
 				/* default	*/ 20,

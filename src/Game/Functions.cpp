@@ -23,9 +23,10 @@ namespace Game
 		glm::vec3 locPmove_cameraOrigin = { 0.0f, 0.0f, 0.0f };		// grab local camera origin
 
 		// COLLISION ---------------------------------------------------------------
-		int drawnBrushAmount = 0; // total amount of brushes used for calculations of planes 
-		int drawnPlanesAmount = 0; // total amount of planes rendered for hud
-		int drawnPlanesAmountTemp = 0; // total amount of planes rendered used to count while drawing 
+		bool dbgColl_initialized = false;	// debug collision was used
+		int  dbgColl_drawnBrushAmount = 0;	// total amount of brushes used for calculations of planes 
+		int  dbgColl_drawnPlanesAmount = 0; // total amount of planes rendered for hud
+		int  dbgColl_drawnPlanesAmountTemp = 0; // total amount of planes rendered used to count while drawing 
 
 		// FAMETIME ---------------------------------------------------------------
 		int serverTime = 0;
@@ -183,8 +184,10 @@ namespace Game
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_client = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B054);
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_server = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B074);
 
+	// get handle using DB_FindXAssetHeader
 	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x5F1EC0;
 	Material_RegisterHandle_t Material_RegisterHandle = (Material_RegisterHandle_t)0x5F2A80;
+
 	RB_EndTessSurface_t RB_EndTessSurface = (RB_EndTessSurface_t)0x61A2F0;
 
 	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, char* font, const float *color, const char* text)
@@ -443,6 +446,7 @@ namespace Game
 	// ---------
 	// UI / MENU
 
+	DWORD* ui_white_material_ptr = reinterpret_cast<DWORD*>(0xCAF06F0);
 	int* gameTypeEnum = reinterpret_cast<int*>(0xCAF1820);
 	int* mapNameEnum = reinterpret_cast<int*>(0xCAF2330);
 	Game::UiContext* _uiContext = reinterpret_cast<Game::UiContext*>(0xCAEE200);

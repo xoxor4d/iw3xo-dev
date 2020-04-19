@@ -17,6 +17,8 @@
 
 // avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space
 
+#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s\n"
+
 #define IW3XO_CHANGELOG_01_Y_OFFS	10
 #define IW3XO_CHANGELOG_01_SEP		1
 #define IW3XO_CHANGELOG_01_TITLE	"[General]\n"

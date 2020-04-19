@@ -167,4 +167,8 @@ namespace Dvars
 	Game::dvar_s* xo_camDir0 = nullptr;
 	Game::dvar_s* xo_camDir1 = nullptr;
 	Game::dvar_s* xo_camDir2 = nullptr;
+
+	// Random stock
+	Game::dvar_s* snaps = nullptr;
+	Game::dvar_s* cg_fovScale = nullptr;
 }

@@ -59,7 +59,7 @@ namespace Components
 					/* font */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),
 					/* colr */ Dvars::pm_hud_fontColor->current.vector,
 					/* txt	*/ Utils::VA("Total amount of Brushes used for calculations: %d \n"
-										 "Total amount of Polygons drawn: %d", Game::Globals::drawnBrushAmount, Game::Globals::drawnPlanesAmount));
+										 "Total amount of Polygons drawn: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount));
 			}
 		}
 	}

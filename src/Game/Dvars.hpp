@@ -5,14 +5,14 @@ namespace Dvars
 	// Radiant
 	extern Game::dvar_s* radiant_live;
 	extern Game::dvar_s* radiant_livePort;
-	extern Game::dvar_s* radiant_liveDebug; 
+	extern Game::dvar_s* radiant_liveDebug;
 	extern Game::dvar_s* radiant_syncCamera;
 	extern Game::dvar_s* radiant_brushCollision;
 	extern Game::dvar_s* radiant_brushColor;
 	extern Game::dvar_s* radiant_brushLit;
 	extern Game::dvar_s* radiant_brushWireframe;
 	extern Game::dvar_s* radiant_brushWireframeColor;
-	
+
 
 	// Display
 	extern Game::dvar_s* ui_ultrawide;
@@ -166,4 +166,8 @@ namespace Dvars
 	extern Game::dvar_s* xo_camDir0;
 	extern Game::dvar_s* xo_camDir1;
 	extern Game::dvar_s* xo_camDir2;
+
+	// Random stock
+	extern Game::dvar_s* snaps;
+	extern Game::dvar_s* cg_fovScale;
 }

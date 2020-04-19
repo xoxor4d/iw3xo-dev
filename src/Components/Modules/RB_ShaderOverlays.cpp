@@ -164,16 +164,12 @@ namespace Components
 
 	void RB_DrawDebugPostEffects()
 	{
-		std::int32_t r_showFbColorDebug = Game::Dvar_FindVar("r_showFbColorDebug")->current.integer;
-		bool r_showFloatZDebug			= Game::Dvar_FindVar("r_showFloatZDebug")->current.enabled;
-		bool sc_showDebug				= Game::Dvar_FindVar("sc_showDebug")->current.enabled;
+		// needs r_zFeather and r_distortion (forced on init (QuickPatch))
 
-		// force depthbuffer
-		if (!Game::Dvar_FindVar("r_zFeather")->current.enabled)
-		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
-		}
-
+		auto r_showFbColorDebug = Game::Dvar_FindVar("r_showFbColorDebug")->current.integer;
+		auto r_showFloatZDebug	= Game::Dvar_FindVar("r_showFloatZDebug")->current.enabled;
+		auto sc_showDebug		= Game::Dvar_FindVar("sc_showDebug")->current.enabled;
+		
 		if (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled) 
 		{
 			RB_DrawCustomShaders(Game::Dvar_EnumToString(Dvars::xo_shaderoverlay));
