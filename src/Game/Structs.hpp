@@ -6274,9 +6274,13 @@ namespace Game
 
 		struct circleZone_t
 		{
-			//float angleStart;
-			//float angleEnd;
 			glm::vec3 zoneCoords[4];
+		};
+
+		struct axialPlane_t
+		{
+			glm::vec3 plane;
+			float dist;
 		};
 
 #ifdef __cplusplus

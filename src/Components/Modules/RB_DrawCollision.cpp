@@ -6,6 +6,9 @@
 
 #define CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS 128
 
+std::chrono::time_point<std::chrono::steady_clock> export_time_exportStart;
+std::chrono::time_point<std::chrono::steady_clock> export_time_brushGenerationStart;
+
 bool  export_mapExportCmd = false;
 bool  export_inProgress = false;
 bool  export_selectionAdd;
@@ -212,7 +215,7 @@ namespace Components
 	}
 
 	// create plane for intersection
-	void CM_GetPlaneVec4Form(const Game::cbrushside_t *sides, const std::vector<std::vector<float>> &axialPlanes, const int index, float *expandedPlane)
+	void CM_GetPlaneVec4Form(const Game::cbrushside_t* sides, const Game::axialPlane_t* axialPlanes, const int index, float* expandedPlane)
 	{
 		if (index >= 6)
 		{
@@ -229,10 +232,13 @@ namespace Components
 		}
 		else
 		{
-			expandedPlane[0] = axialPlanes[index][0];
+			/*expandedPlane[0] = axialPlanes[index][0];
 			expandedPlane[1] = axialPlanes[index][1];
 			expandedPlane[2] = axialPlanes[index][2];
-			expandedPlane[3] = axialPlanes[index][3];
+			expandedPlane[3] = axialPlanes[index][3];*/
+
+			glm::setFloat3(expandedPlane, axialPlanes[index].plane);
+			expandedPlane[3] = axialPlanes[index].dist;
 		}
 	}
 
@@ -241,9 +247,9 @@ namespace Components
 	{
 		float determinant;
 
-		determinant = (((plane1[1] * plane2[2]) - (plane2[1] * plane1[2])) * *plane0)
-					+ (((plane2[1] * plane0[2]) - (plane0[1] * plane2[2])) * *plane1)
-					+ (((plane0[1] * plane1[2]) - (plane1[1] * plane0[2])) * *plane2);
+		determinant = (((plane1[1] * plane2[2]) - (plane2[1] * plane1[2])) * plane0[0])
+					+ (((plane2[1] * plane0[2]) - (plane0[1] * plane2[2])) * plane1[0])
+					+ (((plane0[1] * plane1[2]) - (plane1[1] * plane0[2])) * plane2[0]);
 
 		if (fabs(determinant) < 0.001f)
 		{
@@ -256,13 +262,13 @@ namespace Components
 				+ (((plane2[1] * plane0[2]) - (plane0[1] * plane2[2])) * plane1[3])
 				+ (((plane0[1] * plane1[2]) - (plane1[1] * plane0[2])) * plane2[3])) * determinant;
 
-		xyz[1] = ((((plane1[2] * *plane2) - (plane2[2] * *plane1)) * plane0[3])
-				+ (((plane2[2] * *plane0) - (plane0[2] * *plane2)) * plane1[3])
-				+ (((plane0[2] * *plane1) - (plane1[2] * *plane0)) * plane2[3])) * determinant;
+		xyz[1] = ((((plane1[2] * plane2[0]) - (plane2[2] * plane1[0])) * plane0[3])
+				+ (((plane2[2] * plane0[0]) - (plane0[2] * plane2[0])) * plane1[3])
+				+ (((plane0[2] * plane1[0]) - (plane1[2] * plane0[0])) * plane2[3])) * determinant;
 
-		xyz[2] = ((((*plane1 * plane2[1]) - (*plane2 * plane1[1])) * plane0[3])
-				+ (((*plane2 * plane0[1]) - (*plane0 * plane2[1])) * plane1[3])
-				+ (((*plane0 * plane1[1]) - (*plane1 * plane0[1])) * plane2[3])) * determinant;
+		xyz[2] = ((((plane1[0] * plane2[1]) - (plane2[0] * plane1[1])) * plane0[3])
+				+ (((plane2[0] * plane0[1]) - (plane0[0] * plane2[1])) * plane1[3])
+				+ (((plane0[0] * plane1[1]) - (plane1[0] * plane0[1])) * plane2[3])) * determinant;
 
 		return 1;
 	}
@@ -329,15 +335,15 @@ namespace Components
 
 			if (maxBaseError > maxSnapError)
 			{
-				xyz[0] = (float)snapped[0];
-				xyz[1] = (float)snapped[1];
-				xyz[2] = (float)snapped[2];
+				xyz[0] = snapped[0];
+				xyz[1] = snapped[1];
+				xyz[2] = snapped[2];
 			}
 		}
 	}
 
 	// add valid vertices from 3 plane intersections
-	int CM_AddSimpleBrushPoint(const Game::cbrush_t *brush, const std::vector<std::vector<float>> &axialPlanes, const __int16 *sideIndices, const float *xyz, int ptCount, Game::ShowCollisionBrushPt *brushPts)
+	int CM_AddSimpleBrushPoint(const Game::cbrush_t* brush, const Game::axialPlane_t* axialPlanes, const __int16* sideIndices, const float* xyz, int ptCount, Game::ShowCollisionBrushPt* brushPts)
 	{
 		unsigned int sideIndex;
 		Game::cplane_s *plane;
@@ -356,8 +362,8 @@ namespace Components
 
 		for (sideIndex = 0; sideIndex < 6; ++sideIndex)
 		{
-			if (((( axialPlanes[sideIndex][0] * xyz[0]) + (axialPlanes[sideIndex][1] * xyz[1])
-				 + (axialPlanes[sideIndex][2] * xyz[2])) - axialPlanes[sideIndex][3]) > 0.1f)
+			if(( (axialPlanes[sideIndex].plane.x * xyz[0] + axialPlanes[sideIndex].plane.y * xyz[1] + axialPlanes[sideIndex].plane.z * xyz[2])
+				- axialPlanes[sideIndex].dist) > 0.1f)
 			{
 				return ptCount;
 			}
@@ -394,13 +400,12 @@ namespace Components
 	}
 
 	// intersect 3 planes (for all planes) to reconstruct vertices
-	int CM_ForEachBrushPlaneIntersection(const Game::cbrush_t *brush, const std::vector<std::vector<float>> &axialPlanes, Game::ShowCollisionBrushPt *brushPts)
+	int CM_ForEachBrushPlaneIntersection(const Game::cbrush_t* brush, const Game::axialPlane_t* axialPlanes, Game::ShowCollisionBrushPt* brushPts)
 	{
 		int ptCount = 0, sideCount; 
 		__int16 sideIndex[3];
 
 		float xyz[3]; 
-		const float *plane[3]; // huh
 		float expandedPlane[3][4];
 
 		Game::cbrushside_t *sides;
@@ -444,17 +449,12 @@ namespace Components
 						{
 							// move the current plane into expandedPlane[2]
 							CM_GetPlaneVec4Form(sides, axialPlanes, sideIndex[2], expandedPlane[2]);
-							
-							// meme
-							plane[0] = expandedPlane[0];
-							plane[1] = expandedPlane[1];
-							plane[2] = expandedPlane[2];
 
 							// intersect the 3 planes
-							if (IntersectPlanes(plane[0], plane[1], plane[2], xyz))
+							if (IntersectPlanes(expandedPlane[0], expandedPlane[1], expandedPlane[2], xyz))
 							{
 								// snap our verts in xyz onto the grid
-								SnapPointToIntersectingPlanes(plane[0], plane[1], plane[2], xyz, 0.25f, 0.0099999998f);
+								SnapPointToIntersectingPlanes(expandedPlane[0], expandedPlane[1], expandedPlane[2], xyz, 0.25f, 0.0099999998f);
 
 								// if the planes intersected, put verts into brushPts and increase our pointCount
 								ptCount = CM_AddSimpleBrushPoint(brush, axialPlanes, sideIndex, xyz, ptCount, brushPts);
@@ -474,14 +474,11 @@ namespace Components
 	}
 
 	// check for float precision errors and check if a point lies within an epsilon 
-	bool VecNCompareCustomEpsilon(const std::vector<std::vector<float>> &xyzList, const int xyzIndex, const float *v1, const float epsilon, const int coordCount)
+	bool VecNCompareCustomEpsilon(const glm::vec3* xyzList, const int xyzIndex, const float* v1, const float epsilon, const int coordCount)
 	{
-		std::vector<float> currentPoint;
-		currentPoint = xyzList[xyzIndex];
-
 		for (auto i = 0; i < coordCount; ++i)
 		{
-			if (((currentPoint[i] - v1[i]) * (currentPoint[i] - v1[i])) > (epsilon * epsilon)) 
+			if (((xyzList[xyzIndex][i] - v1[i]) * (xyzList[xyzIndex][i] - v1[i])) > (epsilon * epsilon))
 			{
 				return false;
 			}
@@ -491,13 +488,13 @@ namespace Components
 	}
 	
 	// check if point in list exists
-	int CM_PointInList(const float *point, const std::vector<std::vector<float>> &xyzList, const int xyzCount)
+	int CM_PointInList(const float* point, const glm::vec3* xyzList, const int xyzCount)
 	{
 		int xyzIndex;
 
 		for (xyzIndex = 0; xyzIndex < xyzCount; ++xyzIndex)
 		{
-			if (VecNCompareCustomEpsilon(xyzList, xyzIndex, point, 0.1f, 3)) 
+			if (VecNCompareCustomEpsilon(xyzList, xyzIndex, point, 0.1f, 3)) // larger epsilon decreases quality
 			{
 				return 1;
 			}
@@ -507,7 +504,7 @@ namespace Components
 	}
 
 	// create a list of vertex points
-	int CM_GetXyzList(const int sideIndex, const Game::ShowCollisionBrushPt *pts, const int ptCount, std::vector<std::vector<float>> &xyzList, const int xyzLimit)
+	int CM_GetXyzList(const int sideIndex, const Game::ShowCollisionBrushPt* pts, const int ptCount, glm::vec3* xyzList, const int xyzLimit)
 	{
 		int ptIndex, xyzCount = 0;
 
@@ -519,27 +516,21 @@ namespace Components
 
 		for (ptIndex = 0; ptIndex < ptCount; ++ptIndex)
 		{
-			if ((sideIndex == pts[ptIndex].sideIndex[0] || sideIndex == pts[ptIndex].sideIndex[1] || sideIndex == pts[ptIndex].sideIndex[2]) && !CM_PointInList(pts[ptIndex].xyz, xyzList, xyzCount))
+			if ((sideIndex == pts[ptIndex].sideIndex[0] || sideIndex == pts[ptIndex].sideIndex[1] || sideIndex == pts[ptIndex].sideIndex[2]) 
+				&& !CM_PointInList(pts[ptIndex].xyz, xyzList, xyzCount))
 			{
 				if (xyzCount == xyzLimit) 
 				{
 					Game::Com_PrintMessage(0, Utils::VA("^1CM_GetXyzList L#%d ^7:: Winding point limit (%i) exceeded on brush face \n", __LINE__, xyzLimit), 0);
+					return 0;
 				}
-
-				std::vector<float>toAdd(3, 0.0f);
-				toAdd[0] = pts[ptIndex].xyz[0];
-				toAdd[1] = pts[ptIndex].xyz[1];
-				toAdd[2] = pts[ptIndex].xyz[2];
 #if DEBUG
 				if (Dvars::r_drawCollision_brushDebug->current.enabled)
 				{
-					Game::Com_PrintMessage(0, Utils::VA("^4CM_GetXyzList L#%d ^7:: Adding X:^2 %.2lf ^7Y:^2 %.2lf ^7Z:^2 %.2lf ^7 \n", __LINE__, toAdd[0], toAdd[1], toAdd[2]), 0);
+					Game::Com_PrintMessage(0, Utils::VA("^4CM_GetXyzList L#%d ^7:: Adding X:^2 %.2lf ^7Y:^2 %.2lf ^7Z:^2 %.2lf ^7 \n", __LINE__, xyzList[xyzCount][0], xyzList[xyzCount][1], xyzList[xyzCount][2]), 0);
 				}
 #endif
-
-				xyzList.push_back(toAdd);
-				toAdd.shrink_to_fit();
-				
+				xyzList[xyzCount] = glm::toVec3(pts[ptIndex].xyz);
 				++xyzCount;
 			}
 		}
@@ -574,13 +565,13 @@ namespace Components
 	}
 	
 	// cross product
-	float CM_SignedAreaForPointsProjected(const float *pt0, const std::vector<float> &pt1, const float *pt2, const int i, const int j)
+	float CM_SignedAreaForPointsProjected(const float* pt0, const glm::vec3& pt1, const float* pt2, const int i, const int j)
 	{
 		return (pt2[j] - pt1[j]) * pt0[i] + (pt0[j] - pt2[j]) * pt1[i] + (pt1[j] - pt0[j]) * pt2[i];
 	}
 
 	// add a point that intersected behind another plane that still is within the bounding box?
-	void CM_AddColinearExteriorPointToWindingProjected(Game::winding_t *w, const std::vector<float> &pt, int i, int j, int index0, int index1)
+	void CM_AddColinearExteriorPointToWindingProjected(Game::winding_t* w, const glm::vec3& pt, int i, int j, int index0, int index1)
 	{
 		float delta; int axis; 
 
@@ -618,16 +609,12 @@ namespace Components
 			{
 				if (w->p[index1][axis] > pt[axis])
 				{
-					w->p[index1][0] = pt[0];
-					w->p[index1][1] = pt[1];
-					w->p[index1][2] = pt[2];
+					glm::setFloat3(w->p[index1], pt);
 				}
 			}
 			else
 			{
-				w->p[index0][0] = pt[0];
-				w->p[index0][1] = pt[1];
-				w->p[index0][2] = pt[2];
+				glm::setFloat3(w->p[index0], pt);
 			}
 		}
 
@@ -646,22 +633,18 @@ namespace Components
 			{
 				if (pt[axis] > w->p[index1][axis])
 				{
-					w->p[index1][0] = pt[0];
-					w->p[index1][1] = pt[1];
-					w->p[index1][2] = pt[2];
+					glm::setFloat3(w->p[index1], pt);
 				}
 			}
 			else
 			{
-				w->p[index0][0] = pt[0];
-				w->p[index0][1] = pt[1];
-				w->p[index0][2] = pt[2];
+				glm::setFloat3(w->p[index0], pt);
 			}
 		}
 	}
 
 	// Source :: PolyFromPlane || Q3 :: RemoveColinearPoints ?
-	void CM_AddExteriorPointToWindingProjected(Game::winding_t *w, const std::vector<float> &pt, int i, int j)
+	void CM_AddExteriorPointToWindingProjected(Game::winding_t* w, const glm::vec3& pt, int i, int j)
 	{
 		int index, indexPrev, bestIndex = -1;
 		float signedArea, bestSignedArea = FLT_MAX;
@@ -692,9 +675,7 @@ namespace Components
 		{
 			memmove((char *)w->p[bestIndex + 1], (char *)w->p[bestIndex], 12 * (w->numpoints - bestIndex));
 			
-			w->p[bestIndex][0] = pt[0];
-			w->p[bestIndex][1] = pt[1];
-			w->p[bestIndex][2] = pt[2];
+			glm::setFloat3(w->p[bestIndex], pt);
 			++w->numpoints;
 		}
 
@@ -816,8 +797,7 @@ namespace Components
 		}
 	}
 
-	// CM_BuildBrushWindingForSideMapExport
-
+	// Map Export - CM_BuildBrushWindingForSide
 	bool CM_BuildBrushWindingForSideMapExport(Game::winding_t *winding, const float *planeNormal, const int sideIndex, Game::ShowCollisionBrushPt *pts, int ptCount, Game::map_brushSide_t *bSide)
 	{
 		int xyzCount, i, i0, i1, i2, j, k;
@@ -843,8 +823,8 @@ namespace Components
 			return false;
 		}
 
-		std::vector<std::vector<float>> xyzList;
-		xyzCount = CM_GetXyzList(sideIndex, pts, ptCount, xyzList, 1024);
+		glm::vec3 _xyzList[1024];
+		xyzCount = CM_GetXyzList(sideIndex, pts, ptCount, _xyzList, 1024);
 
 		if (xyzCount < 3) 
 		{
@@ -853,19 +833,14 @@ namespace Components
 
 		CM_PickProjectionAxes(planeNormal, &i, &j);
 
-		winding->p[0][0] = xyzList[0][0];
-		winding->p[0][1] = xyzList[0][1];
-		winding->p[0][2] = xyzList[0][2];
-
-		winding->p[1][0] = xyzList[1][0];
-		winding->p[1][1] = xyzList[1][1];
-		winding->p[1][2] = xyzList[1][2];
+		glm::setFloat3(winding->p[0], _xyzList[0]);
+		glm::setFloat3(winding->p[1], _xyzList[1]);
 
 		winding->numpoints = 2;
 
 		for (k = 2; k < xyzCount; ++k) 
 		{
-			CM_AddExteriorPointToWindingProjected(winding, xyzList[k], i, j);
+			CM_AddExteriorPointToWindingProjected(winding, _xyzList[k], i, j);
 		}
 
 		if (CM_RepresentativeTriangleFromWinding(winding, planeNormal, &i0, &i1, &i2) < 0.001) 
@@ -885,7 +860,7 @@ namespace Components
 
 		for (auto _i = 0; _i < 3; _i++)
 		{ for (auto _j = 0; _j < 3; _j++)
-		  {
+		  { 
 			if (fabs(w->p[_i][_j]) < Dvars::mapexport_brushEpsilon1->current.value)
 			{
 				w->p[_i][_j] = 0;
@@ -935,7 +910,7 @@ namespace Components
 	}
 
 	// build winding (poly) for side
-	bool CM_BuildBrushWindingForSide(Game::winding_t *winding, const float *planeNormal, const int sideIndex, Game::ShowCollisionBrushPt *pts, int ptCount)
+	bool CM_BuildBrushWindingForSide(Game::winding_t* winding, const float* planeNormal, const int sideIndex, Game::ShowCollisionBrushPt* pts, int ptCount)
 	{
 		int xyzCount, i, i0, i1, i2, j, k;
 		Game::vec4_t plane; Utils::vector::_VectorZero4(plane);
@@ -959,8 +934,9 @@ namespace Components
 		}
 
 		// create a list of vertex points
-		std::vector<std::vector<float>> xyzList;
-		xyzCount = CM_GetXyzList(sideIndex, pts, ptCount, xyzList, 1024);
+		glm::vec3 _xyzList[1024];
+
+		xyzCount = CM_GetXyzList(sideIndex, pts, ptCount, _xyzList, 1024);
 
 		// we need atleast a triangle to create a poly
 		if (xyzCount < 3) 
@@ -968,11 +944,8 @@ namespace Components
 			return false;
 		}
 
-		// get some point on the plane
-		glm::vec3 planePts = { xyzList[0][0], xyzList[0][1], xyzList[0][2] };
-
-		// direction of camera to current plane
-		glm::vec3 cameraDirectionToPlane = planePts - Game::Globals::locPmove_cameraOrigin;
+		// direction of camera plane
+		glm::vec3 cameraDirectionToPlane = _xyzList[0] - Game::Globals::locPmove_cameraOrigin;
 
 		// dot product between line from camera to the plane and the normal
 		// if dot > 0 then the plane is facing away from the camera (dot = 1 = plane is facing the same way as the camera; dot = -1 = plane looking directly towards the camera)
@@ -984,19 +957,14 @@ namespace Components
 		// find the major axis
 		CM_PickProjectionAxes(planeNormal, &i, &j);
 
-		winding->p[0][0] = xyzList[0][0];
-		winding->p[0][1] = xyzList[0][1];
-		winding->p[0][2] = xyzList[0][2];
-
-		winding->p[1][0] = xyzList[1][0];
-		winding->p[1][1] = xyzList[1][1];
-		winding->p[1][2] = xyzList[1][2];
+		glm::setFloat3(winding->p[0], _xyzList[0]);
+		glm::setFloat3(winding->p[1], _xyzList[1]);
 
 		winding->numpoints = 2;
 
 		for (k = 2; k < xyzCount; ++k) 
 		{
-			CM_AddExteriorPointToWindingProjected(winding, xyzList[k], i, j);
+			CM_AddExteriorPointToWindingProjected(winding, _xyzList[k], i, j);
 		}
 
 		// build a triangle of our winding points so we can check if the winding is clock-wise
@@ -1089,56 +1057,28 @@ namespace Components
 			return;
 		}
 
-		// Create static sides (from bounding box) aka. AxialPlanes (CM_BuildAxialPlanes)
-		std::vector<float>toAdd(4, 0.0f);
-		std::vector<std::vector<float>> axialPlanes(6, toAdd);
+		// Create static sides (CM_BuildAxialPlanes)
+		Game::axialPlane_t _axialPlanes[6];
+		_axialPlanes[0].plane = glm::vec3(-1.0f, 0.0f, 0.0f);
+		_axialPlanes[0].dist = -brush->mins[0];
 
-		// plane 0
-		toAdd[0] = -1.0f; 
-		toAdd[1] = 0.0f; 
-		toAdd[2] = 0.0f; 
-		toAdd[3] = -brush->mins[0];
-		axialPlanes[0] = toAdd;
+		_axialPlanes[1].plane = glm::vec3(1.0f, 0.0f, 0.0f);
+		_axialPlanes[1].dist = brush->maxs[0];
 
-		// plane 1
-		toAdd[0] = 1.0f; 
-		toAdd[1] = 0.0f; 
-		toAdd[2] = 0.0f; 
-		toAdd[3] = brush->maxs[0];
-		axialPlanes[1] = toAdd;
+		_axialPlanes[2].plane = glm::vec3(0.0f, -1.0f, 0.0f);
+		_axialPlanes[2].dist = -brush->mins[1];
 
-		// plane 2
-		toAdd[0] = 0.0f; 
-		toAdd[1] = -1.0f; 
-		toAdd[2] = 0.0f; 
-		toAdd[3] = -brush->mins[1];
-		axialPlanes[2] = toAdd;
+		_axialPlanes[3].plane = glm::vec3(0.0f, 1.0f, 0.0f);
+		_axialPlanes[3].dist = brush->maxs[1];
 
-		// plane 3
-		toAdd[0] = 0.0f; 
-		toAdd[1] = 1.0f; 
-		toAdd[2] = 0.0f; 
-		toAdd[3] = brush->maxs[1];
-		axialPlanes[3] = toAdd;
+		_axialPlanes[4].plane = glm::vec3(0.0f, 0.0f, -1.0f);
+		_axialPlanes[4].dist = -brush->mins[2];
 
-		// plane 4
-		toAdd[0] = 0.0f; 
-		toAdd[1] = 0.0f; 
-		toAdd[2] = -1.0f;
-		toAdd[3] = -brush->mins[2];
-		axialPlanes[4] = toAdd;
-
-		// plane 5
-		toAdd[0] = 0.0f;
-		toAdd[1] = 0.0f;
-		toAdd[2] = 1.0f; 
-		toAdd[3] = brush->maxs[2];
-		axialPlanes[5] = toAdd;
-
-		toAdd.shrink_to_fit();
+		_axialPlanes[5].plane = glm::vec3(0.0f, 0.0f, 1.0f);
+		_axialPlanes[5].dist = brush->maxs[2];
 
 		// intersect all planes, 3 at a time, to to reconstruct face windings 
-		ptCount = CM_ForEachBrushPlaneIntersection(brush, axialPlanes, brushPts);
+		ptCount = CM_ForEachBrushPlaneIntersection(brush, _axialPlanes, brushPts);
 
 		// we need atleast 4 valid points
 		if (ptCount >= 4)
@@ -1146,20 +1086,23 @@ namespace Components
 			// list of brushsides we are going to create within "CM_BuildBrushWindingForSideMapExport"
 			std::vector<Game::map_brushSide_t*> mapBrush;
 
+			float planeNormal[3];
+
+			auto poly_lit		= Dvars::r_drawCollision_polyLit->current.enabled;
+			auto poly_outlines	= Dvars::r_drawCollision->current.integer == 3 ? true : false;
+			auto poly_linecolor = Dvars::r_drawCollision_lineColor->current.vector;
+			auto poly_depth		= Dvars::r_drawCollision_polyDepth->current.enabled;
+			auto poly_face		= Dvars::r_drawCollision_polyFace->current.enabled;
+
 			// -------------------------------
 			// brushside [0]-[5] (axialPlanes)
 
 			for (sideIndex = 0; (unsigned int)sideIndex < 6; ++sideIndex)
 			{
-				float planeNormal[3] = 
-				{ 
-					axialPlanes[sideIndex][0], 
-					axialPlanes[sideIndex][1], 
-					axialPlanes[sideIndex][2] 
-				};
+				glm::setFloat3(planeNormal, _axialPlanes[sideIndex].plane);
 
 				// build winding for the current brushside and check if it is visible (culling)
-				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, planeNormal, sideIndex, brushPts, ptCount)) 
+				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, planeNormal, sideIndex, brushPts, ptCount))
 				{
 					if (Dvars::r_drawCollision->current.integer == 1)
 					{
@@ -1167,14 +1110,17 @@ namespace Components
 					}
 					else
 					{
-						_Debug::RB_DrawPoly(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], color, 
-							Dvars::r_drawCollision_polyLit->current.enabled, 
-							Dvars::r_drawCollision->current.integer == 3 ? true : false, 
-							Dvars::r_drawCollision_lineColor->current.vector,
-							Dvars::r_drawCollision_polyDepth->current.enabled,
-							Dvars::r_drawCollision_polyFace->current.enabled);
+						_Debug::RB_DrawPoly(
+							/* numPts	*/ *(DWORD*)windingPool, 
+							/* points	*/ (float(*)[3])& windingPool[4], 
+							/* pColor	*/ color, 
+							/* pLit		*/ poly_lit,
+							/* pOutline */ poly_outlines,
+							/* pLineCol	*/ poly_linecolor,
+							/* pDepth	*/ poly_depth,
+							/* pFace	*/ poly_face);
 					}
-					
+				
 					Game::Globals::dbgColl_drawnPlanesAmountTemp++;
 				}
 
@@ -1212,12 +1158,15 @@ namespace Components
 					}
 					else
 					{
-						_Debug::RB_DrawPoly(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], color,
-							Dvars::r_drawCollision_polyLit->current.enabled,
-							Dvars::r_drawCollision->current.integer == 3 ? true : false,
-							Dvars::r_drawCollision_lineColor->current.vector,
-							Dvars::r_drawCollision_polyDepth->current.enabled,
-							Dvars::r_drawCollision_polyFace->current.enabled);
+						_Debug::RB_DrawPoly(
+							/* numPts	*/ *(DWORD*)windingPool,
+							/* points	*/ (float(*)[3]) & windingPool[4],
+							/* pColor	*/ color,
+							/* pLit		*/ poly_lit,
+							/* pOutline */ poly_outlines,
+							/* pLineCol	*/ poly_linecolor,
+							/* pDepth	*/ poly_depth,
+							/* pFace	*/ poly_face);
 					}
 
 					Game::Globals::dbgColl_drawnPlanesAmountTemp++;
@@ -2558,9 +2507,6 @@ namespace Components
 		
 		export_inProgress = false;		// reset after exporting
 		export_currentBrushIndex = 0;	// brush index for .map file brushes
-
-		std::chrono::time_point<std::chrono::steady_clock> export_time_exportStart;
-		std::chrono::time_point<std::chrono::steady_clock> export_time_brushGenerationStart;
 		
 		// cmd :: export current map
 		if (export_mapExportCmd)
@@ -2630,7 +2576,7 @@ namespace Components
 		// Handle box selection
 		CM_BrushSelectionBox(filter_ExportSelection);
 
-		// do not highlight brushes when using the selection box
+		// do not draw brushes when using the selection box
 		if (!export_inProgress && filter_ExportSelection)
 		{
 			return;
@@ -3470,7 +3416,7 @@ namespace Components
 		Dvars::r_drawCollision_polyLit = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_polyLit",
 			/* desc		*/ "Enable fake lighting for polygons.",
-			/* default	*/ true,
+			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::r_drawCollision_material = Game::Dvar_RegisterInt(

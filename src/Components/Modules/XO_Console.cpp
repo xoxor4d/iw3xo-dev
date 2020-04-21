@@ -733,7 +733,7 @@ namespace Components
 	}
 
 	// draw a resize button at the bottom right of the console input box
-	void xo_con_DrawResizeBtn(float alpha)
+	void xo_con_DrawResizeBtn(const float alpha)
 	{
 		glm::vec4 right, bottom;
 
@@ -1014,8 +1014,9 @@ namespace Components
 		Game::g_consoleField->drawWidth = 512;
 
 		// copy "con_inputBoxColor" to dynamically change its alpha without changing the dvar
-		float loc_inputBoxColor[4];
-		memcpy(&loc_inputBoxColor, Game::Dvar_FindVar("con_inputBoxColor")->current.vector, sizeof(loc_inputBoxColor));
+		//float loc_inputBoxColor[4];
+		//memcpy(&loc_inputBoxColor, Game::Dvar_FindVar("con_inputBoxColor")->current.vector, sizeof(loc_inputBoxColor));
+		auto loc_inputBoxColor = Game::Dvar_FindVar("con_inputBoxColor")->current.vector;
 
 		// set con globals
 		auto consoleFont = GET_CONSOLEFONT;

@@ -7,7 +7,9 @@ namespace Utils
 
 	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimer();
 	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrint(const char *string /*no fmt*/);
+	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrintToFile(std::ofstream& file, const char* string /*no fmt*/);
 	void Clock_EndTimerPrintSeconds(std::chrono::time_point<std::chrono::steady_clock> clockStart, const char *string /*%.4f fmt for seconds*/);
+	void Clock_EndTimerPrintSecondsToFile(std::ofstream& file, std::chrono::time_point<std::chrono::steady_clock> clockStart, const char* string /*%.4f fmt for seconds*/);
 
 	// --------------------------------------------------
 

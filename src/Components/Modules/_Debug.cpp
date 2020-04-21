@@ -1,7 +1,5 @@
 #include "STDInclude.hpp"
 
-
-
 namespace Components
 {
 	// -------------------------------------------------------------------------
@@ -457,25 +455,33 @@ namespace Components
 		// Check if we would overflow our Surface and if we would, render all added polys
 		_Debug::RB_CheckTessOverflow(numPoints);
 
-		// Calculate face normals
-		glm::vec3 u, v, glNormal;
-
-		// Cross
-		u = glm::toVec3(points[1]) - glm::toVec3(points[0]);
-		v = glm::toVec3(points[2]) - glm::toVec3(points[0]);
-
-		glNormal.x = (u.y * v.z) - (u.z * v.y);
-		glNormal.y = (u.z * v.x) - (u.x * v.z);
-		glNormal.z = (u.x * v.y) - (u.y * v.x);
-
-		float normal[3];
-		glm::setFloat3(normal, glNormal);
-
-		for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+		if (brushLit)
 		{
-			// always calc surface normals
-			_Debug::RB_SetPolyVertWithNormal(&(*points)[3 * vertIndex], normal, color, *Game::vertexCount + vertIndex, vertIndex);
-			//_Debug::RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex, vertIndex);
+			// Calculate face normals
+			glm::vec3 u, v, glNormal;
+
+			// Cross
+			u = glm::toVec3(points[1]) - glm::toVec3(points[0]);
+			v = glm::toVec3(points[2]) - glm::toVec3(points[0]);
+
+			glNormal.x = (u.y * v.z) - (u.z * v.y);
+			glNormal.y = (u.z * v.x) - (u.x * v.z);
+			glNormal.z = (u.x * v.y) - (u.y * v.x);
+
+			float normal[3];
+			glm::setFloat3(normal, glNormal);
+
+			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+			{
+				_Debug::RB_SetPolyVertWithNormal(&(*points)[3 * vertIndex], normal, color, *Game::vertexCount + vertIndex, vertIndex);
+			}
+		}
+		else
+		{
+			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+			{
+				_Debug::RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex, vertIndex);
+			}
 		}
 
 		for (vertIndex = 0; vertIndex < numPoints - 2; ++vertIndex)

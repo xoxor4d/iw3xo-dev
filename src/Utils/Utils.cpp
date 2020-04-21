@@ -54,11 +54,28 @@ namespace Utils
 		return std::chrono::high_resolution_clock::now();
 	}
 
+	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrintToFile(std::ofstream &file, const char* string /*no fmt*/)
+	{
+		if(string)
+			file << string;
+
+		return std::chrono::high_resolution_clock::now();
+	}
+
 	void Clock_EndTimerPrintSeconds(std::chrono::time_point<std::chrono::steady_clock> clockStart, const char *string /*%.4f fmt for seconds*/)
 	{
 		auto clockEnd = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed = clockEnd - clockStart;
 		Game::Com_PrintMessage(0, Utils::VA(string, elapsed.count()), 0);
+	}
+
+	void Clock_EndTimerPrintSecondsToFile(std::ofstream& file, std::chrono::time_point<std::chrono::steady_clock> clockStart, const char* string /*%.4f fmt for seconds*/)
+	{
+		auto clockEnd = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed = clockEnd - clockStart;
+
+		if(string)
+			file << Utils::VA(string, elapsed.count()) << std::endl;
 	}
 
 	int Q_strncasecmp(char *s1, char *s2, int n)
