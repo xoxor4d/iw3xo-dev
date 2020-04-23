@@ -10,7 +10,5 @@ namespace Components
 		const char* getName() override { return "QuickPatch"; };
 
 	private:
-		//static void OnInitStub();
-		//static void PerformInit();
 	};
 }

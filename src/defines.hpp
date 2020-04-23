@@ -5,6 +5,17 @@
 // should always match REMOTE_MAX_SEL_BRUSHES in radiant
 #define RADIANT_MAX_SEL_BRUSHES 16
 
+
+// *
+// Common
+
+#define FF_LOAD_ADDON_MENU		true
+#define FF_ADDON_MENU_NAME		"xcommon_iw3xo_menu"
+
+#define FF_LOAD_ADDON_REQ		true
+#define FF_ADDON_REQ_NAME		"xcommon_iw3xo"
+
+
 // *
 // Version
 
@@ -12,36 +23,45 @@
 #define IW3XO_BUILDSTRING "IW3xo :: build %.lf :: %s", IW3X_BUILDNUMBER, __TIMESTAMP__
 #define IW3XO_BUILDSTRING_CHANGELOG "IW3xo :: build %.lf :: %s %s", IW3X_BUILDNUMBER, __TIMESTAMP__
 
+
 // *
 // Changelog
 
 // avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space
 
-#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s\n"
+#if DEBUG
+	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s :: ^1DEBUG\n"
+#else
+	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s\n"
+#endif
 
 #define IW3XO_CHANGELOG_01_Y_OFFS	10
 #define IW3XO_CHANGELOG_01_SEP		1
 #define IW3XO_CHANGELOG_01_TITLE	"[General]\n"
-#define IW3XO_CHANGELOG_01			"-  Fixed font size issues\n" \
-									"-  Borderless fullscreen (r_noborder + vid_xpos/ypos 0) (c) IW4x\n"
+#define IW3XO_CHANGELOG_01			"-  Increased asset pools (c) IW4x\n" \
+									"-  Usage of <xo_shaderoverlay> now disables <r_glow_allowed>\n" \
+									"-  Refactoring"
 
-#define IW3XO_CHANGELOG_02_Y_OFFS	-16
+#define IW3XO_CHANGELOG_02_Y_OFFS	0
 #define IW3XO_CHANGELOG_02_SEP		1
-#define IW3XO_CHANGELOG_02_TITLE	"[Movement]"
-#define IW3XO_CHANGELOG_02			"-  pm_debug_drawAxis [Draw axial information (Axis/Fps Zones)]\n"	\
-									"-  pm_debug_drawAxis_radius [Radius of axis/zones circle]\n" \
-									"-  pm_debug_drawAxis_height [Height offset (from player origin)]\n" \
-									"-  pm_debug_drawAxis_col125/250/333 [Color of zone]"
+#define IW3XO_CHANGELOG_02_TITLE	"[Renderer]"
+#define IW3XO_CHANGELOG_02			"-  r_d3d9ex [enables extended dx9 interface (on by default)] (c) IW4x\n"	\
+									"-  Fixed invalid sampler crashes when drawing debug polygons\n" \
+									"-  Increased performance when using unlit debug polygons (r_drawCollision_polyLit 0)"
 
-#define IW3XO_CHANGELOG_03_Y_OFFS	999
-#define IW3XO_CHANGELOG_03_SEP		0
-#define IW3XO_CHANGELOG_03_TITLE	"."
-#define IW3XO_CHANGELOG_03			"."
+#define IW3XO_CHANGELOG_03_Y_OFFS	-8
+#define IW3XO_CHANGELOG_03_SEP		1
+#define IW3XO_CHANGELOG_03_TITLE	"[Map Export]"
+#define IW3XO_CHANGELOG_03			"-  fixed brushmodel exporting\n" \
+									"-  now skipping brushes with more then 128 points\n" \
+									"-  play with <mapexport_brushEpsilon1/2> and <mapexport_brushMinSize> to export smaller but prob. invalid brushes"
 
-#define IW3XO_CHANGELOG_04_Y_OFFS	999
-#define IW3XO_CHANGELOG_04_SEP		0
-#define IW3XO_CHANGELOG_04_TITLE	"."
-#define IW3XO_CHANGELOG_04			"."
+#define IW3XO_CHANGELOG_04_Y_OFFS	-24
+#define IW3XO_CHANGELOG_04_SEP		1
+#define IW3XO_CHANGELOG_04_TITLE	"[Console]"
+#define IW3XO_CHANGELOG_04			"-  fixed matchbox-values\n" \
+									"-  re-added dvars <xo_con_hintBoxTxtColor_ ...>"
+
 
 // *
 // General

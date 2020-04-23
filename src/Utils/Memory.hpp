@@ -34,7 +34,7 @@ namespace Utils
 
 				this->refMemory.clear();
 
-				for (auto data : this->pool)
+				for (auto& data : this->pool)
 				{
 					Memory::Free(data);
 				}
@@ -95,7 +95,7 @@ namespace Utils
 				return (this->pool.empty() && this->refMemory.empty());
 			}
 
-			char* duplicateString(std::string string)
+			char* duplicateString(const std::string& string)
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
@@ -104,10 +104,31 @@ namespace Utils
 				return data;
 			}
 
+			bool isPointerMapped(void* ptr)
+			{
+				return this->ptrMap.find(ptr) != this->ptrMap.end();
+			}
+
+			template <typename T> T* getPointer(void* oldPtr)
+			{
+				if (this->isPointerMapped(oldPtr))
+				{
+					return reinterpret_cast<T*>(this->ptrMap[oldPtr]);
+				}
+
+				return nullptr;
+			}
+
+			void mapPointer(void* oldPtr, void* newPtr)
+			{
+				this->ptrMap[oldPtr] = newPtr;
+			}
+
 		private:
-			std::vector<void*> pool;
-			std::map<void*, FreeCallback> refMemory;
 			std::mutex mutex;
+			std::vector<void*> pool;
+			std::unordered_map<void*, void*> ptrMap;
+			std::unordered_map<void*, FreeCallback> refMemory;
 		};
 
 		static void* AllocateAlign(size_t length, size_t alignment);
@@ -121,7 +142,7 @@ namespace Utils
 			return static_cast<T*>(Allocate(count * sizeof(T)));
 		}
 
-		static char* DuplicateString(std::string string);
+		static char* DuplicateString(const std::string& string);
 
 		static void Free(void* data);
 		static void Free(const void* data);
@@ -130,5 +151,13 @@ namespace Utils
 		static void FreeAlign(const void* data);
 
 		static bool IsSet(void* mem, char chr, size_t length);
+
+		static bool IsBadReadPtr(const void* ptr);
+		static bool IsBadCodePtr(const void* ptr);
+
+		static Utils::Memory::Allocator* GetAllocator();
+
+	private:
+		static Utils::Memory::Allocator MemAllocator;
 	};
 }

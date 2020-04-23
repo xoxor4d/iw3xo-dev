@@ -13,7 +13,9 @@ namespace Components
 		bool _Debug;
 		bool _Game;
 		bool _Map;
+		bool _Common;
 		bool Command;
+		bool D3D9Ex;
 		bool GScr_Methods;
 		bool QuickPatch;
 		bool PM_Movement;
@@ -62,12 +64,14 @@ namespace Components
 #include "Modules/_Debug.hpp"
 #include "Modules/_Game.hpp"
 #include "Modules/_Map.hpp"
+#include "Modules/_Common.hpp"
 
 #include "Modules/Command.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/GScr_Methods.hpp"
 
 // Addons
+#include "Modules/D3D9Ex.hpp"
 #include "Modules/PM_Movement.hpp"
 #include "Modules/XO_Console.hpp"
 #include "Modules/RB_DrawCollision.hpp"

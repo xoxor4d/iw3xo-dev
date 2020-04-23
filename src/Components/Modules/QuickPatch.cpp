@@ -1,34 +1,7 @@
 #include "STDInclude.hpp"
 
-// enables addon fastfiles
-#define FF_LOAD_ADDON_MENU		true
-#define FF_ADDON_MENU_NAME		"xcommon_iw3xo_menu"
-
-#define FF_LOAD_ADDON_REQ		true
-#define FF_ADDON_REQ_NAME		"xcommon_iw3xo"
-
-char* MENU_CHANGELOG_TITLE_FMT = "IW3XO :: %.lf :: %s\n"; // IW3X_BUILDNUMBER, __TIMESTAMP__
-
 namespace Components
 {
-	//void QuickPatch::PerformInit()
-	//{
-	//	//Command::Execute("set dedicated 0", true);
-	//}
-
-	//__declspec(naked) void QuickPatch::OnInitStub()
-	//{
-	//	__asm
-	//	{
-	//		pushad
-	//		call QuickPatch::PerformInit
-	//		popad
-
-	//		push 4FD740h
-	//		retn
-	//	}
-	//}
-
 	// on renderer initialization
 	void PrintLoadedModules()
 	{
@@ -46,281 +19,9 @@ namespace Components
 			popad
 
 			Call	CL_PreInitRenderer_Func
-			jmp		retnPt			// continue exec
+			jmp		retnPt
 		}
 	}
-
-	// --------------------------------------------------------
-
-	bool iwdMatchXCOMMON(const char* s0)
-	{
-		if (!Utils::Q_stricmpn(s0, "xcommon_", 8)) 
-		{
-			return 0;
-		}
-
-		return 1;
-	}
-
-	bool iwdMatchIW(const char* s0)
-	{
-		if (!Utils::Q_stricmpn(s0, "iw_", 3)) 
-		{
-			return 0;
-		}
-
-		return 1;
-	}
-
-	//load "iw_" iwds and "xcommon_" iwds as localized ones ;)
-	__declspec(naked) void FS_MakeIWDsLocalized()
-	{
-		const static uint32_t errMsg	= 0x55DBCA;
-		const static uint32_t hax		= 0x55DBE8;
-		__asm
-		{
-			push	edi				// current iwd string + ext
-			Call	iwdMatchIW
-			add		esp, 4
-			test    eax, eax
-			
-			je		MATCH			// jump if iwd matched iw_
-
-									// if not, cmp to xcommon_
-			push	edi				// current iwd string + ext
-			Call	iwdMatchXCOMMON
-			add		esp, 4
-			test    eax, eax
-			
-			je		MATCH			// jump if iwd matched xcommon_
-			jmp		errMsg			// yeet
-
-		MATCH :
-			mov     ebx, [ebp - 4]		// whatever df that is
-			mov		[ebp - 8], 1		// set qLocalized to true ;)
-			mov		[ebp - 0Ch], esi	// whatever df that is
-			jmp		hax
-		}
-	}
-
-	// --------------------------------------------------------
-
-	// load common + addon fastfiles (only on init or when changing CGame)
-	void DB_LoadCommonFastFiles()
-	{
-		/*
-		only unload zones with a set flag
-		:: zone.name = 0;
-		:: zone.allocFlags = 0;
-		:: zone.freeFlags = ZONE_FLAG_TO_UNLOAD
-		*/
-
-		int i = 0;
-		Game::XZoneInfo XZoneInfoStack[7];
-
-		// ------------------------------------
-
-		XZoneInfoStack[i].name			= *Game::zone_code_post_gfx_mp;
-		XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_POST_GFX;
-		XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_POST_GFX_FREE;
-		++i;
-
-		// ------------------------------------
-
-		if (*Game::zone_localized_code_post_gfx_mp)
-		{
-			XZoneInfoStack[i].name			= *Game::zone_localized_code_post_gfx_mp;
-			XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_LOC_POST_GFX;
-			XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_LOC_POST_GFX_FREE;
-			++i;
-		}
-
-		// ---------------------------------------------------------------------------------------------------------
-
-		// if addon_menu loading is enabled
-		if (FF_LOAD_ADDON_MENU)
-		{
-			// if the fastfile exists
-			if (FF_ADDON_MENU_NAME && Game::DB_FileExists(FF_ADDON_MENU_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
-			{
-				// file exists, check if a mod was loaded
-				if (!*Game::zone_mod)
-				{
-					// only load the menu when no mod is loaded -- unload on mod | map load
-					XZoneInfoStack[i].name = FF_ADDON_MENU_NAME;
-
-					XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_MOD | Game::XZONE_FLAGS::XZONE_DEBUG;
-					++i;
-
-					// we have to sync assets or we run into issues when the game is trying to access unloaded assets
-					Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
-
-					Game::R_BeginRemoteScreenUpdate();
-					WaitForSingleObject(Game::dbHandle, 0xFFFFFFFF);
-					Game::R_EndRemoteScreenUpdate();
-					Game::DB_SyncXAssets();
-
-					// start a new zone stack
-					i = 0;
-				}
-			}
-
-			// if addon_menu loading is enabled and file not found
-			else if (FF_LOAD_ADDON_MENU) 
-			{
-				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
-			}
-		}
-
-		// mod loading -- maybe sync assets for addon menu too?
-		if (*Game::zone_mod) 
-		{
-			XZoneInfoStack[i].name			= *Game::zone_mod;
-			XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_MOD;
-			XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_MOD_FREE;
-			++i;
-
-			Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
-
-			Game::R_BeginRemoteScreenUpdate();
-			WaitForSingleObject(Game::dbHandle, 0xFFFFFFFF);
-
-			Game::R_EndRemoteScreenUpdate();
-			Game::DB_SyncXAssets();
-
-			// start a new zone stack
-			i = 0;
-		}
-
-		// ---------------------------------------------------------------------------------------------------------
-
-		if (*Game::zone_ui_mp) // not loaded when starting dedicated servers
-		{
-			XZoneInfoStack[i].name			= *Game::zone_ui_mp;
-			XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_UI;
-			XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_UI_FREE;
-			++i;
-		}
-
-		// ------------------------------------
-
-		XZoneInfoStack[i].name			= *Game::zone_common_mp;
-		XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_COMMON;
-		XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_COMMON_FREE;
-		++i;
-
-		// ------------------------------------
-
-		if (*Game::zone_localized_common_mp) // not loaded on when starting dedicated servers
-		{
-			XZoneInfoStack[i].name			= *Game::zone_localized_common_mp;
-			XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_LOC_COMMON;
-			XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_LOC_COMMON_FREE;
-			++i;
-		}
-
-		// ------------------------------------
-
-		// load required addon fastfile last, if addon_required loading enabled
-		if (FF_LOAD_ADDON_REQ)
-		{
-			// if the fastfile exists
-			if (FF_ADDON_REQ_NAME && Game::DB_FileExists(FF_ADDON_REQ_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
-			{
-				XZoneInfoStack[i].name = FF_ADDON_REQ_NAME;
-				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
-				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
-				++i;
-			}
-
-			// if addon_required loading is enabled and file not found
-			else if (FF_LOAD_ADDON_REQ) 
-			{
-				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_REQ_NAME), 0);
-			}
-		}
-
-		// ------------------------------------
-
-		Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
-	}
-
-	// --------------------------------------------------------
-
-	// realloc zones that get unloaded on map load (eg. ui_mp)
-	void Com_StartHunkUsers()
-	{
-		if (Game::Dvar_FindVar("useFastFile")->current.enabled)
-		{
-			int i = 0;
-			Game::XZoneInfo XZoneInfoStack[2];
-
-			// if addon menu loading is enabled
-			if (FF_LOAD_ADDON_MENU)
-			{
-				// if the fastfile exists
-				if (FF_ADDON_MENU_NAME && Game::DB_FileExists(FF_ADDON_MENU_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
-				{
-					// file exists, check if a mod was loaded
-					if (!*Game::zone_mod)
-					{
-						// only load the menu when no mod is loaded -- unload on mod | map load
-						XZoneInfoStack[i].name = FF_ADDON_MENU_NAME;
-
-						XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_MOD | Game::XZONE_FLAGS::XZONE_DEBUG;
-						XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_UI_FREE_INGAME;
-						++i;
-					}
-				}
-
-				// if addon menu loading is enabled and file not found
-				else if (FF_LOAD_ADDON_MENU) 
-				{
-					Game::Com_PrintMessage(0, Utils::VA("^1Com_StartHunkUsers^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
-				}
-			}
-
-			// ------------------------------------
-
-			XZoneInfoStack[i].name			= *Game::zone_ui_mp;
-			XZoneInfoStack[i].allocFlags	= Game::XZONE_FLAGS::XZONE_UI;
-			XZoneInfoStack[i].freeFlags		= Game::XZONE_FLAGS::XZONE_UI_FREE_INGAME;
-			++i;
-
-			// ------------------------------------
-
-			Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
-		}
-	}
-
-	// :: Com_StartHunkUsers
-	__declspec(naked) void Com_StartHunkUsers_stub()
-	{
-		const static uint32_t retnPt = 0x500238;
-		__asm
-		{
-			pushad
-			Call	Com_StartHunkUsers
-			popad
-
-			jmp		retnPt			// continue exec
-		}
-	}
-
-	// --------------------------------------------------------
-
-	// disable cheat / write check
-	__declspec(naked) void disable_dvar_cheats_stub()
-	{
-		const static uint32_t overjumpTo = 0x56B3A1;
-		__asm
-		{
-			movzx   eax, word ptr[edi + 8]	// overwritten op
-			jmp		overjumpTo
-		}
-	}
-
-	// --------------------------------------------------------
 
 	// r_init
 	__declspec(naked) void Fix_ConsolePrints01()
@@ -379,65 +80,91 @@ namespace Components
 		}
 	}
 
-	// register string dvars
-	void R_RegisterStringDvars()
+	void codesampler_error(Game::MaterialShaderArgument* arg, Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state, const char* sampler, int droptype, const char* msg, ...)
 	{
-		_UI::MainMenu_Changelog();
+		if (!sampler || !state || !state->material || !state->technique) {
+			return;
+		}
+
+		//__debugbreak();
+
+		Game::Com_PrintMessage(0, Utils::VA(
+			"^1Tried to use sampler <%s> when it isn't valid!\n"
+			"^7[Passdump]\n"
+			"|-> Material ----- %s\n"
+			"|-> Technique ----	%s\n"
+			"|-> RenderTarget - %s\n"
+			"|-> Not setting sampler using R_SetSampler!\n", 
+			sampler, state->material->info.name, state->technique->name, Game::RendertargetStringFromID(state->renderTargetId)), 0);
 	}
 
-	__declspec(naked) void R_RegisterStringDvars_stub()
+	// R_SetupPassPerObjectArgs
+	__declspec(naked) void codesampler_error01_stub()
 	{
-		const static uint32_t R_RegisterSunDvars_Func = 0x636FC0;
-		const static uint32_t retnPt = 0x629D7F;
+		const static uint32_t rtnPt = 0x64BD0F; // offset after call to R_SetSampler
 		__asm
 		{
-			pushad
-			Call	R_RegisterStringDvars
-			popad
+			// args pushed before:
+			// push    fmt
+			// push    msg
+			// push    dropType
 
-			Call	R_RegisterSunDvars_Func
-			jmp		retnPt
-		}
-	}
+			mov     eax, [esp + 8h]	// move sampler string into eax
+			push	eax					// decreased esp by 4
+			mov     eax, [esp + 14h]	// move GfxCmdBufState* into eax (now at 14h)
+			push	eax					// GfxCmdBufState*
+			push	ebx					// GfxCmdBufSourceState*
+			push	edi					// MaterialShaderArgument*
+#if DEBUG
+			Call	codesampler_error	// only dump info on debug builds
+#endif
+			add		esp, 28
 
-	void ForceDvarsOnInit()
-	{
-		// force depthbuffer
-		if (!Game::Dvar_FindVar("r_zFeather")->current.enabled)
-		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
-		}
-
-		if (!Game::Dvar_FindVar("r_distortion")->current.enabled)
-		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
-		}
-	}
-
-	__declspec(naked) void R_BeginRegistration_stub()
-	{
-		const static uint32_t rtnPt = 0x46CB0E;
-		__asm
-		{
-			pushad
-			Call	ForceDvarsOnInit
-			popad
-
-			mov     ecx, 0Ch	// overwritten op
+			mov     eax, [esp + 14h]
+			mov     ecx, [esp + 24h]
+			movzx   esi, word ptr[edi + 2]
+			push    eax
+			push    ecx
+			push    ebx
+			mov     eax, ebp
+			//call    R_SetSampler		// skip call on null sampler
 			jmp		rtnPt
 		}
 	}
 
+	// R_SetPassShaderStableArguments (not used anymore?)
+	__declspec(naked) void codesampler_error02_stub()
+	{
+		const static uint32_t rtnPt = 0x64C36C; // offset after call to R_SetSampler
+		__asm
+		{
+			// args pushed before:
+			// push    fmt
+			// push    msg
+			// push    dropType
+
+			// just skip the error and R_SetSampler
+			//push	ebx // GfxCmdBufState* <- wrong
+			//push	ebp // GfxCmdBufSourceState*
+			//push	edi // MaterialShaderArgument*
+			//Call	codesampler_error
+			add		esp, 12
+
+			mov     eax, [esp + 20h]
+			movzx   esi, word ptr[edi + 2]
+			push    eax
+			mov     eax, [esp + 18h]
+			push    ebx
+			push    ebp
+			//call    R_SetSampler
+
+			jmp		rtnPt
+		}
+	}
+
+
 	QuickPatch::QuickPatch()
 	{
-		// Set fs_game
-		//Utils::Hook::Set<char*>(0x55E509, "mods/q3");
-		//Utils::Hook(0x4FF20A, QuickPatch::OnInitStub, HOOK_CALL).install()->quick();
-
-		// Disable dvar cheat / write protection
-		Utils::Hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook::Nop(0x56B33A, 1);
-
 		// Force debug logging
 		Utils::Hook::Nop(0x4FCB9D, 8);
 
@@ -458,9 +185,6 @@ namespace Components
 		// Disable AutoUpdate Check?
 		Utils::Hook::Nop(0x4D76DA, 5);
 
-		// Remove "setstat: developer_script must be false"
-		Utils::Hook::Nop(0x46FCFB, 5);
-
 		// Precaching beyond level load
 		Utils::Hook::Nop(0x4E2216, 2); // model 1
 		Utils::Hook::Set<BYTE>(0x4E2282, 0xEB); // model 2
@@ -473,19 +197,16 @@ namespace Components
 		});
 
 
-		// ----
-		// Init
-
-		 // Stub after renderer was initialized
-		Utils::Hook(0x46CB09, R_BeginRegistration_stub, HOOK_JUMP).install()->quick();
-
-		// Register String Dvars (doing so on module load crashes the game (SL_GetStringOfSize))
-		Utils::Hook(0x629D7A, R_RegisterStringDvars_stub, HOOK_JUMP).install()->quick();
+		// *
+		// Console prints
 
 		// Print loaded modules to console
 		Utils::Hook(0x46FD00, CL_PreInitRenderer_stub, HOOK_JUMP).install()->quick();
 		
-		// fix default console prints
+		// Remove "setstat: developer_script must be false"
+		Utils::Hook::Nop(0x46FCFB, 5);
+
+		// Add newlines 
 		Utils::Hook(0x5F4EE1, Fix_ConsolePrints01, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x57769D, Fix_ConsolePrints02, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x52F3EE, Fix_ConsolePrints03, HOOK_JUMP).install()->quick();
@@ -493,43 +214,16 @@ namespace Components
 		Utils::Hook::Nop(0x4BF05B, 5); Utils::Hook::Nop(0x4BF06C, 5);
 
 
-		// --------
-		// FastFile
-	
-		// rewritten the whole function
-		Utils::Hook(0x5F4810, DB_LoadCommonFastFiles, HOOK_CALL).install()->quick();
-
-		// ^ Com_StartHunkUsers Mid-hook (realloc files that were unloaded on map load)
-		Utils::Hook::Nop(0x50020F, 6);  Utils::Hook(0x50020F, Com_StartHunkUsers_stub, HOOK_JUMP).install()->quick();
+		// *
+		// Renderer
 		
-
-		// ----
-		// IWDs
-
-		// Remove Impure client (iwd) check 
-		Utils::Hook::Nop(0x55BFB3, 30);
-		
-		// Load "iw_" and "xcommon_" iwds as localized (works in all situations + elements in xcommon files can overwrite prior files)
-		Utils::Hook(0x55DBB4, FS_MakeIWDsLocalized, HOOK_JUMP).install()->quick();
+		// Hook "Com_Error(1, "Tried to use '%s' when it isn't valid\n", codeSampler)" to skip a call to R_SetSampler
+		Utils::Hook(0x64BCF1, codesampler_error01_stub, HOOK_JUMP).install()->quick(); // R_SetupPassPerObjectArgs
+		Utils::Hook(0x64C350, codesampler_error02_stub, HOOK_JUMP).install()->quick(); // R_SetPassShaderStableArguments (not really used)
 
 
-		// --------
+		// *
 		// Commands
-
-		Command::Add("iw3xo_github", [](Command::Params)
-		{
-			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-dev/", 0, 0, SW_SHOW);
-		});
-
-		Command::Add("iw3xo_radiant_github", [](Command::Params)
-		{
-			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-radiant/", 0, 0, SW_SHOW);
-		});
-
-		Command::Add("help", [](Command::Params)
-		{
-			ShellExecute(0, 0, L"https://xoxor4d.github.io/projects/iw3xo/#in-depth", 0, 0, SW_SHOW);
-		});
 
 		// extend
 		Command::Add("ent_rotateTo", [](Command::Params params)

@@ -20,11 +20,13 @@
 #include <intrin.h>
 #include <wincrypt.h>
 #include <time.h>
+#include <d3d9.h>
 #include <timeapi.h>
 #include <shellapi.h>
 #include <WinSock2.h>
 #include <assert.h>
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "d3d9.lib")
 
 #pragma warning(push)
 #pragma warning(disable: 4244)

@@ -806,7 +806,7 @@ namespace Components
 
 	_UI::_UI()
 	{
-		// ---------------
+		// *
 		// Main Menu Hooks
 
 		// Main Menu Version (UI_VersionNumber Call in UI_Refresh)
@@ -817,6 +817,7 @@ namespace Components
 
 		// hook "Item_RunScript" to implement custom uiScripts callable from menu files
 		/*Utils::Hook::Nop(0x54DF35, 8);*/	Utils::Hook(0x545BED, UI_uiScriptsAddons_stub, HOOK_JUMP).install()->quick();
+
 
 		// *
 		// List Box Slider
@@ -833,7 +834,8 @@ namespace Components
 		// Change material "material_ui_scrollbar_thumb" to white and add a color (thumb)
 		Utils::Hook::Nop(0x553394, 6);	Utils::Hook(0x553394, Item_ListBox_Paint_SliderThumb_stub, HOOK_JUMP).install()->quick();
 
-		// --------
+
+		// *
 		// Commands
 
 		// menu_open menuName .. currently only opens menus when in a menu?
@@ -887,7 +889,23 @@ namespace Components
 			}
 		});
 
-		// -----
+		Command::Add("iw3xo_github", [](Command::Params)
+		{
+			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-dev/", 0, 0, SW_SHOW);
+		});
+
+		Command::Add("iw3xo_radiant_github", [](Command::Params)
+		{
+			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-radiant/", 0, 0, SW_SHOW);
+		});
+
+		Command::Add("help", [](Command::Params)
+		{
+			ShellExecute(0, 0, L"https://xoxor4d.github.io/projects/iw3xo/#in-depth", 0, 0, SW_SHOW);
+		});
+
+
+		// *
 		// Dvars
 
 		Dvars::ui_button_highlight_radius = Game::Dvar_RegisterFloat(

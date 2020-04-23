@@ -2,10 +2,13 @@
 
 namespace Utils
 {
+	Utils::Memory::Allocator Memory::MemAllocator;
+
 	void* Memory::AllocateAlign(size_t length, size_t alignment)
 	{
 		void* data = _aligned_malloc(length, alignment);
 		assert(data != nullptr);
+		if (data) ZeroMemory(data, length);
 		return data;
 	}
 
@@ -16,7 +19,7 @@ namespace Utils
 		return data;
 	}
 
-	char* Memory::DuplicateString(std::string string)
+	char* Memory::DuplicateString(const std::string& string)
 	{
 		char* newString = Memory::AllocateArray<char>(string.size() + 1);
 		std::memcpy(newString, string.data(), string.size());
@@ -63,5 +66,40 @@ namespace Utils
 		}
 
 		return true;
+	}
+
+	bool Memory::IsBadReadPtr(const void* ptr)
+	{
+		MEMORY_BASIC_INFORMATION mbi = { nullptr };
+		if (VirtualQuery(ptr, &mbi, sizeof(mbi)))
+		{
+			DWORD mask = (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
+			bool b = !(mbi.Protect & mask);
+			// check the page is not a guard page
+			if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) b = true;
+
+			return b;
+		}
+		return true;
+	}
+
+	bool Memory::IsBadCodePtr(const void* ptr)
+	{
+		MEMORY_BASIC_INFORMATION mbi = { nullptr };
+		if (VirtualQuery(ptr, &mbi, sizeof(mbi)))
+		{
+			DWORD mask = (PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
+			bool b = !(mbi.Protect & mask);
+			// check the page is not a guard page
+			if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) b = true;
+
+			return b;
+		}
+		return true;
+	}
+
+	Utils::Memory::Allocator* Memory::GetAllocator()
+	{
+		return &Memory::MemAllocator;
 	}
 }

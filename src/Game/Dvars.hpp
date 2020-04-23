@@ -1,4 +1,5 @@
 #pragma once
+// * dvars assigned at runtime
 
 namespace Dvars
 {
@@ -32,10 +33,6 @@ namespace Dvars
 	extern Game::dvar_s* ui_changelog02;
 	extern Game::dvar_s* ui_changelog03;
 	extern Game::dvar_s* ui_changelog04;
-	extern Game::dvar_s* r_aspectRatio;
-	extern Game::dvar_s* r_noborder;
-	extern Game::dvar_s* vid_xpos;
-	extern Game::dvar_s* vid_ypos;
 	extern Game::dvar_s* xo_menu_dbg;
 
 
@@ -106,6 +103,21 @@ namespace Dvars
 	extern Game::dvar_s* pm_debug_drawAxis_col250;
 	extern Game::dvar_s* pm_debug_drawAxis_col333;
 
+
+	// Renderer
+	extern Game::dvar_s* r_aspectRatio;
+	extern Game::dvar_s* r_noborder;
+	extern Game::dvar_s* vid_xpos;
+	extern Game::dvar_s* vid_ypos;
+	extern Game::dvar_s* r_d3d9ex;
+	extern Game::dvar_s* r_showFbColorDebug; // *
+	extern Game::dvar_s* r_showFloatZDebug; // *
+	extern Game::dvar_s* sc_showDebug; // *
+	extern Game::dvar_s* r_glow_allowed; // *
+	extern Game::dvar_s* r_zFeather; // *
+	extern Game::dvar_s* r_distortion; // *
+
+
 	// Debug collision
 	extern Game::dvar_s* r_drawCollision;
 	extern Game::dvar_s* r_drawCollision_brushAmount;
@@ -170,4 +182,8 @@ namespace Dvars
 	// Random stock
 	extern Game::dvar_s* snaps;
 	extern Game::dvar_s* cg_fovScale;
+
+	// ----------------------------
+
+	bool Assign_StockToGlobalNull(const char* stock, Game::dvar_s* global);
 }

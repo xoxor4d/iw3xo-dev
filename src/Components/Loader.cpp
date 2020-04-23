@@ -20,7 +20,9 @@ namespace Components
 		active._Debug = true;
 		active._Game = true;
 		active._Map = true;
+		active._Common = true;
 		active.Command = true;
+		active.D3D9Ex = true;
 		active.GScr_Methods = true;
 		active.QuickPatch = true;
 		active.PM_Movement = true;
@@ -38,10 +40,12 @@ namespace Components
 		REGISTER_MODULE(_Debug);
 		REGISTER_MODULE(_Game);
 		REGISTER_MODULE(_Map);
-		// Addons
+		REGISTER_MODULE(_Common);
 		REGISTER_MODULE(Command);
 		REGISTER_MODULE(GScr_Methods);
 		REGISTER_MODULE(QuickPatch);
+		// Addons
+		REGISTER_MODULE(D3D9Ex);
 		REGISTER_MODULE(PM_Movement);
 		REGISTER_MODULE(XO_Console);
 		REGISTER_MODULE(RB_DrawCollision);

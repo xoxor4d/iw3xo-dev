@@ -1,4 +1,5 @@
 #include "STDInclude.hpp"
+// * dvars assigned at runtime
 
 namespace Dvars
 {
@@ -14,7 +15,7 @@ namespace Dvars
 	Game::dvar_s* radiant_brushWireframeColor = nullptr;
 
 
-	// Display
+	// Menu
 	Game::dvar_s* ui_ultrawide = nullptr;
 	Game::dvar_s* ui_button_highlight_radius = nullptr;
 	Game::dvar_s* ui_button_highlight_brightness = nullptr;
@@ -32,10 +33,6 @@ namespace Dvars
 	Game::dvar_s* ui_changelog02 = nullptr;
 	Game::dvar_s* ui_changelog03 = nullptr;
 	Game::dvar_s* ui_changelog04 = nullptr;
-	Game::dvar_s* r_aspectRatio = nullptr;
-	Game::dvar_s* r_noborder = nullptr;
-	Game::dvar_s* vid_xpos = nullptr;
-	Game::dvar_s* vid_ypos = nullptr;
 	Game::dvar_s* xo_menu_dbg = nullptr;
 
 
@@ -45,22 +42,18 @@ namespace Dvars
 	Game::dvar_s* con_minicon_fontHeight = nullptr;
 	Game::dvar_s* con_minicon_fontColor = nullptr;
 	Game::dvar_s* con_minicon_fontStyle = nullptr;
-
 	Game::dvar_s* xo_con_fltCon = nullptr;
 	Game::dvar_s* xo_con_fltConLeft = nullptr;
 	Game::dvar_s* xo_con_fltConTop = nullptr;
 	Game::dvar_s* xo_con_fltConRight = nullptr;
 	Game::dvar_s* xo_con_fltConBottom = nullptr;
-
 	Game::dvar_s* xo_con_outputHeight = nullptr;
 	Game::dvar_s* xo_con_maxMatches = nullptr;
 	Game::dvar_s* xo_con_useDepth = nullptr;
 	Game::dvar_s* xo_con_fontSpacing = nullptr;
 	Game::dvar_s* xo_con_padding = nullptr;
-
 	Game::dvar_s* xo_con_cursorOverdraw = nullptr;
 	Game::dvar_s* xo_con_cursorState = nullptr;
-
 	Game::dvar_s* xo_con_hintBoxTxtColor_currentDvar = nullptr;
 	Game::dvar_s* xo_con_hintBoxTxtColor_currentValue = nullptr;
 	Game::dvar_s* xo_con_hintBoxTxtColor_defaultValue = nullptr;
@@ -105,6 +98,21 @@ namespace Dvars
 	Game::dvar_s* pm_debug_drawAxis_col125 = nullptr;
 	Game::dvar_s* pm_debug_drawAxis_col250 = nullptr;
 	Game::dvar_s* pm_debug_drawAxis_col333 = nullptr;
+
+
+	// Renderer
+	Game::dvar_s* r_aspectRatio = nullptr;
+	Game::dvar_s* r_noborder = nullptr;
+	Game::dvar_s* vid_xpos = nullptr;
+	Game::dvar_s* vid_ypos = nullptr;
+	Game::dvar_s* r_d3d9ex = nullptr;
+	Game::dvar_s* r_showFbColorDebug = nullptr; // * bool
+	Game::dvar_s* r_showFloatZDebug = nullptr; // *
+	Game::dvar_s* sc_showDebug = nullptr; // *
+	Game::dvar_s* r_glow_allowed = nullptr; // *
+	Game::dvar_s* r_zFeather = nullptr; // *
+	Game::dvar_s* r_distortion = nullptr; // *
+
 
 	// Debug Collision
 	Game::dvar_s* r_drawCollision = nullptr;
@@ -171,4 +179,22 @@ namespace Dvars
 	// Random stock
 	Game::dvar_s* snaps = nullptr;
 	Game::dvar_s* cg_fovScale = nullptr;
+
+	// ----------------------------
+
+	// only assign when global is nullptr
+	bool Dvars::Assign_StockToGlobalNull(const char* stock, Game::dvar_s* global)
+	{
+		if (!global)
+		{
+			auto temp = Game::Dvar_FindVar(stock); //->current.enabled;
+			if  (temp) 
+			{
+				global = temp;
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

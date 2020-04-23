@@ -983,10 +983,6 @@ namespace Components
 		xo_con_DrawOutputText(conAddon.conItems.fullCon.outputBox.x + 6.0f, Dvars::xo_con_padding->current.value * 2.0f, 0.0f);
 	}
 	
-	// this holds our current horzAlignLeftOffset (updated it drawInput)
-	// used to offset dvar match/es current / default value (xo_con_OffsetMatches_stub)
-	float _local_conScreenMin0;
-
 	// :: Main Console Input + Logic ( Key logic still outside in Console_Key() )
 	void xo_con_DrawInput()
 	{
@@ -997,18 +993,12 @@ namespace Components
 
 		float	x, y, w, h;
 
-		// update globals
-		_local_conScreenMin0 = *Game::conScreenMin0;
-
-		// not registering "Dvars::ui_main_title" in "R_RegisterStringDvars" disables current and stock dvar values in the console if we
-		// assign new colors here .. for whatever reason ??
-
 		// hintbox txt color dvars
-		//memcpy(&Game::con_matchtxtColor_currentDvar[0], &Dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector, sizeof(float[4]));
-		//memcpy(Game::con_matchtxtColor_currentValue, &Dvars::xo_con_hintBoxTxtColor_currentValue->current.vector, sizeof(float[4]));
-		//memcpy(&Game::con_matchtxtColor_defaultValue[0], &Dvars::xo_con_hintBoxTxtColor_defaultValue->current.vector, sizeof(float[4]));
-		//memcpy(&Game::con_matchtxtColor_dvarDescription[0], &Dvars::xo_con_hintBoxTxtColor_dvarDescription->current.vector, sizeof(float[4]));
-		//memcpy(&Game::con_matchtxtColor_domainDescription[0], &Dvars::xo_con_hintBoxTxtColor_domainDescription->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_currentDvar[0], &Dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_currentValue[0], &Dvars::xo_con_hintBoxTxtColor_currentValue->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_defaultValue[0], &Dvars::xo_con_hintBoxTxtColor_defaultValue->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_dvarDescription[0], &Dvars::xo_con_hintBoxTxtColor_dvarDescription->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_domainDescription[0], &Dvars::xo_con_hintBoxTxtColor_domainDescription->current.vector, sizeof(float[4]));
 
 		// increase max drawing width for console input
 		Game::g_consoleField->drawWidth = 512;
@@ -1377,9 +1367,6 @@ CON_MATCH_PREFIX_ONLY:
 				/*  depth	*/ false,
 				/* ignoreFS	*/ true);
 
-			// long version string color
-			//float color_orange[4] = { 1.0f, 0.6f, 0.6f, 1.0f };
-
 			ConDrawInput_Text(
 			/*  x  */ Game::con->outputVisible ? conAddon.conItems.fullCon.hintBoxUpperText.x : conAddon.conItems.smallCon.hintBoxUpperText.x,
 			/*  y  */ Game::con->outputVisible ? conAddon.conItems.fullCon.hintBoxUpperText.y : conAddon.conItems.smallCon.hintBoxUpperText.y,
@@ -1516,7 +1503,6 @@ CON_MATCH_PREFIX_ONLY:
 			// we have to subtract from Game::conDrawInputGlob->y because we want to offset the match text in "ConDrawInput_Detailed..." (we add it back when drawing the box)
 			// this is because we only hook the box drawing part of "ConDrawInput_Detailed..." and not the text drawing
 			Game::conDrawInputGlob->y -= conDrawInputGlobY_fuckery;
-			//Game::conDrawInputGlob->y -= 12.0f;
 
 			ConDraw_Box(
 				/* col */ loc_inputHintBoxColor,
@@ -1539,10 +1525,8 @@ CON_MATCH_PREFIX_ONLY:
 				/*  depth	*/ false,
 				/* ignoreFS	*/ true);
 
-			// we have to sub y because we want to offset the match text in "ConDrawInput_Detailed..." (we add it back when drawing the box)
-			//Game::conDrawInputGlob->y -= conDrawInputGlobY_fuckery;
-			
 			Game::Dvar_ForEachName(Game::ConDrawInput_DvarMatch);
+			
 			if (!CmdOrDvar)
 			{
 				Game::Cmd_ForEachXO(Game::ConDrawInput_CmdMatch);
@@ -1554,7 +1538,10 @@ CON_MATCH_PREFIX_ONLY:
 
 		Game::Cmd_EndTokenizedString();
 
-	REDRAW_CURSOR_RETURN:
+		// *
+		// -----------------
+		REDRAW_CURSOR_RETURN:
+
 		// Overdraw the cursor so its above the console so we obv. can not return early ;)
 		if ((Game::_uiContext->openMenuCount || Dvars::xo_con_cursorState->current.enabled) && Dvars::xo_con_cursorOverdraw->current.enabled)
 		{
@@ -1594,9 +1581,8 @@ CON_MATCH_PREFIX_ONLY:
 				t1 = 0.0f;
 			}
 
-			// scale 640x480 rect to viewport resolution
+			// scale 640x480 rect to viewport resolution and draw the cursor
 			_UI::ScrPlace_ApplyRect(&cur_x, &cur_w, &cur_y, &cur_h, VERTICAL_ALIGN_FULLSCREEN, VERTICAL_ALIGN_FULLSCREEN);
-			// draw the cursor
 			Game::R_AddCmdDrawStretchPic(cur_material, cur_x, cur_y, cur_w, cur_h, s0, t0, s1, t1, 0);
 		}
 	}
@@ -1606,12 +1592,12 @@ CON_MATCH_PREFIX_ONLY:
 	#pragma region CON-ASM // ++++++
 
 	// Replace ConDrawInput_Box in ConDrawInput_DetailedDvarMatch ( mid-hook ) -- upper box
-	__declspec(naked) void xo_con_DetailedDvarMatch1_stub()
+	__declspec(naked) void detailed_dvar_match_stub_01()
 	{
 		const static uint32_t RetAddr = 0x460022;
 		__asm
 		{
-			push	eax // overwritten op
+			push	eax		// overwritten op
 			push	esi
 			
 			call	ConDrawInput_Box_DetailedMatch_UpperBox
@@ -1624,12 +1610,12 @@ CON_MATCH_PREFIX_ONLY:
 	}
 
 	// Replace ConDrawInput_Box in ConDrawInput_DetailedDvarMatch ( mid-hook ) -- lower box
-	__declspec(naked) void xo_con_DetailedDvarMatch2_stub()
+	__declspec(naked) void detailed_dvar_match_stub_02()
 	{
 		const static uint32_t RetAddr = 0x4601FB;
 		__asm
 		{
-			push	eax // overwritten op
+			push	eax		// overwritten op
 			push	esi
 
 			Call	ConDrawInput_Box_DetailedMatch_LowerBox
@@ -1642,12 +1628,12 @@ CON_MATCH_PREFIX_ONLY:
 	}
 
 	// Replace ConDrawInput_Box in ConDrawInput_DetailedCmdMatch
-	__declspec(naked) void xo_con_DetailedCmdMatch_stub()
+	__declspec(naked) void detailed_cmd_match_stub()
 	{
 		const static uint32_t RetAddr = 0x4603BF;
 		__asm
 		{
-			push	1 // overwritten op
+			push	1		// overwritten op
 			push	esi
 
 			Call	ConDrawInput_Box_DetailedMatch_UpperBox
@@ -1659,60 +1645,81 @@ CON_MATCH_PREFIX_ONLY:
 		}
 	}
 
-	// offset values for multiple matches, as we increased the maximum amount of dvar chars displayed 
-	__declspec(naked) void xo_con_OffsetMatches_stub()
+	// helper func to offset matchbox values
+	void Con_OffsetMatchValues()
 	{
-		static float addTo = 500.0f;
+		if (*Game::conScreenMin0)
+			Game::conDrawInputGlob->x += 500.0f + *Game::conScreenMin0;
+
+		else 
+			Game::conDrawInputGlob->x += 500.0f;
+	}
+
+	// offset values for multiple matches, as we increased the maximum amount of dvar chars displayed 
+	__declspec(naked) void matchbox_offset_values_stub_01()
+	{
 		__asm
 		{
-			fld		[Game::conDrawInputGlob.x]	// load float conDrawInputGlob->x
-			fadd	addTo						// add static offset
-			fadd	_local_conScreenMin0		// add con->screenMin0 (_local_conScreenMin0 updated in drawInput)
-				
-			push	0x45FAF1;
+			pushad
+			Call	Con_OffsetMatchValues
+			popad
+			
+			add     esp, 4		// stock
+			push	0x45FAFA;
 			retn
 		}
 	}
 
 	// offset values for detailed matches, as we increased the maximum amount of dvar chars displayed 
-	__declspec(naked) void xo_con_OffsetDetailedMatch_stub1()
+	__declspec(naked) void matchbox_offset_values_stub_02()
 	{
-		static float addTo = 500.0f;
 		__asm 
 		{
-			fld		[Game::conDrawInputGlob.x]	// load float conDrawInputGlob->x
-			fadd	addTo						// add static offset
-			fadd	_local_conScreenMin0		// add con->screenMin0 (_local_conScreenMin0 updated in drawInput)
+			pushad
+			Call	Con_OffsetMatchValues
+			popad
 
-			push	0x460043;
+			add     esp, 4		// stock
+			push    6BDF24h		// stock
+			sub     esp, 10h	// stock
+
+			push	0x460054;
 			retn
 		}
 	}
 
-	__declspec(naked) void xo_con_OffsetDetailedMatch_stub2()
+	// ^
+	__declspec(naked) void matchbox_offset_values_stub_03()
 	{
-		static float addTo = 500.0f;
 		__asm
 		{
-			fld		[Game::conDrawInputGlob.x]	// load float conDrawInputGlob->x
-			fadd	addTo						// add static offset
-			fadd	_local_conScreenMin0		// add con->screenMin0 (_local_conScreenMin0 updated in drawInput)
+			pushad
+			Call	Con_OffsetMatchValues
+			popad
 
-			push	0x4600C3;
+			add     esp, 4		// stock
+			push    6BDF34h		// stock
+			sub     esp, 10h	// stock
+
+			push	0x4600D4;
 			retn
 		}
 	}
 
-	__declspec(naked) void xo_con_OffsetDetailedMatch_stub3()
+	// ^
+	__declspec(naked) void matchbox_offset_values_stub_04()
 	{
-		static float addTo = 500.0f;
 		__asm
 		{
-			fld		[Game::conDrawInputGlob.x]	// load float conDrawInputGlob->x
-			fadd	addTo						// add static offset
-			fadd	_local_conScreenMin0		// add con->screenMin0 (_local_conScreenMin0 updated in drawInput)
+			pushad
+			Call	Con_OffsetMatchValues
+			popad
 
-			push	0x46013F;
+			add     esp, 4		// stock
+			push    6BDF34h		// stock
+			sub     esp, 10h	// stock
+
+			push	0x460150;
 			retn
 		}
 	}
@@ -1732,16 +1739,15 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm
 		{
-			push ecx
-			mov ecx, con_mapdir
-			mov[eax + 8], ecx
+			push	ecx
+			mov		ecx, con_mapdir
+			mov		[eax + 8], ecx
 
-			mov ecx, con_mapext
-			mov[eax + 0Ch], ecx
+			mov		ecx, con_mapext
+			mov		[eax + 0Ch], ecx
 
-			pop ecx
-
-			push 0x528F96;
+			pop		ecx
+			push	0x528F96;
 			retn
 		}
 	}
@@ -1756,14 +1762,13 @@ CON_MATCH_PREFIX_ONLY:
 			mov		ecx, con_mapext
 			mov		ebx, ecx
 
-			mov     esi, edi // stock op inbetween
+			mov     esi, edi	// stock op inbetween
 
 			mov		ecx, con_mapdir
-			mov[eax + 8], ecx
+			mov		[eax + 8], ecx
 
-			pop ecx
-
-			push 0x528E5D;
+			pop		ecx
+			push	0x528E5D;
 			retn
 		}
 	}
@@ -2065,15 +2070,15 @@ CON_MATCH_PREFIX_ONLY:
 		Utils::Hook::Nop(0x46752F, 5);
 
 		// Replace ConDrawInput_Box in ConDrawInput_DetailedDvarMatch ( mid-hook ) -- upper box
-		Utils::Hook(0x46001C, xo_con_DetailedDvarMatch1_stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x46001C, detailed_dvar_match_stub_01, HOOK_CALL).install()->quick();
 		Utils::Hook::Nop(0x460021, 1);
 
 		// Replace ConDrawInput_Box in ConDrawInput_DetailedDvarMatch ( mid-hook ) -- lower box
-		Utils::Hook(0x4601F5, xo_con_DetailedDvarMatch2_stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4601F5, detailed_dvar_match_stub_02, HOOK_CALL).install()->quick();
 		Utils::Hook::Nop(0x4601FA, 1);
 
 		// Replace ConDrawInput_Box in ConDrawInput_DetailedCmdMatch
-		Utils::Hook(0x4603B8, xo_con_DetailedCmdMatch_stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4603B8, detailed_cmd_match_stub, HOOK_CALL).install()->quick();
 		Utils::Hook::Nop(0x4603BD, 2);
 
 		// Increase max chars to draw for dvar matches
@@ -2084,17 +2089,17 @@ CON_MATCH_PREFIX_ONLY:
 
 		// Increase distance to matched dvars as we increased the maximum amount of chars for found matches
 		Utils::Hook::Nop(0x45FAE5, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x45FAE5, xo_con_OffsetMatches_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x45FAE5, matchbox_offset_values_stub_01, HOOK_JUMP).install()->quick();
 		
 		// same for detailed match (3 times for current, latched, default)
 		Utils::Hook::Nop(0x460037, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x460037, xo_con_OffsetDetailedMatch_stub1, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x460037, matchbox_offset_values_stub_02, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Nop(0x4600B7, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x4600B7, xo_con_OffsetDetailedMatch_stub2, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4600B7, matchbox_offset_values_stub_03, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Nop(0x460133, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x460133, xo_con_OffsetDetailedMatch_stub3, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x460133, matchbox_offset_values_stub_04, HOOK_JUMP).install()->quick();
 		
 		// fully disable cmd autocomplete box with dir searching
 		Utils::Hook::Nop(0x4603FC, 6); Utils::Hook(0x4603FC, xo_con_disableCmdAutocomplBox_stub, HOOK_JUMP).install()->quick();

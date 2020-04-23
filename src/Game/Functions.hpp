@@ -44,6 +44,7 @@ namespace Game
 	extern float COLOR_WHITE[4];
 	extern float COLOR_BLACK[4];
 
+
 	// ---------------
 	// RADIANT / CGAME
 
@@ -54,6 +55,7 @@ namespace Game
 
 	char* Com_Parse(const char **data_p /*edi*/); // ASM
 	bool CL_GetUserCmd(int cmdNumber /*eax*/, Game::usercmd_s *ucmd);
+
 
 	// ---------
 	// FASTFILES
@@ -67,12 +69,21 @@ namespace Game
 	extern const char** zone_localized_common_mp;
 	extern const char** zone_mod;
 
+	extern XAssetHeader* DB_XAssetPool;
+	extern unsigned int* g_poolSize;
+
+	typedef int(__cdecl* DB_GetXAssetSizeHandler_t)();
+	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
+
+	XAssetHeader DB_ReallocXAssetPool(XAssetType type, unsigned int newSize);
+
 	static utils::function<void()> R_BeginRemoteScreenUpdate = 0x5F78A0;
 	static utils::function<void()> R_EndRemoteScreenUpdate = 0x5F78F0;
 	static utils::function<void()> DB_SyncXAssets = 0x48A120;
 
 	extern bool DB_FileExists(const char* fileName, Game::DB_FILE_EXISTS_PATH);
 	
+
 	// ---------
 	// COLLISION 
 
@@ -117,6 +128,7 @@ namespace Game
 	void R_AddDebugPolygon(int pointCount, const float(*points)[3]);
 	void R_AddDebugPolygonNew(Game::DebugGlobals* debugGlobalsEntry, int pointCount, const float(*points)[3]);
 
+
 	// --------
 	// RENDERER
 
@@ -132,6 +144,8 @@ namespace Game
 
 	extern int* wnd_SceneHeight;
 	extern float* wnd_SceneAspect;
+
+	//extern const char** code_textures_string_array;
 
 	extern Game::Material* floatz_display;
 	extern GfxCmdBufSourceState* gfxCmdBufSourceState;
@@ -160,6 +174,8 @@ namespace Game
 	typedef void(*RB_EndTessSurface_t)();
 		extern RB_EndTessSurface_t RB_EndTessSurface;
 
+	const char* RendertargetStringFromID(Game::GfxRenderTargetId id);
+
 	Game::MaterialTechnique * RB_BeginSurface(Game::MaterialTechniqueType techType, Game::Material material); // ASM
 	Game::MaterialTechnique * RB_BeginSurface_CustomMaterial(Game::MaterialTechniqueType techType, Game::Material *material); // ASM
 
@@ -172,6 +188,7 @@ namespace Game
 	void RB_DrawStretchPic(Game::Material *material, float x, float y, float w, float h, float a6, float a7, float a8, float a9 /*-1 pushed*/);
 	void CG_DrawRotatedPicPhysical(ScreenPlacement* place, float a2, float a3, float a4, float a5, float a6, float *color, void *material);
 	int R_TextWidth(const char *text /*<eax*/, int maxChars, Game::Font_s *font); // ASM
+
 
 	// ---------
 	// UI / MENU
@@ -194,6 +211,7 @@ namespace Game
 	extern void Menus_CloseByName(const char* menuName, Game::UiContext *uiDC);
 	extern void Menus_CloseAll(Game::UiContext *uiDC);
 	
+
 	// ---
 	// GSC 
 
@@ -225,6 +243,7 @@ namespace Game
 
 	int isButtonPressed(int button, int buttonData);
 
+
 	// ----
 	// IWDs
 
@@ -239,6 +258,7 @@ namespace Game
 	char ** Sys_ListFiles(const char *filter, const char *directory, const char *extension, int *numfiles, int wantsubs); //ASM
 	int SEH_GetLanguageIndexForName(const char *pszLanguageName, int *piLanguageIndex); //ASM
 	int unzClose(const char *file /*edi*/); //ASM
+
 
 	// --------
 	// MOVEMENT
@@ -272,7 +292,8 @@ namespace Game
 	void Scr_PlayerDamage(float *dir, Game::gentity_s *targ, Game::gentity_s *inflictor, Game::gentity_s *attacker, int damage, int dflags, int mod, int weapon, float *point, Game::hitLocation_t hitLoc, int timeOffset); // ASM
 	Game::gentity_s* G_FireRocket(float *kickBack, Game::gentity_s *ent, signed int weapindex, float *dir, float *gunVel, Game::gentity_s *target, float *targetOffset); // ASM
 
-	// -----------------------------------------------------------------------
+
+	// -----
 	// DVARs 
 
 	struct dvar_s;
@@ -356,6 +377,7 @@ namespace Game
 	void Dvar_SetString(const char *text /*eax*/, dvar_s *dvar /*esi*/); //ASM
 	dvar_s* Dvar_FindVar(const char* dvar);
 	
+
 	// -------
 	// CONSOLE 
 
@@ -452,11 +474,13 @@ namespace Game
 	void Dvar_ForEachName(void(__cdecl *func)(const char *)); // ASM
 	void Cmd_ForEach(void(__cdecl *func)(const char *)); // ASM
 	
+
 	// -----
 	// ANIMS
 	
 	void BG_AnimScriptEvent(scriptAnimEventTypes_t event, Game::playerState_s *ps, int force); // ASM
 	
+
 	// ------
 	// COMMON
 

@@ -85,6 +85,20 @@ namespace Game
 	const char** zone_localized_common_mp			= reinterpret_cast<const char**>(0xCC9D138);
 	const char** zone_mod							= reinterpret_cast<const char**>(0xCC9D13C);
 
+	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7265E0);
+	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7263A0);
+
+	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x726A10);
+
+	XAssetHeader DB_ReallocXAssetPool(XAssetType type, unsigned int newSize)
+	{
+		int elSize = DB_GetXAssetSizeHandlers[type]();
+		XAssetHeader poolEntry = { Utils::Memory::GetAllocator()->allocate(newSize * elSize) };
+		DB_XAssetPool[type] = poolEntry;
+		g_poolSize[type] = newSize;
+		return poolEntry;
+	}
+
 	bool DB_FileExists(const char* fileName, Game::DB_FILE_EXISTS_PATH source)
 	{
 		const static uint32_t DB_FileExists_Func = 0x48B9B0;
@@ -97,6 +111,7 @@ namespace Game
 			add     esp, 4h
 		}
 	}
+
 
 	// ---------
 	// COLLISION 
@@ -179,6 +194,8 @@ namespace Game
 	int* wnd_SceneHeight = reinterpret_cast<int*>(0xCC9D0E4); // CC9D0E4
 	float* wnd_SceneAspect = reinterpret_cast<float*>(0xCC9D0FC); // CC9D0FC
 
+	//const char** code_textures_string_array
+
 	Game::Material* floatz_display = reinterpret_cast<Game::Material*>(0xFA5378);
 	GfxCmdBufSourceState* gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_client = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B054);
@@ -189,6 +206,31 @@ namespace Game
 	Material_RegisterHandle_t Material_RegisterHandle = (Material_RegisterHandle_t)0x5F2A80;
 
 	RB_EndTessSurface_t RB_EndTessSurface = (RB_EndTessSurface_t)0x61A2F0;
+
+	const char* RendertargetStringFromID(Game::GfxRenderTargetId id)
+	{
+		switch (id)
+		{
+			case R_RENDERTARGET_SAVED_SCREEN: return "R_RENDERTARGET_SAVED_SCREEN";
+			case R_RENDERTARGET_FRAME_BUFFER: return "R_RENDERTARGET_FRAME_BUFFER";
+			case R_RENDERTARGET_SCENE: return "R_RENDERTARGET_SCENE";
+			case R_RENDERTARGET_RESOLVED_POST_SUN: return "R_RENDERTARGET_RESOLVED_POST_SUN";
+			case R_RENDERTARGET_RESOLVED_SCENE: return "R_RENDERTARGET_RESOLVED_SCENE";
+			case R_RENDERTARGET_FLOAT_Z: return "R_RENDERTARGET_FLOAT_Z";
+			case R_RENDERTARGET_DYNAMICSHADOWS: return "R_RENDERTARGET_DYNAMICSHADOWS";
+			case R_RENDERTARGET_PINGPONG_0: return "R_RENDERTARGET_PINGPONG_0";
+			case R_RENDERTARGET_PINGPONG_1: return "R_RENDERTARGET_PINGPONG_1";
+			case R_RENDERTARGET_SHADOWCOOKIE: return "R_RENDERTARGET_SHADOWCOOKIE";
+			case R_RENDERTARGET_SHADOWCOOKIE_BLUR: return "R_RENDERTARGET_SHADOWCOOKIE_BLUR";
+			case R_RENDERTARGET_POST_EFFECT_0: return "R_RENDERTARGET_POST_EFFECT_0";
+			case R_RENDERTARGET_POST_EFFECT_1: return "R_RENDERTARGET_POST_EFFECT_1";
+			case R_RENDERTARGET_SHADOWMAP_SUN: return "R_RENDERTARGET_SHADOWMAP_SUN";
+			case R_RENDERTARGET_SHADOWMAP_SPOT: return "R_RENDERTARGET_SHADOWMAP_SPOT";
+			case R_RENDERTARGET_COUNT: return "R_RENDERTARGET_COUNT";
+			case R_RENDERTARGET_NONE: return "R_RENDERTARGET_NONE";
+			default: return "R_RENDERTARGET_UNKOWN";
+		}
+	}
 
 	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, char* font, const float *color, const char* text)
 	{

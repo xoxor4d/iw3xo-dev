@@ -4493,6 +4493,7 @@ namespace Game
 			float axis[3][3];
 			float depthHackNearClip;
 			float zNear;
+			float zFar;
 			int pad;
 		};
 
