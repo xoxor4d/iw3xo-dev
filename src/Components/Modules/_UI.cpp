@@ -804,6 +804,59 @@ namespace Components
 		}
 	}
 
+	//Fixes rect not being drawn properly when a border is applied
+	_declspec(naked) void Window_Paint_Border_Side_Fix() {
+		const static uint32_t returnPT = 0x54B6FA;
+
+		_asm {
+
+			cmp     dword ptr[ebx + 3Ch], 2	//if border 2
+			je		short border_2
+			cmp     dword ptr[ebx + 3Ch], 3	//if border 3
+			je		short border_3
+			//fix for full border
+			fld     dword ptr[ebx + 48h]	//stock op
+			fadd    dword ptr[esp + 10h]	//stock op
+			fstp    dword ptr[esp + 10h]	//stock op
+			fld     dword ptr[ebx + 48h]	//stock op
+			fadd    dword ptr[esp + 14h]	//stock op
+			fstp    dword ptr[esp + 14h]	//stock op
+			fld     dword ptr[ebx + 48h]	//stock op
+			fld     dword ptr[esp + 18h]	//stock op
+			fsub    st, st(1)				//stock op
+			fsub    st, st(1)
+			fstp    dword ptr[esp + 18h]	//stock op
+			fsubr   dword ptr[esp + 1Ch]	//subract border size (st0) from height, save in st0
+			fsub	dword ptr[ebx + 48h]	//subract boder size from st0
+			fstp    dword ptr[esp + 1Ch]	//stock op
+			jmp		returnPT
+
+			border_2 :
+			//fix for border 2
+				fld     dword ptr[ebx + 48h]	//load bordersize
+				fadd    dword ptr[esp + 14h]	//add y to bordersize
+				fstp    dword ptr[esp + 14h]	//store y, pop st0
+
+				fld     dword ptr[ebx + 48h]	//load bordersize
+				fsubr	dword ptr[esp + 1Ch]
+				fsub	dword ptr[ebx + 48h]
+				fstp	dword ptr[esp + 1Ch]	//store width
+				jmp		returnPT
+
+			border_3 :
+			//fix for border 3
+				fld     dword ptr[ebx + 48h]	//load bordersize
+				fadd    dword ptr[esp + 10h]	//add x to bordersize
+				fstp    dword ptr[esp + 10h]	//store x, pop st0
+
+				fld     dword ptr[ebx + 48h]	//load bordersize
+				fsubr   dword ptr[esp + 18h]
+				fsub	dword ptr[ebx + 48h]
+				fstp    dword ptr[esp + 18h]	//store height
+				jmp		returnPT
+		}
+	}
+
 	_UI::_UI()
 	{
 		// *
@@ -833,6 +886,10 @@ namespace Components
 
 		// Change material "material_ui_scrollbar_thumb" to white and add a color (thumb)
 		Utils::Hook::Nop(0x553394, 6);	Utils::Hook(0x553394, Item_ListBox_Paint_SliderThumb_stub, HOOK_JUMP).install()->quick();
+
+		// Fix border drawing bug
+		Utils::Hook::Nop(0x54B6C9, 7);
+		Utils::Hook(0x54B6C9, Window_Paint_Border_Side_Fix, HOOK_JUMP).install()->quick();
 
 
 		// *

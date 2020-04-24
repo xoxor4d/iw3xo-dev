@@ -19,13 +19,15 @@ namespace Components
 		const char* getName() override { return "Menu Exporter"; };
 
 	private:
-		typedef std::unordered_map<unsigned int, std::string> identifierMap;
+		typedef const std::unordered_map<unsigned int, std::string> identifierMap;
 		typedef std::unordered_map<unsigned int, std::string>::const_iterator identifierMapIt;
 
 		void exportMenu(Game::menuDef_t *menu);
-		std::string statementToText(Game::statement_s stmt);
+		void writeMenuDef(Game::menuDef_t *menuDef);
+		void writeStatement(std::string name, Game::statement_s stmt);
 		void writeVec4(std::string name, float vec4[]);
 		void writeItemDef(Game::itemDef_s &itemDef);
+		void writeLine(std::string name);
 		void writeRect(Game::rectDef_s rect);
 		template <typename T>
 		void writeNumber(std::string name, T num);
@@ -34,6 +36,7 @@ namespace Components
 		void writeText(std::string name, const char* text);
 		void writeFlag(int num);
 		void writeAction(std::string name, std::string action);
+		void writeVisible(Game::statement_s stmt);
 		void writeKeyAction(int key, std::string action);
 
 
@@ -44,6 +47,14 @@ namespace Components
 		int maxPadding;
 		std::ofstream menuFile;		
 		identifierMapIt find;
+
+
+		enum itemType {
+			listBox = 6,
+			editField = 4,
+			multi = 12,
+			enumDvar = 13,
+		};
 		
 
 		identifierMap itemTypeMap = {
@@ -107,6 +118,125 @@ namespace Components
 			{4, "WINDOW_STYLE_TEAMCOLOR"},
 			{5, "WINDOW_STYLE_DVAR_SHADER"},
 			{6, "WINDOW_STYLE_LOADBAR"},
+		};
+
+		identifierMap ownerDrawTypeMap = {
+			{1, "CG_OWNERDRAW_BASE"},
+			{5, "CG_PLAYER_AMMO_VALUE"},
+			{6, "CG_PLAYER_AMMO_BACKDROP"},
+			{20, "CG_PLAYER_STANCE"},
+			{60, "CG_SPECTATORS"},
+			{71, "CG_HOLD_BREATH_HINT"},
+			{72, "CG_CURSORHINT"},
+			{73, "CG_PLAYER_POWERUP"},
+			{74, "CG_PLAYER_HOLDABLE"},
+			{75, "CG_PLAYER_INVENTORY"},
+			{78, "CG_CURSORHINT_STATUS"},
+			{79, "CG_PLAYER_BAR_HEALTH"},
+			{80, "CG_MANTLE_HINT"},
+			{81, "CG_PLAYER_WEAPON_NAME"},
+			{82, "CG_PLAYER_WEAPON_NAME_BACK"},
+			{90, "CG_CENTER_MESSAGE"},
+			{95, "CG_TANK_BODY_DIR"},
+			{96, "CG_TANK_BARREL_DIR"},
+			{97, "CG_DEADQUOTE"},
+			{98, "CG_PLAYER_BAR_HEALTH_BACK"},
+			{99, "CG_MISSION_OBJECTIVE_HEADER"},
+			{100, "CG_MISSION_OBJECTIVE_LIST"},
+			{101, "CG_MISSION_OBJECTIVE_BACKDROP"},
+			{102, "CG_PAUSED_MENU_LINE"},
+			{103, "CG_OFFHAND_WEAPON_ICON_FRAG"},
+			{104, "CG_OFFHAND_WEAPON_ICON_SMOKEFLASH"},
+			{105, "CG_OFFHAND_WEAPON_AMMO_FRAG"},
+			{106, "CG_OFFHAND_WEAPON_AMMO_SMOKEFLASH"},
+			{107, "CG_OFFHAND_WEAPON_NAME_FRAG"},
+			{108, "CG_OFFHAND_WEAPON_NAME_SMOKEFLASH"},
+			{109, "CG_OFFHAND_WEAPON_SELECT_FRAG"},
+			{110, "CG_OFFHAND_WEAPON_SELECT_SMOKEFLASH"},
+			{111, "CG_SAVING"},
+			{112, "CG_PLAYER_LOW_HEALTH_OVERLAY"},
+			{113, "CG_INVALID_CMD_HINT"},
+			{114, "CG_PLAYER_SPRINT_METER"},
+			{115, "CG_PLAYER_SPRINT_BACK"},
+			{116, "CG_PLAYER_WEAPON_BACKGROUND"},
+			{117, "CG_PLAYER_WEAPON_AMMO_CLIP_GRAPHIC"},
+			{118, "CG_PLAYER_WEAPON_PRIMARY_ICON"},
+			{119, "CG_PLAYER_WEAPON_AMMO_STOCK"},
+			{120, "CG_PLAYER_WEAPON_LOW_AMMO_WARNING"},
+			{145, "CG_PLAYER_COMPASS_TICKERTAPE"},
+			{146, "CG_PLAYER_COMPASS_TICKERTAPE_NO_OBJ"},
+			{150, "CG_PLAYER_COMPASS_PLAYER"},
+			{151, "CG_PLAYER_COMPASS_BACK"},
+			{152, "CG_PLAYER_COMPASS_POINTERS"},
+			{153, "CG_PLAYER_COMPASS_ACTORS"},
+			{154, "CG_PLAYER_COMPASS_TANKS"},
+			{155, "CG_PLAYER_COMPASS_HELICOPTERS"},
+			{156, "CG_PLAYER_COMPASS_PLANES"},
+			{157, "CG_PLAYER_COMPASS_AUTOMOBILES"},
+			{158, "CG_PLAYER_COMPASS_FRIENDS"},
+			{159, "CG_PLAYER_COMPASS_MAP"},
+			{160, "CG_PLAYER_COMPASS_NORTHCOORD"},
+			{161, "CG_PLAYER_COMPASS_EASTCOORD"},
+			{162, "CG_PLAYER_COMPASS_NCOORD_SCROLL"},
+			{163, "CG_PLAYER_COMPASS_ECOORD_SCROLL"},
+			{164, "CG_PLAYER_COMPASS_GOALDISTANCE"},
+			{165, "CG_PLAYER_ACTIONSLOT_DPAD"},
+			{166, "CG_PLAYER_ACTIONSLOT_1"},
+			{167, "CG_PLAYER_ACTIONSLOT_2"},
+			{168, "CG_PLAYER_ACTIONSLOT_3"},
+			{169, "CG_PLAYER_ACTIONSLOT_4"},
+			{170, "CG_PLAYER_COMPASS_ENEMIES"},
+			{180, "CG_PLAYER_FULLMAP_BACK"},
+			{181, "CG_PLAYER_FULLMAP_MAP"},
+			{182, "CG_PLAYER_FULLMAP_POINTERS"},
+			{183, "CG_PLAYER_FULLMAP_PLAYER"},
+			{184, "CG_PLAYER_FULLMAP_ACTORS"},
+			{185, "CG_PLAYER_FULLMAP_FRIENDS"},
+			{186, "CG_PLAYER_FULLMAP_LOCATION_SELECTOR"},
+			{187, "CG_PLAYER_FULLMAP_BORDER"},
+			{188, "CG_PLAYER_FULLMAP_ENEMIES"},
+			{190, "CG_VEHICLE_RETICLE"},
+			{191, "CG_HUD_TARGETS_VEHICLE"},
+			{192, "CG_HUD_TARGETS_JAVELIN"},
+			{193, "CG_TALKER1"},
+			{194, "CG_TALKER2"},
+			{195, "CG_TALKER3"},
+			{196, "CG_TALKER4"},
+			{200, "UI_OWNERDRAW_BASE"},
+			//200 is also UI_HANDICAP
+
+			{201, "UI_EFFECTS"},
+			{202, "UI_PLAYERMODEL"},
+			{205, "UI_GAMETYPE"},
+			{207, "UI_SKILL"},
+			{220, "UI_NETSOURCE"},
+			{222, "UI_NETFILTER"},
+			{238, "UI_VOTE_KICK"},
+			{245, "UI_NETGAMETYPE"},
+			{247, "UI_SERVERREFRESHDATE"},
+			{248, "UI_SERVERMOTD"},
+			{249, "UI_GLINFO"},
+			{250, "UI_KEYBINDSTATUS"},
+			{253, "UI_JOINGAMETYPE "},
+			{254, "UI_MAPPREVIEW"},
+			{257, "UI_MENUMODEL"},
+			{258, "UI_SAVEGAME_SHOT"},
+			{262, "UI_SAVEGAMENAME"},
+			{263, "UI_SAVEGAMEINFO"},
+			{264, "UI_LOADPROFILING"},
+			{265, "UI_RECORDLEVEL"},
+			{266, "UI_AMITALKING"},
+			{267, "UI_TALKER1"},
+			{268, "UI_TALKER2"},
+			{269, "UI_TALKER3"},
+			{270, "UI_TALKER4"},
+			{271, "UI_PARTYSTATUS"},
+			{272, "UI_LOGGEDINUSER"},
+			{273, "UI_RESERVEDSLOTS"},
+			{274, "UI_PLAYLISTNAME"},
+			{275, "UI_PLAYLISTDESCRIPTION"},
+			{276, "UI_USERNAME"},
+			{277, "UI_CINEMATIC"},
 		};
 
 
@@ -201,6 +331,92 @@ namespace Components
 			{1048576, "hiddenDuringFlashbang"},
 			{1048576, "hiddenDuringScope"},
 			{1048576, "hiddenDuringGUI"},
+		};
+
+		//Found at https://github.com/callofduty4x/CoD4x_Server/blob/98ee29d49960ba248977b5e413dd93e6c0670fdd/src/xassets/menu.c#L7
+		//thank you T-max or whoever made this list :)
+		identifierMap operandMap = {
+			{0, "NOOP"},
+			{1, ")"},
+			{2, "*"},
+			{3, "/"},
+			{4, "%"},
+			{5, "+"},
+			{6, "-"},
+			{7, "!"},
+			{8, "<"},
+			{9, "<="},
+			{10, ">"},
+			{11, ">="},
+			{12, "=="},
+			{13, "!="},
+			{14, "&&"},
+			{15, "||"},
+			{16, "("},
+			{17, ","},
+			{18, "&"},
+			{19, "|"},
+			{20, "~"},
+			{21, "<<"},
+			{22, ">>"},
+			{23, "sin("},
+			{24, "cos("},
+			{25, "min("},
+			{26, "max("},
+			{27, "milliseconds("},
+			{28, "dvarint("},
+			{29, "dvarbool("},
+			{30, "dvarfloat("},
+			{31, "dvarstring("},
+			{32, "stat("},
+			{33, "ui_active("},
+			{34, "flashbanged("},
+			{35, "scoped("},
+			{36, "scoreboard_visible("},
+			{37, "inkillcam("},
+			{38, "player("},
+			{39, "selecting_location("},
+			{40, "team("},
+			{41, "otherteam("},
+			{42, "marinesfield("},
+			{43, "opforfield("},
+			{44, "menuisopen("},
+			{45, "writingdata("},
+			{46, "inlobby("},
+			{47, "inprivateparty("},
+			{48, "privatepartyhost("},
+			{49, "privatepartyhostinlobby("},
+			{50, "aloneinparty("},
+			{51, "adsjavelin("},
+			{52, "weaplockblink("},
+			{53, "weapattacktop("},
+			{54, "weapattackdirect("},
+			{55, "secondsastime("},
+			{56, "tablelookup("},
+			{57, "locstring("},
+			{58, "localvarint("},
+			{59, "localvarbool("},
+			{60, "localvarfloat("},
+			{61, "localvarstring("},
+			{62, "timeleft("},
+			{63, "secondsascountdown("},
+			{64, "gamemsgwndactive("},
+			{65, "int("},
+			{66, "string("},
+			{67, "float("},
+			{68, "gametypename("},
+			{69, "gametype("},
+			{70, "gametypedescription("},
+			{71, "scoreatrank("},
+			{72, "friendsonline("},
+			{73, "spectatingclient("},
+			{74, "statrangeanybitsset("},
+			{75, "keybinding("},
+			{76, "actionslotusable("},
+			{77, "hudfade("},
+			{78, "maxrecommendedplayers("},
+			{79, "acceptinginvite("},
+			{80, "isintermission("},
 		};
 
 	};
