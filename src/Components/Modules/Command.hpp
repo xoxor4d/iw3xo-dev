@@ -26,6 +26,7 @@ namespace Components
 		const char* getName() override { return "Command"; };
 
 		static void Add(const char* name, Utils::Slot<Callback> callback);
+		static void Add(const char* name, const char* args, const char* description, Utils::Slot<Command::Callback> callback);
 		static void Execute(std::string command, bool sync = true);
 
 	private:

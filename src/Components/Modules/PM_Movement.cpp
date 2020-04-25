@@ -1417,6 +1417,14 @@ namespace Components
 	// STOCK/Q3/CS :: Entrypoint - Combined Q3CPM/Source WalkMove ->
 	void PM_MT_WalkMove(Game::pmove_t *pm, Game::pml_t *pml)
 	{
+		// Stock Walkmove if not Defrag
+		if (Dvars::pm_movementType->current.integer != Game::PM_MTYPE::DEFRAG)
+		{
+			Game::PM_WalkMove(pm, pml);
+			//PM_CopyVelocityToLocal(pm->ps);
+			return;
+		}
+
 		int			i;
 		vec3_t		wishvel;
 		float		fmove, smove;
@@ -1432,14 +1440,6 @@ namespace Components
 		float		pm_proneScale = 0.25f;
 		float		pm_slickaccelerate = 15.0f;
 		float		pm_accelerate = 15.0f;
-
-		// Stock Walkmove if not Defrag
-		if (Dvars::pm_movementType->current.integer != Game::PM_MTYPE::DEFRAG)
-		{
-			Game::PM_WalkMove(pm, pml);
-			//PM_CopyVelocityToLocal(pm->ps);
-			return;
-		}
 
 		// If Jumped -> AirMove
 		if (PM_Jump_Check(pm, pml))
@@ -1538,10 +1538,6 @@ namespace Components
 	// STOCK/Q3/CS :: Entrypoint - Combined Q3CPM/Source AirMove ->
 	void PM_MT_AirMove(Game::pmove_t *pm, Game::pml_t *pml)
 	{
-		auto	ps = pm->ps;
-
-		PM_DisableSprint(ps);
-
 		// Stock Movement
 		if (Dvars::pm_movementType->current.integer == Game::PM_MTYPE::STOCK)
 		{
@@ -1550,6 +1546,10 @@ namespace Components
 
 			return;
 		}
+
+		auto	ps = pm->ps;
+
+		PM_DisableSprint(ps);
 
 		//////////////////////////////////////////////////////////////////////////////////
 
@@ -2316,6 +2316,7 @@ namespace Components
 	__declspec(naked) void g_calcmuzzlepoints_stub()
 	{
 		const static uint32_t G_CalcMuzzlePoints_Func = 0x4E9FA0;
+		const static uint32_t retnPt = 0x4EA05C;
 		__asm
 		{
 			push	edx
@@ -2329,15 +2330,11 @@ namespace Components
 			Call	Q3_CalcMuzzlePoints
 			add		esp, 4h
 			
-			push	0x4EA05C
-			retn
-
+			jmp		retnPt
 
 			STOCK:
-			Call	G_CalcMuzzlePoints_Func 
-
-			push	0x4EA05C
-			retn
+				Call	G_CalcMuzzlePoints_Func
+				jmp		retnPt
 		}
 	}
 
@@ -2373,17 +2370,19 @@ namespace Components
 	__declspec(naked) void pmove_mid_variables_stub() 
 	{
 		const static uint32_t PM_AdjustAimSpreadScale_Func = 0x418870;
+		const static uint32_t retnPt = 0x41471D;
 		__asm
 		{
-			//Call	PM_AdjustAimSpreadScale_Func
-			Call	PmoveSingle_Mid
+			pushad
+			push	edx
+			push	ebx
 
-			movzx   eax, byte ptr[ebx + 10Ch]
-			fld     dword ptr[esp + 20h]
-			add     esp, 8
-			
-			push	0x41472B;
-			retn
+			Call	PmoveSingle_Mid
+			add		esp, 8h
+			popad
+
+			Call	PM_AdjustAimSpreadScale_Func
+			jmp		retnPt
 		}
 	}
 
@@ -2748,8 +2747,8 @@ namespace Components
 		Utils::Hook(0x4108E0, pm_crashland_stub, HOOK_JUMP).install()->quick();
 
 		// hook G_DamageClient to add Q3 radius damage knockback
+		Utils::Hook::Nop(0x4B557A, 8);
 		Utils::Hook(0x4B557A, xo_damageclient_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook::Nop(0x4B557F, 3);
 
 		// enable / disable auto bunnyhop on space
 		Utils::Hook(0x407DD5, pm_auto_bunnyhop_stub, HOOK_JUMP).install()->quick();	// - still needed for cs

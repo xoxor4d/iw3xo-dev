@@ -103,15 +103,7 @@ namespace Dvars
 	// Renderer
 	Game::dvar_s* r_aspectRatio = nullptr;
 	Game::dvar_s* r_noborder = nullptr;
-	Game::dvar_s* vid_xpos = nullptr;
-	Game::dvar_s* vid_ypos = nullptr;
 	Game::dvar_s* r_d3d9ex = nullptr;
-	Game::dvar_s* r_showFbColorDebug = nullptr; // * bool
-	Game::dvar_s* r_showFloatZDebug = nullptr; // *
-	Game::dvar_s* sc_showDebug = nullptr; // *
-	Game::dvar_s* r_glow_allowed = nullptr; // *
-	Game::dvar_s* r_zFeather = nullptr; // *
-	Game::dvar_s* r_distortion = nullptr; // *
 
 
 	// Debug Collision
@@ -179,22 +171,4 @@ namespace Dvars
 	// Random stock
 	Game::dvar_s* snaps = nullptr;
 	Game::dvar_s* cg_fovScale = nullptr;
-
-	// ----------------------------
-
-	// only assign when global is nullptr
-	bool Dvars::Assign_StockToGlobalNull(const char* stock, Game::dvar_s* global)
-	{
-		if (!global)
-		{
-			auto temp = Game::Dvar_FindVar(stock); //->current.enabled;
-			if  (temp) 
-			{
-				global = temp;
-				return true;
-			}
-		}
-
-		return false;
-	}
 }

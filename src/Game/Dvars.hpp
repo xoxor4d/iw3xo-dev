@@ -107,15 +107,7 @@ namespace Dvars
 	// Renderer
 	extern Game::dvar_s* r_aspectRatio;
 	extern Game::dvar_s* r_noborder;
-	extern Game::dvar_s* vid_xpos;
-	extern Game::dvar_s* vid_ypos;
 	extern Game::dvar_s* r_d3d9ex;
-	extern Game::dvar_s* r_showFbColorDebug; // *
-	extern Game::dvar_s* r_showFloatZDebug; // *
-	extern Game::dvar_s* sc_showDebug; // *
-	extern Game::dvar_s* r_glow_allowed; // *
-	extern Game::dvar_s* r_zFeather; // *
-	extern Game::dvar_s* r_distortion; // *
 
 
 	// Debug collision
@@ -182,8 +174,4 @@ namespace Dvars
 	// Random stock
 	extern Game::dvar_s* snaps;
 	extern Game::dvar_s* cg_fovScale;
-
-	// ----------------------------
-
-	bool Assign_StockToGlobalNull(const char* stock, Game::dvar_s* global);
 }

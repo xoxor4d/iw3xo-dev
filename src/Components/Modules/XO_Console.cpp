@@ -982,6 +982,74 @@ namespace Components
 		// console output below input text box
 		xo_con_DrawOutputText(conAddon.conItems.fullCon.outputBox.x + 6.0f, Dvars::xo_con_padding->current.value * 2.0f, 0.0f);
 	}
+
+	void ConDrawInput_DetailedCmdMatch(Game::cmd_function_s* cmd)
+	{
+		if (cmd)
+		{
+			if (Game::Con_IsAutoCompleteMatch(cmd->name, Game::conDrawInputGlob->inputText, Game::conDrawInputGlob->inputTextLen)
+				&& (!Game::conDrawInputGlob->hasExactMatch || !cmd->name[Game::conDrawInputGlob->inputTextLen]))
+			{
+				auto con_inputHintBoxColor = Game::Dvar_FindVar("con_inputHintBoxColor")->current.vector;
+				ConDrawInput_Box_DetailedMatch_UpperBox(con_inputHintBoxColor, (cmd->description ? 2 : 0) + 2);
+				//ConDrawInput_Text(str);
+
+				auto consoleFont = GET_CONSOLEFONT;
+				float cmdColor[4] = { 0.8f, 0.8f, 1.0f, 1.0f };
+
+				// draw cmd string
+				ConDrawInput_Text(
+					/* x	*/ Game::conDrawInputGlob->x,
+					/* y	*/ Game::conDrawInputGlob->y + Game::conDrawInputGlob->fontHeight,
+					/* xScl	*/ 1.0f,
+					/* yScl	*/ 1.0f,
+					/* font	*/ consoleFont,
+					/* colr	*/ cmdColor,
+					/* text	*/ cmd->name);
+
+				// draw type (cmd)
+				ConDrawInput_Text(
+					/* x	*/ Game::conDrawInputGlob->x,
+					/* y	*/ Game::conDrawInputGlob->y + (Game::conDrawInputGlob->fontHeight * 2),
+					/* xScl	*/ 1.0f,
+					/* yScl	*/ 1.0f,
+					/* font	*/ consoleFont,
+					/* colr	*/ Game::con_matchtxtColor_domainDescription,
+					/* text	*/ "  command");
+
+				// draw arg usage
+				if (cmd->args)
+				{
+					ConDrawInput_Text(
+						/* x	*/ Game::conDrawInputGlob->x + 16.0f + Game::R_TextWidth(cmd->name, 256, consoleFont),
+						/* y	*/ Game::conDrawInputGlob->y + Game::conDrawInputGlob->fontHeight,
+						/* xScl	*/ 1.0f,
+						/* yScl	*/ 1.0f,
+						/* font	*/ consoleFont,
+						/* colr	*/ Game::con_matchtxtColor_dvarDescription,
+						/* text	*/ cmd->args);
+				}
+
+				// draw description
+				if (cmd->description)
+				{
+					ConDrawInput_Text(
+						/* x	*/ Game::conDrawInputGlob->x,
+						/* y	*/ Game::conDrawInputGlob->y + (Game::conDrawInputGlob->fontHeight * 4.0f),
+						/* xScl	*/ 1.0f,
+						/* yScl	*/ 1.0f,
+						/* font	*/ consoleFont,
+						/* colr	*/ Game::con_matchtxtColor_dvarDescription,
+						/* text	*/ cmd->description);
+				}
+
+				Game::conDrawInputGlob->y += Game::conDrawInputGlob->fontHeight;
+				Game::conDrawInputGlob->x = Game::conDrawInputGlob->leftX;
+
+				// skip autocomplete shit for cmds
+			}
+		}
+	}
 	
 	// :: Main Console Input + Logic ( Key logic still outside in Console_Key() )
 	void xo_con_DrawInput()
@@ -1442,7 +1510,8 @@ CON_MATCH_PREFIX_ONLY:
 
 			if (!CmdOrDvar) 
 			{
-				Game::Cmd_ForEachXO(Game::ConDrawInput_DetailedCmdMatch);
+				Game::Cmd_ForEach_PassCmd(ConDrawInput_DetailedCmdMatch);
+				//Game::Cmd_ForEachXO(Game::ConDrawInput_DetailedCmdMatch);
 			}
 		}
 

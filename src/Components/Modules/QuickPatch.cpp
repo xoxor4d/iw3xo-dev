@@ -6,6 +6,13 @@ namespace Components
 	void PrintLoadedModules()
 	{
 		Game::Com_PrintMessage(0, Utils::VA("-------------- Loading Modules -------------- \n%s\n", Game::Globals::loadedModules.c_str()), 0);
+
+		// Add FS Path output print
+		Game::dvar_s* dedicated = Game::Dvar_FindVar("dedicated");
+		if (dedicated && dedicated->current.integer == 0)
+		{
+			Game::FS_DisplayPath(1);
+		}
 	}
 
 	__declspec(naked) void CL_PreInitRenderer_stub()
@@ -211,7 +218,8 @@ namespace Components
 		Utils::Hook(0x57769D, Fix_ConsolePrints02, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x52F3EE, Fix_ConsolePrints03, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4BF04A, Fix_ConsolePrints04, HOOK_JUMP).install()->quick(); 
-		Utils::Hook::Nop(0x4BF05B, 5); Utils::Hook::Nop(0x4BF06C, 5);
+		Utils::Hook::Nop(0x4BF05B, 5); // gamename
+		Utils::Hook::Nop(0x4BF06C, 5); // gamedate
 
 
 		// *

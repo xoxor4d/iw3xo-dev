@@ -164,18 +164,30 @@ namespace Components
 
 	void RB_DrawDebugPostEffects()
 	{
-		// needs r_zFeather and r_distortion (forced on init (QuickPatch))
-		// r_glow_allowed 0 (here)
-
-		Dvars::Assign_StockToGlobalNull("r_showFbColorDebug", Dvars::r_showFbColorDebug);
-		Dvars::Assign_StockToGlobalNull("r_showFloatZDebug", Dvars::r_showFloatZDebug);
-		Dvars::Assign_StockToGlobalNull("sc_showDebug", Dvars::sc_showDebug);
-		Dvars::Assign_StockToGlobalNull("r_glow_allowed", Dvars::r_glow_allowed);
-
+		auto r_showFbColorDebug = Game::Dvar_FindVar("r_showFbColorDebug");
+		auto r_showFloatZDebug	= Game::Dvar_FindVar("r_showFloatZDebug");
+		auto sc_showDebug		= Game::Dvar_FindVar("sc_showDebug");
+		
 		if (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled) 
 		{
+			auto r_zFeather		= Game::Dvar_FindVar("r_zFeather");
+			auto r_distortion	= Game::Dvar_FindVar("r_distortion");
+			auto r_glow_allowed = Game::Dvar_FindVar("r_glow_allowed");
+			
+			// force depthbuffer
+			if (r_zFeather && !r_zFeather->current.enabled)
+			{
+				Game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
+			}
+
+			// enable distortion (its rendertarget is needed)
+			if (r_distortion && !r_distortion->current.enabled)
+			{
+				Game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
+			}
+
 			// disable glow as it uses the backbuffer exclusively 
-			if (Dvars::r_glow_allowed && Dvars::r_glow_allowed->current.enabled)
+			if (r_glow_allowed && r_glow_allowed->current.enabled)
 			{
 				Game::Cmd_ExecuteSingleCommand(0, 0, "r_glow_allowed 0\n");
 			}
@@ -183,22 +195,22 @@ namespace Components
 			RB_DrawCustomShaders(Game::Dvar_EnumToString(Dvars::xo_shaderoverlay));
 		}
 
-		else if (Dvars::r_showFbColorDebug && Dvars::r_showFbColorDebug->current.integer == 1)
+		else if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 1)
 		{
 			Game::RB_ShowFbColorDebug_Screen();
 		}
 
-		else if (Dvars::r_showFbColorDebug && Dvars::r_showFbColorDebug->current.integer == 2)
+		else if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 2)
 		{
 			Game::RB_ShowFbColorDebug_Feedback();
 		}
 
-		else if (Dvars::r_showFloatZDebug && Dvars::r_showFloatZDebug->current.enabled)
+		else if (r_showFloatZDebug && r_showFloatZDebug->current.enabled)
 		{
 			Game::RB_ShowFloatZDebug();
 		}
 
-		else if (Dvars::sc_showDebug && Dvars::sc_showDebug->current.enabled)
+		else if (sc_showDebug && sc_showDebug->current.enabled)
 		{
 			Game::RB_ShowShadowsDebug();
 		}

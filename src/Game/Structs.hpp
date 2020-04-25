@@ -392,11 +392,11 @@ namespace Game
 
 	struct cmd_function_s
 	{
-		cmd_function_s *next;
-		const char *name;
-		const char *autoCompleteDir;
-		const char *autoCompleteExt;
-		void(__cdecl *function)();
+		cmd_function_s* next;
+		const char* name;
+		const char* args;			//autoCompleteDir;
+		const char* description;	// autoCompleteExt
+		void(__cdecl* function)();
 	};
 
 	union DvarLimits
@@ -5431,6 +5431,13 @@ namespace Game
 			statement_s rectWExp;
 			statement_s rectHExp;
 			statement_s forecolorAExp;
+		};
+
+		struct MenuList
+		{
+			const char* name;
+			int menuCount;
+			menuDef_t** menus;
 		};
 
 		struct cursor_t // $38C3DEC81229B66F67FB6D350D75FF5A

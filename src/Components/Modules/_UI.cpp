@@ -816,7 +816,7 @@ namespace Components
 		Utils::Hook(0x6156EC, RB_Draw3DCommon_stub, HOOK_JUMP).install()->quick();
 
 		// hook "Item_RunScript" to implement custom uiScripts callable from menu files
-		/*Utils::Hook::Nop(0x54DF35, 8);*/	Utils::Hook(0x545BED, UI_uiScriptsAddons_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x545BED, UI_uiScriptsAddons_stub, HOOK_JUMP).install()->quick();
 
 
 		// *
@@ -838,11 +838,67 @@ namespace Components
 		// *
 		// Commands
 
-		// menu_open menuName .. currently only opens menus when in a menu?
-		Command::Add("menu_open", [](Command::Params params)
+		// loads a menulist (txt file) and adds menus within it to the uicontext->menu stack
+		Command::Add("menu_loadlist_raw", "<menulist_name.txt>", "rawfile :: load a menulist (txt file) and add included menus to the uicontext->menu stack", [](Command::Params params)
+		{
+			auto fs_usedevdir = Game::Dvar_FindVar("fs_usedevdir");
+
+			if (fs_usedevdir && !fs_usedevdir->current.enabled)
+			{
+				Game::Com_PrintMessage(0, "fs_usedevdir must be enabled.\n", 0);
+				return;
+			}
+
+			if (params.Length() < 2)
+			{
+				Game::Com_PrintMessage(0, "Usage :: menu_loadlist <menulist_name.txt>\n", 0);
+				return;
+			}
+
+			Game::MenuList* list = (Game::MenuList*)Game::UI_LoadMenus_LoadObj(std::string(params[1]).c_str(), 7);
+
+			if (list)
+			{
+				// for each raw menufile in menulist
+				for (auto rawMenu = 0; rawMenu < list->menuCount; rawMenu++)
+				{
+					bool replacedWithRaw = false;
+
+					// for each loaded menufile in memory
+					for (auto loadedMenus = 0; loadedMenus < Game::_uiContext->menuCount; loadedMenus++)
+					{
+						if (!Utils::Q_stricmp(list->menus[rawMenu]->window.name, Game::_uiContext->Menus[loadedMenus]->window.name))
+						{
+							Game::_uiContext->Menus[loadedMenus] = list->menus[rawMenu];
+
+							Game::Com_PrintMessage(0, Utils::VA("Menu <%s> is already loaded, overwriting\n", list->menus[rawMenu]->window.name), 0);
+							replacedWithRaw = true;
+
+							break;
+						}
+					}
+
+					if (!replacedWithRaw)
+					{
+						Game::_uiContext->Menus[Game::_uiContext->menuCount] = list->menus[rawMenu];
+						Game::_uiContext->menuCount++;
+
+						Game::Com_PrintMessage(0, Utils::VA("Added menu <%s> to the menu list.\n", list->menus[rawMenu]->window.name), 0);
+					}
+				}
+			}
+			else
+			{
+				Game::Com_PrintMessage(0, "Make sure your menufiles are in devraw, devraw_shared or raw_shared!\n", 0);
+			}
+		});
+
+		// open / re-open the specified menu from uicontext->menus
+		Command::Add("menu_open", "<menu_name>", "open / re-open the specified menu from uicontext->menus", [](Command::Params params)
 		{
 			if (params.Length() < 2) 
 			{
+				Game::Com_PrintMessage(0, "Usage :: menu_open <menu_name>\n", 0);
 				return;
 			}
 
@@ -850,44 +906,63 @@ namespace Components
 			Game::UiContext *ui = &Game::_uiContext[0];
 			Game::clientUI->displayHUDWithKeycatchUI = true;
 
+			Game::Menus_CloseByName(name, ui);
 			Game::Menus_OpenByName(name, ui);
 		});
 
-		Command::Add("menu_openIngame", [](Command::Params params)
+		Command::Add("menu_open_ingame", "<menu_name>", "not even sure what i tried here", [](Command::Params params)
 		{
-			if (params.Length() < 2) 
+			if (params.Length() < 2)
 			{
+				Game::Com_PrintMessage(0, "Usage :: menu_open_ingame <menu_name>\n", 0);
 				return;
 			}
 
-			const char * name = params[1];
-			Game::UiContext *ui = &Game::_uiContext[0];
+			const char* name = params[1];
+			Game::UiContext* ui = &Game::_uiContext[0];
 
 			Game::Key_SetCatcher();
 			Game::Menus_CloseAll(ui);
 			Game::Menus_OpenByName(name, ui);
 		});
 
-		Command::Add("menu_closeAll", [](Command::Params params)
+		// close the specified menu
+		Command::Add("menu_closebyname", "<menu_name>", "close the specified menu", [](Command::Params params)
 		{
-			Game::UiContext *ui = &Game::_uiContext[0];
-			Game::Menus_CloseAll(ui);
-		});
-
-		// menu_setActive 0 - 11 to open default ones
-		Command::Add("menu_setActive", [](Command::Params params)
-		{
-			if (params.Length() < 2) 
+			if (params.Length() < 2)
 			{
+				Game::Com_PrintMessage(0, "Usage :: menu_closebyname <menu_name>\n", 0);
 				return;
 			}
 
-			int menuNum = std::atoi(params[1]);
-			if (menuNum == 0 || menuNum <= 12)
-			{
-				Game::UI_SetActiveMenu(0, menuNum);
-			}
+			const char* name = params[1];
+			Game::UiContext* ui = &Game::_uiContext[0];
+
+			Game::Menus_CloseByName(name, ui);
 		});
+
+		// does this even work?
+		//Command::Add("menu_closeAll", "", "not even sure what i tried here", [](Command::Params params)
+		//{
+		//	Game::UiContext *ui = &Game::_uiContext[0];
+		//	Game::Menus_CloseAll(ui);
+		//});
+
+		// menu_setActive 0 - 11 to open default ones
+		//Command::Add("menu_setActive", "<int 0-12>", "not even sure what i tried here", [](Command::Params params)
+		//{
+		//	if (params.Length() < 2) 
+		//	{
+		//		return;
+		//	}
+
+		//	int menuNum = std::atoi(params[1]);
+		//	if (menuNum == 0 || menuNum <= 12)
+		//	{
+		//		Game::UI_SetActiveMenu(0, menuNum);
+		//	}
+		//});
+
 
 		Command::Add("iw3xo_github", [](Command::Params)
 		{

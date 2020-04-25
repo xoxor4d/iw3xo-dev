@@ -26,6 +26,12 @@ namespace Components
 		Game::Cmd_AddCommand(name, Command::MainCallback, Command::Allocate(), 0);
 	}
 
+	void Command::Add(const char* name, const char* args, const char* description, Utils::Slot<Command::Callback> callback)
+	{
+		Command::FunctionMap[Utils::StrToLower(name)] = callback;
+		Game::Cmd_AddCommand(name, args, description, Command::MainCallback, Command::Allocate(), 0);
+	}
+
 	void Command::Execute(std::string command, bool sync)
 	{
 		command.append("\n"); // Make sure it's terminated

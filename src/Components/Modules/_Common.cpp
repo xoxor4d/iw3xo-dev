@@ -13,18 +13,23 @@ namespace Components
 
 	void ForceDvarsOnInit()
 	{
-		Dvars::Assign_StockToGlobalNull("r_zFeather", Dvars::r_zFeather);
-		Dvars::Assign_StockToGlobalNull("r_distortion", Dvars::r_distortion);
+		auto fs_usedevdir	= Game::Dvar_FindVar("fs_usedevdir");
+		auto sv_pure		= Game::Dvar_FindVar("sv_pure");
+		auto dedicated		= Game::Dvar_FindVar("dedicated");
 
-		// force depthbuffer
-		if (Dvars::r_zFeather && !Dvars::r_zFeather->current.enabled)
+		if (dedicated && dedicated->current.integer == 0)
 		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
+			if (sv_pure && sv_pure->current.enabled)
+			{
+				Game::Dvar_SetValue(sv_pure, false); // quick set the value
+				Game::Cmd_ExecuteSingleCommand(0, 0, "sv_pure 0\n");
+			}
 		}
 
-		if (Dvars::r_distortion && !Dvars::r_distortion->current.enabled)
+		if (fs_usedevdir && !fs_usedevdir->current.enabled)
 		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
+			Game::Dvar_SetValue(fs_usedevdir, true); // quick set the value
+			Game::Cmd_ExecuteSingleCommand(0, 0, "fs_usedevdir 1\n");
 		}
 	}
 

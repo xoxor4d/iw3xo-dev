@@ -1185,7 +1185,7 @@ namespace Components
 	// Current networking only supports local usage, so why not increase the receiving rate by calling it from pmove
 	void RadiantRemote::SV_ReceivePackets()
 	{
-		if (!Dvars::radiant_live->current.enabled || !RadiantRemote::SV_UpdateSocket())
+		if (!Dvars::radiant_live || !Dvars::radiant_live->current.enabled || !RadiantRemote::SV_UpdateSocket())
 		{
 			Game::Globals::cgsAddons.radiantLiveConnected = false;
 			return;

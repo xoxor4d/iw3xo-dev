@@ -112,6 +112,16 @@ namespace Game
 		}
 	}
 
+	void FS_DisplayPath(int bLanguageCull /*eax*/)
+	{
+		const static uint32_t FS_DisplayPath_Func = 0x55D510;
+		__asm
+		{
+			mov		eax, bLanguageCull
+			Call	FS_DisplayPath_Func
+		}
+	}
+
 
 	// ---------
 	// COLLISION 
@@ -491,6 +501,7 @@ namespace Game
 	DWORD* ui_white_material_ptr = reinterpret_cast<DWORD*>(0xCAF06F0);
 	int* gameTypeEnum = reinterpret_cast<int*>(0xCAF1820);
 	int* mapNameEnum = reinterpret_cast<int*>(0xCAF2330);
+	Game::UiContext* _cgDC = reinterpret_cast<Game::UiContext*>(0x746FA8);
 	Game::UiContext* _uiContext = reinterpret_cast<Game::UiContext*>(0xCAEE200);
 	Game::PlayerKeyState* playerKeys = reinterpret_cast<Game::PlayerKeyState*>(0x8F1DB8);
 	Game::clientUIActive_t* clientUI = reinterpret_cast<Game::clientUIActive_t*>(0xC5F8F4);
@@ -1134,7 +1145,7 @@ namespace Game
 	ConDrawInput_CmdMatch_t ConDrawInput_CmdMatch = (ConDrawInput_CmdMatch_t)0x460440;
 	Con_DrawOutputScrollBar_t Con_DrawOutputScrollBar = (Con_DrawOutputScrollBar_t)0x461860;
 	Con_DrawOutputText_t Con_DrawOutputText = (Con_DrawOutputText_t)0x4619E0;
-	Con_IsAutoCompleteMatch_t Con_IsAutoCompleteMatch = (Con_IsAutoCompleteMatch_t)0x45F990;
+	//Con_IsAutoCompleteMatch_t Con_IsAutoCompleteMatch = (Con_IsAutoCompleteMatch_t)0x45F990;
 
 	void Con_DrawMessageWindowOldToNew(DWORD* msgWindow /*esi*/, int localClientNum, int xPos, int yPos, int charHeight, int horzAlign, int vertAlign, int mode, Font_s* font, const float* color, int textStyle, float msgwndScale, int textAlignMode)
 	{
@@ -1175,6 +1186,20 @@ namespace Game
 			if (cmd->name)
 			{
 				callback(cmd->name);
+			}
+		}
+	}
+
+	void Cmd_ForEach_PassCmd(void(__cdecl* callback)(cmd_function_s*))
+	{
+		cmd_function_s* cmd;
+
+		// skip the first cmd (nullptr)?
+		for (cmd = cmd_functions->next; cmd; cmd = cmd->next)
+		{
+			if (cmd->name)
+			{
+				callback(cmd);
 			}
 		}
 	}
@@ -1387,8 +1412,18 @@ namespace Game
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char)
 	{
 		data->name = name;
-		data->autoCompleteDir = NULL;
-		data->autoCompleteExt = NULL;
+		data->args = NULL;			//data->autoComplargseteExt = NULL;
+		data->description = NULL;	//data->autoCompleteDir = NULL;
+		data->function = callback;
+		data->next = *cmd_ptr;
+		*cmd_ptr = data;
+	}
+
+	void Cmd_AddCommand(const char* name, const char* args, const char* description, void(*callback)(), cmd_function_s* data, char)
+	{
+		data->name = name;
+		data->args = args;
+		data->description = description;
 		data->function = callback;
 		data->next = *cmd_ptr;
 		*cmd_ptr = data;

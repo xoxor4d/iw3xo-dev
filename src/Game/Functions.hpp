@@ -82,6 +82,7 @@ namespace Game
 	static utils::function<void()> DB_SyncXAssets = 0x48A120;
 
 	extern bool DB_FileExists(const char* fileName, Game::DB_FILE_EXISTS_PATH);
+	extern void FS_DisplayPath(int bLanguageCull /*eax*/);
 	
 
 	// ---------
@@ -196,6 +197,7 @@ namespace Game
 	extern DWORD* ui_white_material_ptr;
 	extern int* gameTypeEnum; 
 	extern int* mapNameEnum;
+	extern Game::UiContext* _cgDC;
 	extern Game::UiContext* _uiContext;
 	extern Game::PlayerKeyState* playerKeys; // 0x8F1DB8 (missing field_t)
 	extern Game::clientUIActive_t* clientUI;
@@ -205,7 +207,8 @@ namespace Game
 
 	static utils::function<void(int clientNum, int menuNum)> UI_SetActiveMenu = 0x549540;
 	static utils::function<void()> Key_SetCatcher = 0x4686A0;
-
+	static utils::function<void*(const char* menufile, int imageTrack)> UI_LoadMenus_LoadObj = 0x558770;
+	
 	extern int String_Parse(const char **p /*eax*/, char *outStr, int len);
 	extern void Menus_OpenByName(const char* menuName, Game::UiContext *uiDC);
 	extern void Menus_CloseByName(const char* menuName, Game::UiContext *uiDC);
@@ -412,6 +415,8 @@ namespace Game
 	extern int* argv_1410BA4;
 	extern cmd_function_s* cmd_functions;
 
+	static utils::function<bool(const char* query, const char* matchToText, int matchTextLen)> Con_IsAutoCompleteMatch = 0x45F990;
+
 	typedef void(*SCR_DrawSmallStringExt_t)(int x, int y, const char* text);
 		extern SCR_DrawSmallStringExt_t SCR_DrawSmallStringExt;
 
@@ -457,12 +462,12 @@ namespace Game
 	typedef void(*Con_DrawOutputText_t)(float x, float y);
 		extern Con_DrawOutputText_t Con_DrawOutputText;
 
-	typedef bool(*Con_IsAutoCompleteMatch_t)(char *a1, char *a2, int a3);
-		extern Con_IsAutoCompleteMatch_t Con_IsAutoCompleteMatch;
+	//typedef bool(*Con_IsAutoCompleteMatch_t)(char *a1, char *a2, int a3);
+	//	extern Con_IsAutoCompleteMatch_t Con_IsAutoCompleteMatch;
 
 	void Con_DrawMessageWindowOldToNew(DWORD* msgWindow /*esi*/, int localClientNum, int xPos, int yPos, int charHeight, int horzAlign, int vertAlign, int mode, Font_s* font, const float* color, int textStyle, float msgwndScale, int textAlignMode); // ASM
-
 	void Cmd_ForEachXO(void(__cdecl *callback)(const char *));
+	void Cmd_ForEach_PassCmd(void(__cdecl* callback)(cmd_function_s*));
 
 	void AddBaseDrawConsoleTextCmd(int charCount /*eax*/, const float *colorFloat /*ecx*/, const char *textPool, int poolSize, int firstChar, Game::Font_s *font, float x, float y, float xScale, float yScale, int style); // ASM
 	void ConDrawInput_Box(float *color, int lineHeightMulti); // ASM
@@ -518,6 +523,7 @@ namespace Game
 
 	void Cbuf_AddText(const char *text /*eax*/, int localClientNum /*ecx*/);
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char);
+	void Cmd_AddCommand(const char* name, const char* args, const char* description, void(*callback)(), cmd_function_s* data, char);
 	const char* SL_ConvertToString(int idx);
 
 	Game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
