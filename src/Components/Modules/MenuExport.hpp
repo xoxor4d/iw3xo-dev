@@ -2,10 +2,29 @@
 #include <fstream>
 #include <iomanip>
 
-#define PADDING(x) maxPadding - x
 #define MENU_TABBING "\t"
 #define MENUDEF_TABBING "\t\t"
 #define ITEMDEF_TABBING "\t\t\t"
+
+//some macros to make code look neater
+#define PADDING(x) std::left << std::setw(maxPadding - x) << std::cout.fill(' ')
+#define WRITE_TEXT(name, value)\
+	if (value) {\
+		writeText(name, value);\
+	}
+#define WRITE_ACTION(name, value)\
+	if(value){\
+		writeAction(name, value);\
+	}
+//write number if not default value
+#define WRITE_NUMBER(name, def, value)\
+	if(value != def){\
+		writeNumber(name,value);\
+	}
+#define WRITE_NUMBER_MAP(name, def, value, map)\
+	if(value != def){\
+		writeNumber(name, value, map);\
+	}
 
 
 namespace Components
@@ -17,12 +36,17 @@ namespace Components
 		MenuExport();
 		~MenuExport();
 		const char* getName() override { return "Menu Exporter"; };
+		void exportMenu(Game::menuDef_t *menu);
+		void exportMenu(Game::menuDef_t *menu, std::string path, std::string name);
+		void exportMenuItemdefs(Game::menuDef_t *menu);
+		void exportMenuItemdefs(Game::menuDef_t *menu, std::string path, std::string name);
+		void exportItemDef(Game::itemDef_s itemDef, std::string path, std::string name);
 
 	private:
 		typedef const std::unordered_map<unsigned int, std::string> identifierMap;
 		typedef std::unordered_map<unsigned int, std::string>::const_iterator identifierMapIt;
 
-		void exportMenu(Game::menuDef_t *menu);
+		void setPath(std::string path, std::string name);
 		void writeMenuDef(Game::menuDef_t *menuDef);
 		void writeStatement(std::string name, Game::statement_s stmt);
 		void writeVec4(std::string name, float vec4[]);
@@ -31,7 +55,7 @@ namespace Components
 		void writeRect(Game::rectDef_s rect);
 		template <typename T>
 		void writeNumber(std::string name, T num);
-		template <typename T>
+		template <typename T> 
 		void writeNumber(std::string name, T num, identifierMap &map);
 		void writeText(std::string name, const char* text);
 		void writeFlag(int num);
@@ -40,6 +64,7 @@ namespace Components
 		void writeKeyAction(int key, std::string action);
 
 
+		std::string writeFilePath;
 		int padding;
 		int tabs;
 		const float defaultTextSize = 0.55f;
@@ -47,14 +72,66 @@ namespace Components
 		int maxPadding;
 		std::ofstream menuFile;		
 		identifierMapIt find;
+		const std::string headerText = "//This menu was generated using iw3xo Client\n//If you find any bug please report them here: https://github.com/xoxor4d/iw3xo-dev/issues\n\n#include \"ui/menudefinition.h\"\n\n";
 
 
-		enum itemType {
-			listBox = 6,
-			editField = 4,
-			multi = 12,
-			enumDvar = 13,
+		const enum itemType {
+			ITEM_TYPE_EDITFIELD = 4,
+			ITEM_TYPE_LISTBOX = 6,	
+			ITEM_TYPE_MULTI = 12,
+			ITEM_TYPE_DVARENUM = 13,
+			ITEM_TYPE_GAME_MESSAGE_WINDOW = 19,
 		};
+
+		const enum keyCodes {
+			KEY_MULTIPLY = 42,
+			KEY_Z = 122,
+		};
+
+		const enum dvarFlags {
+			DISABLEDVAR = 2,
+			SHOWDVAR = 4,
+			HIDEDVAR = 8,
+			FOCUSDVAR = 16,
+		};
+
+		const std::string scriptActions[34] = {
+			"fadein",
+			"fadeout",
+			"show",
+			"hide",
+			"hidemenu",
+			"open",
+			"close",
+			"setasset",
+			"setbackground",
+			"setteamcolor",
+			"setitemcolor",
+			"setfocus",
+			"setplayermodel",
+			"setplayerhead",
+			"transition",
+			"setcvar",
+			"exec",
+			"play",
+			"playlooped",
+			"orbit",
+			"uiscript",
+			"scriptmenuresponse",
+			"setlocalvarint",
+			"setlocalvarstring",
+			"setlocalvarfloat",
+			"setlocalvarbool",
+			"execnow",
+			"execondvarintvalue",
+			"execondvarstringvalue",
+			"showmenu",
+			"focusfirst",
+			"setfocusbydvar",
+			"setdvar",
+			"execnowOndvarstringvalue",
+		};
+		const int scriptActionLength = 34;
 		
 
 		identifierMap itemTypeMap = {
@@ -239,6 +316,13 @@ namespace Components
 			{277, "UI_CINEMATIC"},
 		};
 
+		identifierMap messageMap = {
+			{0, "MODE_BOTTOMUP_ALIGN_TOP"},
+			{1, "MODE_BOTTOMUP_ALIGN_BOTTOM"},
+			{2, "MODE_TOPDOWN_ALIGN_TOP"},
+			{3, "MODE_TOPDOWN_ALIGN_BOTTOM"}
+		};
+
 
 		identifierMap feederMap = {
 			{0, "FEEDER_HEADS"},
@@ -418,6 +502,7 @@ namespace Components
 			{79, "acceptinginvite("},
 			{80, "isintermission("},
 		};
+
 
 	};
 }

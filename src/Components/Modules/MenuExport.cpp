@@ -8,7 +8,7 @@ namespace Components
 	MenuExport::MenuExport() {
 
 
-		maxPadding = 16;
+		maxPadding = 20;
 		tabs = 0;
 		padding = 0;
 		tabbing = MENU_TABBING;
@@ -20,48 +20,62 @@ namespace Components
 		});
 
 		Command::Add("exportMenu", [this](Command::Params params) {
-			Game::menuDef_t *menu;
+
 			if (params.Length() < 2) {
+				Game::Com_PrintMessage(0, "^1No menu name given.^7\n", 0);
 				return;
 			}
 			const char * name = params[1];
+			bool found = false;
 			for (int i = 0; i < Game::_uiContext->menuCount; i++) {
-				if (strcmp(Game::_uiContext->Menus[i]->window.name, name) == 0) {//might be wrong
+				if (strcmp(Game::_uiContext->Menus[i]->window.name, name) == 0) {
 					exportMenu(Game::_uiContext->Menus[i]);
+					found = true;
 					break;
 				}
 			}
+			if (!found) {
+				Game::Com_PrintMessage(0, Utils::VA("^1WARNING: ^7Menu %s was not found.\n", name), 0);
+			}
 		});
 
-		
-
+		Command::Add("exportItemdefs", [this](Command::Params params) {
+			if (params.Length() < 2) {
+				Game::Com_PrintMessage(0, "^1No menu name given.^7\n", 0);
+				return;
+			}
+			const char * name = params[1];
+			bool found = false;
+			for (int i = 0; i < Game::_uiContext->menuCount; i++) {
+				if (strcmp(Game::_uiContext->Menus[i]->window.name, name) == 0) {
+					exportMenuItemdefs(Game::_uiContext->Menus[i]);
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				Game::Com_PrintMessage(0, Utils::VA("^1WARNING: ^7Menu %s was not found.\n", name), 0);
+			}
+		});
 	}
 
 	MenuExport::~MenuExport() {
 
 	}
 
-	void MenuExport::exportMenu(Game::menuDef_t *menu) {
-		using namespace std;
+	//Export menudef and all its itemdef to specified folder and file name
+	void MenuExport::exportMenu(Game::menuDef_t *menu, std::string path, std::string name) {
 
-		string basePath = Game::Dvar_FindVar("fs_basepath")->current.string;
-		basePath += "\\menu_export\\";
+		setPath(path, name);
 
-		string filePath = basePath + menu->window.name + ".menu";
+		menuFile.open(writeFilePath.c_str());
 
-		if (!CreateDirectoryA(basePath.c_str(), NULL))
-		{
-			//Game::Com_PrintMessage(0, "|- ^1Failed to create directory \"root/^3menu_export\"\n", 0);
-			//return;
-		}
-
-		menuFile.open(filePath.c_str());
+		Game::Com_PrintMessage(0, "Exporting menu.\n", 0);
 
 		//header
 
-		menuFile << "//This menu was generated using iw3xo Client\n";
-		menuFile << "//If you find any bug please report them here: https://github.com/xoxor4d/iw3xo-dev/issues\n\n";
-		menuFile << "#include \"ui/menudefinition.h\"\n\n";
+		menuFile << headerText;
+
 
 		//open menu
 		menuFile << "{\n";
@@ -72,17 +86,91 @@ namespace Components
 		menuFile << "}\n";
 
 		menuFile.close();
+
+		Game::Com_PrintMessage(0, Utils::VA("Menu exported to: %s\n", writeFilePath.c_str()), 0);
 	}
 
+	//Export menudef and all its itemdefs to menu_export\menus folder in basepath
+	void MenuExport::exportMenu(Game::menuDef_t *menu) {
+		using namespace std;
+
+		string basePath = Game::Dvar_FindVar("fs_basepath")->current.string;
+		basePath += "\\menu_export\\menus\\";
+
+		string fileName = menu->window.name;
+		fileName += ".menu";
+		
+		exportMenu(menu, basePath, fileName);
+	}
+
+	//Export all itemdef from a menudef to a specified folder and file name
+	void MenuExport::exportMenuItemdefs(Game::menuDef_t *menu, std::string path, std::string name) {
+		setPath(path, name);
+
+		Game::Com_PrintMessage(0, Utils::VA("Exporting itemDefs from %s.\n", menu->window.name), 0);
+
+		menuFile.open(writeFilePath.c_str());
+
+		//header
+		menuFile << headerText;
+
+		for (int i = 0; i < menu->itemCount; i++) {
+			writeItemDef(*menu->items[i]);
+		}
+
+		menuFile.close();
+
+		Game::Com_PrintMessage(0, Utils::VA("ItemDefs exported to: %s\n", writeFilePath.c_str()), 0);
+	}
+
+	//Export all itemdefs from a menudef to menu_export\itemdefs in basepath
+	void MenuExport::exportMenuItemdefs(Game::menuDef_t *menu) {
+		using namespace std;
+		string basePath = Game::Dvar_FindVar("fs_basepath")->current.string;
+		basePath += "\\menu_export\\itemdefs\\";
+
+		string fileName = menu->window.name;
+		fileName += "_itemdefs.menu";
+
+		exportMenuItemdefs(menu, basePath, fileName);
+	}
+
+	//Export a single itemDef to a specified folder and file name
+	void MenuExport::exportItemDef(Game::itemDef_s itemDef, std::string path, std::string name) {
+
+		setPath(path, name);
+
+		Game::Com_PrintMessage(0, "Exporting itemDef.", 0);
+
+		menuFile.open(writeFilePath.c_str());
+
+		//header
+		menuFile << headerText;
+
+		writeItemDef(itemDef);
+
+		menuFile.close();
+
+		Game::Com_PrintMessage(0, Utils::VA("ItemDef exported to: %s\n", writeFilePath.c_str()), 0);
+	}
+
+	void MenuExport::setPath(std::string path, std::string name) {
+		std::string filePath = path + "\\" + name;
+		writeFilePath = filePath;
+
+		CreateDirectoryA(path.c_str(), NULL);
+
+		return;
+	}
 
 	void MenuExport::writeMenuDef(Game::menuDef_t *menuDef)
 	{
-
+		tabbing = MENU_TABBING;
 		//open menudef
 		menuFile << tabbing << "menuDef" << "\n" << tabbing << "{\n";
 		tabbing = MENUDEF_TABBING;
 
-		writeText("name", menuDef->window.name);
+		WRITE_TEXT("name", menuDef->window.name);
 
 		writeRect(menuDef->window.rect);
 
@@ -90,26 +178,16 @@ namespace Components
 
 		writeNumber("fullScreen", menuDef->fullScreen);
 
-		if(menuDef->blurRadius != 0)
-		{ 
-			writeNumber("blurWorld", menuDef->blurRadius);
-		}
 
-		if (menuDef->fadeCycle != 0) {
-			writeNumber("fadeCycle", menuDef->fadeCycle);
-		}
+		WRITE_NUMBER("blurWorld", 0, menuDef->blurRadius);
 
-		if (menuDef->fadeClamp != 0) {
-			writeNumber("fadeClamp", menuDef->fadeClamp);
-		}
+		WRITE_NUMBER("fadeCycle", 0, menuDef->fadeCycle);
 
-		if (menuDef->fadeAmount != 0) {
-			writeNumber("fadeAmount", menuDef->fadeAmount);
-		}
+		WRITE_NUMBER("fadeClamp", 0, menuDef->fadeClamp);
 
-		if (menuDef->fadeInAmount != 0) {
-			writeNumber("fadeInAmount", menuDef->fadeInAmount);
-		}
+		WRITE_NUMBER("fadeAmount", 0, menuDef->fadeAmount);
+
+		WRITE_NUMBER("fadeInAmount", 0, menuDef->fadeInAmount);
 		
 		if (menuDef->window.border != 0 && menuDef->window.borderSize != 0) {
 
@@ -120,9 +198,6 @@ namespace Components
 			writeVec4("borderColor", menuDef->window.borderColor);
 			
 		}
-
-
-
 
 		writeVec4("foreColor", menuDef->window.foreColor);
 	
@@ -141,16 +216,11 @@ namespace Components
 			writeNumber("ownerDrawFlag", menuDef->window.ownerDrawFlags);
 		}
 
-		if (menuDef->allowedBinding) {
-			writeText("allowBinding", menuDef->allowedBinding);
-		}
+		WRITE_TEXT("allowBinding", menuDef->allowedBinding);
 
-		if (menuDef->soundName) {
-			writeText("soundLoop", menuDef->soundName);
-		}
+		WRITE_TEXT("soundLoop", menuDef->soundName);
 
 		if (menuDef->window.background) {
-
 			writeText("background", menuDef->window.background->info.name);
 		}
 
@@ -159,18 +229,13 @@ namespace Components
 		}
 
 		
-		
-		if (menuDef->onOpen) {
-			writeAction("onOpen", menuDef->onOpen);
-		}
 
-		if (menuDef->onClose) {
-			writeAction("onClose", menuDef->onClose);
-		}
+		WRITE_ACTION("onOpen", menuDef->onOpen);
 
-		if (menuDef->onESC) {
-			writeAction("onESC", menuDef->onESC);
-		}
+		WRITE_ACTION("onClose", menuDef->onClose);
+
+		WRITE_ACTION("onESC", menuDef->onESC);
+
 
 		while (menuDef->onKey) {
 			writeKeyAction(menuDef->onKey->key, menuDef->onKey->action);
@@ -203,9 +268,8 @@ namespace Components
 		menuFile << tabbing << "{\n";
 		tabbing = ITEMDEF_TABBING;
 
-		if (itemDef.window.name) {
-			writeText("name", itemDef.window.name);
-		}
+
+		WRITE_TEXT("name", itemDef.window.name);
 
 		writeRect(itemDef.window.rectClient);
 
@@ -237,9 +301,7 @@ namespace Components
 			writeVec4("outlineColor", itemDef.window.outlineColor);
 		}
 
-		if (itemDef.window.group) {
-			writeText("group", itemDef.window.group);
-		}
+		WRITE_TEXT("group", itemDef.window.group);
 
 		if (itemDef.window.background) {
 			writeText("background", itemDef.window.background->info.name);
@@ -247,50 +309,34 @@ namespace Components
 
 		writeNumber("type", itemDef.type, itemTypeMap);
 
+		WRITE_NUMBER_MAP("textfont", 0, itemDef.fontEnum, fontTypeMap);
 
-		if (itemDef.fontEnum != 0) {
-			writeNumber("textfont", itemDef.fontEnum, fontTypeMap);
-		}
+		WRITE_NUMBER_MAP("textAlign", 0, itemDef.textAlignMode, itemTextAlignMap);
 
-		if (itemDef.textAlignMode != 0) {
-			writeNumber("textAlign", itemDef.textAlignMode, itemTextAlignMap);
-		}
+		WRITE_NUMBER("textAlignX", 0, itemDef.textalignx);
 
-		if (itemDef.textaligny != 0) {
-			writeNumber("textAlignX", itemDef.textalignx);
-		}
-
-		if (itemDef.textalignx != 0) {
-			writeNumber("textAlignY", itemDef.textaligny);
-		}
+		WRITE_NUMBER("textAlignY", 0, itemDef.textaligny);
 		
-		if (itemDef.textscale != defaultTextSize) {
-			writeNumber("textScale", itemDef.textscale);
-		}
+		WRITE_NUMBER("textScale", defaultTextSize, itemDef.textscale);
 		
-		if (itemDef.textStyle != 0) {
-			writeNumber("textStyle", itemDef.textStyle, itemTextStyleMap);
-		}
+		WRITE_NUMBER_MAP("textStyle", 0, itemDef.textStyle, itemTextStyleMap)
 
-		if (itemDef.text) {
-			writeText("text", itemDef.text);
-		}
 
-		if (itemDef.type == itemType::listBox) {
+		WRITE_TEXT("text", itemDef.text);
+
+		if (itemDef.type == ITEM_TYPE_LISTBOX) {
 			writeNumber("feeder", itemDef.feeder, feederMap);
 			writeNumber("elementWidth", itemDef.typeData.listBox->elementWidth);
 			writeNumber("elementHeight", itemDef.typeData.listBox->elementHeight);		
 			writeNumber("elementType", itemDef.typeData.listBox->elementStyle, listBoxTypeMap);
-			if (itemDef.typeData.listBox->doubleClick) {
-				writeAction("doubleclick", itemDef.typeData.listBox->doubleClick);
-			}
+			WRITE_ACTION("doubleclick", itemDef.typeData.listBox->doubleClick);
 			writeVec4("selectBorder", itemDef.typeData.listBox->selectBorder);
 			writeVec4("disableColor", itemDef.typeData.listBox->disableColor);
 
-			//fix this
-			//if (itemDef.typeData.listBox->selectIcon->info.name) {
-			//	writeText("selectIcon", itemDef.typeData.listBox->selectIcon->info.name);
-			//}
+
+			if (itemDef.typeData.listBox->selectIcon) {
+				writeText("selectIcon", itemDef.typeData.listBox->selectIcon->info.name);
+			}
 			if (itemDef.typeData.listBox->notselectable) {
 				writeLine("notselectable");
 			}
@@ -301,59 +347,68 @@ namespace Components
 				writeLine("usePaging");
 			}
 
-			padding = PADDING(5);
-			menuFile << tabbing << "columns" << setw(padding) << itemDef.typeData.listBox->numColumns << "\n";
+			menuFile << tabbing << "columns" << PADDING(7) << itemDef.typeData.listBox->numColumns << "\n";
 			for (int i = 0; i < itemDef.typeData.listBox->numColumns; i++) {
-				menuFile << tabbing << setw(padding) << itemDef.typeData.listBox->columnInfo[i].pos
+				menuFile << tabbing << "\t\t\t\t" << setw(padding) << itemDef.typeData.listBox->columnInfo[i].pos
 					<< " " << itemDef.typeData.listBox->columnInfo[i].width
 					<< " " << itemDef.typeData.listBox->columnInfo[i].maxChars << "\n";
 			}
 		}
-		else if (itemDef.type == itemType::editField) {
+		else if (itemDef.type == ITEM_TYPE_EDITFIELD) {
 			writeNumber("maxChars", itemDef.typeData.editField->maxChars);
 			writeNumber("maxPaintChars", itemDef.typeData.editField->maxPaintChars);
 			if (itemDef.typeData.editField->maxCharsGotoNext) {
 				writeLine("maxCharsGotoNext");
 			}
 		}
-		else if (itemDef.type == itemType::multi) {
+		else if (itemDef.type == ITEM_TYPE_MULTI) {
+
+			if (itemDef.typeData.multi->strDef == 1) {
+				menuFile << tabbing << "dvarStrList" << PADDING(13) << "{ ";
+			}
+			else {
+				menuFile << tabbing << "dvarFloatList" << PADDING(13) << "{ ";
+			}
+
+			
+
+			for (int i = 0; i < itemDef.typeData.multi->count; i++) {
+				if (itemDef.typeData.multi->strDef == 1) {
+					menuFile << itemDef.typeData.multi->dvarList[i] << " " << itemDef.typeData.multi->dvarStr[i] << " ";
+				}
+				else {
+					menuFile << itemDef.typeData.multi->dvarList[i] << " " << itemDef.typeData.multi->dvarValue[i] << " ";
+				}
+			}
+			menuFile << " }\n";
 
 		}
-		else if (itemDef.type == itemType::enumDvar) {
-
+		else if (itemDef.type == ITEM_TYPE_DVARENUM) {
+			//idk what this does
+		}
+		else if (itemDef.type == ITEM_TYPE_GAME_MESSAGE_WINDOW) {
+			writeNumber("gameMsgWindowIndex", itemDef.gameMsgWindowIndex);
+			writeNumber("gameMsgWindowMode", itemDef.gameMsgWindowMode, messageMap);
 		}
 
-		if (itemDef.mouseEnterText) {
-			writeAction("mouseEnterText", itemDef.mouseEnterText);
-		}
+		WRITE_ACTION("mouseEnterText", itemDef.mouseEnterText);
 
-		if (itemDef.mouseExitText) {
-			writeAction("mouseExitText", itemDef.mouseExitText);
-		}
+		WRITE_ACTION("mouseExitText", itemDef.mouseExitText);
 
-		if (itemDef.mouseEnter) {
-			writeAction("mouseEnter", itemDef.mouseEnter);
-		}
+		WRITE_ACTION("mouseEnter", itemDef.mouseEnter);
 
-		if (itemDef.mouseExit) {
-			writeAction("mouseExit", itemDef.mouseExit);
-		}
-		
-		if (itemDef.action) {
-			writeAction("action", itemDef.action);
-		}
+		WRITE_ACTION("mouseExit", itemDef.mouseExit);
 
-		if (itemDef.onAccept) {
-			writeAction("onAccept", itemDef.onAccept);
-		}
+		WRITE_ACTION("action", itemDef.action);
 
-		if (itemDef.onFocus) {
-			writeAction("onFocus", itemDef.onFocus);
-		}
+		WRITE_ACTION("onAccept", itemDef.onAccept);
 
-		if (itemDef.leaveFocus) {
-			writeAction("leaveFocus", itemDef.mouseExitText);
-		}
+		WRITE_ACTION("onAccept", itemDef.onAccept);
+
+		WRITE_ACTION("onFocus", itemDef.onFocus);
+
+		WRITE_ACTION("leaveFocus", itemDef.mouseExitText);
+
 
 		while (itemDef.onKey) {
 			writeKeyAction(itemDef.onKey->key, itemDef.onKey->action);
@@ -374,25 +429,29 @@ namespace Components
 
 		writeStatement("foreColor A", itemDef.forecolorAExp);
 		
+		WRITE_TEXT("dvar", itemDef.dvar);
 
-		//dvar
+		WRITE_TEXT("dvartest", itemDef.dvarTest);
 
-		//dvartest
 
-		//enable dvar
-
-		//dvarflags
-
-		//focussound
-
-		//textSavegame
-
-		//imagetrack
-
-		//gameMsgWindowIndex
-
-		//gameMsgWindowMode
-
+		if (itemDef.dvarFlags != 0) {
+			std::string dvarFlag = "";
+			switch (itemDef.dvarFlags) {
+				case DISABLEDVAR:
+					dvarFlag = "disableDvar";
+					break;
+				case SHOWDVAR:
+					dvarFlag = "showDvar";
+					break;
+				case HIDEDVAR:
+					dvarFlag = "hideDvar";
+					break;
+				case FOCUSDVAR:
+					dvarFlag = "focusDvar";
+			}
+			writeAction(dvarFlag, itemDef.enableDvar);
+		}
+		
 
 		if (itemDef.window.staticFlags) {
 			writeFlag(itemDef.window.staticFlags);
@@ -423,8 +482,7 @@ namespace Components
 			vAlign = find->second;
 		}
 
-		padding = PADDING(4);
-		menuFile << tabbing << "rect" << setw(padding)
+		menuFile << tabbing << "rect" << PADDING(4)
 			<< rect.x << " "
 			<< rect.y << " "
 			<< rect.w << " "
@@ -435,22 +493,19 @@ namespace Components
 	}
 
 	//Write text entries
-	void MenuExport::writeText(std::string name, const char* text) {	
-			padding = PADDING(name.length());
-			menuFile << tabbing << name << std::setw(padding) << "\"" << text << "\"\n";
+	void MenuExport::writeText(std::string name, const char* text) {
+			menuFile << tabbing << name << PADDING(name.length()) << "\"" << text << "\"\n";
 	}
 
 	//write single line
 	void MenuExport::writeLine(std::string name) {
-		padding = PADDING(name.length());
 		menuFile << tabbing << name << "\n";
 	}
 
 	//Write number entries
 	template <typename T>
 	void MenuExport::writeNumber(std::string name, T num) {
-		padding = PADDING(name.length());
-		menuFile << tabbing << name << std::setw(padding) << num << "\n";
+		menuFile << tabbing << name << PADDING(name.length()) << num << "\n";
 	}
 
 	//Write number entries that have a definiton in menudefinition.h
@@ -465,8 +520,7 @@ namespace Components
 			number = find->second;
 		}
 
-		padding = PADDING(name.length());
-		menuFile << tabbing << name << std::setfill(' ') << std::setw(padding) << number << "\n";
+		menuFile << tabbing << name << PADDING(name.length()) << number << "\n";
 	}
 
 	//write flags
@@ -478,35 +532,70 @@ namespace Components
 		}
 	}
 
-	//might need to check for string in scriptactions :pepethink:
 	//Write menu actions, mousehover, onopen, onclose etc
 	void MenuExport::writeAction(std::string name, std::string action) {
 		using namespace std;
 		
 		bool stringOpen = false;
 		string newText = "";
+		string word = "";
 
-		for (int i = 0; i < action.length(); i++) {
-			if (action.at(i) == '"'){
-				continue;
+		//I dont think this is the best solution
+		//Need to remove quote character around script actions but leave quotes everywhere else
+		int i = 0;
+		int start = 0;
+		while (i < action.length()) {
+			if (action.at(i) == '"') {
+				if (!stringOpen) {
+					stringOpen = true;
+					start = i;
+					i++;
+					continue;
+				}
+				else {
+					stringOpen = false;
+					for (int z = 0; z < scriptActionLength; z++) {
+						transform(word.begin(), word.end(), word.begin(), [](char c) {return tolower(c); });
+						if (word.compare(scriptActions[z]) == 0) {
+							action.replace(start, 1, " ");
+							action.replace(i, 1, " ");
+							z = scriptActionLength;
+						}
+					}
+					word = "";
+				}
 			}
-			newText += action.at(i);
+			
+			if (stringOpen) {
+				word += action.at(i);
+			}
+
+			i++;
 		}
 
-		menuFile << tabbing << name << "{ " << newText << " }" << "\n";
+		menuFile << tabbing << name << PADDING(name.length()) <<  "{ " << action << " }" << "\n";
 	}
 
 	//write key actions, execkey, execkeyint
 	void MenuExport::writeKeyAction(int key, std::string action) {
-		std::string name = "execKey \"" + std::to_string(key) + "\" ";
+		std::string name;
+		//range for single character keys
+		if (key >= KEY_MULTIPLY && key <= KEY_Z ) {
+			name = "execKey \"";
+			name += (char)key;
+			name += "\" ";
+		}
+		else {
+			name = "execKeyInt " + std::to_string(key) + " ";
+		}
+
 		writeAction(name, action);
 	}
 
 	//Write a float4
 	void MenuExport::writeVec4(std::string name, float vec4[]) {
 
-		padding = PADDING(name.length());
-		menuFile << tabbing << name << std::setw(padding)
+		menuFile << tabbing << name << PADDING(name.length())
 			<< vec4[0] << " "
 			<< vec4[1] << " "
 			<< vec4[2] << " "
@@ -516,8 +605,7 @@ namespace Components
 	//special case for visible
 	void MenuExport::writeVisible(Game::statement_s stmt) {
 		if (stmt.numEntries == 0) {
-			padding = PADDING(7);
-			menuFile << tabbing << "visible" << std::setw(padding) << "1\n";
+			menuFile << tabbing << "visible" << PADDING(7) << "1\n";
 		}
 		else {
 			writeStatement("visible", stmt);
@@ -531,8 +619,7 @@ namespace Components
 			return;
 		}
 		string statement = "";
-		padding = PADDING(name.length());
-		menuFile << tabbing << "exp " << setw(padding) << name << " ";
+		menuFile << tabbing << "exp " << PADDING(name.length() + 3/*for the exp*/) << name << " ";
 
 		for (int i = 0; i < stmt.numEntries; i++) {
 			if (stmt.entries[i]->type == 0) {
@@ -588,7 +675,7 @@ namespace Components
 
 
 
-		menuFile << statement << "\n";//does not save last lose bracket as operand ?
+		menuFile << statement << "\n";
 
 	}
 
