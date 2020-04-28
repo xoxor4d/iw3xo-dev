@@ -487,7 +487,7 @@ namespace Components
 
 	//Write number entries that have a definiton in menudefinition.h
 	//template <typename T>
-	void MenuExport::writeNumber(std::string name, /*T num*/ unsigned int num, identifierMap &map)
+	void MenuExport::writeNumber(std::string name, int num, identifierMap &map)
 	{
 		auto number = std::to_string(num);
 		find = map.find(num);

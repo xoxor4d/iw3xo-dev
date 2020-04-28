@@ -57,7 +57,7 @@ namespace Components
 		void writeNumber(std::string name, T num);
 		//template <typename T> 
 		//void writeNumber(std::string name, T num, identifierMap &map);
-		void writeNumber(std::string name, /*T num*/ unsigned int num, identifierMap& map);
+		void writeNumber(std::string name, int num, identifierMap& map);
 		void writeText(std::string name, const char* text);
 		void writeFlag(int num);
 		void writeAction(std::string name, std::string action);
