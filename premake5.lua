@@ -107,11 +107,7 @@ workspace "iw3xo-dev"
 			["Docs/*"] = { "**.txt","**.md" },
 		}
 		
-		-- Pre-build
-		prebuildcommands {
-			"cd %{_MAIN_SCRIPT_DIR}",
-			"tools\\premake5 generate-buildinfo"
-		}
+		
 
 		-- Specific configurations
 		flags { "UndefinedIdentifiers" }
@@ -119,6 +115,12 @@ workspace "iw3xo-dev"
 
 		configuration "Release"
 			flags { "FatalCompileWarnings" }
+			
+			-- Pre-build
+			prebuildcommands {
+			"cd %{_MAIN_SCRIPT_DIR}",
+			"tools\\premake5 generate-buildinfo"
+			}
 		configuration {}
 
 	group "External dependencies"
