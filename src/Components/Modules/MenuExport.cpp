@@ -514,8 +514,6 @@ namespace Components
 	//Write menu actions, mousehover, onopen, onclose etc
 	void MenuExport::writeAction(std::string name, std::string action) 
 	{
-		//using namespace std;
-		
 		bool stringOpen = false;
 		std::string word = "";
 
@@ -540,7 +538,7 @@ namespace Components
 
 					for (int z = 0; z < scriptActionLength; z++) 
 					{
-						word = Utils::StrToLower(word);
+						Utils::StrToLower(word);
 
 						if (word.compare(scriptActions[z]) == 0) 
 						{

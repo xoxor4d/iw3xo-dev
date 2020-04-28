@@ -25,7 +25,6 @@
 #include <shellapi.h>
 #include <WinSock2.h>
 #include <assert.h>
-#include <filesystem>
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "d3d9.lib")
 
@@ -43,6 +42,7 @@
 #include <algorithm>
 #include <functional>
 #include <cctype>
+#include <filesystem>
 #include <locale>
 #include <regex>
 #include <thread>
