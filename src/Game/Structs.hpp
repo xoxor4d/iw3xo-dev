@@ -5378,7 +5378,7 @@ namespace Game
 			ItemKeyHandler *onKey;
 			statement_s visibleExp;
 			const char *allowedBinding;
-			const char *soundName;
+			const char *soundName; //soundloop
 			int imageTrack;
 			float focusColor[4];
 			float disableColor[4];
@@ -5403,7 +5403,7 @@ namespace Game
 			int gameMsgWindowIndex;
 			int gameMsgWindowMode;
 			const char *text;
-			int itemFlags;
+			int textSavegame; //original name: itemFlags
 			menuDef_t *parent;
 			const char *mouseEnterText;
 			const char *mouseExitText;
@@ -5419,7 +5419,7 @@ namespace Game
 			const char *enableDvar;
 			int dvarFlags;
 			snd_alias_list_t *focusSound;
-			float special;
+			float feeder; //original name: special
 			int cursorPos[1];
 			itemDefData_t typeData;
 			int imageTrack;
