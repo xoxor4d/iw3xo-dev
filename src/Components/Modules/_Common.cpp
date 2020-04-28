@@ -13,12 +13,13 @@ namespace Components
 
 	void ForceDvarsOnInit()
 	{
-		auto fs_usedevdir	= Game::Dvar_FindVar("fs_usedevdir");
-		auto sv_pure		= Game::Dvar_FindVar("sv_pure");
 		auto dedicated		= Game::Dvar_FindVar("dedicated");
+		auto fs_usedevdir	= Game::Dvar_FindVar("fs_usedevdir");
 
 		if (dedicated && dedicated->current.integer == 0)
 		{
+			auto sv_pure = Game::Dvar_FindVar("sv_pure");
+
 			if (sv_pure && sv_pure->current.enabled)
 			{
 				Game::Dvar_SetValue(sv_pure, false); // quick set the value
@@ -220,7 +221,9 @@ namespace Components
 	// realloc zones that get unloaded on map load (eg. ui_mp)
 	void Com_StartHunkUsers()
 	{
-		if (Game::Dvar_FindVar("useFastFile")->current.enabled)
+		auto useFastFile = Game::Dvar_FindVar("useFastFile");
+
+		if (useFastFile && useFastFile->current.enabled)
 		{
 			int i = 0;
 			Game::XZoneInfo XZoneInfoStack[2];

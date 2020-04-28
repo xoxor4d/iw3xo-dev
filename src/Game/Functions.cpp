@@ -212,8 +212,8 @@ namespace Game
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_server = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B074);
 
 	// get handle using DB_FindXAssetHeader
-	R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x5F1EC0;
-	Material_RegisterHandle_t Material_RegisterHandle = (Material_RegisterHandle_t)0x5F2A80;
+	//R_RegisterFont_t R_RegisterFont = (R_RegisterFont_t)0x5F1EC0;
+	//Material_RegisterHandle_t Material_RegisterHandle = (Material_RegisterHandle_t)0x5F2A80;
 
 	RB_EndTessSurface_t RB_EndTessSurface = (RB_EndTessSurface_t)0x61A2F0;
 

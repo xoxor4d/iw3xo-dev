@@ -1,9 +1,4 @@
 #include "STDInclude.hpp"
-#include "Utils/vector.hpp"
-
-using namespace Utils::vector;
-
-// can grab ps from gentity-client-ps // works on dedi
 
 #define SERVERSTATIC_STRUCT_ADDR 0x1CBFC80 // correct, we start at initialized, cba to get real start address
 #define svs (*((Game::serverStatic_t*)(SERVERSTATIC_STRUCT_ADDR)))
@@ -12,6 +7,7 @@ using namespace Utils::vector;
 #define sv (*((Game::server_t*)(SERVER_STRUCT_ADDR))) // def. 0x17FC7C8
 
 Game::scr_function_t *scr_methods = NULL; // only for PlayerMethods
+
 
 namespace Components
 {
@@ -35,12 +31,17 @@ namespace Components
 		}
 
 		// use a small malloc to avoid zone fragmentation
-		//cmd = malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1);
-		//strcpy((char*)(cmd + 1), cmd_name);
-		//cmd->name = (char*)(cmd + 1);
 		cmd = reinterpret_cast<Game::scr_function_t*> (malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1));
-		strcpy((char*)(cmd + 1), cmd_name);
-		cmd->name = (char*)(cmd + 1);
+
+		if (cmd && cmd + 0x1)
+		{
+			strcpy((char*)(cmd + 1), cmd_name);
+			cmd->name = (char*)(cmd + 1);
+		}
+		else
+		{
+			return false;
+		}
 
 		//cmd->name		= cmd_name;
 		cmd->function = function;

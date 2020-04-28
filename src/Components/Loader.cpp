@@ -12,8 +12,7 @@ namespace Components
 	{
 		Loader::MemAllocator.clear();
 
-		// global bools for more dynamic modules (no module sorting needed)
-		// choose which modules to load
+		// global bools for more dynamic modules (choose which modules to load)
 		active._UI = true;
 		active._CG = true;
 		active._Pmove = true;
@@ -21,17 +20,18 @@ namespace Components
 		active._Game = true;
 		active._Map = true;
 		active._Common = true;
+		active.Scheduler = true;
 		active.Command = true;
 		active.D3D9Ex = true;
 		active.GScr_Methods = true;
 		active.QuickPatch = true;
+
 		active.PM_Movement = true;
 		active.XO_Console = true;
 		active.RB_DrawCollision = true;
 		active.RB_ShaderOverlays = true;
 		active.RadiantRemote = true;
 		active.Window = true;
-		active.Scheduler = true;
 
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_CG);
@@ -44,6 +44,8 @@ namespace Components
 		REGISTER_MODULE(Command);
 		REGISTER_MODULE(GScr_Methods);
 		REGISTER_MODULE(QuickPatch);
+		REGISTER_MODULE(Scheduler);
+
 		// Addons
 		REGISTER_MODULE(D3D9Ex);
 		REGISTER_MODULE(PM_Movement);
@@ -52,7 +54,6 @@ namespace Components
 		REGISTER_MODULE(RB_ShaderOverlays);
 		REGISTER_MODULE(RadiantRemote);
 		REGISTER_MODULE(Window);
-		REGISTER_MODULE(Scheduler);
 	}
 
 	void Loader::Uninitialize()

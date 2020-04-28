@@ -1,10 +1,16 @@
 #include "STDInclude.hpp"
 
+#define GET_UIMATERIAL(ptr) (Game::Material*) *(DWORD*)(ptr)
+
 namespace Components
 {
 	int _UI::GetTextHeight(Game::Font_s *font)
 	{
-		return font->pixelHeight;
+		if (font)
+			return font->pixelHeight;
+
+		else 
+			return 16;
 	}
 
 	float _UI::ScrPlace_ApplyX(int horzAlign, const float x, const float xOffs)
@@ -356,7 +362,7 @@ namespace Components
 
 	void UI_MainMenu_FadeIn()
 	{
-		if (!Game::Sys_IsMainThread() || mainmenu_fadeDone)
+		if (!Game::Sys_IsMainThread() || mainmenu_fadeDone || !Game::_uiContext)
 		{
 			return;
 		}
@@ -381,18 +387,20 @@ namespace Components
 			return;
 		}
 
-		float	scale, scale_x, scale_y, offs_x, offs_y;
 		float	max = Game::scrPlace->scaleVirtualToReal[1] * 0.3f;
+		char*	font;
 
-		char* font;
+		auto ui_smallFont		= Game::Dvar_FindVar("ui_smallFont");
+		auto ui_extraBigFont	= Game::Dvar_FindVar("ui_extraBigFont");
+		auto ui_bigFont			= Game::Dvar_FindVar("ui_bigFont");
 
-		if (Game::Dvar_FindVar("ui_smallFont")->current.value < max)
+		if (ui_smallFont && ui_smallFont->current.value < max)
 		{
-			if (Game::Dvar_FindVar("ui_extraBigFont")->current.value > max)
+			if (ui_extraBigFont && ui_extraBigFont->current.value > max)
 			{
 				font = FONT_BIG;
 
-				if (Game::Dvar_FindVar("ui_bigFont")->current.value > max)
+				if (ui_bigFont && ui_bigFont->current.value > max)
 				{
 					font = FONT_NORMAL;
 				}
@@ -404,12 +412,18 @@ namespace Components
 			font = FONT_SMALL;
 
 		// get font handle
-		void* fontHandle = Game::R_RegisterFont(font, sizeof(font));
+		auto fontHandle = Game::R_RegisterFont(font, sizeof(font));
+		
+		if (!fontHandle) {
+			return;
+		}
 
-		offs_x = 10.0f; offs_y = -10.0f; scale = 0.25f;
+		float offs_x = 10.0f; 
+		float offs_y = -10.0f; 
+		float scale = 0.25f;
 
-		scale_x = scale * 48.0f / static_cast<Game::Font_s*>(fontHandle)->pixelHeight;
-		scale_y = scale_x;
+		float scale_x = scale * 48.0f / fontHandle->pixelHeight;
+		float scale_y = scale_x;
 
 		// place container
 		_UI::ScrPlace_ApplyRect(&offs_x, &scale_x, &offs_y, &scale_y, HORIZONTAL_ALIGN_LEFT, VERTICAL_ALIGN_BOTTOM);
@@ -480,9 +494,13 @@ namespace Components
 
 	void UI_SetCustom_CodeConstants()
 	{
-		// check if we are in a menu to stop overwriting filtertap? needed?
-		if (menu_gameTime >= 10000.0f) 
+		if (!Game::_uiContext || !Game::gfxCmdBufSourceState)
 		{
+			return;
+		}
+
+		// check if we are in a menu to stop overwriting filtertap? needed?
+		if (menu_gameTime >= 10000.0f) {
 			menu_gameTime = 0.0f;
 		}
 
@@ -517,8 +535,11 @@ namespace Components
 		int vpWidth = (int)floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));
 		int vpHeight = (int)floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
 
-		Game::Dvar_SetValue(Dvars::ui_renderWidth, vpWidth);
-		Game::Dvar_SetValue(Dvars::ui_renderHeight, vpHeight);
+		if (Dvars::ui_renderWidth && Dvars::ui_renderHeight)
+		{
+			Game::Dvar_SetValue(Dvars::ui_renderWidth, vpWidth);
+			Game::Dvar_SetValue(Dvars::ui_renderHeight, vpHeight);
+		}
 	}
 
 	// -- UI_SetCustom_CodeConstants
@@ -539,19 +560,16 @@ namespace Components
 		}
 	}
 
-	// the fuck did I do
-
-	struct ui_material
-	{
-		Game::Material *material;
-	};
-
-	ui_material* mat_white_ptr = reinterpret_cast<ui_material*>(0xCAF06F0);
-	Game::Material *ui_white_material;
+	Game::Material* ui_white_material;
 
 	void UI_InitWhiteMaterial()
 	{
-		ui_white_material = mat_white_ptr->material;
+		ui_white_material = GET_UIMATERIAL(0xCAF06F0); // white material pointer
+
+		if (!ui_white_material)
+		{
+			ui_white_material = Game::Material_RegisterHandle("white", 3);
+		}
 	}
 	
 	// ITEM-SLIDER :: Background
@@ -665,10 +683,13 @@ namespace Components
 
 	// --------------------------------------------------------------
 
-	// initally reset ultrawide on each r_aspectRatio call
-	void UltrawideDvarFalse()
+	// ultrawide dvar helper func
+	void SetUltrawideDvar(bool state)
 	{
-		Game::Dvar_SetValue(Dvars::ui_ultrawide, false);
+		if (Dvars::ui_ultrawide)
+		{
+			Game::Dvar_SetValue(Dvars::ui_ultrawide, state);
+		}
 	}
 
 	// -- UltrawideDvarFalse
@@ -678,7 +699,9 @@ namespace Components
 		__asm
 		{
 			pushad
-			Call	UltrawideDvarFalse
+			push	0
+			Call	SetUltrawideDvar
+			add		esp, 4h
 			popad
 
 			mov     eax, [eax + 0Ch]	// overwritten op
@@ -686,12 +709,6 @@ namespace Components
 
 			jmp		returnPt			// jump back to break op
 		}
-	}
-
-	// set ultrawide if 21:9 aspect is used
-	void UltrawideDvarTrue()
-	{
-		Game::Dvar_SetValue(Dvars::ui_ultrawide, true);
 	}
 
 	// -- UltrawideDvarTrue // use default switchcase to implement 21:9
@@ -702,7 +719,9 @@ namespace Components
 		__asm
 		{
 			pushad
-			Call	UltrawideDvarTrue
+			push	1
+			Call	SetUltrawideDvar
+			add		esp, 4h
 			popad
 
 			push	eax							// push throwaway register
@@ -728,43 +747,51 @@ namespace Components
 		if (!Utils::Q_stricmpn(arg, "StartServerCustom", 0x7FFFFFFF))
 		{
 			const char* spawnServerStr;
+			const char* gameTypeStr;
+			const char* mapNameStr;
 
 			auto ui_dedicated			= Game::Dvar_FindVar("ui_dedicated");
-			auto ui_developer			= Game::Dvar_FindVar("ui_developer");
-			auto ui_developer_script	= Game::Dvar_FindVar("ui_developer_script");
+			auto ui_netGameType			= Game::Dvar_FindVar("ui_netGameType");
+			auto ui_currentNetMap		= Game::Dvar_FindVar("ui_currentNetMap");
+			auto dedicated				= Game::Dvar_FindVar("dedicated");
+			auto g_gametype				= Game::Dvar_FindVar("g_gametype");
 			
-			if (ui_dedicated->current.integer != 0) 
+			if (ui_dedicated && ui_dedicated->current.integer != 0) 
 			{
 				Game::Com_PrintMessage(0, Utils::VA("^3Warning ^7:: setting \"dedicated\" to 0 because advanced server settings only supports listen servers!\n"), 0);
+				Game::Dvar_SetValue(dedicated, 0);
 			}
 
-			Game::Dvar_SetValue(Game::Dvar_FindVar("dedicated"), 0);
-
-			const char* gameTypeStr = (const char*)Game::gameTypeEnum[0x2 * Game::Dvar_FindVar("ui_netGameType")->current.integer];
-			const char* mapNameStr	= (const char*)Game::mapNameEnum[0x28 * Game::Dvar_FindVar("ui_currentNetMap")->current.integer];
-
-			if (!gameTypeStr) 
+			if (Game::gameTypeEnum && *Game::gameTypeEnum && ui_netGameType && ui_currentNetMap)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^3Warning ^7:: gameType was empty! Defaulting to dm!\n"), 0);
+				gameTypeStr = (const char*)Game::gameTypeEnum[0x2 * ui_netGameType->current.integer];
+				mapNameStr	= (const char*)Game::mapNameEnum[0x28 * ui_currentNetMap->current.integer];
+			}
+			else
+			{
+				Game::Com_PrintMessage(0, "^3Warning ^7:: gametype or map name was empty! Using Defaults!\n", 0);
+				
 				gameTypeStr = "dm";
-			}
-
-			if (!mapNameStr) 
-			{
-				Game::Com_PrintMessage(0, Utils::VA("^3Warning ^7:: map name was empty! Defaulting to mp_backlot!\n"), 0);
-				mapNameStr = "mp_backlot";
+				mapNameStr	= "mp_backlot";
 			}
 
 			// set gametype
-			Game::Dvar_SetString(gameTypeStr, Game::Dvar_FindVar("g_gametype"));
+			if (g_gametype)
+			{
+				Game::Dvar_SetString(gameTypeStr, g_gametype);
+			}
 			
 			// server spawn string
-			spawnServerStr = Utils::VA("wait ; wait ; set developer %i; set developer_script %i; %s %s\n", 
-																			ui_developer->current.integer, 
-																			ui_developer_script->current.integer, 
-																			Dvars::ui_devmap->current.enabled ? "devmap" : "map", 
-																			mapNameStr);
-
+			if (Dvars::ui_developer && Dvars::ui_developer_script && Dvars::ui_devmap)
+			{
+				spawnServerStr = Utils::VA("wait ; wait ; set developer %i; set developer_script %i; %s %s\n",
+											Dvars::ui_developer->current.integer, Dvars::ui_developer_script->current.integer, Dvars::ui_devmap->current.enabled ? "devmap" : "map", mapNameStr);
+			}
+			else
+			{
+				spawnServerStr = Utils::VA("wait ; wait ; map %s", mapNameStr);
+			}
+			
 			Game::Com_PrintMessage(0, Utils::VA("^2Spawning server ^7:: %s", spawnServerStr), 0);
 			Game::Cbuf_AddText(spawnServerStr, 0);
 
@@ -843,7 +870,7 @@ namespace Components
 		{
 			auto fs_usedevdir = Game::Dvar_FindVar("fs_usedevdir");
 
-			if (fs_usedevdir && !fs_usedevdir->current.enabled)
+			if (!fs_usedevdir || fs_usedevdir && !fs_usedevdir->current.enabled)
 			{
 				Game::Com_PrintMessage(0, "fs_usedevdir must be enabled.\n", 0);
 				return;
@@ -852,6 +879,12 @@ namespace Components
 			if (params.Length() < 2)
 			{
 				Game::Com_PrintMessage(0, "Usage :: menu_loadlist <menulist_name.txt>\n", 0);
+				return;
+			}
+
+			if (!Game::_uiContext)
+			{
+				Game::Com_PrintMessage(0, "uiContext was null\n", 0);
 				return;
 			}
 
@@ -902,6 +935,12 @@ namespace Components
 				return;
 			}
 
+			if (!Game::_uiContext || !Game::clientUI)
+			{
+				Game::Com_PrintMessage(0, "uiContext | clientUI was null\n", 0);
+				return;
+			}
+
 			const char * name = params[1];
 			Game::UiContext *ui = &Game::_uiContext[0];
 			Game::clientUI->displayHUDWithKeycatchUI = true;
@@ -915,6 +954,12 @@ namespace Components
 			if (params.Length() < 2)
 			{
 				Game::Com_PrintMessage(0, "Usage :: menu_open_ingame <menu_name>\n", 0);
+				return;
+			}
+
+			if (!Game::_uiContext)
+			{
+				Game::Com_PrintMessage(0, "uiContext was null\n", 0);
 				return;
 			}
 
@@ -932,6 +977,12 @@ namespace Components
 			if (params.Length() < 2)
 			{
 				Game::Com_PrintMessage(0, "Usage :: menu_closebyname <menu_name>\n", 0);
+				return;
+			}
+
+			if (!Game::_uiContext)
+			{
+				Game::Com_PrintMessage(0, "uiContext was null\n", 0);
 				return;
 			}
 

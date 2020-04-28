@@ -164,13 +164,17 @@ namespace Game
 	static utils::function<bool()> CreateDebugLinesIfNeeded = 0x462080;
 
 	
-	typedef void*(*R_RegisterFont_t)(char* fontName, int fontSize);
-		// get handle using DB_FindXAssetHeader
-		extern R_RegisterFont_t R_RegisterFont;
+	//typedef void*(*R_RegisterFont_t)(char* fontName, int fontSize);
+		//extern R_RegisterFont_t R_RegisterFont;
 
-	typedef void*(*Material_RegisterHandle_t)(char* fontName, int fontSize);
-		// get handle using DB_FindXAssetHeader
-		extern Material_RegisterHandle_t Material_RegisterHandle;
+	// get handle using DB_FindXAssetHeader
+	static utils::function<Font_s* (const char* fontName, int fontSize)> R_RegisterFont = 0x5F1EC0;
+
+	//typedef void*(*Material_RegisterHandle_t)(char* fontName, int fontSize);
+		//extern Material_RegisterHandle_t Material_RegisterHandle;
+
+	// get handle using DB_FindXAssetHeader
+	static utils::function<Material* (const char* fontName, int fontSize)> Material_RegisterHandle = 0x5F2A80;
 
 	typedef void(*RB_EndTessSurface_t)();
 		extern RB_EndTessSurface_t RB_EndTessSurface;

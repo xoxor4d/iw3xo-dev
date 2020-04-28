@@ -9,6 +9,7 @@ namespace Components
 
 		// Add FS Path output print
 		Game::dvar_s* dedicated = Game::Dvar_FindVar("dedicated");
+		
 		if (dedicated && dedicated->current.integer == 0)
 		{
 			Game::FS_DisplayPath(1);

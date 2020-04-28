@@ -34,14 +34,23 @@ namespace Components
 		Game::R_Set2D();
 		Game::R_SetRenderTarget(Rendertarget);
 
-		Game::Material *material = reinterpret_cast<Game::Material *>(Game::Material_RegisterHandle(materialName, 3));
-		Game::RB_DrawStretchPic(material, x, y, width, height, 0.0, 0.0, 1.0, 1.0);
+		auto material = Game::Material_RegisterHandle(materialName, 3);
+
+		if (material) 
+		{
+			Game::RB_DrawStretchPic(material, x, y, width, height, 0.0, 0.0, 1.0, 1.0);
+		}
 
 		Game::RB_EndTessSurface();
 	}
 
 	void RB_DrawCustomShaders(char *shader)
 	{
+		if (!Game::gfxCmdBufSourceState)
+		{
+			return;
+		}
+
 		if (*Game::tessSurface)
 		{
 			Game::RB_EndTessSurface();
