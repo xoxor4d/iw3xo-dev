@@ -24,6 +24,7 @@ namespace Components
 		active.Command = true;
 		active.D3D9Ex = true;
 		active.GScr_Methods = true;
+		active.MenuExport = true;
 		active.QuickPatch = true;
 
 		active.PM_Movement = true;
@@ -48,6 +49,7 @@ namespace Components
 
 		// Addons
 		REGISTER_MODULE(D3D9Ex);
+		REGISTER_MODULE(MenuExport);
 		REGISTER_MODULE(PM_Movement);
 		REGISTER_MODULE(XO_Console);
 		REGISTER_MODULE(RB_DrawCollision);
