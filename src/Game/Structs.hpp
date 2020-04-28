@@ -5419,7 +5419,7 @@ namespace Game
 			const char *enableDvar;
 			int dvarFlags;
 			snd_alias_list_t *focusSound;
-			float feeder; //original name: special
+			int feeder; //float feeder; //original name: special
 			int cursorPos[1];
 			itemDefData_t typeData;
 			int imageTrack;

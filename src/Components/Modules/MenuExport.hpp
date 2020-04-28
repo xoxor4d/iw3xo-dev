@@ -8,24 +8,26 @@
 
 //some macros to make code look neater
 #define PADDING(x) std::left << std::setw(maxPadding - x) << std::cout.fill(' ')
-#define WRITE_TEXT(name, value)\
-	if (value) {\
-		writeText(name, value);\
-	}
-#define WRITE_ACTION(name, value)\
-	if(value){\
-		writeAction(name, value);\
-	}
-//write number if not default value
-#define WRITE_NUMBER(name, def, value)\
-	if(value != def){\
-		writeNumber(name,value);\
-	}
-#define WRITE_NUMBER_MAP(name, def, value, map)\
-	if(value != def){\
-		writeNumber(name, value, map);\
+#define WRITE_TEXT(name, value)	\
+	if (value) {				\
+		writeText(name, value);	\
 	}
 
+#define WRITE_ACTION(name, value)	\
+	if(value) {						\
+		writeAction(name, value);	\
+	}
+
+//write number if not default value
+#define WRITE_NUMBER(name, def, value)	\
+	if(value != def) {					\
+		writeNumber(name,value);		\
+	}
+
+#define WRITE_NUMBER_MAP(name, def, value, map)	\
+	if(value != def) {							\
+		writeNumber(name, value, map);			\
+	}
 
 namespace Components
 {
@@ -36,17 +38,15 @@ namespace Components
 		MenuExport();
 		~MenuExport();
 		const char* getName() override { return "Menu Exporter"; };
-		void exportMenu(Game::menuDef_t *menu);
-		void exportMenu(Game::menuDef_t *menu, std::string path, std::string name);
-		void exportMenuItemdefs(Game::menuDef_t *menu);
-		void exportMenuItemdefs(Game::menuDef_t *menu, std::string path, std::string name);
-		void exportItemDef(Game::itemDef_s itemDef, std::string path, std::string name);
+		void exportMenu(Game::menuDef_t* menu, std::string subdir);
+		void exportMenuItemdefs(Game::menuDef_t* menu, std::string subdir);
+		//void exportItemDef(Game::itemDef_s itemDef, std::string path, std::string name);
 
 	private:
 		typedef const std::unordered_map<unsigned int, std::string> identifierMap;
 		typedef std::unordered_map<unsigned int, std::string>::const_iterator identifierMapIt;
 
-		void setPath(std::string path, std::string name);
+		bool setPath(std::string path, std::string name);
 		void writeMenuDef(Game::menuDef_t *menuDef);
 		void writeStatement(std::string name, Game::statement_s stmt);
 		void writeVec4(std::string name, float vec4[]);
@@ -55,8 +55,9 @@ namespace Components
 		void writeRect(Game::rectDef_s rect);
 		template <typename T>
 		void writeNumber(std::string name, T num);
-		template <typename T> 
-		void writeNumber(std::string name, T num, identifierMap &map);
+		//template <typename T> 
+		//void writeNumber(std::string name, T num, identifierMap &map);
+		void writeNumber(std::string name, /*T num*/ unsigned int num, identifierMap& map);
 		void writeText(std::string name, const char* text);
 		void writeFlag(int num);
 		void writeAction(std::string name, std::string action);
@@ -75,7 +76,8 @@ namespace Components
 		const std::string headerText = "//This menu was generated using iw3xo Client\n//If you find any bug please report them here: https://github.com/xoxor4d/iw3xo-dev/issues\n\n#include \"ui/menudefinition.h\"\n\n";
 
 
-		const enum itemType {
+		const enum itemType 
+		{
 			ITEM_TYPE_EDITFIELD = 4,
 			ITEM_TYPE_LISTBOX = 6,	
 			ITEM_TYPE_MULTI = 12,
@@ -83,19 +85,22 @@ namespace Components
 			ITEM_TYPE_GAME_MESSAGE_WINDOW = 19,
 		};
 
-		const enum keyCodes {
+		const enum keyCodes 
+		{
 			KEY_MULTIPLY = 42,
 			KEY_Z = 122,
 		};
 
-		const enum dvarFlags {
+		const enum dvarFlags
+		{
 			DISABLEDVAR = 2,
 			SHOWDVAR = 4,
 			HIDEDVAR = 8,
 			FOCUSDVAR = 16,
 		};
 
-		const std::string scriptActions[34] = {
+		const std::string scriptActions[34] =
+		{
 			"fadein",
 			"fadeout",
 			"show",
@@ -134,7 +139,8 @@ namespace Components
 		const int scriptActionLength = 34;
 		
 
-		identifierMap itemTypeMap = {
+		identifierMap itemTypeMap = 
+		{
 			{0, "ITEM_TYPE_TEXT"},
 			{1, "ITEM_TYPE_BUTTON"},
 			{2, "ITEM_TYPE_RADIOBUTTON"},
@@ -157,7 +163,8 @@ namespace Components
 			{19, "ITEM_TYPE_GAME_MESSAGE_WINDOW"},
 		};
 
-		identifierMap itemTextStyleMap = {
+		identifierMap itemTextStyleMap = 
+		{
 			{0, "ITEM_TEXTSTYLE_NORMAL"},
 			{1, "ITEM_TEXTSTYLE_BLINK"},
 			{3, "ITEM_TEXTSTYLE_SHADOWED"},
@@ -165,19 +172,22 @@ namespace Components
 			{128, "ITEM_TEXTSTYLE_MONOSPACE"},
 		};
 
-		identifierMap itemTextAlignMap = {
+		identifierMap itemTextAlignMap = 
+		{
 			{0, "ITEM_ALIGN_LEFT"},
 			{1, "ITEM_ALIGN_CENTER"},
 			{2, "ITEM_ALIGN_RIGHT"},
 			{3, "ITEM_ALIGN_X_MASK"},
 		};
 
-		identifierMap listBoxTypeMap = {
+		identifierMap listBoxTypeMap = 
+		{
 			{0, "LISTBOX_TEXT"},
 			{1, "LISTBOX_IMAGE"}
 		};
 
-		identifierMap borderTypeMap = {
+		identifierMap borderTypeMap = 
+		{
 			{0, "WINDOW_BORDER_NONE"},
 			{1, "WINDOW_BORDER_FULL"},
 			{2, "WINDOW_BORDER_HORZ"},
@@ -187,7 +197,8 @@ namespace Components
 			{6, "WINDOW_BORDER_SUNKEN"},
 		};
 
-		identifierMap windowStyleMap = {
+		identifierMap windowStyleMap = 
+		{
 			{0, "WINDOW_STYLE_EMPTY"},
 			{1, "WINDOW_STYLE_FILLED"},
 			{2, "WINDOW_STYLE_GRADIENT"},
@@ -197,7 +208,8 @@ namespace Components
 			{6, "WINDOW_STYLE_LOADBAR"},
 		};
 
-		identifierMap ownerDrawTypeMap = {
+		identifierMap ownerDrawTypeMap = 
+		{
 			{1, "CG_OWNERDRAW_BASE"},
 			{5, "CG_PLAYER_AMMO_VALUE"},
 			{6, "CG_PLAYER_AMMO_BACKDROP"},
@@ -316,15 +328,16 @@ namespace Components
 			{277, "UI_CINEMATIC"},
 		};
 
-		identifierMap messageMap = {
+		identifierMap messageMap = 
+		{
 			{0, "MODE_BOTTOMUP_ALIGN_TOP"},
 			{1, "MODE_BOTTOMUP_ALIGN_BOTTOM"},
 			{2, "MODE_TOPDOWN_ALIGN_TOP"},
 			{3, "MODE_TOPDOWN_ALIGN_BOTTOM"}
 		};
 
-
-		identifierMap feederMap = {
+		identifierMap feederMap = 
+		{
 			{0, "FEEDER_HEADS"},
 			{1, "FEEDER_MAPS"},
 			{2, "FEEDER_SERVERS"},
@@ -371,7 +384,8 @@ namespace Components
 		};
 
 
-		identifierMap fontTypeMap = {
+		identifierMap fontTypeMap = 
+		{
 			{0, "UI_FONT_DEFAULT"},
 			{1, "UI_FONT_NORMAL"},
 			{2, "UI_FONT_BIG"},
@@ -381,7 +395,8 @@ namespace Components
 			{6, "UI_FONT_OBJECTIVE"},
 		};
 
-		identifierMap horizontalAlignmentMap = {
+		identifierMap horizontalAlignmentMap =
+		{
 			{0, "HORIZONTAL_ALIGN_SUBLEFT"},
 			{1, "HORIZONTAL_ALIGN_LEFT"},
 			{2, "HORIZONTAL_ALIGN_CENTER"},
@@ -393,7 +408,8 @@ namespace Components
 		};
 
 
-		identifierMap verticalAlignmentMap = {
+		identifierMap verticalAlignmentMap = 
+		{
 			{0, "VERTICAL_ALIGN_SUBTOP"},
 			{1, "VERTICAL_ALIGN_TOP"},
 			{2, "VERTICAL_ALIGN_CENTER"},
@@ -405,7 +421,8 @@ namespace Components
 		};
 
 		//Found at https://github.com/callofduty4x/CoD4x_Server/blob/98ee29d49960ba248977b5e413dd93e6c0670fdd/src/xassets/menu.h#L129
-		identifierMap staticFlagsMap = {
+		identifierMap staticFlagsMap = 
+		{
 			{1048576, "decoration"},
 			{1048576, "horizontalscroll"},
 			{1048576, "autowrapped"},
@@ -419,7 +436,8 @@ namespace Components
 
 		//Found at https://github.com/callofduty4x/CoD4x_Server/blob/98ee29d49960ba248977b5e413dd93e6c0670fdd/src/xassets/menu.c#L7
 		//thank you T-max or whoever made this list :)
-		identifierMap operandMap = {
+		identifierMap operandMap = 
+		{
 			{0, "NOOP"},
 			{1, ")"},
 			{2, "*"},
@@ -502,7 +520,5 @@ namespace Components
 			{79, "acceptinginvite("},
 			{80, "isintermission("},
 		};
-
-
 	};
 }
