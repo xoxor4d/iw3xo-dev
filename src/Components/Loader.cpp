@@ -20,23 +20,23 @@ namespace Components
 		active._Game = true;
 		active._Map = true;
 		active._Common = true;
-		active.Scheduler = true;
 		active.Command = true;
-		active.D3D9Ex = true;
 		active.GScr_Methods = true;
-		active.MenuExport = true;
 		active.QuickPatch = true;
-
+		active.Scheduler = true;
+		
+		active.D3D9Ex = true;
+		active.MenuExport = true;
 		active.PM_Movement = true;
 		active.XO_Console = true;
 		active.RB_DrawCollision = true;
 		active.RB_ShaderOverlays = true;
 		active.RadiantRemote = true;
 		active.Window = true;
-
+		
 		// General Modules that need to be loaded
-		REGISTER_MODULE(_CG);
 		REGISTER_MODULE(_UI);
+		REGISTER_MODULE(_CG);
 		REGISTER_MODULE(_Pmove);
 		REGISTER_MODULE(_Debug);
 		REGISTER_MODULE(_Game);
