@@ -266,16 +266,16 @@ namespace Components
 			/* flags	*/ Game::dvar_flags::none);
 
 		// SSAO FilterTap 0
-		Dvars::xo_ssao_noisescale	= Game::Dvar_RegisterFloat("xo_ssao_noisescale", "hlsl constant filtertap[0][0] :: _NOISESCALE :: scale of noisemap", 4.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_quality		= Game::Dvar_RegisterFloat("xo_ssao_quality", "hlsl constant filtertap[0][1] :: _QUALITY :: 0 = Low, 1 = High", 0.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_noisescale	= Game::Dvar_RegisterFloat("xo_ssao_noisescale", "hlsl constant filtertap[0][0] :: _NOISESCALE :: scale of noisemap", 4.0f, 0.0f, 100.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_quality		= Game::Dvar_RegisterFloat("xo_ssao_quality", "hlsl constant filtertap[0][1] :: _QUALITY :: 0 = Low, 1 = High", 0.0f, 0.0f, 1.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 1
-		Dvars::xo_ssao_radius = Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.2f, -1000.0f, 1000.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_radius = Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.2f, 0.0f, 20.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 2
-		Dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.75f, -1000.0f, 1000.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_attenuation	= Game::Dvar_RegisterFloat("xo_ssao_attenuation", "hlsl constant filtertap[2][1] :: _ATTENUATION :: ao attenuation", 4.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_angleBias	= Game::Dvar_RegisterFloat("xo_ssao_angleBias", "hlsl constant filtertap[2][2] :: _ANGLEBIAS :: in degrees", 25.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.75f, 0.0f, 20.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_attenuation	= Game::Dvar_RegisterFloat("xo_ssao_attenuation", "hlsl constant filtertap[2][1] :: _ATTENUATION :: ao attenuation", 4.0f, -200.0f, 200.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_angleBias	= Game::Dvar_RegisterFloat("xo_ssao_angleBias", "hlsl constant filtertap[2][2] :: _ANGLEBIAS :: in degrees", 25.0f, 0.0f, 90.0f, Game::dvar_flags::none);
 
 		// SSAO Misc
 		Dvars::xo_camDir0 = Game::Dvar_RegisterFloat("xo_camDir0", "viewMatrix camera dir x :: read-only", 0.0f, -1000.0f, 1000.0f, Game::dvar_flags::read_only);
@@ -283,13 +283,13 @@ namespace Components
 		Dvars::xo_camDir2 = Game::Dvar_RegisterFloat("xo_camDir2", "viewMatrix camera dir z :: read-only", 0.0f, -1000.0f, 1000.0f, Game::dvar_flags::read_only);
 
 		// Outliner FilterTap 0
-		Dvars::xo_outliner_scale			= Game::Dvar_RegisterFloat("xo_outliner_scale", "hlsl constant filtertap[0][0] :: edge sample radius / scale", 2.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
-		Dvars::xo_outliner_depthDiffScale	= Game::Dvar_RegisterFloat("xo_outliner_depthDiffScale", "hlsl constant filtertap[0][1] :: scale when edges with x depth difference get detected", 45.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
-		Dvars::xo_outliner_depthThreshold	= Game::Dvar_RegisterFloat("xo_outliner_depthThreshold", "hlsl constant filtertap[0][2] :: Edges are drawn between areas where the sampled depth is greater than depthThreshold", 6.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
+		Dvars::xo_outliner_scale			= Game::Dvar_RegisterFloat("xo_outliner_scale", "hlsl constant filtertap[0][0] :: edge sample radius / scale", 2.0f, 0.0f, 50.0f, Game::dvar_flags::none);
+		Dvars::xo_outliner_depthDiffScale	= Game::Dvar_RegisterFloat("xo_outliner_depthDiffScale", "hlsl constant filtertap[0][1] :: scale when edges with x depth difference get detected", 45.0f, 0.0f, 200.0f, Game::dvar_flags::none);
+		Dvars::xo_outliner_depthThreshold	= Game::Dvar_RegisterFloat("xo_outliner_depthThreshold", "hlsl constant filtertap[0][2] :: Edges are drawn between areas where the sampled depth is greater than depthThreshold", 6.0f, -10.0f, 60.0f, Game::dvar_flags::none);
 
 		// Outliner FilterTap 2
 		Dvars::xo_outliner_toonEnable = Game::Dvar_RegisterBool("xo_outliner_toonEnable", "hlsl constant filtertap[2][0] :: toggle use of a simple toon shader", false, Game::dvar_flags::none);
-		Dvars::xo_outliner_toonShades = Game::Dvar_RegisterFloat("xo_outliner_toonShades", "hlsl constant filtertap[2][1] :: Max amount of shades / colors used by the toon shader", 6.0f, -1000.0f, 1000.0f, Game::dvar_flags::none);
+		Dvars::xo_outliner_toonShades = Game::Dvar_RegisterFloat("xo_outliner_toonShades", "hlsl constant filtertap[2][1] :: Max amount of shades / colors used by the toon shader", 6.0f, 0.0f, 64.0f, Game::dvar_flags::none);
 
 		// -----
 		// Hooks

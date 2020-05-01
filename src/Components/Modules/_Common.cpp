@@ -15,6 +15,7 @@ namespace Components
 	{
 		auto dedicated		= Game::Dvar_FindVar("dedicated");
 		auto fs_usedevdir	= Game::Dvar_FindVar("fs_usedevdir");
+		auto in_mouse		= Game::Dvar_FindVar("in_mouse");
 
 		if (dedicated && dedicated->current.integer == 0)
 		{
@@ -31,6 +32,17 @@ namespace Components
 		{
 			Game::Dvar_SetValue(fs_usedevdir, true); // quick set the value
 			Game::Cmd_ExecuteSingleCommand(0, 0, "fs_usedevdir 1\n");
+		}
+
+		if (in_mouse && !in_mouse->current.enabled)
+		{
+			Game::Dvar_SetValue(in_mouse, true); // quick set the value
+			Game::Cmd_ExecuteSingleCommand(0, 0, "in_mouse 1\n");
+		}
+
+		if (Components::active.Devgui)
+		{
+			Devgui::load_settings();
 		}
 	}
 

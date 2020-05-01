@@ -1,10 +1,58 @@
 // https://github.com/IW4x/iw4x-client/blob/develop/src/Components/Modules/Window.cpp
 
 #include "STDInclude.hpp"
+IMGUI_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Components
 {
 	HWND Window::MainWindow = nullptr;
+
+	int Window::Width()
+	{
+		return Window::Width(Window::MainWindow);
+	}
+
+	int Window::Height()
+	{
+		return Window::Height(Window::MainWindow);
+	}
+
+	int Window::Width(HWND window)
+	{
+		RECT rect;
+		Window::Dimension(window, &rect);
+		return (rect.right - rect.left);
+	}
+
+	int Window::Height(HWND window)
+	{
+		RECT rect;
+		Window::Dimension(window, &rect);
+		return (rect.bottom - rect.top);
+	}
+
+	void Window::Dimension(RECT* rect)
+	{
+		Window::Dimension(Window::MainWindow, rect);
+	}
+
+	void Window::Dimension(HWND window, RECT* rect)
+	{
+		if (rect)
+		{
+			ZeroMemory(rect, sizeof(RECT));
+
+			if (window && IsWindow(window))
+			{
+				GetWindowRect(window, rect);
+			}
+		}
+	}
+
+	HWND Window::GetWindow()
+	{
+		return Window::MainWindow;
+	}
 
 	__declspec(naked) void Window::StyleHookStub()
 	{
@@ -34,50 +82,85 @@ namespace Components
 	HWND WINAPI Window::CreateMainWindow(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 	{
 		Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+		
+		if (Components::active.Devgui)
+		{
+			Devgui::reset();
+		}
+
 		return Window::MainWindow;
 	}
 
 	void Window::ApplyCursor()
 	{
-		SetCursor(LoadCursor(nullptr, Game::Globals::loaded_MainMenu ? IDC_APPSTARTING : IDC_ARROW));
+		//SetCursor(LoadCursor(nullptr, Game::Globals::loaded_MainMenu ? IDC_ARROW : IDC_APPSTARTING));
+		SetCursor(LoadCursor(nullptr, IDC_ARROW));
 	}
 
 	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
-		if (Msg == WM_SETCURSOR)
+		if (Components::active.Devgui && Game::Globals::g_devgui.imgui.initialized)
 		{
-			Window::ApplyCursor();
-			return TRUE;
+			if (Game::Globals::g_devgui.imgui.menustate)
+			{
+				if (/*ImGui::GetCurrentContext() &&*/ ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam))
+				{
+					ImGui::GetIO().MouseDrawCursor = 1;
+					return true;
+				}
+			}
+			else
+			{
+				ImGui::GetIO().MouseDrawCursor = 0;
+			}
+		}
+
+		if(!Game::Globals::g_devgui.imgui.menustate)
+		{
+			if (Msg == WM_SETCURSOR)
+			{
+				Window::ApplyCursor();
+				return TRUE;
+			}
 		}
 
 		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x57BB20)(hWnd, Msg, wParam, lParam);
 	}
 
-#pragma warning(disable:4740)
+	bool is_noborder()
+	{
+		if (Dvars::r_noborder && Dvars::r_noborder->current.enabled)
+			return true;
+
+		return false;
+	}
+
 	__declspec(naked) void vid_xypos_stub()
 	{
 		const static uint32_t retnPt = 0x5F4C50;
 
-		__asm mov	[esi + 10h], eax	// overwritten op (wndParms->y)
-		__asm mov	dword ptr[esi], 0	// overwritten op
-
-		__asm pushad
-		if (Dvars::r_noborder && Dvars::r_noborder->current.enabled) 
+		__asm
 		{
-			__asm
-			{
-				popad
-				mov		[esi + 0Ch], 0	// wndParms->x
-				mov		[esi + 10h], 0	// wndParms->y
+			mov		[esi + 10h], eax	// overwritten op (wndParms->y)
+			mov		dword ptr[esi], 0	// overwritten op
 
-				jmp		retnPt
-			}
+			pushad
+			Call	is_noborder
+			test	al, al
+			jnz		NO_BORDER
+
+			popad
+			jmp	retnPt
+
+
+			NO_BORDER:
+			popad				
+			xor		eax, eax			// clear eax
+			mov		[esi + 0Ch], eax	// set wndParms->x to 0 (4 byte)
+			mov		[esi + 10h], eax	// set wndParms->y to 0 (4 byte)
+			jmp		retnPt
 		}
-		__asm popad
-
-		__asm jmp	retnPt
 	}
-#pragma warning(default:4740)
 
 	Window::Window()
 	{

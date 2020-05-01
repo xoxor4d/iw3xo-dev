@@ -4,17 +4,17 @@ namespace Game
 {
 	namespace Globals
 	{
-		// INIT
+		// Init
 		std::string loadedModules;
 		bool loaded_MainMenu;
 
-		// RADIANT ----------------------------------------------------------------
+		// Radiant
 		Game::cgsAddon cgsAddons = Game::cgsAddon();
 		Game::savedRadiantBrushes rad_savedBrushes = Game::savedRadiantBrushes();
 		Game::dynBrushesArray_t dynBrushes = Game::dynBrushesArray_t();
 		Game::dynBrushModelsArray_t dynBrushModels = Game::dynBrushModelsArray_t();
 
-		// MOVEMENT ---------------------------------------------------------------
+		// Movement
 		bool locPmove_checkJump = false; // if Jumped in Check_Jump, reset after x frames in PmoveSingle
 
 		glm::vec3 locPmove_playerVelocity = { 0.0f, 0.0f, 0.0f };	// grab local player velocity
@@ -22,19 +22,28 @@ namespace Game
 		glm::vec3 locPmove_playerAngles = { 0.0f, 0.0f, 0.0f };		// grab local player angles
 		glm::vec3 locPmove_cameraOrigin = { 0.0f, 0.0f, 0.0f };		// grab local camera origin
 
-		// COLLISION ---------------------------------------------------------------
+		// Devgui
+		//Game::imgui_t g_imgui = Game::imgui_t();
+		Game::devgui_t g_devgui = Game::devgui_t();
+
+		// Renderer
+		IDirect3DDevice9* d3d9_device = nullptr;
+
+		// Collision
 		bool dbgColl_initialized = false;	// debug collision was used
 		int  dbgColl_drawnBrushAmount = 0;	// total amount of brushes used for calculations of planes 
 		int  dbgColl_drawnPlanesAmount = 0; // total amount of planes rendered for hud
 		int  dbgColl_drawnPlanesAmountTemp = 0; // total amount of planes rendered used to count while drawing 
+		
+		std::string	r_drawCollision_materialList_string = "";
 
-		// FAMETIME ---------------------------------------------------------------
+		// Frametime
 		int serverTime = 0;
 		int serverTimeOld = 0;
 		int serverFrameTime = 0;
 		int pmlFrameTime = 0;
 
-		// MISC ---------------------------------------------------------------
+		// Misc
 		int Q3_LastProjectileWeaponUsed = 0; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired
 	}
 
@@ -187,7 +196,11 @@ namespace Game
 		}
 	}
 
-	
+	// ------
+	// Devgui
+
+	bool* mouse_enabled = reinterpret_cast<bool*>(0xCC147D1);
+
 	// --------
 	// RENDERER
 
@@ -205,6 +218,10 @@ namespace Game
 	float* wnd_SceneAspect = reinterpret_cast<float*>(0xCC9D0FC); // CC9D0FC
 
 	//const char** code_textures_string_array
+
+	//IDirect3DDevice9* dx9_device = *reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
+	IDirect3DDevice9* dx9_device = reinterpret_cast<IDirect3DDevice9*>(0xCC9D06C);
+	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
 
 	Game::Material* floatz_display = reinterpret_cast<Game::Material*>(0xFA5378);
 	GfxCmdBufSourceState* gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);

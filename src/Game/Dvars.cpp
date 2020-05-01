@@ -35,6 +35,11 @@ namespace Dvars
 	Game::dvar_s* ui_changelog04 = nullptr;
 	Game::dvar_s* xo_menu_dbg = nullptr;
 
+	// Devgui
+	Game::dvar_s* devgui_demo = nullptr;
+	Game::dvar_s* _imgui_saving = nullptr;
+	Game::dvar_s* _imgui_window_alpha = nullptr;
+
 
 	// Console 
 	Game::dvar_s* con_minicon_position = nullptr;

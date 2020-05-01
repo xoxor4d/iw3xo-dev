@@ -45,7 +45,7 @@ namespace Components
 					/* scaX */ Dvars::r_drawCollision_hud_fontScale->current.value,
 					/* scaY */ Dvars::r_drawCollision_hud_fontScale->current.value,
 					/* font */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),
-					/* colr */ Dvars::pm_hud_fontColor->current.vector,
+					/* colr */ Dvars::r_drawCollision_hud_fontColor->current.vector,
 					/* txt	*/ "Selection Mode Active! Highlighting of brushes disabled.\n[Selection Mode Commands]\n-- mapexport_selectionAdd\n-- mapexport_selectionClear");
 			}
 
@@ -57,7 +57,7 @@ namespace Components
 					/* scaX */ Dvars::r_drawCollision_hud_fontScale->current.value,
 					/* scaY */ Dvars::r_drawCollision_hud_fontScale->current.value,
 					/* font */ _CG::GetFontForStyle(Dvars::r_drawCollision_hud_fontStyle->current.integer),
-					/* colr */ Dvars::pm_hud_fontColor->current.vector,
+					/* colr */ Dvars::r_drawCollision_hud_fontColor->current.vector,
 					/* txt	*/ Utils::VA("Total amount of Brushes used for calculations: %d \n"
 										 "Total amount of Polygons drawn: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount));
 			}

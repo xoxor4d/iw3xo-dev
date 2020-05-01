@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-#define VA_BUFFER_COUNT		32
+#define VA_BUFFER_COUNT		64
 #define VA_BUFFER_SIZE		65536
 
 namespace Utils

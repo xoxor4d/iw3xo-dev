@@ -15,7 +15,7 @@ namespace Dvars
 	extern Game::dvar_s* radiant_brushWireframeColor;
 
 
-	// Display
+	// Menu
 	extern Game::dvar_s* ui_ultrawide;
 	extern Game::dvar_s* ui_button_highlight_radius;
 	extern Game::dvar_s* ui_button_highlight_brightness;
@@ -34,6 +34,11 @@ namespace Dvars
 	extern Game::dvar_s* ui_changelog03;
 	extern Game::dvar_s* ui_changelog04;
 	extern Game::dvar_s* xo_menu_dbg;
+
+	// Devgui
+	extern Game::dvar_s* devgui_demo;
+	extern Game::dvar_s* _imgui_saving;
+	extern Game::dvar_s* _imgui_window_alpha;
 
 
 	// Console 

@@ -49,6 +49,7 @@
 #include <chrono>
 #include <future>
 #include <unordered_map>
+#include <tchar.h>
 #pragma warning(pop)
 
 // Revision number
@@ -57,6 +58,9 @@
 #define AssertSize(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 
 #include <glm.hpp>
+#include <imgui.h>
+#include <imgui_impl_dx9.h>
+#include <imgui_impl_win32.h>
 
 #include "Game/Structs.hpp"
 #include "Utils/vector.hpp"

@@ -34,7 +34,7 @@ workspace "iw3xo-dev"
 	architecture "x32"
 	platforms "x86"
 	systemversion "10.0.17763.0"
-	startproject "iw3xo"
+	startproject "iw3x"
 
 	disablewarnings {
 		"4100",
@@ -78,12 +78,15 @@ workspace "iw3xo-dev"
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
-        links { "glm" }
+        links { 
+			"glm",
+			"imgui"
+		}
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
-			
 			"./deps/glm/glm", 
+			"./deps/imgui",
 		}
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
@@ -107,8 +110,6 @@ workspace "iw3xo-dev"
 			["Docs/*"] = { "**.txt","**.md" },
 		}
 		
-		
-
 		-- Specific configurations
 		flags { "UndefinedIdentifiers" }
 		warnings "Extra"
@@ -147,6 +148,27 @@ workspace "iw3xo-dev"
             --links { "glm" }
 		    includedirs {
 			"./deps/glm;" 
+		    }
+
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as glm doesn't export anything
+			kind "StaticLib"
+
+		-- imgui
+		project "imgui"
+			language "C++"
+
+			files
+			{
+				"./deps/imgui/*.cpp",
+				"./deps/imgui/*.hpp",
+                "./deps/imgui/*.h"
+			}
+            --links { "glm" }
+		    includedirs {
+			"./deps/imgui;" 
 		    }
 
 			-- not our code, ignore POSIX usage warnings for now

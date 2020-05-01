@@ -304,11 +304,12 @@ namespace Utils
 			out[2] = veca[2] + vecb[2];
 		}
 
-		void _VectorCopy(const vec3_t in, vec3_t out)
+		void _VectorCopy(const vec_t* in, vec_t* out, int size = 3)
 		{
-			out[0] = in[0];
-			out[1] = in[1];
-			out[2] = in[2];
+			for (auto i = 0; i < size; i++)
+			{
+				out[i] = in[i];
+			}
 		}
 
 		void _VectorScale(const vec3_t in, float scale, vec3_t out)

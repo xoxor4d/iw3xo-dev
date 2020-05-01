@@ -93,6 +93,16 @@ namespace Components
 
 	HRESULT D3D9Ex::D3D9Device::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	{
+		if (Components::active.Devgui)
+		{
+			if (Game::Globals::g_devgui.imgui.initialized)
+			{
+				ImGui_ImplDX9_InvalidateDeviceObjects();
+				auto hr = m_pIDirect3DDevice9->Reset(pPresentationParameters);
+				ImGui_ImplDX9_CreateDeviceObjects();
+			}
+		}
+
 		return m_pIDirect3DDevice9->Reset(pPresentationParameters);
 	}
 
@@ -235,6 +245,11 @@ namespace Components
 
 	HRESULT D3D9Ex::D3D9Device::EndScene()
 	{
+		if (Components::active.Devgui)
+		{
+			Devgui::render_loop();
+		}
+		
 		return m_pIDirect3DDevice9->EndScene();
 	}
 
@@ -727,6 +742,8 @@ namespace Components
 
 		HRESULT hres = m_pIDirect3D9->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
 		*ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
+		Game::Globals::d3d9_device = *ppReturnedDeviceInterface;
+		
 		return hres;
 	}
 
@@ -737,7 +754,9 @@ namespace Components
 		if(Dvars::r_d3d9ex->current.enabled)
 		{
 			IDirect3D9Ex* test = nullptr;
-			if (FAILED(Direct3DCreate9Ex(sdk, &test))) return nullptr;
+
+			if (FAILED(Direct3DCreate9Ex(sdk, &test))) 
+				return nullptr;
 
 			return (new D3D9Ex::D3D9(test));
 		}

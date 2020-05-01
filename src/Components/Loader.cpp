@@ -33,6 +33,7 @@ namespace Components
 		active.RB_ShaderOverlays = true;
 		active.RadiantRemote = true;
 		active.Window = true;
+		active.Devgui = active.Window == active.D3D9Ex; // needs the window module and d3d9ex (enabled)
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_UI);
@@ -56,6 +57,7 @@ namespace Components
 		REGISTER_MODULE(RB_ShaderOverlays);
 		REGISTER_MODULE(RadiantRemote);
 		REGISTER_MODULE(Window);
+		REGISTER_MODULE(Devgui);
 	}
 
 	void Loader::Uninitialize()

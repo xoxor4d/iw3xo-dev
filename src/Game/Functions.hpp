@@ -3,20 +3,19 @@
 
 namespace Game
 {
-	//extern bool DEBUG
 	namespace Globals
 	{
-		// INIT
+		// Init
 		extern std::string loadedModules;
 		extern bool loaded_MainMenu;
 
-		// RADIANT ----------------------------------------------------------------
+		// Radiant
 		extern Game::cgsAddon cgsAddons;
 		extern Game::savedRadiantBrushes rad_savedBrushes;
 		extern Game::dynBrushesArray_t dynBrushes;
 		extern Game::dynBrushModelsArray_t dynBrushModels;
 
-		// MOVEMENT ---------------------------------------------------------------
+		// Movement
 		extern bool locPmove_checkJump; // if Jumped in Check_Jump, reset after x frames in PmoveSingle
 
 		extern glm::vec3 locPmove_playerVelocity;	// grab local player velocity
@@ -24,20 +23,28 @@ namespace Game
 		extern glm::vec3 locPmove_playerAngles;		// grab local player angles
 		extern glm::vec3 locPmove_cameraOrigin;		// grab local camera origin
 
-		// COLLISION ---------------------------------------------------------------
+		// Devgui
+		//extern Game::imgui_t g_imgui;
+		extern Game::devgui_t g_devgui;
+
+		// Renderer
+		extern IDirect3DDevice9* d3d9_device;
+
+		// Collision
 		extern bool dbgColl_initialized;		// debug collision was used
 		extern int dbgColl_drawnBrushAmount;	// total amount of brushes used for calculations of planes 
 		extern int dbgColl_drawnPlanesAmount;	// total amount of planes rendered 
 		extern int dbgColl_drawnPlanesAmountTemp; // total amount of planes rendered used to count while drawing
 
-		// FAMETIME
+		extern std::string	r_drawCollision_materialList_string;
+
+		// Frametime
 		extern int serverTime;
 		extern int serverTimeOld;
 		extern int serverFrameTime;
-
 		extern int pmlFrameTime;
 		
-		// MISC
+		// Misc
 		extern int Q3_LastProjectileWeaponUsed; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired
 	}
 
@@ -77,9 +84,9 @@ namespace Game
 
 	XAssetHeader DB_ReallocXAssetPool(XAssetType type, unsigned int newSize);
 
-	static utils::function<void()> R_BeginRemoteScreenUpdate = 0x5F78A0;
-	static utils::function<void()> R_EndRemoteScreenUpdate = 0x5F78F0;
-	static utils::function<void()> DB_SyncXAssets = 0x48A120;
+	static Utils::function<void()> R_BeginRemoteScreenUpdate = 0x5F78A0;
+	static Utils::function<void()> R_EndRemoteScreenUpdate = 0x5F78F0;
+	static Utils::function<void()> DB_SyncXAssets = 0x48A120;
 
 	extern bool DB_FileExists(const char* fileName, Game::DB_FILE_EXISTS_PATH);
 	extern void FS_DisplayPath(int bLanguageCull /*eax*/);
@@ -113,10 +120,10 @@ namespace Game
 	extern Game::GfxBackEndData *_backEndData;
 	extern Game::GfxWorld * _gfxWorld; // 0xCC9A320
 
-	static utils::function<bool()> CreateDebugStringsIfNeeded = 0x461EC0;
-	static utils::function<void(Game::DebugGlobals *debugGlobalsEntry, const float *origin, const float *color, float scale, const char *string)> R_AddDebugString = 0x60DD10; // not working currently, or well, not displaying a thing because front/backend is empty?
-	static utils::function<void(int count, int width, Game::GfxPointVertex *verts, bool depthTest)> RB_DrawLines3D = 0x613040;
-	static utils::function<void __fastcall (const float *colorFloat, char *colorBytes)> R_ConvertColorToBytes = 0x493530;
+	static Utils::function<bool()> CreateDebugStringsIfNeeded = 0x461EC0;
+	static Utils::function<void(Game::DebugGlobals *debugGlobalsEntry, const float *origin, const float *color, float scale, const char *string)> R_AddDebugString = 0x60DD10; // not working currently, or well, not displaying a thing because front/backend is empty?
+	static Utils::function<void(int count, int width, Game::GfxPointVertex *verts, bool depthTest)> RB_DrawLines3D = 0x613040;
+	static Utils::function<void __fastcall (const float *colorFloat, char *colorBytes)> R_ConvertColorToBytes = 0x493530;
 
 	// print3d // DebugStrings / Lines
 	extern int* clsDebugFromServer;
@@ -129,6 +136,10 @@ namespace Game
 	void R_AddDebugPolygon(int pointCount, const float(*points)[3]);
 	void R_AddDebugPolygonNew(Game::DebugGlobals* debugGlobalsEntry, int pointCount, const float(*points)[3]);
 
+	// ------
+	// Devgui
+
+	extern bool* mouse_enabled;
 
 	// --------
 	// RENDERER
@@ -147,34 +158,36 @@ namespace Game
 	extern float* wnd_SceneAspect;
 
 	//extern const char** code_textures_string_array;
+	extern IDirect3DDevice9* dx9_device;
+	extern IDirect3DDevice9** dx9_device_ptr;
 
 	extern Game::Material* floatz_display;
 	extern GfxCmdBufSourceState* gfxCmdBufSourceState;
 	extern Game::clientDebugLineInfo_t* clientDebugLineInfo_client;
 	extern Game::clientDebugLineInfo_t* clientDebugLineInfo_server;
 
-	static utils::function<void()> RB_ShowFbColorDebug_Screen = 0x64A5A0;
-	static utils::function<void()> RB_ShowFbColorDebug_Feedback = 0x64A710;
-	static utils::function<void()> RB_ShowFloatZDebug = 0x64AAA0;
-	static utils::function<void()> RB_ShowShadowsDebug = 0x64AB60;
-	static utils::function<void(float radius, int srcRenderTargetId)> RB_GaussianFilterImage = 0x6517A0;
-	static utils::function<int(float radiusX, float radiusY, int srcWidth, int srcHeight, int dstWidth, int dstHeight, Game::GfxImageFilterPass *filterPass)> RB_GenerateGaussianFilterChain = 0x651310;
-	static utils::function<void(Game::GfxImageFilter *filter)> RB_FilterImage = 0x6516A0;
-	static utils::function<void(std::int32_t a1, std::int32_t a2, std::int32_t a3)> DrawXModelSkinnedCached = 0x646870;
-	static utils::function<bool()> CreateDebugLinesIfNeeded = 0x462080;
+	static Utils::function<void()> RB_ShowFbColorDebug_Screen = 0x64A5A0;
+	static Utils::function<void()> RB_ShowFbColorDebug_Feedback = 0x64A710;
+	static Utils::function<void()> RB_ShowFloatZDebug = 0x64AAA0;
+	static Utils::function<void()> RB_ShowShadowsDebug = 0x64AB60;
+	static Utils::function<void(float radius, int srcRenderTargetId)> RB_GaussianFilterImage = 0x6517A0;
+	static Utils::function<int(float radiusX, float radiusY, int srcWidth, int srcHeight, int dstWidth, int dstHeight, Game::GfxImageFilterPass *filterPass)> RB_GenerateGaussianFilterChain = 0x651310;
+	static Utils::function<void(Game::GfxImageFilter *filter)> RB_FilterImage = 0x6516A0;
+	static Utils::function<void(std::int32_t a1, std::int32_t a2, std::int32_t a3)> DrawXModelSkinnedCached = 0x646870;
+	static Utils::function<bool()> CreateDebugLinesIfNeeded = 0x462080;
 
 	
 	//typedef void*(*R_RegisterFont_t)(char* fontName, int fontSize);
 		//extern R_RegisterFont_t R_RegisterFont;
 
 	// get handle using DB_FindXAssetHeader
-	static utils::function<Font_s* (const char* fontName, int fontSize)> R_RegisterFont = 0x5F1EC0;
+	static Utils::function<Font_s* (const char* fontName, int fontSize)> R_RegisterFont = 0x5F1EC0;
 
 	//typedef void*(*Material_RegisterHandle_t)(char* fontName, int fontSize);
 		//extern Material_RegisterHandle_t Material_RegisterHandle;
 
 	// get handle using DB_FindXAssetHeader
-	static utils::function<Material* (const char* fontName, int fontSize)> Material_RegisterHandle = 0x5F2A80;
+	static Utils::function<Material* (const char* fontName, int fontSize)> Material_RegisterHandle = 0x5F2A80;
 
 	typedef void(*RB_EndTessSurface_t)();
 		extern RB_EndTessSurface_t RB_EndTessSurface;
@@ -209,9 +222,9 @@ namespace Game
 	extern ScreenPlacement* scrPlace;
 	extern ScreenPlacement* scrPlaceFull;
 
-	static utils::function<void(int clientNum, int menuNum)> UI_SetActiveMenu = 0x549540;
-	static utils::function<void()> Key_SetCatcher = 0x4686A0;
-	static utils::function<void*(const char* menufile, int imageTrack)> UI_LoadMenus_LoadObj = 0x558770;
+	static Utils::function<void(int clientNum, int menuNum)> UI_SetActiveMenu = 0x549540;
+	static Utils::function<void()> Key_SetCatcher = 0x4686A0;
+	static Utils::function<void*(const char* menufile, int imageTrack)> UI_LoadMenus_LoadObj = 0x558770;
 	
 	extern int String_Parse(const char **p /*eax*/, char *outStr, int len);
 	extern void Menus_OpenByName(const char* menuName, Game::UiContext *uiDC);
@@ -232,12 +245,12 @@ namespace Game
 	extern Game::gentity_s* scr_g_entities;
 	extern Game::level_locals_t* level_locals;
 
-	static utils::function<void()> Scr_Error_Internal = 0x51D1F0;
-	static utils::function<void(bool)> Scr_AddBool = 0x523AB0;
-	static utils::function<void(int)> Scr_AddInt = 0x523AB0;
-	static utils::function<Game::gentity_s*()> G_Spawn = 0x4E37F0;
-	static utils::function<bool(Game::gentity_s*)> G_CallSpawnEntity = 0x4DFFA0;
-	static utils::function<void(Game::trajectory_t *pTr, const float *vPos, float fTotalTime, float fAccelTime, float fDecelTime, float *vCurrPos, float *pfSpeed, float *pfMidTime, float *pfDecelTime, float *vPos1, float *vPos2, float *vPos3)> ScriptMover_SetupMove = 0x4D9440;
+	static Utils::function<void()> Scr_Error_Internal = 0x51D1F0;
+	static Utils::function<void(bool)> Scr_AddBool = 0x523AB0;
+	static Utils::function<void(int)> Scr_AddInt = 0x523AB0;
+	static Utils::function<Game::gentity_s*()> G_Spawn = 0x4E37F0;
+	static Utils::function<bool(Game::gentity_s*)> G_CallSpawnEntity = 0x4DFFA0;
+	static Utils::function<void(Game::trajectory_t *pTr, const float *vPos, float fTotalTime, float fAccelTime, float fDecelTime, float *vCurrPos, float *pfSpeed, float *pfMidTime, float *pfDecelTime, float *vPos1, float *vPos2, float *vPos3)> ScriptMover_SetupMove = 0x4D9440;
 
 	void G_SetOrigin(Game::gentity_s* ent, float *origin);
 	void G_SetAngles(Game::gentity_s* ent, float *angles);
@@ -257,10 +270,10 @@ namespace Game
 	extern const char* fs_gamedir;
 	extern Game::searchpath_s* fs_searchpaths;
 
-	static utils::function<Game::iwd_t*(const char *zipfile, const char *basename)> FS_LoadZipFile = 0x55C6F0;
-	static utils::function<const char *(const char *lang)> IwdFileLanguage = 0x55D700;
-	static utils::function<BOOL(LPVOID lpAddress)> FS_FreeFileList = 0x564520;
-	static utils::function<void(void *lpMem)> free = 0x670DA6;
+	static Utils::function<Game::iwd_t*(const char *zipfile, const char *basename)> FS_LoadZipFile = 0x55C6F0;
+	static Utils::function<const char *(const char *lang)> IwdFileLanguage = 0x55D700;
+	static Utils::function<BOOL(LPVOID lpAddress)> FS_FreeFileList = 0x564520;
+	static Utils::function<void(void *lpMem)> free = 0x670DA6;
 
 	char ** Sys_ListFiles(const char *filter, const char *directory, const char *extension, int *numfiles, int wantsubs); //ASM
 	int SEH_GetLanguageIndexForName(const char *pszLanguageName, int *piLanguageIndex); //ASM
@@ -275,16 +288,16 @@ namespace Game
 	extern int* currentTime;
 	extern int* CanDamageContentMask;
 	
-	static utils::function<void(Game::pmove_t *pm)> PmoveSingle = 0x4143A0;
-	static utils::function<void(Game::pmove_t *pm)> PM_UpdateSprint = 0x40E6A0;
-	static utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_WalkMove = 0x40F7A0;
-	static utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_AirMove = 0x40F680;
-	static utils::function<bool(Game::pmove_t *pm, Game::pml_t *pml, bool gravity)> PM_SlideMove = 0x414F40;
-	static utils::function<void(Game::pmove_t *pm, Game::pml_t *pml, bool gravity)> PM_StepSlideMove = 0x4155C0;
-	static utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_SetMovementDir = 0x40F2D0;
-	static utils::function<bool(Game::pmove_t *pm, Game::pml_t *pml, int gravity)> PM_SlideMove_Internal = 0x414F40;
-	static utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_GroundTrace_Internal = 0x410660;
-	static utils::function<void(std::int32_t nodeIndex, Game::areaParms_t *ap)> CM_AreaEntities = 0x4F7A80;
+	static Utils::function<void(Game::pmove_t *pm)> PmoveSingle = 0x4143A0;
+	static Utils::function<void(Game::pmove_t *pm)> PM_UpdateSprint = 0x40E6A0;
+	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_WalkMove = 0x40F7A0;
+	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_AirMove = 0x40F680;
+	static Utils::function<bool(Game::pmove_t *pm, Game::pml_t *pml, bool gravity)> PM_SlideMove = 0x414F40;
+	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml, bool gravity)> PM_StepSlideMove = 0x4155C0;
+	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_SetMovementDir = 0x40F2D0;
+	static Utils::function<bool(Game::pmove_t *pm, Game::pml_t *pml, int gravity)> PM_SlideMove_Internal = 0x414F40;
+	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_GroundTrace_Internal = 0x410660;
+	static Utils::function<void(std::int32_t nodeIndex, Game::areaParms_t *ap)> CM_AreaEntities = 0x4F7A80;
 	
 	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml); // ASM
 	void PM_ClipVelocity_Call(const float *velocityIn, const float *traceNormal, float *velocityOut);
@@ -305,9 +318,9 @@ namespace Game
 
 	struct dvar_s;
 
-	static utils::function<void(dvar_s* dvar, float value, int source)> Dvar_SetFloat = 0x56C960;
+	static Utils::function<void(dvar_s* dvar, float value, int source)> Dvar_SetFloat = 0x56C960;
 
-	static utils::function<dvar_s* (const char *dvarName, float defaultValue, float minValue, float maxValue, std::uint16_t flags, const char *description)>
+	static Utils::function<dvar_s* (const char *dvarName, float defaultValue, float minValue, float maxValue, std::uint16_t flags, const char *description)>
 		Dvar_RegisterFloat_r = 0x56C460;
 
 	inline dvar_s* Dvar_RegisterFloat(const char* dvarName, const char* description, float defaultValue, float minValue, float maxValue, std::uint16_t flags) {
@@ -315,7 +328,7 @@ namespace Game
 	}
 
 	// using RegisterNew - FLOAT / VEC2 / VEC3 / VEC4 (01)
-	static utils::function<dvar_s * (const char* dvarName, DvarType typeFloat2, std::uint16_t flags, const char* description, float x, float y, std::int32_t null1, std::int32_t null2, float min, float max)>
+	static Utils::function<dvar_s * (const char* dvarName, DvarType typeFloat2, std::uint16_t flags, const char* description, float x, float y, std::int32_t null1, std::int32_t null2, float min, float max)>
 		Dvar_RegisterVec2_r = 0x56C130;
 
 	inline dvar_s* Dvar_RegisterVec2(const char* dvarName, const char* description, float x, float y, float minValue, float maxValue, std::uint16_t flags) {
@@ -323,7 +336,7 @@ namespace Game
 	}
 
 	// using RegisterNew - FLOAT / VEC2 / VEC3 / VEC4 (01)
-	static utils::function<dvar_s * (const char* dvarName, DvarType typeFloat3, std::uint16_t flags, const char* description, float x, float y, float z, std::int32_t null, float min, float max)>
+	static Utils::function<dvar_s * (const char* dvarName, DvarType typeFloat3, std::uint16_t flags, const char* description, float x, float y, float z, std::int32_t null, float min, float max)>
 		Dvar_RegisterVec3_r = 0x56C130;
 
 	inline dvar_s* Dvar_RegisterVec3(const char* dvarName, const char* description, float x, float y, float z, float minValue, float maxValue, std::uint16_t flags) {
@@ -331,7 +344,7 @@ namespace Game
 	}
 
 	// using RegisterNew - FLOAT / VEC2 / VEC3 / VEC4 (01)
-	static utils::function<dvar_s* (const char *dvarName, DvarType typeFloat4, std::uint16_t flags, const char *description, float x, float y, float z, float w, float min, float max)>
+	static Utils::function<dvar_s* (const char *dvarName, DvarType typeFloat4, std::uint16_t flags, const char *description, float x, float y, float z, float w, float min, float max)>
 		Dvar_RegisterVec4_r = 0x56C130;
 
 	inline dvar_s* Dvar_RegisterVec4(const char* dvarName, const char* description, float x, float y, float z, float w, float minValue, float maxValue, std::uint16_t flags) {
@@ -339,7 +352,7 @@ namespace Game
 	}
 
 	// using RegisterNew - INT / BOOL (02)
-	static utils::function<dvar_s* (const char *dvarName, DvarType typeInt, std::uint16_t flags, const char *description, std::int32_t defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t minValue, std::int32_t maxValue)>
+	static Utils::function<dvar_s* (const char *dvarName, DvarType typeInt, std::uint16_t flags, const char *description, std::int32_t defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t minValue, std::int32_t maxValue)>
 		Dvar_RegisterInt_r = 0x56C130;
 
 	inline dvar_s* Dvar_RegisterInt(const char* dvarName, const char* description, std::int32_t defaultValue, std::int32_t minValue, std::int32_t maxValue, std::uint16_t flags) {
@@ -347,7 +360,7 @@ namespace Game
 	}
 
 	// using RegisterNew - INT / BOOL (02)
-	static utils::function<dvar_s* (const char *dvarName, DvarType typeBool, std::uint16_t flags, const char *description, std::int32_t defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t null4, std::int32_t null5)>
+	static Utils::function<dvar_s* (const char *dvarName, DvarType typeBool, std::uint16_t flags, const char *description, std::int32_t defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t null4, std::int32_t null5)>
 		Dvar_RegisterBool_r = 0x56C130;
 
 	inline dvar_s* Dvar_RegisterBool(const char* dvarName, const char* description, std::int32_t defaultValue, std::uint16_t flags) {
@@ -355,7 +368,7 @@ namespace Game
 	}
 
 	// using RegisterNew - ENUM (04)
-	static utils::function<dvar_s* (const char *dvarName, DvarType typeEnum, std::uint16_t flags, const char *description, std::int32_t defaultIndex, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t enumSize, char** enumData)>
+	static Utils::function<dvar_s* (const char *dvarName, DvarType typeEnum, std::uint16_t flags, const char *description, std::int32_t defaultIndex, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t enumSize, char** enumData)>
 		Dvar_RegisterEnum_r = 0x56C130;
 
 	inline dvar_s* Dvar_RegisterEnum(const char* dvarName, const char* description, std::int32_t defaultValue, std::int32_t enumSize, char** enumData, std::uint16_t flags) {
@@ -363,7 +376,7 @@ namespace Game
 	}
 
 	// using RegisterNew - STRING (03)
-	static utils::function<dvar_s * (const char* dvarName, DvarType typeString, std::uint16_t flags, const char* description, const char* defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t null4, std::int32_t null5)>
+	static Utils::function<dvar_s * (const char* dvarName, DvarType typeString, std::uint16_t flags, const char* description, const char* defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t null4, std::int32_t null5)>
 		Dvar_RegisterString_r = 0x56C130;
 
 	// * do not use on module load (crash)
@@ -419,7 +432,7 @@ namespace Game
 	extern int* argv_1410BA4;
 	extern cmd_function_s* cmd_functions;
 
-	static utils::function<bool(const char* query, const char* matchToText, int matchTextLen)> Con_IsAutoCompleteMatch = 0x45F990;
+	static Utils::function<bool(const char* query, const char* matchToText, int matchTextLen)> Con_IsAutoCompleteMatch = 0x45F990;
 
 	typedef void(*SCR_DrawSmallStringExt_t)(int x, int y, const char* text);
 		extern SCR_DrawSmallStringExt_t SCR_DrawSmallStringExt;

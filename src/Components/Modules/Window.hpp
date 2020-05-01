@@ -7,7 +7,16 @@ namespace Components
 	public:
 		Window();
 		~Window();
+
 		const char* getName() override { return "Window"; };
+		
+		static int Width();
+		static int Height();
+		static int Width(HWND window);
+		static int Height(HWND window);
+		static void Dimension(RECT* rect);
+		static void Dimension(HWND window, RECT* rect);
+		static HWND GetWindow();
 
 	private:
 		static BOOL CursorVisible;

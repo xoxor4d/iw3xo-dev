@@ -832,15 +832,17 @@ namespace Components
 	}
 
 	//Fixes rect not being drawn properly when a border is applied
-	_declspec(naked) void Window_Paint_Border_Side_Fix() {
+	_declspec(naked) void Window_Paint_Border_Side_Fix() 
+	{
 		const static uint32_t returnPT = 0x54B6FA;
-
-		_asm {
-
+		_asm 
+		{
 			cmp     dword ptr[ebx + 3Ch], 2	//if border 2
 			je		short border_2
+
 			cmp     dword ptr[ebx + 3Ch], 3	//if border 3
 			je		short border_3
+
 			//fix for full border
 			fld     dword ptr[ebx + 48h]	//stock op
 			fadd    dword ptr[esp + 10h]	//stock op
@@ -858,29 +860,33 @@ namespace Components
 			fstp    dword ptr[esp + 1Ch]	//stock op
 			jmp		returnPT
 
-			border_2 :
+
 			//fix for border 2
-				fld     dword ptr[ebx + 48h]	//load bordersize
-				fadd    dword ptr[esp + 14h]	//add y to bordersize
-				fstp    dword ptr[esp + 14h]	//store y, pop st0
+			border_2 :
 
-				fld     dword ptr[ebx + 48h]	//load bordersize
-				fsubr	dword ptr[esp + 1Ch]
-				fsub	dword ptr[ebx + 48h]
-				fstp	dword ptr[esp + 1Ch]	//store width
-				jmp		returnPT
+			fld     dword ptr[ebx + 48h]	//load bordersize
+			fadd    dword ptr[esp + 14h]	//add y to bordersize
+			fstp    dword ptr[esp + 14h]	//store y, pop st0
 
-			border_3 :
+			fld     dword ptr[ebx + 48h]	//load bordersize
+			fsubr	dword ptr[esp + 1Ch]
+			fsub	dword ptr[ebx + 48h]
+			fstp	dword ptr[esp + 1Ch]	//store width
+			jmp		returnPT
+
+
 			//fix for border 3
-				fld     dword ptr[ebx + 48h]	//load bordersize
-				fadd    dword ptr[esp + 10h]	//add x to bordersize
-				fstp    dword ptr[esp + 10h]	//store x, pop st0
+			border_3 :
+			
+			fld     dword ptr[ebx + 48h]	//load bordersize
+			fadd    dword ptr[esp + 10h]	//add x to bordersize
+			fstp    dword ptr[esp + 10h]	//store x, pop st0
 
-				fld     dword ptr[ebx + 48h]	//load bordersize
-				fsubr   dword ptr[esp + 18h]
-				fsub	dword ptr[ebx + 48h]
-				fstp    dword ptr[esp + 18h]	//store height
-				jmp		returnPT
+			fld     dword ptr[ebx + 48h]	//load bordersize
+			fsubr   dword ptr[esp + 18h]
+			fsub	dword ptr[ebx + 48h]
+			fstp    dword ptr[esp + 18h]	//store height
+			jmp		returnPT
 		}
 	}
 
@@ -1049,40 +1055,17 @@ namespace Components
 			Game::Menus_CloseByName(name, ui);
 		});
 
-		// does this even work?
-		//Command::Add("menu_closeAll", "", "not even sure what i tried here", [](Command::Params params)
-		//{
-		//	Game::UiContext *ui = &Game::_uiContext[0];
-		//	Game::Menus_CloseAll(ui);
-		//});
-
-		// menu_setActive 0 - 11 to open default ones
-		//Command::Add("menu_setActive", "<int 0-12>", "not even sure what i tried here", [](Command::Params params)
-		//{
-		//	if (params.Length() < 2) 
-		//	{
-		//		return;
-		//	}
-
-		//	int menuNum = std::atoi(params[1]);
-		//	if (menuNum == 0 || menuNum <= 12)
-		//	{
-		//		Game::UI_SetActiveMenu(0, menuNum);
-		//	}
-		//});
-
-
-		Command::Add("iw3xo_github", [](Command::Params)
+		Command::Add("iw3xo_github", "", "opens https://github.com/xoxor4d/iw3xo-dev", [](Command::Params)
 		{
 			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-dev/", 0, 0, SW_SHOW);
 		});
 
-		Command::Add("iw3xo_radiant_github", [](Command::Params)
+		Command::Add("iw3xo_radiant_github", "", "opens https://github.com/xoxor4d/iw3xo-radiant", [](Command::Params)
 		{
 			ShellExecute(0, 0, L"https://github.com/xoxor4d/iw3xo-radiant/", 0, 0, SW_SHOW);
 		});
 
-		Command::Add("help", [](Command::Params)
+		Command::Add("help", "", "opens https://xoxor4d.github.io/projects/iw3xo/#in-depth", [](Command::Params)
 		{
 			ShellExecute(0, 0, L"https://xoxor4d.github.io/projects/iw3xo/#in-depth", 0, 0, SW_SHOW);
 		});
@@ -1183,19 +1166,17 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		// -------
+
+		// *
 		// Display
 
 		// Hook R_AspectRatio to initially reset the ultrawide dvar
-		Utils::Hook::Nop(0x5F352E, 6); // clear space
+		Utils::Hook::Nop(0x5F352E, 6);
 		Utils::Hook(0x5F352E, R_AspectRatio_Reset_Ultrawide_stub, HOOK_JUMP).install()->quick();
 
 		// Set 21:9 aspect by using the default switchcase in R_AspectRatio
-		Utils::Hook::Nop(0x5F35FA, 6); // clear space
+		Utils::Hook::Nop(0x5F35FA, 6);
 		Utils::Hook(0x5F35FA, R_AspectRatio_Ultrawide_stub, HOOK_JUMP).install()->quick();
-
-		// -----
-		// Dvars
 
 		static std::vector <char*> r_customAspectratio = 
 		{ 
