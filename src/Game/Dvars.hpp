@@ -98,6 +98,13 @@ namespace Dvars
 	extern Game::dvar_s* pm_hud_fontStyle;
 	extern Game::dvar_s* pm_hud_fontColor;
 
+	extern Game::dvar_s* pm_origin_hud;
+	extern Game::dvar_s* pm_origin_hud_x;
+	extern Game::dvar_s* pm_origin_hud_y;
+	extern Game::dvar_s* pm_origin_hud_fontScale;
+	extern Game::dvar_s* pm_origin_hud_fontStyle;
+	extern Game::dvar_s* pm_origin_hud_fontColor;
+
 	extern Game::dvar_s* pm_debug_prints;
 	extern Game::dvar_s* pm_debug_traceOrigin;
 	extern Game::dvar_s* pm_debug_traceVelocity;

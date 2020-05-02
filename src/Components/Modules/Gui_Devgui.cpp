@@ -230,6 +230,21 @@ namespace Components
 					const char* hudFont_items[] = { "FONT_SMALL_DEV", "FONT_BIG_DEV", "FONT_CONSOLE", "FONT_BIG", "FONT_SMALL", "FONT_BOLD", "FONT_NORMAL", "FONT_EXTRA_BIG", "FONT_OBJECTIVE" };
 					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_hud_fontStyle");
 
+					// ---------------
+					SEPERATORV(4.0f);
+
+					ImGui::Checkbox("Enable Position Hud", Gui::DvarGetSet<bool*>(Dvars::pm_origin_hud)); TT("pm_origin_hud");
+
+					ImGui::SliderFloat("Origin Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_x), Dvars::pm_origin_hud_x->domain.value.min, Dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
+
+					ImGui::SliderFloat("Origin Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_y), Dvars::pm_origin_hud_y->domain.value.min, Dvars::pm_origin_hud_y->domain.value.max, "%.0f"); TT("pm_origin_hud_y");
+
+					ImGui::SliderFloat("Origin Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontScale), Dvars::pm_origin_hud_fontScale->domain.value.min, Dvars::pm_origin_hud_fontScale->domain.value.max, "%.1f"); TT("pm_origin_hud_fontScale");
+
+					ImGui::ColorEdit4("Origin Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_origin_hud_fontColor");
+
+					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
+
 					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 					ImGui::EndTabItem();
 				}

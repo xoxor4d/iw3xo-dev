@@ -91,6 +91,13 @@ namespace Dvars
 	Game::dvar_s* pm_hud_fontStyle = nullptr;
 	Game::dvar_s* pm_hud_fontColor = nullptr;
 
+	Game::dvar_s* pm_origin_hud = nullptr;
+	Game::dvar_s* pm_origin_hud_x = nullptr;
+	Game::dvar_s* pm_origin_hud_y = nullptr;
+	Game::dvar_s* pm_origin_hud_fontScale = nullptr;
+	Game::dvar_s* pm_origin_hud_fontStyle = nullptr;
+	Game::dvar_s* pm_origin_hud_fontColor = nullptr;
+
 	Game::dvar_s* pm_debug_prints = nullptr;
 	Game::dvar_s* pm_debug_traceOrigin = nullptr;
 	Game::dvar_s* pm_debug_traceVelocity = nullptr;
