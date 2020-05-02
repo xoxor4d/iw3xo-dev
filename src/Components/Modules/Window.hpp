@@ -17,6 +17,7 @@ namespace Components
 		static void Dimension(RECT* rect);
 		static void Dimension(HWND window, RECT* rect);
 		static HWND GetWindow();
+		static bool is_noborder();
 
 	private:
 		static BOOL CursorVisible;

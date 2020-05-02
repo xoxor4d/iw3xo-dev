@@ -115,19 +115,20 @@ namespace Components
 			}
 		}
 
-		if(!Game::Globals::g_devgui.imgui.menustate)
+		// draw cursor when cod4 inactive and hovering over it
+		/*if(!Game::Globals::g_devgui.imgui.menustate)
 		{
 			if (Msg == WM_SETCURSOR)
 			{
 				Window::ApplyCursor();
 				return TRUE;
 			}
-		}
+		}*/
 
 		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x57BB20)(hWnd, Msg, wParam, lParam);
 	}
 
-	bool is_noborder()
+	bool Window::is_noborder()
 	{
 		if (Dvars::r_noborder && Dvars::r_noborder->current.enabled)
 			return true;
@@ -145,7 +146,7 @@ namespace Components
 			mov		dword ptr[esi], 0	// overwritten op
 
 			pushad
-			Call	is_noborder
+			Call	Window::is_noborder
 			test	al, al
 			jnz		NO_BORDER
 
