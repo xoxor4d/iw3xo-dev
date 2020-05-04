@@ -9,7 +9,6 @@ namespace Components
 		D3D9Ex();
 
 	private:
-
 		class D3D9Device : public IDirect3DDevice9
 		{
 		public:

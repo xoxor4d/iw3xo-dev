@@ -10,6 +10,6 @@ namespace Components
 		const char* getName() override { return "_Common"; };
 
 	private:
-		void DB_ReallocEntryPool();
+		void db_realloc_entry_pool();
 	};
 }

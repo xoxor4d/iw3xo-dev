@@ -1,6 +1,5 @@
 #pragma once
 
-#ifndef RENDERING_TEST
 namespace Components
 {
 	class RB_DrawCollision : public Component
@@ -15,4 +14,3 @@ namespace Components
 	private:
 	};
 }
-#endif

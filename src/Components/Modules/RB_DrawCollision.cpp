@@ -28,7 +28,7 @@ glm::vec3 g_oldSortingOrigin = glm::vec3(0.0f);
 char windingPool[12292];
 
 // dynamic dvar strings
-std::string g_dvarMaterialList_str;
+//std::string g_dvarMaterialList_str;
 
 // material lists
 std::vector<Game::dmaterial_t*> g_mapMaterialList;
@@ -1533,6 +1533,17 @@ namespace Components
 			break;
 		}
 
+		// check if we are within array bounds
+		if (static_cast<size_t>(brush->axialMaterialNum[0][0]) >= g_mapMaterialListDuplicates.size())
+		{
+			return false;
+		}
+
+		if (static_cast<size_t>(materialNumFromDvar) >= g_mapMaterialListSingle.size())
+		{
+			return false;
+		}
+
 		// bridge dupe materials list with the cleaned list
 		std::string materialNameFromDuplicates = g_mapMaterialListDuplicates[(int)brush->axialMaterialNum[0][0]];
 		std::string materialNameFromSingle = g_mapMaterialListSingle[materialNumFromDvar];
@@ -1762,6 +1773,8 @@ namespace Components
 			// change dvar to only draw 1 brush when using a debug build (debug build has really bad performance)
 			Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, 1);
 #endif
+			// cap brushAmount
+			Dvars::r_drawCollision_brushAmount->domain.integer.max = Game::cm->numBrushes - 1;
 
 			// reset brush distance filter
 			Game::Dvar_SetValue(Dvars::r_drawCollision_brushDist, 800.0f);
@@ -1771,7 +1784,8 @@ namespace Components
 			g_mapMaterialList.clear();
 			g_mapMaterialListDuplicates.clear();
 			g_mapMaterialListSingle.clear();
-			g_dvarMaterialList_str.clear();
+			//g_dvarMaterialList_str.clear();
+			Game::Globals::r_drawCollision_materialList_string.clear();
 
 			// init/reset the selection box
 			CM_ResetSelectionBox(&export_selectionBox);
@@ -1834,7 +1848,8 @@ namespace Components
 				// do not print "empty" materials
 				if (!Utils::StartsWith(g_mapMaterialListSingle[num], "*"))
 				{
-					g_dvarMaterialList_str += std::to_string(num) + ": " + g_mapMaterialListSingle[num] + "\n";
+					/*g_dvarMaterialList_str*/ 
+					Game::Globals::r_drawCollision_materialList_string += std::to_string(num) + ": " + g_mapMaterialListSingle[num] + "\n";
 				}
 			}
 
@@ -1842,7 +1857,7 @@ namespace Components
 
 			// Set material dvar back to 0, update description and max value
 			Game::Dvar_SetValue(Dvars::r_drawCollision_material, 0);
-			Dvars::r_drawCollision_material->domain.integer.max = singleMaterialCount;
+			Dvars::r_drawCollision_material->domain.integer.max = singleMaterialCount - 1;
 
 			//print the material list to the large console if the list has more then 20 materials
 			if (singleMaterialCount > 20)
@@ -1851,7 +1866,7 @@ namespace Components
 			}
 			else
 			{
-				Dvars::r_drawCollision_material->description = g_dvarMaterialList_str.c_str();;
+				Dvars::r_drawCollision_material->description = Game::Globals::r_drawCollision_materialList_string.c_str(); //g_dvarMaterialList_str.c_str();
 			}
 
 			Game::Com_PrintMessage(0, "|-> done\n", 0);
@@ -2414,7 +2429,7 @@ namespace Components
 
 			// reset the dvar and print our material list
 			Game::Dvar_SetValue(Dvars::r_drawCollision_materialList, false);
-			Game::Com_PrintMessage(0, Utils::VA("%s\n", g_dvarMaterialList_str.c_str()), 0);
+			Game::Com_PrintMessage(0, Utils::VA("%s\n", /*g_dvarMaterialList_str.c_str()*/ Game::Globals::r_drawCollision_materialList_string.c_str()), 0);
 		}
 	}
 
@@ -3339,7 +3354,7 @@ namespace Components
 			/* desc		*/ "Draw x amount of brushes, starting at brush index 0 and will limit itself to the total amount of brushes within the clipMap.\n0: disables this filter.",
 			/* default	*/ 0,
 			/* minVal	*/ 0,
-			/* maxVal	*/ INT_MAX,
+			/* maxVal	*/ INT_MAX / 2 - 1,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::r_drawCollision_brushDist = Game::Dvar_RegisterFloat(
@@ -3347,7 +3362,7 @@ namespace Components
 			/* desc		*/ "Max distance to draw collision.\n0: disables this filter.\nWill reset itself on map load.",
 			/* default	*/ 800.0f,
 			/* minVal	*/ 0.0f,
-			/* maxVal	*/ 100000.0f,
+			/* maxVal	*/ 10000.0f,
 			/* flags	*/ Game::dvar_flags::none);
 
 		// r_drawCollision_brushIndexFilter @ (CM_BuildMaterialListForMapOnce)
@@ -3463,7 +3478,7 @@ namespace Components
 			/* desc		*/ "[VIS] Amount of frames to show brush collision.",
 			/* default	*/ 60,
 			/* minVal	*/ 0,
-			/* maxVal	*/ INT_MAX,
+			/* maxVal	*/ INT_MAX / 2 - 1,
 			/* flags	*/ Game::dvar_flags::none);
 
 		Dvars::r_drawCollision_flickerOffTime = Game::Dvar_RegisterInt(
@@ -3471,7 +3486,7 @@ namespace Components
 			/* desc		*/ "[VIS] Amount of frames to hide brush collision.",
 			/* default	*/ 500,
 			/* minVal	*/ 0,
-			/* maxVal	*/ INT_MAX,
+			/* maxVal	*/ INT_MAX/2 - 1,
 			/* flags	*/ Game::dvar_flags::none);
 
 		Dvars::r_drawCollision_hud = Game::Dvar_RegisterBool(
@@ -3539,7 +3554,7 @@ namespace Components
 			/* desc		*/ "only export brushes (with more then 6 sides) if their diagonal length is greater then <this>",
 			/* default	*/ 64.0f,
 			/* minVal	*/ 0.0f,
-			/* maxVal	*/ FLT_MAX,
+			/* maxVal	*/ 1000.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::mapexport_selectionMode = Game::Dvar_RegisterInt(

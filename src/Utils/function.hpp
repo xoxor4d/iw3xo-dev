@@ -1,6 +1,6 @@
 #pragma once
 
-namespace utils
+namespace Utils
 {
 	template <typename T>
 	class function

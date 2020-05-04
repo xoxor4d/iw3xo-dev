@@ -1,34 +1,31 @@
 ﻿// *
 // RadiantRemote
-
-// max amount of selected brushes (from radiant) to parse 
-// should always match REMOTE_MAX_SEL_BRUSHES in radiant
-#define RADIANT_MAX_SEL_BRUSHES 16
-
+#define RADIANT_MAX_SEL_BRUSHES 16 // max amount of selected brushes (from radiant) to parse (should always match REMOTE_MAX_SEL_BRUSHES in radiant)
 
 // *
 // Common
-
 #define FF_LOAD_ADDON_MENU		true
 #define FF_ADDON_MENU_NAME		"xcommon_iw3xo_menu"
 
 #define FF_LOAD_ADDON_REQ		true
 #define FF_ADDON_REQ_NAME		"xcommon_iw3xo"
 
-
 // *
 // Version
-
 #define IW3XO_BUILDVERSION_DATE __TIMESTAMP__  
 #define IW3XO_BUILDSTRING "IW3xo :: build %.lf :: %s", IW3X_BUILDNUMBER, __TIMESTAMP__
 #define IW3XO_BUILDSTRING_CHANGELOG "IW3xo :: build %.lf :: %s %s", IW3X_BUILDNUMBER, __TIMESTAMP__
 
+// *
+// Gui
+#define GET_GGUI Game::Globals::gui
+#define GGUI_READY Game::Globals::gui.imgui_initialized
+#define GGUI_READY_DVARS Game::Globals::gui.dvars_initialized
+#define GGUI_ANY_MENUS_OPEN Game::Globals::gui.any_menus_open
+#define GGUI_MENU_COUNT 4
 
 // *
-// Changelog
-
-// avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space
-
+// Changelog (avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space)
 #if DEBUG
 	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s :: ^1DEBUG\n"
 #else
@@ -38,34 +35,32 @@
 #define IW3XO_CHANGELOG_01_Y_OFFS	10
 #define IW3XO_CHANGELOG_01_SEP		1
 #define IW3XO_CHANGELOG_01_TITLE	"[General]\n"
-#define IW3XO_CHANGELOG_01			"-  Increased asset pools (c) IW4x\n" \
-									"-  Usage of <xo_shaderoverlay> now disables <r_glow_allowed>\n" \
-									"-  Refactoring"
+#define IW3XO_CHANGELOG_01			"-  Shortcut ALT + Enter now works without developer mode\n" \
+									"-  Some dvar mins/maxs have been changed (mainly collision and shader dvars)\n" \
+									"-  Collision hud now uses the correct dvar to determine its color"
 
 #define IW3XO_CHANGELOG_02_Y_OFFS	0
 #define IW3XO_CHANGELOG_02_SEP		1
-#define IW3XO_CHANGELOG_02_TITLE	"[Renderer]"
-#define IW3XO_CHANGELOG_02			"-  r_d3d9ex [enables extended dx9 interface (on by default)] (c) IW4x\n"	\
-									"-  Fixed invalid sampler crashes when drawing debug polygons\n" \
-									"-  Increased performance when using unlit debug polygons (r_drawCollision_polyLit 0)"
+#define IW3XO_CHANGELOG_02_TITLE	"[Menus]"
+#define IW3XO_CHANGELOG_02			"-  fs_usedevdir is no longer forced on start as it could cause issues with some mods\n"	\
+									"-  Menu Exporter [/menu_export, /menu_list ...] ((c) SheepWizard)\n" \
+									"-  menu_loadlist_raw no longer drops the player when it was unable to find specified menu"
 
 #define IW3XO_CHANGELOG_03_Y_OFFS	-8
 #define IW3XO_CHANGELOG_03_SEP		1
-#define IW3XO_CHANGELOG_03_TITLE	"[Map Export]"
-#define IW3XO_CHANGELOG_03			"-  fixed brushmodel exporting\n" \
-									"-  now skipping brushes with more then 128 points\n" \
-									"-  play with <mapexport_brushEpsilon1/2> and <mapexport_brushMinSize> to export smaller but prob. invalid brushes"
+#define IW3XO_CHANGELOG_03_TITLE	"[ImGui]"
+#define IW3XO_CHANGELOG_03			"-  implemented ImGui (currently needs <r_d3d9ex> to be enabled)\n" \
+									"-  theres now a devgui for most of the dvars that where added [/devgui]\n" \
+									"-  imgui demo menu [/devgui_demo]"
 
-#define IW3XO_CHANGELOG_04_Y_OFFS	-24
-#define IW3XO_CHANGELOG_04_SEP		1
-#define IW3XO_CHANGELOG_04_TITLE	"[Console]"
-#define IW3XO_CHANGELOG_04			"-  fixed matchbox-values\n" \
-									"-  re-added dvars <xo_con_hintBoxTxtColor_ ...>"
+#define IW3XO_CHANGELOG_04_Y_OFFS	999
+#define IW3XO_CHANGELOG_04_SEP		0
+#define IW3XO_CHANGELOG_04_TITLE	"."
+#define IW3XO_CHANGELOG_04			"."
 
 
 // *
 // General
-
 #define FONT_SMALL_DEV  "fonts/smallDevFont"
 #define FONT_BIG_DEV    "fonts/bigDevFont"
 #define FONT_CONSOLE    "fonts/consoleFont"

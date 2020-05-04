@@ -483,12 +483,18 @@ namespace Game
 
 	enum dvar_flags : std::uint16_t
 	{
-		none = 0,
-		saved = 1,
-		latched = 0x20,
-		cheat_protected = 0x80,
-		write_protected = 0x10,
-		read_only = 0x40,
+		none				= 0x0,
+		saved				= 0x1,
+		user_info			= 0x2, // sent to server on connect or change
+		server_info			= 0x4, // sent in response to front end requests
+		replicated			= 0x8,
+		write_protected		= 0x10,
+		latched				= 0x20,
+		read_only			= 0x40,
+		cheat_protected		= 0x80,
+		temp				= 0x100,
+		no_restart			= 0x400, // do not clear when a cvar_restart is issued
+		user_created		= 0x4000, // created by a set command
 	};
 
 	struct dvar_s
@@ -6289,6 +6295,33 @@ namespace Game
 		{
 			glm::vec3 plane;
 			float dist;
+		};
+
+		enum GUI_MENUS
+		{
+			DEMO = 0,
+			DEVGUI = 1,
+			EMPTY2 = 2,
+			EMPTY3 = 4
+		};
+
+		struct gui_menus_t
+		{
+			bool menustate;
+			bool was_open;
+			bool hk_is_clicked;
+			bool hk_is_down;
+			bool one_time_init;
+			float position[2];
+			float size[2];
+		};
+
+		struct gui_t
+		{
+			bool imgui_initialized;
+			bool dvars_initialized;
+			bool any_menus_open;
+			gui_menus_t menus[GGUI_MENU_COUNT];
 		};
 
 #ifdef __cplusplus

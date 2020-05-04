@@ -57,7 +57,7 @@ namespace Utils
 		void	_VectorZero4(vec4_t v1);
 		void	_VectorSubtract(const vec3_t veca, const vec3_t vecb, vec3_t out);
 		void	_VectorAdd(const vec3_t veca, const vec3_t vecb, vec3_t out);
-		void	_VectorCopy(const vec3_t in, vec3_t out);
+		void	_VectorCopy(const vec_t* in, vec_t* out, int size);
 		void	_VectorScale(const vec3_t in, float scale, vec3_t out);
 		void	_VectorMA(const vec3_t veca, float scale, const vec3_t vecb, vec3_t vecc);
 		void	_VectorInverse(vec3_t v);

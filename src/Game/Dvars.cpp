@@ -1,5 +1,4 @@
 #include "STDInclude.hpp"
-// * dvars assigned at runtime
 
 namespace Dvars
 {
@@ -35,6 +34,13 @@ namespace Dvars
 	Game::dvar_s* ui_changelog04 = nullptr;
 	Game::dvar_s* xo_menu_dbg = nullptr;
 
+	// ImGui
+	Game::dvar_s* _imgui_saving = nullptr;
+	Game::dvar_s* _imgui_window_alpha = nullptr;
+
+	// Devgui
+	Game::dvar_s* _imgui_devgui_pos = nullptr;
+	Game::dvar_s* _imgui_devgui_size = nullptr;
 
 	// Console 
 	Game::dvar_s* con_minicon_position = nullptr;

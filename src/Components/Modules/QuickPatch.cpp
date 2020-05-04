@@ -193,6 +193,9 @@ namespace Components
 		// Disable AutoUpdate Check?
 		Utils::Hook::Nop(0x4D76DA, 5);
 
+		// Disable developer check for Alt + Enter
+		Utils::Hook::Nop(0x57BEBD, 2);
+
 		// Precaching beyond level load
 		Utils::Hook::Nop(0x4E2216, 2); // model 1
 		Utils::Hook::Set<BYTE>(0x4E2282, 0xEB); // model 2

@@ -13,8 +13,9 @@ namespace Components
 
 	void ForceDvarsOnInit()
 	{
-		auto dedicated		= Game::Dvar_FindVar("dedicated");
-		auto fs_usedevdir	= Game::Dvar_FindVar("fs_usedevdir");
+		const auto dedicated = Game::Dvar_FindVar("dedicated");
+		//auto fs_usedevdir = Game::Dvar_FindVar("fs_usedevdir");
+		auto in_mouse = Game::Dvar_FindVar("in_mouse");
 
 		if (dedicated && dedicated->current.integer == 0)
 		{
@@ -27,10 +28,22 @@ namespace Components
 			}
 		}
 
-		if (fs_usedevdir && !fs_usedevdir->current.enabled)
+		// Do not force fs_usedevdir, some mods do not like that. Rather let the user enable it himself if he wants to use rawfile loading
+		//if (fs_usedevdir && !fs_usedevdir->current.enabled)
+		//{
+		//	Game::Dvar_SetValue(fs_usedevdir, true); // quick set the value
+		//	Game::Cmd_ExecuteSingleCommand(0, 0, "fs_usedevdir 1\n");
+		//}
+
+		if (in_mouse && !in_mouse->current.enabled)
 		{
-			Game::Dvar_SetValue(fs_usedevdir, true); // quick set the value
-			Game::Cmd_ExecuteSingleCommand(0, 0, "fs_usedevdir 1\n");
+			Game::Dvar_SetValue(in_mouse, true); // quick set the value
+			Game::Cmd_ExecuteSingleCommand(0, 0, "in_mouse 1\n");
+		}
+
+		if (Components::active.Gui)
+		{
+			Gui::load_settings();
 		}
 	}
 
@@ -73,7 +86,6 @@ namespace Components
 			jmp		overjumpTo
 		}
 	}
-
 
 	// *
 	// FastFiles
@@ -280,7 +292,6 @@ namespace Components
 		}
 	}
 
-
 	// *
 	// IWDs
 
@@ -317,7 +328,6 @@ namespace Components
 			test    eax, eax
 
 			je		MATCH			// jump if iwd matched iw_
-
 									// if not, cmp to xcommon_
 			push	edi				// current iwd string + ext
 			Call	iwdMatchXCOMMON
@@ -327,30 +337,30 @@ namespace Components
 			je		MATCH			// jump if iwd matched xcommon_
 			jmp		errMsg			// yeet
 
+
 			MATCH :
-				mov     ebx, [ebp - 4]		// whatever df that is
-				mov		[ebp - 8], 1		// set qLocalized to true ;)
-				mov		[ebp - 0Ch], esi	// whatever df that is
-				jmp		hax
+			mov     ebx, [ebp - 4]		// whatever df that is
+			mov		[ebp - 8], 1		// set qLocalized to true ;)
+			mov		[ebp - 0Ch], esi	// whatever df that is
+			jmp		hax
 		}
 	}
-
 
 	// *
 	// DB
 
-	void _Common::DB_ReallocEntryPool()
+	void _Common::db_realloc_entry_pool()
 	{
 		AssertSize(Game::XAssetEntry, 16);
 
 		size_t size = 789312;
-		Game::XAssetEntry* entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
+		Game::XAssetEntry* entry_pool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
 
 		// Apply new size
 		Utils::Hook::Set<DWORD>(0x488F50, size);
 
 		// Apply new pool
-		DWORD g_assetEntryPool_patches[] =
+		DWORD asset_entry_pool_patches[] =
 		{
 			0x488F48, 0x489178, 0x4891A5, 0x4892C4, 0x489335,
 			0x489388, 0x48944E, 0x4898F4, 0x4899A4, 0x489B67,
@@ -359,12 +369,12 @@ namespace Components
 			0x48B4A4, 0x48B4F8
 		};
 
-		for (int i = 0; i < ARRAYSIZE(g_assetEntryPool_patches); ++i) {
-			Utils::Hook::Set<Game::XAssetEntry*>(g_assetEntryPool_patches[i], entryPool);
+		for (int i = 0; i < ARRAYSIZE(asset_entry_pool_patches); ++i) {
+			Utils::Hook::Set<Game::XAssetEntry*>(asset_entry_pool_patches[i], entry_pool);
 		}
 
-		Utils::Hook::Set<Game::XAssetEntry*>(0x488F31, entryPool + 1);
-		Utils::Hook::Set<Game::XAssetEntry*>(0x488F42, entryPool + 1);
+		Utils::Hook::Set<Game::XAssetEntry*>(0x488F31, entry_pool + 1);
+		Utils::Hook::Set<Game::XAssetEntry*>(0x488F42, entry_pool + 1);
 	}
 
 	_Common::_Common()
@@ -372,21 +382,20 @@ namespace Components
 		// *
 		// DB
 
-		this->DB_ReallocEntryPool();
+		this->db_realloc_entry_pool();
 
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_MENU, 1280);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_MENULIST, 256);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
-		Game::DB_ReallocXAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
-
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_IMAGE, 7168);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_FX, 1200);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_MENU, 1280);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_MENULIST, 256);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
+		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
 
 		// *
 		// Dvars
@@ -401,7 +410,6 @@ namespace Components
 		Utils::Hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x56B33A, 1);
 
-
 		// *
 		// FastFiles
 
@@ -410,7 +418,6 @@ namespace Components
 
 		// ^ Com_StartHunkUsers Mid-hook (realloc files that were unloaded on map load)
 		Utils::Hook::Nop(0x50020F, 6);  Utils::Hook(0x50020F, Com_StartHunkUsers_stub, HOOK_JUMP).install()->quick();
-
 
 		// *
 		// IWDs

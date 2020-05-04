@@ -1,31 +1,32 @@
 #pragma once
 
-
-
 namespace Components
 {
 	// add new modules here
 	struct activeModules_s
 	{
-		bool _CG;
 		bool _UI;
+		bool _CG;
 		bool _Pmove;
 		bool _Debug;
 		bool _Game;
 		bool _Map;
 		bool _Common;
 		bool Command;
-		bool D3D9Ex;
-		bool GScr_Methods;
-		bool MenuExport;
 		bool QuickPatch;
+		bool GScr_Methods;
+		bool Scheduler;
+
+		bool D3D9Ex;
+		bool MenuExport;
 		bool PM_Movement;
 		bool XO_Console;
 		bool RB_DrawCollision;
 		bool RB_ShaderOverlays;
 		bool RadiantRemote;
 		bool Window;
-		bool Scheduler;
+		bool Gui;
+		bool Gui_Devgui;
 	};
 
 	extern activeModules_s active;
@@ -59,14 +60,13 @@ namespace Components
 }
 
 // General modules that have to be included
-#include "Modules/_CG.hpp"
 #include "Modules/_UI.hpp"
+#include "Modules/_CG.hpp"
 #include "Modules/_Pmove.hpp"
 #include "Modules/_Debug.hpp"
 #include "Modules/_Game.hpp"
 #include "Modules/_Map.hpp"
 #include "Modules/_Common.hpp"
-
 #include "Modules/Command.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/GScr_Methods.hpp"
@@ -80,7 +80,8 @@ namespace Components
 #include "Modules/RB_ShaderOverlays.hpp"
 #include "Modules/RadiantRemote.hpp"
 #include "Modules/Window.hpp"
-
+#include "Modules/Gui.hpp"
+#include "Modules/Gui_Devgui.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"
