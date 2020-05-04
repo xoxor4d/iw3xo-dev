@@ -6297,29 +6297,31 @@ namespace Game
 			float dist;
 		};
 
-		struct imgui_t
+		enum GUI_MENUS
 		{
-			bool initialized;
+			DEMO = 0,
+			DEVGUI = 1,
+			EMPTY2 = 2,
+			EMPTY3 = 4
+		};
+
+		struct gui_menus_t
+		{
 			bool menustate;
-			bool wasOpen;
+			bool was_open;
+			bool hk_is_clicked;
+			bool hk_is_down;
+			bool one_time_init;
+			float position[2];
+			float size[2];
 		};
 
-		struct devgui_window_t
+		struct gui_t
 		{
-			float* alpha;
-		};
-
-		struct devgui_settings_t
-		{
-			bool settingsLoaded;
-			int settingsSaveCounter;
-			devgui_window_t window;
-		};
-
-		struct devgui_t
-		{
-			imgui_t imgui;
-			devgui_settings_t settings;
+			bool imgui_initialized;
+			bool dvars_initialized;
+			bool any_menus_open;
+			gui_menus_t menus[GGUI_MENU_COUNT];
 		};
 
 #ifdef __cplusplus

@@ -23,8 +23,7 @@ namespace Game
 		glm::vec3 locPmove_cameraOrigin = { 0.0f, 0.0f, 0.0f };		// grab local camera origin
 
 		// Devgui
-		//Game::imgui_t g_imgui = Game::imgui_t();
-		Game::devgui_t g_devgui = Game::devgui_t();
+		Game::gui_t gui = Game::gui_t();
 
 		// Renderer
 		IDirect3DDevice9* d3d9_device = nullptr;
@@ -99,7 +98,7 @@ namespace Game
 
 	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x726A10);
 
-	XAssetHeader DB_ReallocXAssetPool(XAssetType type, unsigned int newSize)
+	XAssetHeader db_realloc_xasset_pool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
 		XAssetHeader poolEntry = { Utils::Memory::GetAllocator()->allocate(newSize * elSize) };

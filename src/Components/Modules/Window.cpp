@@ -83,9 +83,9 @@ namespace Components
 	{
 		Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 		
-		if (Components::active.Devgui)
+		if (Components::active.Gui)
 		{
-			Devgui::reset();
+			Gui::reset();
 		}
 
 		return Window::MainWindow;
@@ -99,31 +99,37 @@ namespace Components
 
 	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
-		if (Components::active.Devgui && Game::Globals::g_devgui.imgui.initialized)
+		auto menu_open = false;
+
+		if (Components::active.Gui && GGUI_READY)
 		{
-			if (Game::Globals::g_devgui.imgui.menustate)
+			// handle input and mouse cursor for open menus
+			for (auto menu = 0; menu < GGUI_MENU_COUNT; menu++)
 			{
-				if (/*ImGui::GetCurrentContext() &&*/ ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam))
+				if (Game::Globals::gui.menus[menu].menustate)
 				{
-					ImGui::GetIO().MouseDrawCursor = 1;
-					return true;
+					if (ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam))
+					{
+						ImGui::GetIO().MouseDrawCursor = 1;
+						return true;
+					}
+
+					menu_open = true;
 				}
 			}
-			else
-			{
-				ImGui::GetIO().MouseDrawCursor = 0;
-			}
+
+			ImGui::GetIO().MouseDrawCursor = 0;
 		}
 
-		// draw cursor when cod4 inactive and hovering over it
-		/*if(!Game::Globals::g_devgui.imgui.menustate)
+		// draw cursor (if no imgui menu opened) when cod4 inactive and hovering over it
+		if(!menu_open)
 		{
 			if (Msg == WM_SETCURSOR)
 			{
 				Window::ApplyCursor();
 				return TRUE;
 			}
-		}*/
+		}
 
 		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x57BB20)(hWnd, Msg, wParam, lParam);
 	}

@@ -3362,7 +3362,7 @@ namespace Components
 			/* desc		*/ "Max distance to draw collision.\n0: disables this filter.\nWill reset itself on map load.",
 			/* default	*/ 800.0f,
 			/* minVal	*/ 0.0f,
-			/* maxVal	*/ 30000.0f,
+			/* maxVal	*/ 10000.0f,
 			/* flags	*/ Game::dvar_flags::none);
 
 		// r_drawCollision_brushIndexFilter @ (CM_BuildMaterialListForMapOnce)

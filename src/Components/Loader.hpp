@@ -25,7 +25,8 @@ namespace Components
 		bool RB_ShaderOverlays;
 		bool RadiantRemote;
 		bool Window;
-		bool Devgui;
+		bool Gui;
+		bool Gui_Devgui;
 	};
 
 	extern activeModules_s active;
@@ -79,7 +80,8 @@ namespace Components
 #include "Modules/RB_ShaderOverlays.hpp"
 #include "Modules/RadiantRemote.hpp"
 #include "Modules/Window.hpp"
-#include "Modules/Devgui.hpp"
+#include "Modules/Gui.hpp"
+#include "Modules/Gui_Devgui.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

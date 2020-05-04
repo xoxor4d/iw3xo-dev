@@ -1,5 +1,4 @@
 #pragma once
-// * dvars assigned at runtime
 
 namespace Dvars
 {
@@ -35,11 +34,13 @@ namespace Dvars
 	extern Game::dvar_s* ui_changelog04;
 	extern Game::dvar_s* xo_menu_dbg;
 
-	// Devgui
-	extern Game::dvar_s* devgui_demo;
+	// ImGui
 	extern Game::dvar_s* _imgui_saving;
 	extern Game::dvar_s* _imgui_window_alpha;
 
+	// Devgui
+	extern Game::dvar_s* _imgui_devgui_pos;
+	extern Game::dvar_s* _imgui_devgui_size;
 
 	// Console 
 	extern Game::dvar_s* con_minicon_position;

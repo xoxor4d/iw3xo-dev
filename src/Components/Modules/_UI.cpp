@@ -890,6 +890,23 @@ namespace Components
 		}
 	}
 
+	// Do not drop the player when UI_LoadMenus_LoadObj fails to load a menu
+	__declspec(naked) void load_raw_menulist_error_stub()
+	{
+		__asm
+		{
+			add     esp, 18h	// hook is placed on call to FS_FOpenFileReadForThread, so fix the stack
+			
+			xor		eax, eax	// return a nullptr
+			pop		edi			// epilog
+			pop		esi
+			pop		ebp
+			pop		ebx
+			pop		ecx
+			retn
+		}
+	}
+
 	_UI::_UI()
 	{
 		// *
@@ -924,18 +941,21 @@ namespace Components
 		Utils::Hook::Nop(0x54B6C9, 7);
 		Utils::Hook(0x54B6C9, Window_Paint_Border_Side_Fix, HOOK_JUMP).install()->quick();
 
+		// Do not drop the player when UI_LoadMenus_LoadObj fails to load a menu
+		Utils::Hook(0x5587FF, load_raw_menulist_error_stub, HOOK_JUMP).install()->quick();
+
 
 		// *
 		// Commands
 
 		// loads a menulist (txt file) and adds menus within it to the uicontext->menu stack
-		Command::Add("menu_loadlist_raw", "<menulist_name.txt>", "rawfile :: load a menulist (txt file) and add included menus to the uicontext->menu stack", [](Command::Params params)
+		Command::Add("menu_loadlist_raw", "<menulist_name.txt>", "rawfile :: load a menulist (txt file) and add included menus to the uicontext->menu stack (<fs_usedevdir> must be enabled)", [](Command::Params params)
 		{
 			auto fs_usedevdir = Game::Dvar_FindVar("fs_usedevdir");
 
 			if (!fs_usedevdir || fs_usedevdir && !fs_usedevdir->current.enabled)
 			{
-				Game::Com_PrintMessage(0, "fs_usedevdir must be enabled.\n", 0);
+				Game::Com_PrintMessage(0, "fs_usedevdir must be enabled to use this command! Make sure to reload your map after after enabling it!\n", 0);
 				return;
 			}
 
@@ -985,7 +1005,7 @@ namespace Components
 			}
 			else
 			{
-				Game::Com_PrintMessage(0, "Make sure your menufiles are in devraw, devraw_shared or raw_shared!\n", 0);
+				Game::Com_PrintMessage(0, "You either forgot to restart the map after enabling <fs_usedevdir> or tried to load a non-existing file!\n", 0);
 			}
 		});
 

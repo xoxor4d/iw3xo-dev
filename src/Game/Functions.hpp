@@ -24,8 +24,7 @@ namespace Game
 		extern glm::vec3 locPmove_cameraOrigin;		// grab local camera origin
 
 		// Devgui
-		//extern Game::imgui_t g_imgui;
-		extern Game::devgui_t g_devgui;
+		extern Game::gui_t gui;
 
 		// Renderer
 		extern IDirect3DDevice9* d3d9_device;
@@ -82,7 +81,7 @@ namespace Game
 	typedef int(__cdecl* DB_GetXAssetSizeHandler_t)();
 	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
 
-	XAssetHeader DB_ReallocXAssetPool(XAssetType type, unsigned int newSize);
+	XAssetHeader db_realloc_xasset_pool(XAssetType type, unsigned int newSize);
 
 	static Utils::function<void()> R_BeginRemoteScreenUpdate = 0x5F78A0;
 	static Utils::function<void()> R_EndRemoteScreenUpdate = 0x5F78F0;

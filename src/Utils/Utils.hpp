@@ -54,6 +54,9 @@ namespace Utils
 
 	bool MemIsSet(void* mem, char chr, size_t length);
 
+	void byte4_pack_rgba(const float* from, char* to);
+	void byte4_unpack_rgba(const char* from, float* to);
+
 	template <typename T> bool CompareNumber(T num1, T num2)
 	{
 		return std::abs(num1 - num2) < std::numeric_limits<T>::epsilon();
