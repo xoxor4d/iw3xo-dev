@@ -46,7 +46,6 @@ workspace "iw3xo-dev"
 	buildoptions {
 		"/std:c++latest"
 	}
-	systemversion "latest"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 	configuration "windows"
