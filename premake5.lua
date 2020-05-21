@@ -33,7 +33,7 @@ workspace "iw3xo-dev"
 	configurations { "Debug", "Release" }
 	architecture "x32"
 	platforms "x86"
-	systemversion "10.0.17763.0"
+	systemversion "latest"
 	startproject "iw3x"
 
 	disablewarnings {
@@ -46,8 +46,6 @@ workspace "iw3xo-dev"
 	buildoptions {
 		"/std:c++latest"
 	}
-	--systemversion "10.0.17134.0"
-    systemversion "10.0.17763.0"
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
 
 	configuration "windows"
