@@ -111,6 +111,7 @@ namespace Dvars
 
 
 	// Renderer
+	extern Game::dvar_s* r_aspectRatio_custom;
 	extern Game::dvar_s* r_aspectRatio;
 	extern Game::dvar_s* r_noborder;
 	extern Game::dvar_s* r_d3d9ex;

@@ -692,6 +692,11 @@ namespace Components
 		}
 	}
 
+	void set_custom_aspect_ratio()
+	{
+		*(float*)(0xCC9D0F8) = Dvars::r_aspectRatio_custom->current.value;
+	}
+
 	// -- UltrawideDvarFalse
 	__declspec(naked) void R_AspectRatio_Reset_Ultrawide_stub()
 	{
@@ -722,16 +727,9 @@ namespace Components
 			push	1
 			Call	SetUltrawideDvar
 			add		esp, 4h
+
+			Call	set_custom_aspect_ratio
 			popad
-
-			push	eax							// push throwaway register
-			//mov		eax, Dvars::ultrawide		// mov ultrawide dvar ptr into eax
-			//mov		[eax + 12], 1				// set ultrawide to true
-			mov		eax, 0xCC9D0F8				// move address of *Game::r_aspectRatio_float
-
-			fld		ultraWideAspect		// load our custom aspect float
-			fstp	[eax]				// set *Game::r_aspectRatio_float
-			pop		eax					// pop
 
 			mov     ecx, 1				// widescreen true
 			jmp		returnPt			// jump back to break op
@@ -811,7 +809,7 @@ namespace Components
 		const static uint32_t ifAddonReturn = 0x546E52; // jump to the valid return point if we had a valid match in addons
 		__asm
 		{
-			// call our addon function
+										// call our addon function
 			lea     edx, [esp + 58h]	// out arg // was at 5C but as we push, we offset esp ;)
 										// we don't need to take care of edx after this so .. 
 			pushad						
@@ -825,9 +823,9 @@ namespace Components
 			jmp		ifAddonReturn		// return to skip the stock function
 
 			STOCK_FUNC:
-				popad
-				push	overwrittenStr
-				jmp		stockScripts	// jump back and exec the original function
+			popad
+			push	overwrittenStr
+			jmp		stockScripts		// jump back and exec the original function
 		}
 	}
 
@@ -1198,13 +1196,22 @@ namespace Components
 		Utils::Hook::Nop(0x5F35FA, 6);
 		Utils::Hook(0x5F35FA, R_AspectRatio_Ultrawide_stub, HOOK_JUMP).install()->quick();
 
+		Dvars::r_aspectRatio_custom = Game::Dvar_RegisterFloat(
+			/* name		*/ "r_aspectRatio_custom",
+			/* desc		*/ "description",
+			/* default	*/ 2.3333333f,
+			/* minVal	*/ 0.1f,
+			/* maxVal	*/ 10.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
 		static std::vector <char*> r_customAspectratio = 
 		{ 
 			"auto", 
 			"4:3", 
 			"16:10", 
 			"16:9", 
-			"21:9", 
+			//"21:9", 
+			"custom",
 		};
 
 		Dvars::r_aspectRatio = Game::Dvar_RegisterEnum(

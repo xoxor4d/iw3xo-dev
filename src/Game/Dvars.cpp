@@ -107,6 +107,7 @@ namespace Dvars
 
 
 	// Renderer
+	Game::dvar_s* r_aspectRatio_custom = nullptr;
 	Game::dvar_s* r_aspectRatio = nullptr;
 	Game::dvar_s* r_noborder = nullptr;
 	Game::dvar_s* r_d3d9ex = nullptr;

@@ -1717,10 +1717,11 @@ CON_MATCH_PREFIX_ONLY:
 	// helper func to offset matchbox values
 	void Con_OffsetMatchValues()
 	{
-		if (*Game::conScreenMin0)
-			Game::conDrawInputGlob->x += 500.0f + *Game::conScreenMin0;
+		// wtf did i do here ...
+		//if (*Game::conScreenMin0)
+		//	Game::conDrawInputGlob->x += 500.0f + *Game::conScreenMin0;
 
-		else 
+		//else 
 			Game::conDrawInputGlob->x += 500.0f;
 	}
 
