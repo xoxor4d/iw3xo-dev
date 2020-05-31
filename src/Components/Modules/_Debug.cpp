@@ -260,7 +260,8 @@ namespace Components
 		// renderer needs to be running and debug strings allocated
 		if (Game::ifRendererStarted && Game::CreateDebugStringsIfNeeded())
 		{
-			Game::clientDebugStringInfo_t *info = Game::clsDebugSV_Strings;
+			//Game::clientDebugStringInfo_t *info = Game::clsDebugSV_Strings; 
+			Game::clientDebugStringInfo_t* info = Game::clsDebugCL_Strings;
 			Game::trDebugString_t *string;
 
 			if (info->num + 1 <= info->max)

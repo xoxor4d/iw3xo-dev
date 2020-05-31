@@ -80,12 +80,31 @@ namespace Components
 		float scale;
 		glm::vec4 color;
 
+		// we need the viewAxis to scale strings, calling Set3D populates our struct
+		Game::R_Set3D();
+
 		// scale strings with distance when looking directly at them
 		scale = StringScaleDot(viewParms, origin);
 		color = glm::vec4(1.0f);
 
 		const char *brushIndexStr = Utils::VA("Index: %d", brushIndex);
-		_Debug::AddDebugStringClient(origin, color, scale, brushIndexStr, 2);
+
+		//char color_packed[4];
+		//float color_test[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+		//Game::R_ConvertColorToBytes(color_test, color_packed);
+
+		//float pixel_x[3], pixel_y[3], org[3];
+		//Utils::vector::_VectorScale(viewParms->axis[1], -scale, pixel_x);
+		//Utils::vector::_VectorScale(viewParms->axis[2], -scale, pixel_y);
+
+		////auto font = Game::R_RegisterFont(FONT_NORMAL, sizeof(FONT_NORMAL));
+		//Game::Font_s* font = (Game::Font_s*) *(DWORD*)(0xD070C74);
+		
+		//glm::setFloat3(org, origin);
+
+		//Game::RB_DrawTextInSpace(pixel_x, pixel_y, brushIndexStr, font, org, color_packed); // no idea why thats not working
+
+		_Debug::AddDebugStringClient(origin, color, scale, brushIndexStr, 2); // not propper but will do for now
 	}
 
 	// some kind of wizardry
@@ -2764,20 +2783,20 @@ namespace Components
 			// debug strings are normally handled within G_RunFrame (server running @ 20fps) so we have to skip drawing them -> ((renderfps / sv_fps)) times
 
 			// if new loop allowed
-			if (!SvFramerateToRendertime_Counter)
-			{
-				SvFramerateToRendertime_CurrentDelta = (1000 / Game::Globals::pmlFrameTime) / Game::Dvar_FindVar("sv_fps")->current.integer;
-				SvFramerateToRendertime_CurrentDelta = static_cast<int>(floor(SvFramerateToRendertime_CurrentDelta));
-			}
+			//if (!SvFramerateToRendertime_Counter)
+			//{
+			//	SvFramerateToRendertime_CurrentDelta = (1000 / Game::Globals::pmlFrameTime) / Game::Dvar_FindVar("sv_fps")->current.integer;
+			//	SvFramerateToRendertime_CurrentDelta = static_cast<int>(floor(SvFramerateToRendertime_CurrentDelta));
+			//}
 
-			// increase counter
-			SvFramerateToRendertime_Counter++;
+			//// increase counter
+			//SvFramerateToRendertime_Counter++;
 
-			// if we reached the delta, we can draw strings again
-			if (SvFramerateToRendertime_Counter >= SvFramerateToRendertime_CurrentDelta)
-			{
-				// reset counter
-				SvFramerateToRendertime_Counter = 0;
+			//// if we reached the delta, we can draw strings again
+			//if (SvFramerateToRendertime_Counter >= SvFramerateToRendertime_CurrentDelta)
+			//{
+			//	// reset counter
+			//	SvFramerateToRendertime_Counter = 0;
 
 				// sort brushes from near to far
 				CM_SortBrushListOnDistanceCamera(false, true, true);
@@ -2810,7 +2829,7 @@ namespace Components
 					// draw original brush index in the middle of the collision poly
 					CM_ShowBrushIndexNumbers(viewParms, brush->cmBrushIndex, printOrigin, debugPrints, debugPrintsMax);
 				}
-			}
+			//}
 		}
 		else
 		{

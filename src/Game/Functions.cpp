@@ -167,6 +167,23 @@ namespace Game
 	Game::clientDebugStringInfo_t *clsDebugSV_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B044);
 	Game::clientDebugStringInfo_t *clsDebugCL_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B024);
 
+	void RB_DrawTextInSpace(const float* pixel_step_x /*eax*/, const float* pixel_step_y /*esi*/, const char* text, Game::Font_s* font, const float* org, char* color_bytes)
+	{
+		const static uint32_t RB_DrawTextInSpace_Func = 0x614D80;
+		__asm
+		{
+			push	color_bytes;
+			push	org;
+			push	font;
+			push	text;
+			mov		esi, [pixel_step_y];
+			mov		eax, [pixel_step_x];
+
+			Call	RB_DrawTextInSpace_Func;
+			add		esp, 10h;
+		}
+	}
+
 	void R_AddDebugPolygon(int pointCount, const float(*points)[3])
 	{
 		const static uint32_t R_AddDebugPolygon_Func = 0x60DAC0;
@@ -415,6 +432,22 @@ namespace Game
 
 			mov		edi, [_gfxCmdBufSourceState]
 			call	R_Set2D_Func
+
+			popad
+		}
+	}
+
+	void R_Set3D()
+	{
+		const static uint32_t R_Set3D_Func = 0x6337C0;
+		const static uint32_t _gfxCmdBufSourceState = 0xD53F5F0;
+
+		__asm
+		{
+			pushad
+
+			mov		edx, [_gfxCmdBufSourceState]
+			call	R_Set3D_Func
 
 			popad
 		}

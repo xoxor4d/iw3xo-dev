@@ -307,8 +307,16 @@ namespace Components
 				Game::Globals::cgsAddons.radiantCamClientTimeOld = commandTime;
 			}
 
+			int div = 16; // assume 60hz
+			
+			const auto refresh_rate = Game::Dvar_FindVar("r_displayRefresh");
+			if (refresh_rate)
+			{
+				div = Utils::extractFirstIntegerFromString(refresh_rate->domain.enumeration.strings[refresh_rate->current.integer]);
+			}
+
 			// we need the screen refreshrate to limit the packet-rate
-			refreshRateMs = 1000 / Utils::extractFirstIntegerFromString(*Game::Dvar_FindVar("r_displayRefresh")->domain.enumeration.strings);
+			refreshRateMs = 1000 / div;
 		}
 		
 		// stock pmove
@@ -355,13 +363,13 @@ namespace Components
 						}
 
 						// trace player origin
-						if (Dvars::pm_debug_traceOrigin->current.enabled)
+						if (Dvars::pm_debug_traceOrigin->current.integer)
 						{
 							PM_TraceOrigin(pm, onGround);
 						}
 
 						// trace player velocity
-						if (Dvars::pm_debug_traceVelocity->current.enabled)
+						if (Dvars::pm_debug_traceVelocity->current.integer)
 						{
 							PM_TraceVelocity(pm, onGround, msec);
 						}
@@ -509,7 +517,7 @@ namespace Components
 			/* desc		*/ "trace the players origin.\n0: disabled\n1: trace and display for duration\n2: trace and display for duration when not on the ground",
 			/* default	*/ 0,
 			/* minVal	*/ 0,
-			/* maxVal	*/ 3,
+			/* maxVal	*/ 2,
 			/* flags	*/ Game::dvar_flags::none);
 
 		Dvars::pm_debug_traceVelocity = Game::Dvar_RegisterInt(

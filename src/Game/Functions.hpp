@@ -130,7 +130,8 @@ namespace Game
 	extern Game::clientStatic_t *cls;
 	extern Game::clientDebugStringInfo_t *clsDebugSV_Strings;
 	extern Game::clientDebugStringInfo_t *clsDebugCL_Strings;
-	
+
+	void RB_DrawTextInSpace(const float* pixel_step_x, const float* pixel_step_y, const char* text, Game::Font_s* font, const float* org, char* color_bytes); // ASM
 
 	void R_AddDebugPolygon(int pointCount, const float(*points)[3]);
 	void R_AddDebugPolygonNew(Game::DebugGlobals* debugGlobalsEntry, int pointCount, const float(*points)[3]);
@@ -202,6 +203,7 @@ namespace Game
 	void R_AddCmdDrawStretchPic(void *material, float x, float y, float w, float h, float null1, float null2, float null3, float null4, float *color); // ASM
 	void R_SetRenderTarget(int target); // ASM
 	void R_Set2D(); // ASM
+	void R_Set3D(); // ASM
 	void RB_DrawStretchPic(Game::Material *material, float x, float y, float w, float h, float a6, float a7, float a8, float a9 /*-1 pushed*/);
 	void CG_DrawRotatedPicPhysical(ScreenPlacement* place, float a2, float a3, float a4, float a5, float a6, float *color, void *material);
 	int R_TextWidth(const char *text /*<eax*/, int maxChars, Game::Font_s *font); // ASM
