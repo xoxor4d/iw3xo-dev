@@ -2,13 +2,6 @@
 #include "vector.hpp"
 #include "cmath"
 
-#define	PITCH				0		// up / down
-#define	YAW					1		// left / right
-#define	ROLL				2		// fall over
-
-#define M_PI				3.14159265358979323846f
-
-
 namespace glm
 {
 	// ---------------------------------------------------

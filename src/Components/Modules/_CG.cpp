@@ -131,7 +131,7 @@ namespace Components
 			float y = Game::cgs->predictedPlayerState.origin[1];
 			float z = Game::cgs->predictedPlayerState.origin[2];
 
-			float angle = Game::cgs->refdefViewAngles[1];
+			float angle = Game::cgs->refdefViewAngles[YAW];
 
 			Game::DrawTextWithEngine(
 				/* x	*/ Dvars::pm_origin_hud_x->current.value,
