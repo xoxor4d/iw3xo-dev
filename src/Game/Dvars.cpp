@@ -190,4 +190,13 @@ namespace Dvars
 	// Random stock
 	Game::dvar_s* snaps = nullptr;
 	Game::dvar_s* cg_fovScale = nullptr;
+
+	// Compass
+	Game::dvar_s* mdd_compass = nullptr;
+	Game::dvar_s* mdd_compass_yh = nullptr;
+	Game::dvar_s* mdd_compass_quadrant_rgbas0 = nullptr;
+	Game::dvar_s* mdd_compass_quadrant_rgbas1 = nullptr;
+	Game::dvar_s* mdd_compass_quadrant_rgbas2 = nullptr;
+	Game::dvar_s* mdd_compass_quadrant_rgbas3 = nullptr;
+	Game::dvar_s* mdd_compass_ticks_rgba = nullptr;
 }

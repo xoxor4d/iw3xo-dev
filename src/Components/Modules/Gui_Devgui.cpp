@@ -245,6 +245,23 @@ namespace Components
 
 					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
 
+					// ---------------
+					SEPERATORV(4.0f);
+
+					ImGui::Checkbox("Enable mDd world compass", Gui::DvarGetSet<bool*>(Dvars::mdd_compass)); TT("mdd_compass");
+
+					ImGui::SliderFloat2("Compass position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_compass_yh), Dvars::mdd_compass_yh->domain.value.min, Dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
+
+					ImGui::ColorEdit4("Color 0 to 90 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas0), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas0");
+
+					ImGui::ColorEdit4("Color 90 to 180 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas1), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas1");
+
+					ImGui::ColorEdit4("Color 180 to 270 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas2), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas2");
+
+					ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
+
+					ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
+
 					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 					ImGui::EndTabItem();
 				}

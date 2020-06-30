@@ -623,4 +623,12 @@ namespace Game
 
 	Game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
 	void Vec3UnpackUnitVec(Game::PackedUnitVec in, const float *out);
+
+	// ----
+	// Draw
+
+	// Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod)
+
+	void CG_FillAngleYaw(float start, float end, float yaw, float y, float h, float color[4]);
+	void CG_DrawLineYaw(float angle, float yaw, float y, float w, float h, float color[4]);
 }

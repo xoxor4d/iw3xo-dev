@@ -142,6 +142,9 @@ namespace Components
 				/* colr */ Dvars::pm_origin_hud_fontColor->current.vector,
 				/* txt	*/ Utils::VA("(X: %f, Y: %f, Z: %.3lf) YAW: %f", x, y, z, angle));
 		}
+
+		// mDd proxymod compass
+		Compass::draw_compass();
 	}
 
 	// Hook call to CG_Drawcrosshair in CG_Draw2D ~ only active if cg_draw2d

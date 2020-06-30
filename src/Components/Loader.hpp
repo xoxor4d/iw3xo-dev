@@ -27,6 +27,7 @@ namespace Components
 		bool Window;
 		bool Gui;
 		bool Gui_Devgui;
+		bool Compass;
 	};
 
 	extern activeModules_s active;
@@ -82,6 +83,7 @@ namespace Components
 #include "Modules/Window.hpp"
 #include "Modules/Gui.hpp"
 #include "Modules/Gui_Devgui.hpp"
+#include "Modules/Compass.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

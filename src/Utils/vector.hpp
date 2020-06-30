@@ -72,6 +72,7 @@ namespace Utils
 		void	_Vector4toVector3(const vec4_t in, vec3_t out);
 
 		float	_AngleNormalize180(const float angle);
+		float   _AngleNormalizePI(float angle);
 		void	_AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 		void	_VectorToAngles(const vec3_t value1, vec3_t angles);
 		void	_VectorToAnglesWithRoll(vec3_t angles, const vec3_t forward, const vec3_t up, bool flippitch);

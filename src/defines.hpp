@@ -30,6 +30,11 @@
 #define DEVGUI_OCEAN // comment to disable tab
 
 // *
+// Screen
+#define SCREEN_WIDTH 640	// all drawing is done to a 640*480 virtual screen size
+#define SCREEN_HEIGHT 480	// and will be automatically scaled to the real resolution
+
+// *
 // Changelog (avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space)
 #if DEBUG
 	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s :: ^1DEBUG\n"

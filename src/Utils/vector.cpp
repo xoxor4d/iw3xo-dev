@@ -335,6 +335,13 @@ namespace Utils
 			return ((float)(angle * 0.0027777778f) - v1) * 360.0f;
 		}
 
+		// returns angle normalized to the range [-PI <= angle < PI]
+		float _AngleNormalizePI(float angle)
+		{
+			angle = fmodf(angle + M_PI, 2 * M_PI);
+			return angle < 0 ? angle + M_PI : angle - M_PI;
+		}
+
 		void _AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 		{
 			float angle;

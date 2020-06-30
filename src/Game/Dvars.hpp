@@ -195,4 +195,13 @@ namespace Dvars
 	// Random stock
 	extern Game::dvar_s* snaps;
 	extern Game::dvar_s* cg_fovScale;
+
+	// Compass
+	extern Game::dvar_s* mdd_compass;
+	extern Game::dvar_s* mdd_compass_yh;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas0;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas1;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas2;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas3;
+	extern Game::dvar_s* mdd_compass_ticks_rgba;
 }
