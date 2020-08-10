@@ -10,6 +10,9 @@
 #define FF_LOAD_ADDON_REQ		true
 #define FF_ADDON_REQ_NAME		"xcommon_iw3xo"
 
+#define FF_LOAD_ADDON_OPT		true
+#define FF_ADDON_OPT_NAME		"xcommon_iw3xo_addon"
+
 // *
 // Version
 #define IW3XO_BUILDVERSION_DATE __TIMESTAMP__  

@@ -15,6 +15,67 @@ namespace Components
 	// custom huds
 	void CG_DrawCustomHud()
 	{
+		if (Dvars::xo_shaderdbg_matrix && Dvars::xo_shaderdbg_matrix->current.enabled)
+		{
+			Game::DrawTextWithEngine(
+				/* x	*/ 10.0f,
+				/* y	*/ 200.0f,
+				/* scaX */ 0.8f,
+				/* scaY */ 0.8f,
+				/* font */ _CG::GetFontForStyle(Dvars::pm_hud_fontStyle->current.integer),
+				/* colr */ Dvars::pm_hud_fontColor->current.vector,
+				/* txt	*/ Utils::VA("viewMatrix:\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n", 
+					Game::Globals::viewMatrix.m[0][0], Game::Globals::viewMatrix.m[0][1], Game::Globals::viewMatrix.m[0][2], Game::Globals::viewMatrix.m[0][3],
+					Game::Globals::viewMatrix.m[1][0], Game::Globals::viewMatrix.m[1][1], Game::Globals::viewMatrix.m[1][2], Game::Globals::viewMatrix.m[1][3],
+					Game::Globals::viewMatrix.m[2][0], Game::Globals::viewMatrix.m[2][1], Game::Globals::viewMatrix.m[1][2], Game::Globals::viewMatrix.m[2][3],
+					Game::Globals::viewMatrix.m[3][0], Game::Globals::viewMatrix.m[3][1], Game::Globals::viewMatrix.m[1][2], Game::Globals::viewMatrix.m[3][3]));
+
+			Game::DrawTextWithEngine(
+				/* x	*/ 10.0f,
+				/* y	*/ 310.0f,
+				/* scaX */ 0.8f,
+				/* scaY */ 0.8f,
+				/* font */ _CG::GetFontForStyle(Dvars::pm_hud_fontStyle->current.integer),
+				/* colr */ Dvars::pm_hud_fontColor->current.vector,
+				/* txt	*/ Utils::VA("projectionMatrix:\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n",
+					Game::Globals::projectionMatrix.m[0][0], Game::Globals::projectionMatrix.m[0][1], Game::Globals::projectionMatrix.m[0][2], Game::Globals::projectionMatrix.m[0][3],
+					Game::Globals::projectionMatrix.m[1][0], Game::Globals::projectionMatrix.m[1][1], Game::Globals::projectionMatrix.m[1][2], Game::Globals::projectionMatrix.m[1][3],
+					Game::Globals::projectionMatrix.m[2][0], Game::Globals::projectionMatrix.m[2][1], Game::Globals::projectionMatrix.m[1][2], Game::Globals::projectionMatrix.m[2][3],
+					Game::Globals::projectionMatrix.m[3][0], Game::Globals::projectionMatrix.m[3][1], Game::Globals::projectionMatrix.m[1][2], Game::Globals::projectionMatrix.m[3][3]));
+
+			Game::DrawTextWithEngine(
+				/* x	*/ 10.0f,
+				/* y	*/ 420.0f,
+				/* scaX */ 0.8f,
+				/* scaY */ 0.8f,
+				/* font */ _CG::GetFontForStyle(Dvars::pm_hud_fontStyle->current.integer),
+				/* colr */ Dvars::pm_hud_fontColor->current.vector,
+				/* txt	*/ Utils::VA("viewProjectionMatrix:\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n",
+					Game::Globals::viewProjectionMatrix.m[0][0], Game::Globals::viewProjectionMatrix.m[0][1], Game::Globals::viewProjectionMatrix.m[0][2], Game::Globals::viewProjectionMatrix.m[0][3],
+					Game::Globals::viewProjectionMatrix.m[1][0], Game::Globals::viewProjectionMatrix.m[1][1], Game::Globals::viewProjectionMatrix.m[1][2], Game::Globals::viewProjectionMatrix.m[1][3],
+					Game::Globals::viewProjectionMatrix.m[2][0], Game::Globals::viewProjectionMatrix.m[2][1], Game::Globals::viewProjectionMatrix.m[1][2], Game::Globals::viewProjectionMatrix.m[2][3],
+					Game::Globals::viewProjectionMatrix.m[3][0], Game::Globals::viewProjectionMatrix.m[3][1], Game::Globals::viewProjectionMatrix.m[1][2], Game::Globals::viewProjectionMatrix.m[3][3]));
+
+			Game::DrawTextWithEngine(
+				/* x	*/ 10.0f,
+				/* y	*/ 530.0f,
+				/* scaX */ 0.8f,
+				/* scaY */ 0.8f,
+				/* font */ _CG::GetFontForStyle(Dvars::pm_hud_fontStyle->current.integer),
+				/* colr */ Dvars::pm_hud_fontColor->current.vector,
+				/* txt	*/ Utils::VA("inverseViewProjectionMatrix:\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n%.2lf %.2lf %.2lf %.2lf\n",
+					Game::Globals::inverseViewProjectionMatrix.m[0][0], Game::Globals::inverseViewProjectionMatrix.m[0][1], Game::Globals::inverseViewProjectionMatrix.m[0][2], Game::Globals::inverseViewProjectionMatrix.m[0][3],
+					Game::Globals::inverseViewProjectionMatrix.m[1][0], Game::Globals::inverseViewProjectionMatrix.m[1][1], Game::Globals::inverseViewProjectionMatrix.m[1][2], Game::Globals::inverseViewProjectionMatrix.m[1][3],
+					Game::Globals::inverseViewProjectionMatrix.m[2][0], Game::Globals::inverseViewProjectionMatrix.m[2][1], Game::Globals::inverseViewProjectionMatrix.m[1][2], Game::Globals::inverseViewProjectionMatrix.m[2][3],
+					Game::Globals::inverseViewProjectionMatrix.m[3][0], Game::Globals::inverseViewProjectionMatrix.m[3][1], Game::Globals::inverseViewProjectionMatrix.m[1][2], Game::Globals::inverseViewProjectionMatrix.m[3][3]));
+
+			// GfxCodeMatrices matrices;
+			/*memcpy(&Game::Globals::viewMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->viewMatrix, sizeof(Game::GfxMatrix));
+			memcpy(&Game::Globals::projectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->projectionMatrix, sizeof(Game::GfxMatrix));
+			memcpy(&Game::Globals::viewProjectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->viewProjectionMatrix, sizeof(Game::GfxMatrix));
+			memcpy(&Game::Globals::inverseViewProjectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->inverseViewProjectionMatrix, sizeof(Game::GfxMatrix));*/
+		}
+
 		// Pmove Speed Hud
 		if (Dvars::pm_hud_enable && Dvars::pm_hud_enable->current.enabled)
 		{

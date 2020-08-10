@@ -34,13 +34,16 @@ namespace Dvars
 	extern Game::dvar_s* ui_changelog04;
 	extern Game::dvar_s* xo_menu_dbg;
 
+
 	// ImGui
 	extern Game::dvar_s* _imgui_saving;
 	extern Game::dvar_s* _imgui_window_alpha;
 
+
 	// Devgui
 	extern Game::dvar_s* _imgui_devgui_pos;
 	extern Game::dvar_s* _imgui_devgui_size;
+
 
 	// Console 
 	extern Game::dvar_s* con_minicon_position;
@@ -159,6 +162,7 @@ namespace Dvars
 
 	// Shader overlays
 	extern Game::dvar_s* xo_shaderoverlay;
+	extern Game::dvar_s* xo_shaderoverlay_custom;
 	extern Game::dvar_s* xo_ssao_noisescale;
 	extern Game::dvar_s* xo_ssao_quality;
 	extern Game::dvar_s* xo_ssao_radius;
@@ -177,6 +181,8 @@ namespace Dvars
 	extern Game::dvar_s* xo_camDir0;
 	extern Game::dvar_s* xo_camDir1;
 	extern Game::dvar_s* xo_camDir2;
+
+	extern Game::dvar_s* xo_shaderdbg_matrix;
 
 	// Random stock
 	extern Game::dvar_s* snaps;

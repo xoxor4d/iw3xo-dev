@@ -312,29 +312,7 @@ namespace Components
 				/* flags	*/ Game::dvar_flags::saved);
 		});
 
-		// needs work :x
-		Command::Add("loadzone", [](Command::Params params) // unload zone and load zone again
-		{
-			if (params.Length() < 2) 
-			{
-				Game::Com_PrintMessage(0, "Usage :: loadzone <zoneName>\n", 0);
-				return;
-			}
-			
-			Game::XZoneInfo info[2];
-			std::string zone = params[1];
-
-			// unload
-			info[0].name = 0;
-			info[0].allocFlags	= Game::XZONE_FLAGS::XZONE_ZERO;
-			info[0].freeFlags	= Game::XZONE_FLAGS::XZONE_MOD;
-
-			info[1].name = zone.data();
-			info[1].allocFlags	= Game::XZONE_FLAGS::XZONE_MOD;
-			info[1].freeFlags	= Game::XZONE_FLAGS::XZONE_ZERO;
-
-			Game::DB_LoadXAssets(info, 2, 1);
-		});
+		
 	}
 
 	QuickPatch::~QuickPatch()

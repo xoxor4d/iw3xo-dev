@@ -40,6 +40,7 @@ namespace Game
 		Z_SHADER_POSTFX_CELLSHADING = 0x2,
 		Z_SHADER_POSTFX_OUTLINER	= 0x3,
 		FLOATZ_DISPLAY				= 0x4,
+		CUSTOM						= 0x5,
 	};
 
 	enum Q3WeaponNames

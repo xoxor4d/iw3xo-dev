@@ -44,6 +44,12 @@ namespace Game
 
 		// Misc
 		int Q3_LastProjectileWeaponUsed = 0; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired
+
+		// Shader
+		Game::GfxMatrix viewMatrix = Game::GfxMatrix();
+		Game::GfxMatrix projectionMatrix = Game::GfxMatrix();
+		Game::GfxMatrix viewProjectionMatrix = Game::GfxMatrix();
+		Game::GfxMatrix inverseViewProjectionMatrix = Game::GfxMatrix();
 	}
 
 	float COLOR_WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -714,6 +720,56 @@ namespace Game
 		}
 	}
 
+	void Scr_AddBool(bool value)
+	{
+		int* some_scr_counter;
+		some_scr_counter = reinterpret_cast<int*>(0x1794070);
+
+		DWORD* scr_script_inst;
+		scr_script_inst = reinterpret_cast<DWORD*>(0x1794068);
+
+		bool** scr_script_inst_ptr;
+		scr_script_inst_ptr = reinterpret_cast<bool**>(0x1794068);
+
+		// part_of_IncInParam
+		Utils::function<void()>(0x51D260)();
+
+		if (*scr_script_inst == *(DWORD*)0x179405C)
+		{
+			Game::Com_Error(0, "Internal script stack overflow");
+		}
+
+		uintptr_t v0; // eax
+
+		++ *some_scr_counter;
+		v0 = *scr_script_inst + 8;
+		*scr_script_inst = v0;
+		*(DWORD*)(v0 + 4) = 6;
+		**scr_script_inst_ptr = value;
+	}
+
+	void Scr_AddVector(float* floatOut /*esi*/)
+	{
+		const static uint32_t Scr_AddVector_Func = 0x523D10;
+		__asm
+		{
+			mov		esi, [floatOut]
+			Call	Scr_AddVector_Func
+		}
+	}
+
+	float Scr_GetFloat(unsigned int argIndex /*eax*/)
+	{
+		const static uint32_t Scr_GetFloat_Func = 0x523360;
+		__asm
+		{
+			mov		eax, argIndex
+			xor		eax, eax
+
+			Call	Scr_GetFloat_Func
+		}
+	}
+
 	int isButtonPressed(int button, int buttonData) 
 	{
 		int tmp, i = 0;
@@ -1041,29 +1097,6 @@ namespace Game
 		_dvar->latched.string = _dvarValue;
 		_dvar->modified = false;
 	}
-
-	//dvar_s* Dvar_RegisterVariant(const char* dvarName /*eax*/, DvarType typeInt, std::uint16_t flags, const char* description, float defaultValue, float y, float z, float w, float min, int max)
-	//{
-	//	const static uint32_t Dvar_RegisterVariant_Func = 0x56C350;
-	//	__asm
-	//	{
-	//		mov		eax, [text]
-	//		mov		esi, [dvar]
-
-	//		push	max
-	//		push	min
-
-	//		sub		esp, 10h
-	//		mov		ecx, 
-
-	//		push	description
-	//		push	flags
-	//		push	dvarType
-	//		mov		eax, dvarName
-
-	//		Call	Dvar_RegisterVariant_Func
-	//	}
-	//}
 
 	// Registering StringDvars is a pain, so heres a workaround
 	Game::dvar_s* Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description)

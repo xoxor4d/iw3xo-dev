@@ -45,6 +45,12 @@ namespace Game
 		
 		// Misc
 		extern int Q3_LastProjectileWeaponUsed; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired
+
+		// Shader
+		extern Game::GfxMatrix viewMatrix;
+		extern Game::GfxMatrix projectionMatrix;
+		extern Game::GfxMatrix viewProjectionMatrix;
+		extern Game::GfxMatrix inverseViewProjectionMatrix;
 	}
 
 	extern float COLOR_WHITE[4];
@@ -247,7 +253,8 @@ namespace Game
 	extern Game::level_locals_t* level_locals;
 
 	static Utils::function<void()> Scr_Error_Internal = 0x51D1F0;
-	static Utils::function<void(bool)> Scr_AddBool = 0x523AB0;
+	void Scr_AddBool(bool value);
+	//static Utils::function<void(bool)> Scr_AddBool = 0x523AB0;
 	static Utils::function<void(int)> Scr_AddInt = 0x523AB0;
 	static Utils::function<Game::gentity_s*()> G_Spawn = 0x4E37F0;
 	static Utils::function<bool(Game::gentity_s*)> G_CallSpawnEntity = 0x4DFFA0;
@@ -260,7 +267,9 @@ namespace Game
 	void SV_LinkEntity(Game::gentity_s* ent /*edi*/); // ASM
 
 	void Scr_ObjectError(const char *string /*eax*/); // ASM
-	void Scr_GetVector(unsigned int argIndex /*eax*/, float *floatOut /*edx*/);
+	void Scr_GetVector(unsigned int argIndex /*eax*/, float *floatOut /*edx*/); // ASM
+	void Scr_AddVector(float* floatOut /*esi*/); // ASM
+	float Scr_GetFloat(unsigned int argIndex /*eax*/); // ASM
 
 	int isButtonPressed(int button, int buttonData);
 
@@ -319,6 +328,8 @@ namespace Game
 
 	struct dvar_s;
 
+	dvar_s* Dvar_FindVar(const char* dvar);
+
 	static Utils::function<void(dvar_s* dvar, float value, int source)> Dvar_SetFloat = 0x56C960;
 
 	static Utils::function<dvar_s* (const char *dvarName, float defaultValue, float minValue, float maxValue, std::uint16_t flags, const char *description)>
@@ -376,13 +387,20 @@ namespace Game
 		return Dvar_RegisterEnum_r(dvarName, DvarType::DVAR_TYPE_ENUM, flags, description, defaultValue, 0, 0, 0, enumSize, enumData);
 	}
 
-	// using RegisterNew - STRING (03)
+	// using RegisterNew - STRING (03) (cannot be used on module load - make sure to check if dvar exists already or it will be added again)
 	static Utils::function<dvar_s * (const char* dvarName, DvarType typeString, std::uint16_t flags, const char* description, const char* defaultValue, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t null4, std::int32_t null5)>
 		Dvar_RegisterString_r = 0x56C130;
 
 	// * do not use on module load (crash)
-	inline dvar_s* Dvar_RegisterString(const char* dvarName, const char* description, const char* defaultValue, std::uint16_t flags) {
-		return Dvar_RegisterString_r(dvarName, DvarType::DVAR_TYPE_STRING, flags, description, defaultValue, 0, 0, 0, 0, 0);
+	inline dvar_s* Dvar_RegisterString(const char* dvarName, const char* description, const char* defaultValue, std::uint16_t flags) 
+	{
+		const auto dvar = Game::Dvar_FindVar(dvarName);
+		if (!dvar)
+		{
+			return Dvar_RegisterString_r(dvarName, DvarType::DVAR_TYPE_STRING, flags, description, defaultValue, 0, 0, 0, 0, 0);
+		}
+
+		return dvar;
 	}
 
 	void Dvar_SetValue(dvar_s* _dvar, int _dvarValue);
@@ -390,13 +408,10 @@ namespace Game
 	void Dvar_SetValue(dvar_s* _dvar, const float _dvarValue);
 	void Dvar_SetValue(dvar_s* _dvar, const char *_dvarValue);
 
-	//dvar_s* Dvar_RegisterVariant(int dvarName /*eax*/, int dvarType, int flags, int description, int defaultValue, int y, int z, int w, float min, int max); // ASM
-
 	Game::dvar_s* Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description);
 	char* Dvar_EnumToString(const dvar_s *a1);
 
 	void Dvar_SetString(const char *text /*eax*/, dvar_s *dvar /*esi*/); //ASM
-	dvar_s* Dvar_FindVar(const char* dvar);
 	
 
 	// -------

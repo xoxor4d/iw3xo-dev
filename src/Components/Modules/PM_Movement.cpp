@@ -2610,16 +2610,16 @@ namespace Components
 			/* name		*/ "pm_hud_x",
 			/* desc		*/ "text offset x",
 			/* default	*/ 10.0f,
-			/* minVal	*/ -1000.0f,
-			/* maxVal	*/ 1000.0f,
+			/* minVal	*/ -8192.0f,
+			/* maxVal	*/ 8192.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::pm_hud_y = Game::Dvar_RegisterFloat(
 			/* name		*/ "pm_hud_y",
 			/* desc		*/ "text offset y",
 			/* default	*/ 300.0f,
-			/* minVal	*/ -1000.0f,
-			/* maxVal	*/ 1000.0f,
+			/* minVal	*/ -8192.0f,
+			/* maxVal	*/ 8192.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::pm_hud_fontScale = Game::Dvar_RegisterFloat(

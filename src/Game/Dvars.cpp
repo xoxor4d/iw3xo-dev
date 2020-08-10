@@ -156,6 +156,7 @@ namespace Dvars
 
 	// Shader Overlays
 	Game::dvar_s* xo_shaderoverlay = nullptr;
+	Game::dvar_s* xo_shaderoverlay_custom = nullptr;
 	Game::dvar_s* xo_ssao_noisescale = nullptr;
 	Game::dvar_s* xo_ssao_quality = nullptr;
 	Game::dvar_s* xo_ssao_radius = nullptr;
@@ -174,6 +175,9 @@ namespace Dvars
 	Game::dvar_s* xo_camDir0 = nullptr;
 	Game::dvar_s* xo_camDir1 = nullptr;
 	Game::dvar_s* xo_camDir2 = nullptr;
+
+	Game::dvar_s* xo_shaderdbg_matrix = nullptr;
+
 
 	// Random stock
 	Game::dvar_s* snaps = nullptr;

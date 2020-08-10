@@ -1334,47 +1334,92 @@ namespace Components
 					int texWidth = 128;
 					int texHeight = 128;
 
-					std::string materialForSide = Game::cm->materials[matIdx].material;
+					// texture size scalar (depends on texture quality settings)
+					float tex_scalar = 1.0f;
 
-					// for each material in memory
-					for (auto matMem = 0; matMem < Game::_gfxWorld->materialMemoryCount; matMem++)
+					const auto r_picmip = Game::Dvar_FindVar("r_picmip");
+					if (r_picmip)
 					{
-						// current material name
-						std::string currMatName = Game::_gfxWorld->materialMemory[matMem].material->info.name; // material with suffix wc/ mc/ ..
-
-						// check if material is our brush side material
-						if (currMatName.find(materialForSide) != std::string::npos)
+						switch (r_picmip->current.integer)
 						{
-							// find the colormap of the brush side material
-							for (auto texture = 0; texture < Game::_gfxWorld->materialMemory[matMem].material->textureCount; texture++)
-							{
-								// current texture name
-								//std::string currTexName = Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->name;
-								// .... //if (Utils::has_suffix(currTexName, std::string("_col")) || Utils::has_suffix(currTexName, std::string("_c")))
-
-								// 0x2 = color, 0x5 = normal, 0x8 = spec
-								if (Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->semantic == 0x2)
-								{
-									texWidth = (int)(Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->width * 0.25f); // assuming 0.25 horizontal stretch
-									texHeight = (int)(Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->height * 0.25f); // assuming 0.25 vertical stretch
-
-									break;
-								}
-							}
-
-							// we found the correct material
+						case 0: // extra
+							tex_scalar = 0.25f;
 							break;
+						case 1: // high
+							tex_scalar = 0.5f;
+							break;
+						case 2: // normal
+							tex_scalar = 1.0f;
+							break;
+						case 3:
+							tex_scalar = 2.0f;
+							break;
+						default: // should not happen
+							tex_scalar = 1.0f;
 						}
 					}
+
+					// get the world material and its size
+					std::string material_name_for_brushside = Game::cm->materials[matIdx].material;
+					std::string materialForSide = "wc/"s + material_name_for_brushside;
+
+					const auto mat = Game::Material_RegisterHandle(materialForSide.c_str(), 3);
+					if (mat)
+					{
+						for (auto tex = 0; tex < mat->textureCount; tex++)
+						{
+							// 0x2 = color, 0x5 = normal, 0x8 = spec
+							if (mat->textureTable[tex].u.image->semantic == 0x2)
+							{
+								texWidth = static_cast<int>((mat->textureTable[tex].u.image->width * tex_scalar)); // loaded texture sizes vary (texture quality settings)
+								texHeight = static_cast<int>((mat->textureTable[tex].u.image->height * tex_scalar)); // so we need to use a scalar to get a 0.25 stretch in radiant
+
+								break;
+							}
+						}
+					}
+
+					//std::string materialForSide = Game::cm->materials[matIdx].material;
+
+					// for each material in memory
+					//for (auto matMem = 0; matMem < Game::_gfxWorld->materialMemoryCount; matMem++)
+					//{
+					//	// current material name
+					//	std::string currMatName = Game::_gfxWorld->materialMemory[matMem].material->info.name; // material with suffix wc/ mc/ ..
+
+					//	// check if material is our brush side material
+					//	if (currMatName.find(materialForSide) != std::string::npos)
+					//	{
+					//		// find the colormap of the brush side material
+					//		for (auto texture = 0; texture < Game::_gfxWorld->materialMemory[matMem].material->textureCount; texture++)
+					//		{
+					//			// current texture name
+					//			//std::string currTexName = Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->name;
+					//			// .... //if (Utils::has_suffix(currTexName, std::string("_col")) || Utils::has_suffix(currTexName, std::string("_c")))
+
+					//			// 0x2 = color, 0x5 = normal, 0x8 = spec
+					//			if (Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->semantic == 0x2)
+					//			{
+					//				texWidth = (int)(Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->width * 0.25f); // assuming 0.25 horizontal stretch
+					//				texHeight = (int)(Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->height * 0.25f); // assuming 0.25 vertical stretch
+
+					//				break;
+					//			}
+					//		}
+
+					//		// we found the correct material
+					//		break;
+					//	}
+					//}
 
 					if (!brush->isSubmodel)
 					{
 						// materialname, width, height, xpos, ypos, rotation, ?, lightmapMat, lmap_sampleSizeX, lmap_sampleSizeY, lmap_xpos, lmap_ypos, lmap_rotation, ?
-						export_mapFile << Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", materialForSide.c_str(), texWidth, texHeight);
+						export_mapFile << Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", material_name_for_brushside.c_str(), texWidth, texHeight);
 					}
 					else
 					{
-						g_mapBrushModelList[brush->cmSubmodelIndex].brushSides.push_back(currBrushSide + Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", materialForSide.c_str(), texWidth, texHeight));
+						g_mapBrushModelList[brush->cmSubmodelIndex].brushSides.push_back(currBrushSide + Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", material_name_for_brushside.c_str(), texWidth, texHeight));
 					}
 					
 				}
@@ -1385,7 +1430,6 @@ namespace Components
 					export_mapFile << "}" << std::endl;
 				}
 	
-
 				// single brush for radiant ......
 				//	Game::ServerCommand cmd;
 
@@ -2045,7 +2089,7 @@ namespace Components
 	}
 
 	// if (k < 0.001f) = counter clock wise
-	bool PatchTriangle_ClockwiseWinding(float *pt0, float *pt1, float *pt2)
+	bool PatchTriangle_ClockwiseWinding(const float *pt0, const float *pt1, const float *pt2)
 	{
 		float k = (pt1[1] - pt0[1]) * (pt2[0] - pt1[0]) - (pt1[0] - pt0[0]) * (pt2[1] - pt1[1]);
 		return k > 0.001f;
@@ -2057,7 +2101,7 @@ namespace Components
 		bool foundFirst = false, foundSecond = false, foundThird = false, secondIteration = false;
 
 		// find the first match
-		for (auto gfxVert = 0; gfxVert < (int)Game::_gfxWorld->vertexCount; gfxVert++)
+		for (auto gfxVert = 0; gfxVert < static_cast<int>(Game::_gfxWorld->vertexCount); gfxVert++)
 		{
 			// try to match our first clipmap vertex to a gfxworld vertex
 			if (!foundFirst && Utils::vector::_VectorCompare(Game::cm->verts[incides[0]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))

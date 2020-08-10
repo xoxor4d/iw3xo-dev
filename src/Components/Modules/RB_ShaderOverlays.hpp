@@ -9,6 +9,8 @@ namespace Components
 		~RB_ShaderOverlays();
 		const char* getName() override { return "RB_ShaderOverlays"; };
 
+		static void Register_StringDvars();
+
 	private:
 	};
 }

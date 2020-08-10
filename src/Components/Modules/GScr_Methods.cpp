@@ -6,11 +6,53 @@
 #define SERVER_STRUCT_ADDR 0x17FC7C8 // correct
 #define sv (*((Game::server_t*)(SERVER_STRUCT_ADDR))) // def. 0x17FC7C8
 
+Game::scr_function_t* scr_functions = NULL; // only for PlayerMethods
 Game::scr_function_t *scr_methods = NULL; // only for PlayerMethods
 
 
 namespace Components
 {
+	bool Scr_AddFunction(const char* cmd_name, xfunction_t function, bool developer) 
+	{
+		Game::scr_function_t* cmd;
+
+		// fail if the command already exists
+		for (cmd = scr_functions; cmd; cmd = cmd->next) 
+		{
+			if (!strcmp(cmd_name, cmd->name)) 
+			{
+				// allow completion-only commands to be silently doubled
+				if (function != NULL) 
+				{
+					Game::Com_PrintMessage(0, Utils::VA("Scr_AddFunction: %s already defined\n", cmd_name), 0);
+				}
+
+				return false;
+			}
+		}
+
+		// use a small malloc to avoid zone fragmentation
+		cmd = reinterpret_cast<Game::scr_function_t*> (malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1));
+
+		if (cmd && cmd + 0x1)
+		{
+			strcpy((char*)(cmd + 1), cmd_name);
+			cmd->name = (char*)(cmd + 1);
+		}
+		else
+		{
+			return false;
+		}
+
+		//cmd->name		= cmd_name;
+		cmd->function = function;
+		cmd->developer = developer;
+		cmd->next = scr_methods;
+		scr_methods = cmd;
+
+		return true;
+	}
+
 	bool Scr_AddMethod(char *cmd_name, xfunction_t function, bool developer)
 	{
 		Game::scr_function_t  *cmd;
@@ -383,6 +425,7 @@ namespace Components
 
 		cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(127, cl->lastUsercmd.rightmove));
+		//Game::Scr_AddBool(cl->lastUsercmd.rightmove == 127);
 	}
 
 	// *
@@ -415,7 +458,9 @@ namespace Components
 		}
 
 		cl = &svs.clients[entityNum];
-		Game::Scr_AddInt(Game::isButtonPressed(129, cl->lastUsercmd.rightmove));
+		//Game::Scr_AddInt(Game::isButtonPressed(129, cl->lastUsercmd.rightmove));
+		Game::Scr_AddInt(cl->lastUsercmd.rightmove == 129);
+		//Game::Scr_AddBool(cl->lastUsercmd.rightmove == 129);
 	}
 
 	// *

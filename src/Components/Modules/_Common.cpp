@@ -9,6 +9,7 @@ namespace Components
 	void R_RegisterStringDvars()
 	{
 		_UI::MainMenu_Changelog();
+		RB_ShaderOverlays::Register_StringDvars();
 	}
 
 	void ForceDvarsOnInit()
@@ -101,7 +102,7 @@ namespace Components
 		*/
 
 		int i = 0;
-		Game::XZoneInfo XZoneInfoStack[7];
+		Game::XZoneInfo XZoneInfoStack[8];
 
 		// ------------------------------------
 
@@ -205,6 +206,23 @@ namespace Components
 		}
 
 		// ------------------------------------
+
+		// load user addon zone
+		if (FF_LOAD_ADDON_OPT)
+		{
+			// custom addon file
+			if (Game::DB_FileExists(FF_ADDON_OPT_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
+			{
+				XZoneInfoStack[i].name = FF_ADDON_OPT_NAME;
+				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
+				++i;
+			}
+			else
+			{
+				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found (pptional user addon)\n", FF_ADDON_OPT_NAME), 0);
+			}
+		}
 
 		// load required addon fastfile last, if addon_required loading enabled
 		if (FF_LOAD_ADDON_REQ)
@@ -427,6 +445,33 @@ namespace Components
 
 		// Load "iw_" and "xcommon_" iwds as localized (works in all situations + elements in xcommon files can overwrite prior files)
 		Utils::Hook(0x55DBB4, FS_MakeIWDsLocalized, HOOK_JUMP).install()->quick();
+
+		// *
+		// Commands
+
+		// load / reload a zonefile
+		Command::Add("loadzone", [](Command::Params params) // unload zone and load zone again
+		{
+			if (params.Length() < 2)
+			{
+				Game::Com_PrintMessage(0, "Usage :: loadzone <zoneName>\n", 0);
+				return;
+			}
+
+			Game::XZoneInfo info[2];
+			std::string zone = params[1];
+
+			// unload
+			info[0].name = 0;
+			info[0].allocFlags = Game::XZONE_FLAGS::XZONE_ZERO;
+			info[0].freeFlags = Game::XZONE_FLAGS::XZONE_MOD;
+
+			info[1].name = zone.data();
+			info[1].allocFlags = Game::XZONE_FLAGS::XZONE_MOD;
+			info[1].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO;
+
+			Game::DB_LoadXAssets(info, 2, 1);
+		});
 	}
 
 	_Common::~_Common()

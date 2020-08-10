@@ -29,7 +29,7 @@ namespace Components
 		}
 	}
 
-	void DrawToRendertarget(Game::GfxRenderTargetId Rendertarget, char *materialName, float x, float y, float width, float height)
+	void DrawToRendertarget(Game::GfxRenderTargetId Rendertarget, const char *materialName, float x, float y, float width, float height)
 	{
 		Game::R_Set2D();
 		Game::R_SetRenderTarget(Rendertarget);
@@ -44,7 +44,7 @@ namespace Components
 		Game::RB_EndTessSurface();
 	}
 
-	void RB_DrawCustomShaders(char *shader)
+	void RB_DrawCustomShaders(const char *shader)
 	{
 		if (!Game::gfxCmdBufSourceState)
 		{
@@ -177,7 +177,7 @@ namespace Components
 		auto r_showFloatZDebug	= Game::Dvar_FindVar("r_showFloatZDebug");
 		auto sc_showDebug		= Game::Dvar_FindVar("sc_showDebug");
 		
-		if (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled) 
+		if (Dvars::xo_shaderoverlay && Dvars::xo_ssao_debugnormal && (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled))
 		{
 			auto r_zFeather		= Game::Dvar_FindVar("r_zFeather");
 			auto r_distortion	= Game::Dvar_FindVar("r_distortion");
@@ -201,7 +201,16 @@ namespace Components
 				Game::Cmd_ExecuteSingleCommand(0, 0, "r_glow_allowed 0\n");
 			}
 
-			RB_DrawCustomShaders(Game::Dvar_EnumToString(Dvars::xo_shaderoverlay));
+			// use a custom material
+			if (Dvars::xo_shaderoverlay_custom && Dvars::xo_shaderoverlay->current.integer == 5)
+			{
+				RB_DrawCustomShaders(Dvars::xo_shaderoverlay_custom->current.string);
+			}
+			// use pre-defined materials
+			else
+			{
+				RB_DrawCustomShaders(Game::Dvar_EnumToString(Dvars::xo_shaderoverlay));
+			}
 		}
 
 		else if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 1)
@@ -223,12 +232,36 @@ namespace Components
 		{
 			Game::RB_ShowShadowsDebug();
 		}
+
+		if (Dvars::xo_shaderdbg_matrix && Dvars::xo_shaderdbg_matrix->current.enabled)
+		{
+			// GfxCodeMatrices matrices;
+			memcpy(&Game::Globals::viewMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->viewMatrix, sizeof(Game::GfxMatrix));
+			memcpy(&Game::Globals::projectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->projectionMatrix, sizeof(Game::GfxMatrix));
+			memcpy(&Game::Globals::viewProjectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->viewProjectionMatrix, sizeof(Game::GfxMatrix));
+			memcpy(&Game::Globals::inverseViewProjectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->inverseViewProjectionMatrix, sizeof(Game::GfxMatrix));
+		}
+	}
+
+	void RB_ShaderOverlays::Register_StringDvars()
+	{
+		Dvars::xo_shaderoverlay_custom = Game::Dvar_RegisterString(
+			/* name		*/ "xo_shaderoverlay_custom",
+			/* desc		*/ "<postfx material name>",
+			/* default	*/ "default",
+			/* flags	*/ Game::dvar_flags::none);
 	}
 
 	RB_ShaderOverlays::RB_ShaderOverlays()
 	{
 		// -----
 		// Dvars
+
+		Dvars::xo_shaderdbg_matrix = Game::Dvar_RegisterBool(
+			/* name		*/ "xo_shaderdbg_matrix",
+			/* desc		*/ "debug matrices",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::none);
 
 		static std::vector <char*> xo_shaderoverlayEnum =
 		{
@@ -237,11 +270,12 @@ namespace Components
 			"Z_SHADER_POSTFX_CELLSHADING",
 			"Z_SHADER_POSTFX_OUTLINER",
 			"FLOATZ_DISPLAY",
+			"CUSTOM",
 		};
 
 		Dvars::xo_shaderoverlay = Game::Dvar_RegisterEnum(
 			/* name		*/ "xo_shaderoverlay",
-			/* desc		*/ "fullscreen shaderoverlays",
+			/* desc		*/ "fullscreen shaderoverlays. <CUSTOM> uses the material defined with \"xo_shaderoverlay_custom\"",
 			/* default	*/ 0,
 			/* enumSize	*/ xo_shaderoverlayEnum.size(),
 			/* enumData */ xo_shaderoverlayEnum.data(),
@@ -266,16 +300,16 @@ namespace Components
 			/* flags	*/ Game::dvar_flags::none);
 
 		// SSAO FilterTap 0
-		Dvars::xo_ssao_noisescale	= Game::Dvar_RegisterFloat("xo_ssao_noisescale", "hlsl constant filtertap[0][0] :: _NOISESCALE :: scale of noisemap", 4.0f, 0.0f, 100.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_noisescale	= Game::Dvar_RegisterFloat("xo_ssao_noisescale", "hlsl constant filtertap[0][0] :: _NOISESCALE :: scale of noisemap", 1.0f, 0.0f, 100.0f, Game::dvar_flags::none);
 		Dvars::xo_ssao_quality		= Game::Dvar_RegisterFloat("xo_ssao_quality", "hlsl constant filtertap[0][1] :: _QUALITY :: 0 = Low, 1 = High", 0.0f, 0.0f, 1.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 1
-		Dvars::xo_ssao_radius = Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.2f, 0.0f, 20.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_radius = Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.75f, 0.0f, 20.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 2
-		Dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.75f, 0.0f, 20.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_attenuation	= Game::Dvar_RegisterFloat("xo_ssao_attenuation", "hlsl constant filtertap[2][1] :: _ATTENUATION :: ao attenuation", 4.0f, -200.0f, 200.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_angleBias	= Game::Dvar_RegisterFloat("xo_ssao_angleBias", "hlsl constant filtertap[2][2] :: _ANGLEBIAS :: in degrees", 25.0f, 0.0f, 90.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.6f, 0.0f, 20.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_attenuation	= Game::Dvar_RegisterFloat("xo_ssao_attenuation", "hlsl constant filtertap[2][1] :: _ATTENUATION :: ao attenuation", 25.0f, -200.0f, 200.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_angleBias	= Game::Dvar_RegisterFloat("xo_ssao_angleBias", "hlsl constant filtertap[2][2] :: _ANGLEBIAS :: in degrees", 30.0f, 0.0f, 90.0f, Game::dvar_flags::none);
 
 		// SSAO Misc
 		Dvars::xo_camDir0 = Game::Dvar_RegisterFloat("xo_camDir0", "viewMatrix camera dir x :: read-only", 0.0f, -1000.0f, 1000.0f, Game::dvar_flags::read_only);
