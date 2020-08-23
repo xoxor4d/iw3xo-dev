@@ -3,6 +3,68 @@
 
 namespace Game
 {
+#ifdef DEVGUI_OCEAN
+	namespace ocean
+	{
+		// vert + pixel
+		extern vec4_t _WaveAmplitude;		// filterTap0
+		extern vec4_t _WavesIntensity;		// filterTap1
+		extern vec4_t _WavesNoise;			// filterTap2
+
+		// vert ---------------------------------------------
+		extern vec2_t _WindDirection;		// filterTap3
+		extern float _HeightIntensity;
+		extern float _WaveAmplitudeFactor;
+		
+		extern float _WaveSteepness;		// filterTap4
+		extern float _TextureTiling;
+		extern float _WaveTiling;
+		extern float _Time;
+
+		extern float _VisibleWaveDist;		// filterTap5
+		extern float _HeightMapScale;
+		extern float _HeightMapScroll;
+
+		// pixel --------------------------------------------
+		extern vec3_t _AmbientColor;		// filterTap3
+		extern float _AmbientDensity;
+
+		extern vec3_t _ShoreColor;			// filterTap4
+		extern float _DiffuseDensity;
+
+		extern vec3_t _SurfaceColor;		// filterTap5
+		extern float _NormalIntensity;
+
+		extern vec3_t _DepthColor;			// filterTap6
+		extern float _ShoreFade;
+
+		extern vec3_t _RefractionValues;	// filterTap7
+		extern float _RefractionScale;
+
+		extern vec3_t _HorizontalExtinction;	// colorMatrixR
+		extern float _Distortion;
+
+		extern float _WaterClarity;			// colorMatrixG
+		extern float _WaterTransparency;
+		extern float _RadianceFactor;
+
+		extern vec3_t _SpecularValues;		// colorMatrixB
+		extern float _Shininess;
+
+		extern vec3_t _FoamTiling;			// dofEquationViewModelAndFarBlur
+		extern float _FoamSpeed;
+
+		extern vec3_t _FoamRanges;			// dofEquationScene
+		extern float _FoamIntensity;
+
+		extern vec4_t _FoamNoise;			// dofLerpScale
+
+		// ----------------------------------------------------------------------------------------------
+
+		void dump_settings();
+	}
+#endif
+
 	namespace Globals
 	{
 		// Init

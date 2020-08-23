@@ -243,6 +243,229 @@ namespace Components
 		}
 	}
 
+	// ----------------------------
+#ifdef DEVGUI_OCEAN
+
+	void pixelshader_custom_constants(Game::GfxCmdBufState* state)
+	{
+		// fixup cod4 code constants
+		if (state && state->pass)
+		{
+			// loop through all argument defs to find custom codeconsts
+			for (auto arg = 0; arg < state->pass->perObjArgCount + state->pass->perPrimArgCount + state->pass->stableArgCount; arg++)
+			{
+				const auto arg_def = &state->pass->args[arg];
+
+				if (arg_def->type == 5)
+				{
+					// ------------------------------------------------------------------------------------------------------------
+					// ocean shader
+
+					if (!Utils::Q_stricmp(state->pass->pixelShader->name, "worldfx_ocean"))
+					{
+						// vertex + pixel
+						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_WaveAmplitude, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1) {
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_WavesIntensity, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2) {
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_WavesNoise, 1);
+						}
+
+						// pixel only
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
+						{
+							float constant[4] = { Game::ocean::_AmbientColor[0], Game::ocean::_AmbientColor[1], Game::ocean::_AmbientColor[2], Game::ocean::_AmbientDensity };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
+						{
+							float constant[4] = { Game::ocean::_ShoreColor[0], Game::ocean::_ShoreColor[1], Game::ocean::_ShoreColor[2], Game::ocean::_DiffuseDensity };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
+						{
+							float constant[4] = { Game::ocean::_SurfaceColor[0], Game::ocean::_SurfaceColor[1], Game::ocean::_SurfaceColor[2], Game::ocean::_NormalIntensity };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6)
+						{
+							float constant[4] = { Game::ocean::_DepthColor[0], Game::ocean::_DepthColor[1], Game::ocean::_DepthColor[2], Game::ocean::_ShoreFade };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7)
+						{
+							float constant[4] = { Game::ocean::_RefractionValues[0], Game::ocean::_RefractionValues[1], Game::ocean::_RefractionValues[2], Game::ocean::_RefractionScale };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_R)
+						{
+							float constant[4] = { Game::ocean::_HorizontalExtinction[0], Game::ocean::_HorizontalExtinction[1], Game::ocean::_HorizontalExtinction[2], Game::ocean::_Distortion };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_G)
+						{
+							float constant[4] = { Game::ocean::_WaterClarity, Game::ocean::_WaterTransparency, Game::ocean::_RadianceFactor, 0.0f };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_B)
+						{
+							float constant[4] = { Game::ocean::_SpecularValues[0], Game::ocean::_SpecularValues[1], Game::ocean::_SpecularValues[2], Game::ocean::_Shininess };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_VIEWMODEL_AND_FAR_BLUR)
+						{
+							float constant[4] = { Game::ocean::_FoamTiling[0], Game::ocean::_FoamTiling[1], Game::ocean::_FoamTiling[2], Game::ocean::_FoamSpeed };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_SCENE)
+						{
+							float constant[4] = { Game::ocean::_FoamRanges[0], Game::ocean::_FoamRanges[1], Game::ocean::_FoamRanges[2], Game::ocean::_FoamIntensity };
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_SCALE) {
+							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_FoamNoise, 1);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	__declspec(naked) void R_SetPassPixelShaderStableArguments_stub()
+	{
+		__asm
+		{
+			pop     edi		// org op
+			pop     esi		// org op
+			pop     ebp		// org op
+			pop     ebx		// org op
+			add     esp, 8	// org op
+
+			// GfxCmdBufState
+			mov		edx, [esp + 0Ch];
+
+			pushad
+				push	edx
+				call	pixelshader_custom_constants
+				add		esp, 4
+				popad
+
+				retn
+		}
+	}
+
+	// ----------------------------
+
+	void vertexshader_custom_constants(Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state)
+	{
+		// fixup cod4 code constants
+		if (state && state->pass)
+		{
+			// loop through all argument defs to find custom codeconsts
+			for (auto arg = 0; arg < state->pass->perObjArgCount + state->pass->perPrimArgCount + state->pass->stableArgCount; arg++)
+			{
+				const auto arg_def = &state->pass->args[arg];
+
+				if (arg_def->type == 3)
+				{
+					// ocean shader
+					if (!Utils::Q_stricmp(state->pass->vertexShader->name, "worldfx_ocean"))
+					{
+						// vertex + pixel
+						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
+							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, Game::ocean::_WaveAmplitude, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1) {
+							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, Game::ocean::_WavesIntensity, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2) {
+							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, Game::ocean::_WavesNoise, 1);
+						}
+
+						// vertex only
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
+						{
+							float constant[4] = { Game::ocean::_WindDirection[0], Game::ocean::_WindDirection[1], Game::ocean::_HeightIntensity, Game::ocean::_WaveAmplitudeFactor };
+							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
+						{
+							float constant[4] = { Game::ocean::_WaveSteepness, Game::ocean::_TextureTiling, Game::ocean::_WaveTiling, Game::ocean::_Time };
+							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
+						{
+							float constant[4] = { Game::ocean::_VisibleWaveDist, Game::ocean::_HeightMapScale, Game::ocean::_HeightMapScroll, 0.0f };
+							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						// matrix if bigger then 58 (matrix fuckery :bad:)
+						//if (arg_def->u.codeConst.index >= 58)
+						//{
+						//	float* matrix;
+						//	// R_GetCodeMatrix
+						//	matrix = Utils::function<float* (Game::GfxCmdBufSourceState * source, int argIndex, char row)>(0x631D90)(source, arg_def->u.codeConst.index, arg_def->u.codeConst.firstRow);
+						//	
+						//	if (matrix)
+						//	{
+						//		matrix[3] += 0.2f;
+						//		matrix[6] += 0.2f;
+						//		matrix[9] += 0.2f;
+						//		matrix[12] += 0.2f;
+						//		(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, matrix, arg_def->u.codeConst.rowCount);
+						//	}
+						//}
+					}
+				}
+			}
+		}
+	}
+
+	__declspec(naked) void R_SetVertexShaderConstantFromCode_stub()
+	{
+		__asm
+		{
+			pop     edi		// org op
+			pop     esi		// org op
+			pop     ebp		// org op
+			pop     ebx		// org op
+			add     esp, 8	// org op
+
+			// GfxCmdBufState
+			mov		ecx, [esp + 8h];
+			mov		edx, [esp + 0Ch];
+
+			pushad
+				push	edx // state
+				push	ecx // source
+				call	vertexshader_custom_constants
+				add		esp, 8
+				popad
+
+				retn
+		}
+	}
+#endif
+
 	void RB_ShaderOverlays::Register_StringDvars()
 	{
 		Dvars::xo_shaderoverlay_custom = Game::Dvar_RegisterString(
@@ -333,6 +556,17 @@ namespace Components
 
 		// Rewrite RB_DrawDebugPostEffects (Entry for custom post-effects)
 		Utils::Hook(0x64AD70, RB_DrawDebugPostEffects, HOOK_CALL).install()->quick();
+
+
+#ifdef DEVGUI_OCEAN
+		// custom pixelshader code constants
+		Utils::Hook::Nop(0x64BEDB, 7);
+		Utils::Hook(0x64BEDB, R_SetPassPixelShaderStableArguments_stub, HOOK_JUMP).install()->quick();
+
+		// custom vertexshader code constants / per object
+		Utils::Hook::Nop(0x64BD22, 7);
+		Utils::Hook(0x64BD22, R_SetVertexShaderConstantFromCode_stub, HOOK_JUMP).install()->quick();
+#endif
 	}
 
 	RB_ShaderOverlays::~RB_ShaderOverlays()

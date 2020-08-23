@@ -27,6 +27,8 @@
 #define GGUI_ANY_MENUS_OPEN Game::Globals::gui.any_menus_open
 #define GGUI_MENU_COUNT 4
 
+#define DEVGUI_OCEAN // comment to disable tab
+
 // *
 // Changelog (avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space)
 #if DEBUG
@@ -38,28 +40,29 @@
 #define IW3XO_CHANGELOG_01_Y_OFFS	10
 #define IW3XO_CHANGELOG_01_SEP		1
 #define IW3XO_CHANGELOG_01_TITLE	"[General]\n"
-#define IW3XO_CHANGELOG_01			"-  Shortcut ALT + Enter now works without developer mode\n" \
-									"-  Some dvar mins/maxs have been changed (mainly collision and shader dvars)\n" \
-									"-  Collision hud now uses the correct dvar to determine its color"
+#define IW3XO_CHANGELOG_01			"-  Added dvar r_aspectRatio_custom (21:9 = 2.333) - Use r_aspectRatio custom to enable\n" \
+									"-  Automatically load xcommon_iw3xo_addon.ff if found in zone/language (user fastfile to overwrite loaded assets)\n" \
+									"-  cubeMapShot fixed (disable r_smp_backend!)"
 
 #define IW3XO_CHANGELOG_02_Y_OFFS	0
 #define IW3XO_CHANGELOG_02_SEP		1
-#define IW3XO_CHANGELOG_02_TITLE	"[Menus]"
-#define IW3XO_CHANGELOG_02			"-  fs_usedevdir is no longer forced on start as it could cause issues with some mods\n"	\
-									"-  Menu Exporter [/menu_export, /menu_list ...] ((c) SheepWizard)\n" \
-									"-  menu_loadlist_raw no longer drops the player when it was unable to find specified menu"
+#define IW3XO_CHANGELOG_02_TITLE	"[Map Export]"
+#define IW3XO_CHANGELOG_02			"-  Fixed brush indices drawing when using r_drawCollision_brushIndexVisible\n"	\
+									"-  Minor fixes to texture scaling when exporting maps\n" \
+									"-  Use dvar mapexport_brush5Sides to export brushes with only 5 sides"
 
 #define IW3XO_CHANGELOG_03_Y_OFFS	-8
 #define IW3XO_CHANGELOG_03_SEP		1
-#define IW3XO_CHANGELOG_03_TITLE	"[ImGui]"
-#define IW3XO_CHANGELOG_03			"-  implemented ImGui (currently needs <r_d3d9ex> to be enabled)\n" \
-									"-  theres now a devgui for most of the dvars that where added [/devgui]\n" \
-									"-  imgui demo menu [/devgui_demo]"
+#define IW3XO_CHANGELOG_03_TITLE	"[ImGui / Ocean Shader]"
+#define IW3XO_CHANGELOG_03			"-  Implemented Ocean tab to tweak ocean shader settings in realtime\n" \
+									"-  Use the export button to export shader settings\n" \
+									"-  Needs #define USE_CUSTOM_CONSTANTS to work"
 
-#define IW3XO_CHANGELOG_04_Y_OFFS	999
-#define IW3XO_CHANGELOG_04_SEP		0
-#define IW3XO_CHANGELOG_04_TITLE	"."
-#define IW3XO_CHANGELOG_04			"."
+#define IW3XO_CHANGELOG_04_Y_OFFS	-24
+#define IW3XO_CHANGELOG_04_SEP		1
+#define IW3XO_CHANGELOG_04_TITLE	"[Shader Overlays]"
+#define IW3XO_CHANGELOG_04			"-  xo_shaderoverlay can now be set to custom (define postfx material with xo_shaderoverlay_custom)\n" \
+									"-  Added dvar xo_shaderdbg_matrix to debug transformation matrices"
 
 
 // *

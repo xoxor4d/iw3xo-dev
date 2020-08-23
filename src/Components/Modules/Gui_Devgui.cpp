@@ -127,6 +127,14 @@ namespace Components
 					Gui_Devgui::menu_tab_visuals(menu);
 					ImGui::EndTabItem();
 				}
+
+#ifdef DEVGUI_OCEAN
+				if (ImGui::BeginTabItem("Ocean"))
+				{
+					Gui_Devgui::menu_tab_ocean(menu);
+					ImGui::EndTabItem();
+				}
+#endif
 			}
 
 			if (ImGui::BeginTabItem("Radiant"))
@@ -680,6 +688,119 @@ namespace Components
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 	}
+
+#ifdef DEVGUI_OCEAN
+	void Gui_Devgui::menu_tab_ocean(Game::gui_menus_t& menu)
+	{
+		const float OCEAN_SLIDER_SPEED = 0.01f;
+
+		if(ImGui::Button("Dump shader settings"))
+		{
+			Game::ocean::dump_settings();
+		}
+
+		if (ImGui::CollapsingHeader("Vertex + Pixelshader", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat4("WaveAmplitude", Game::ocean::_WaveAmplitude, OCEAN_SLIDER_SPEED, 0.0001f, 50.0f, "%.4f");
+			ImGui::DragFloat4("WavesIntensity", Game::ocean::_WavesIntensity, OCEAN_SLIDER_SPEED, 0.0001f, 50.0f, "%.4f");
+			ImGui::DragFloat4("WavesNoise", Game::ocean::_WavesNoise, OCEAN_SLIDER_SPEED, 0.0001f, 50.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Vertexshader", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat2("WindDirection", Game::ocean::_WindDirection, OCEAN_SLIDER_SPEED / 2, -30.0f, 30.0f, "%.4f");
+			ImGui::DragFloat("HeightIntensity", &Game::ocean::_HeightIntensity, OCEAN_SLIDER_SPEED / 2, 0.0001f, 50.0f, "%.4f");
+			ImGui::DragFloat("WaveAmplitudeFactor", &Game::ocean::_WaveAmplitudeFactor, OCEAN_SLIDER_SPEED / 2, 0.0001f, 50.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat("WaveSteepness", &Game::ocean::_WaveSteepness, OCEAN_SLIDER_SPEED / 2, -1.0f, 20.0f, "%.4f");
+			ImGui::DragFloat("TextureTiling", &Game::ocean::_TextureTiling, OCEAN_SLIDER_SPEED / 8, 0.0001f, 3.0f, "%.4f");
+			ImGui::DragFloat("WaveTiling", &Game::ocean::_WaveTiling, OCEAN_SLIDER_SPEED / 8, 0.0001f, 4.0f, "%.4f");
+			ImGui::DragFloat("Time", &Game::ocean::_Time, OCEAN_SLIDER_SPEED / 12, -0.15f, 0.15f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat("VisibleWaveDist", &Game::ocean::_VisibleWaveDist, OCEAN_SLIDER_SPEED / 4, -0.15f, 2.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat("HeightMapScale", &Game::ocean::_HeightMapScale, OCEAN_SLIDER_SPEED / 8, 0.001f, 25.0f, "%.4f");
+			ImGui::DragFloat("HeightMapScroll", &Game::ocean::_HeightMapScroll, OCEAN_SLIDER_SPEED / 12, -4.0f, 4.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Pixelshader", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			ImGui::ColorEdit3("AmbientColor", Game::ocean::_AmbientColor, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_HDR);
+			ImGui::DragFloat("AmbientDensity", &Game::ocean::_AmbientDensity, OCEAN_SLIDER_SPEED / 8, -5.0f, 5.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::ColorEdit3("ShoreColor", Game::ocean::_ShoreColor, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_HDR);
+			ImGui::DragFloat("DiffuseDensity", &Game::ocean::_DiffuseDensity, OCEAN_SLIDER_SPEED / 8, -5.0f, 5.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::ColorEdit3("SurfaceColor", Game::ocean::_SurfaceColor, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_HDR);
+			ImGui::DragFloat("NormalIntensity", &Game::ocean::_NormalIntensity, OCEAN_SLIDER_SPEED / 8, -5.0f, 5.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::ColorEdit3("DepthColor", Game::ocean::_DepthColor, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_HDR);
+			ImGui::DragFloat("ShoreFade", &Game::ocean::_ShoreFade, OCEAN_SLIDER_SPEED / 16, 0.0f, 1.0f, "%.4f");
+
+			// --------------- 
+			SEPERATORV(4.0f);
+
+			ImGui::DragFloat3("RefractionValues", Game::ocean::_RefractionValues, OCEAN_SLIDER_SPEED / 8, -5.0f, 5.0f, "%.4f");
+			ImGui::DragFloat("RefractionScale", &Game::ocean::_RefractionScale, OCEAN_SLIDER_SPEED / 12, -0.5f, 0.5f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat3("HorizontalExtinction", Game::ocean::_HorizontalExtinction, OCEAN_SLIDER_SPEED * 2, 0.0f, 1000.0f, "%.4f");
+			ImGui::DragFloat("Distortion", &Game::ocean::_Distortion, OCEAN_SLIDER_SPEED / 12, -2.0f, 2.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat("WaterClarity", &Game::ocean::_WaterClarity, OCEAN_SLIDER_SPEED / 4, -100.0f, 100.0f, "%.4f");
+			ImGui::DragFloat("WaterTransparency", &Game::ocean::_WaterTransparency, OCEAN_SLIDER_SPEED * 2, -50.0f, 500.0f, "%.4f");
+			ImGui::DragFloat("RadianceFactor", &Game::ocean::_RadianceFactor, OCEAN_SLIDER_SPEED / 8, -5.0f, 5.0f, "%.4f");
+
+			// --------------- 
+			SEPERATORV(4.0f);
+
+			ImGui::DragFloat3("SpecularValues", Game::ocean::_SpecularValues, OCEAN_SLIDER_SPEED * 4, 0.001f, 1000.0f, "%.4f");
+			ImGui::DragFloat("Shininess", &Game::ocean::_Shininess, OCEAN_SLIDER_SPEED, -100.0f, 100.0f, "%.4f");
+
+			// --------------- 
+			SEPERATORV(4.0f);
+
+			ImGui::DragFloat3("FoamTiling", Game::ocean::_FoamTiling, OCEAN_SLIDER_SPEED / 8, -5.0f, 5.0f, "%.4f");
+			ImGui::DragFloat("FoamSpeed", &Game::ocean::_FoamSpeed, OCEAN_SLIDER_SPEED * 4, 0.001f, 1000.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat3("FoamRanges", Game::ocean::_FoamRanges, OCEAN_SLIDER_SPEED / 8, -10.0f, 10.0f, "%.4f");
+			ImGui::DragFloat("FoamIntensity", &Game::ocean::_FoamIntensity, OCEAN_SLIDER_SPEED / 8, -10.0f, 40.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat4("FoamNoise", Game::ocean::_FoamNoise, OCEAN_SLIDER_SPEED / 8, -2.0f, 6.0f, "%.4f");
+
+			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+		}
+	}
+#endif
 
 	// *
 	// settings tab

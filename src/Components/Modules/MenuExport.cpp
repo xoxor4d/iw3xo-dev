@@ -155,7 +155,7 @@ namespace Components
 			return false;
 		}
 
-		std::string filePath = basePath->current.string + "\\menu_export\\"s + subdir;
+		std::string filePath = basePath->current.string + "\\iw3xo\\menu_export\\"s + subdir;
 		filePath += Utils::EndsWith(subdir, "\\"s) ? "" : "\\";
 
 		std::filesystem::create_directories(filePath);

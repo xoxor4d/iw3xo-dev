@@ -147,6 +147,7 @@ namespace Dvars
 	Game::dvar_s* mapexport_brushEpsilon1 = nullptr;
 	Game::dvar_s* mapexport_brushEpsilon2 = nullptr;
 	Game::dvar_s* mapexport_brushMinSize = nullptr;
+	Game::dvar_s* mapexport_brush5Sides = nullptr;
 	Game::dvar_s* mapexport_selectionMode = nullptr;
 	Game::dvar_s* mapexport_writeTriangles = nullptr;
 	Game::dvar_s* mapexport_writeQuads = nullptr;

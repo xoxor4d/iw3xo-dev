@@ -153,6 +153,7 @@ namespace Dvars
 	extern Game::dvar_s* mapexport_brushEpsilon1;
 	extern Game::dvar_s* mapexport_brushEpsilon2;
 	extern Game::dvar_s* mapexport_brushMinSize;
+	extern Game::dvar_s* mapexport_brush5Sides;
 	extern Game::dvar_s* mapexport_selectionMode;
 	extern Game::dvar_s* mapexport_writeTriangles;
 	extern Game::dvar_s* mapexport_writeQuads;

@@ -1215,13 +1215,22 @@ namespace Components
 			// if we are exporting the map
 			if (export_inProgress && enableExport)
 			{
+				bool dirty_hack_5_sides = false;
+
 				glm::vec3 bMins = glm::toVec3(brush->mins);
 				glm::vec3 bMaxs = glm::toVec3(brush->maxs);
 
 				// we need atleast 6 valid brushsides
 				if (mapBrush.size() < 6)
 				{
-					return;
+					if (mapBrush.size() == 5 && Dvars::mapexport_brush5Sides && Dvars::mapexport_brush5Sides->current.enabled)
+					{
+						dirty_hack_5_sides = true;
+					}
+					else
+					{
+						return;
+					}
 				}
 
 				// check brushes defined by more then their axialplanes
@@ -1242,7 +1251,11 @@ namespace Components
 				}
 
 				// swap brushsides (bottom, top, right, back, left, front)
-				std::swap(mapBrush[0], mapBrush[5]);
+				if (!dirty_hack_5_sides)
+				{
+					std::swap(mapBrush[0], mapBrush[5]);
+				}
+					
 				std::swap(mapBrush[3], mapBrush[4]);
 				std::swap(mapBrush[1], mapBrush[3]);
 				std::swap(mapBrush[0], mapBrush[1]);
@@ -1323,8 +1336,11 @@ namespace Components
 					// we have atleast 1 additional brush side
 					else
 					{
-						// additional brush sides start at index 0
-						matIdx = brush->sides[bs - 6].materialNum;
+						if (!dirty_hack_5_sides)
+						{
+							// additional brush sides start at index 0
+							matIdx = brush->sides[bs - 6].materialNum;
+						}
 					}
 
 					// *
@@ -2602,7 +2618,7 @@ namespace Components
 
 			// export to root/map_export
 			std::string basePath = Game::Dvar_FindVar("fs_basepath")->current.string;
-						basePath += "\\map_export\\";
+						basePath += "\\iw3xo\\map_export\\";
 
 			std::string filePath = basePath + mapName;
 
@@ -2610,20 +2626,11 @@ namespace Components
 			export_time_exportStart = Utils::Clock_StartTimerPrint(Utils::VA("[MAP-EXPORT]: Starting to export %s to %s ...\n", Game::cm->name, filePath.c_str()));
 
 			// create directory root/map_export if it doesnt exist
-			if (!CreateDirectoryA(basePath.c_str(), NULL) ) 
+			// client is only able to export to a sub-directory of "menu_export"
+
+			if (std::filesystem::create_directories(basePath))
 			{
-				if (ERROR_ALREADY_EXISTS != GetLastError())
-				{
-					Game::Com_PrintMessage(0, "|- ^1Failed to create directory \"root/^3map_export\"\n", 0);
-					Game::Com_PrintMessage(0, "|- ^1Aborting ...\n\n", 0);
-					Game::Com_PrintMessage(0, "------------------------------------------------------\n\n", 0);
-					
-					return;
-				}
-			} 
-			else 
-			{
-				Game::Com_PrintMessage(0, "|- Created directory \"root/^3map_export\"\n", 0);
+				Game::Com_PrintMessage(0, "|- Created directory \"root/iw3xo/map_export\"\n", 0);
 			}
 
 			// steam to .map file
@@ -3618,6 +3625,12 @@ namespace Components
 			/* default	*/ 64.0f,
 			/* minVal	*/ 0.0f,
 			/* maxVal	*/ 1000.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_brush5Sides = Game::Dvar_RegisterBool(
+			/* name		*/ "mapexport_brush5Sides",
+			/* desc		*/ "enable exp. export of brushes with only 5 sides",
+			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		Dvars::mapexport_selectionMode = Game::Dvar_RegisterInt(
