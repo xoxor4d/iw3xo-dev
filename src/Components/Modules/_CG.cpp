@@ -145,6 +145,9 @@ namespace Components
 
 		// mDd proxymod compass
 		Compass::draw_compass();
+
+		// mDd proxymod CGaz
+		CGaz::draw_cgaz();
 	}
 
 	// Hook call to CG_Drawcrosshair in CG_Draw2D ~ only active if cg_draw2d

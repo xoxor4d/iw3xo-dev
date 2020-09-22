@@ -204,4 +204,14 @@ namespace Dvars
 	extern Game::dvar_s* mdd_compass_quadrant_rgbas2;
 	extern Game::dvar_s* mdd_compass_quadrant_rgbas3;
 	extern Game::dvar_s* mdd_compass_ticks_rgba;
+
+	// CGaz
+	extern Game::dvar_s* mdd_cgaz;
+	extern Game::dvar_s* mdd_cgaz_ground;
+	extern Game::dvar_s* mdd_cgaz_speed;
+	extern Game::dvar_s* mdd_cgaz_yh;
+	extern Game::dvar_s* mdd_cgaz_rgbaNoAccel;
+	extern Game::dvar_s* mdd_cgaz_rgbaPartialAccel;
+	extern Game::dvar_s* mdd_cgaz_rgbaFullAccel;
+	extern Game::dvar_s* mdd_cgaz_rgbaTurnZone;
 }

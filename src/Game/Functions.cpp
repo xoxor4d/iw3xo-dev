@@ -1613,6 +1613,7 @@ namespace Game
 	// COMMON
 
 	Game::playerState_s* ps_loc = reinterpret_cast<Game::playerState_s*>(0x13255A8);
+	Game::pmove_t* pmove = reinterpret_cast<Game::pmove_t*>(0x8C9C90);
 
 	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
 	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);

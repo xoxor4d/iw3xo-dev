@@ -261,6 +261,24 @@ namespace Components
 					ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
 
 					ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
+					// ---------------
+					SEPERATORV(4.0f);
+
+					ImGui::Checkbox("Display mDd CampingGaz HUD", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz)); TT("mdd_cgaz");
+
+					ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
+
+					ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
+
+					ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
+
+					ImGui::ColorEdit4("Color for no accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaNoAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaNoAccel");
+
+					ImGui::ColorEdit4("Color for partial accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaPartialAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaPartialAccel");
+
+					ImGui::ColorEdit4("Color for full accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaFullAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaFullAccel");
+
+					ImGui::ColorEdit4("Color for turn zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaTurnZone), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaTurnZone");
 
 					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 					ImGui::EndTabItem();

@@ -36,6 +36,7 @@ namespace Components
 		active.Gui = active.Window == active.D3D9Ex; // needs the window module and d3d9ex (enabled)
 		active.Gui_Devgui = active.Gui; // obv. needs imgui
 		active.Compass = true;
+		active.CGaz = true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_UI);
@@ -62,6 +63,7 @@ namespace Components
 		REGISTER_MODULE(Gui);
 		REGISTER_MODULE(Gui_Devgui);
 		REGISTER_MODULE(Compass);
+		REGISTER_MODULE(CGaz);
 	}
 
 	void Loader::Uninitialize()

@@ -147,6 +147,11 @@ namespace Utils
 			return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 		}
 
+		vec_t _VectorLengthSquared2(const vec2_t v)
+		{
+			return (v[0] * v[0] + v[1] * v[1]);
+		}
+
 		vec_t _Distance(const vec3_t p1, const vec3_t p2) 
 		{
 			vec3_t	v;
