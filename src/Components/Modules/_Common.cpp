@@ -235,7 +235,7 @@ namespace Components
 			}
 			else
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found (pptional user addon)\n", FF_ADDON_OPT_NAME), 0);
+				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found (optional user addon)\n", FF_ADDON_OPT_NAME), 0);
 			}
 		}
 

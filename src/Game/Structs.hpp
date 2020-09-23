@@ -5076,7 +5076,7 @@ namespace Game
 			Material *material[2];
 		};
 
-		struct __declspec(align(4)) serverInfo_t
+		struct serverInfo_t
 		{
 			netadr_t adrr;
 			char allowAnonymous;
@@ -5094,14 +5094,18 @@ namespace Game
 			char voice;
 			char punkbuster;
 			char requestCount;
+			bool unk;
+			__int16 unk2;
 			__int16 minPing;
 			__int16 maxPing;
 			__int16 ping;
+			char pad_0x002C[0x5]; //0x002C
 			char hostName[32];
 			char mapName[32];
 			char game[24];
 			char gameType[16];
-		};
+			char pad_0x0099[0x3]; //0x0099
+		}; //Size=0x009C
 
 		struct __declspec(align(4)) vidConfig_t
 		{
@@ -5147,7 +5151,7 @@ namespace Game
 			int rendererStarted;
 			int soundStarted;
 			int uiStarted;
-			int devGuiStarted;
+			//int devGuiStarted; no longer in here
 			int frametime;
 			int realtime;
 			int realFrametime;
@@ -5155,8 +5159,11 @@ namespace Game
 			float mapCenter[3];
 			int numlocalservers;
 			serverInfo_t localServers[128];
-			int waitglobalserverresponse;
-			int numglobalservers;
+			int ui_displayedServerAmount; //0x4F48 
+			int ui_totalServerAmount; //0x4F4C 
+			int ui_someothercrap; //0x4F50 
+			int waitglobalserverresponse; //0x4F54 
+			int numglobalservers; //0x4F58
 			serverInfo_t globalServers[20000];
 			int numfavoriteservers;
 			serverInfo_t favoriteServers[128];
@@ -6050,7 +6057,7 @@ namespace Game
 			visionSetVars_t visionSetTo[2];
 			visionSetVars_t visionSetCurrent[2];
 			visionSetLerpData_t visionSetLerpData[2];
-			char visionNameNaked[64]; // currently at + 0xD90‬ to real value .. so we have to much before this?
+			char visionNameNaked[64];
 			char visionNameNight[64];
 			int extraButtons;
 			int lastActionSlotTime;
@@ -6060,7 +6067,7 @@ namespace Game
 			$BE9F66374A020A9809EEAF403416A176 lastFrame;
 			hudElemSoundInfo_t hudElemSound[32];
 			int vehicleFrame;
-		};
+		}; // should be right
 
 		struct trigger_info_t
 		{
