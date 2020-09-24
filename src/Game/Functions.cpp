@@ -1016,10 +1016,35 @@ namespace Game
 	int* currentTime = reinterpret_cast<int*>(0x13EB894);
 	int* CanDamageContentMask = reinterpret_cast<int*>(0x802011);
 
+	float PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/)
+	{
+		const static uint32_t PM_CmdScale_Walk_Func = 0x40F040;
+		__asm
+		{
+			push	pm
+			mov		ecx, cmd
+
+			Call	PM_CmdScale_Walk_Func
+			add     esp, 4h
+		}
+	}
+
+	bool Jump_Check(Game::pmove_t* pm /*eax*/, Game::pml_t* pml)
+	{
+		const static uint32_t Jump_Check_Func = 0x407D90;
+		__asm
+		{
+			push	pml
+			mov		eax, pm
+
+			Call	Jump_Check_Func
+			add     esp, 4h
+		}
+	}
+
 	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml)
 	{
 		const static uint32_t PM_Friction_Func = 0x40E860;
-
 		__asm
 		{
 			pushad

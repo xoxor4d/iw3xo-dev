@@ -370,8 +370,9 @@ namespace Game
 	static Utils::function<bool(Game::pmove_t *pm, Game::pml_t *pml, int gravity)> PM_SlideMove_Internal = 0x414F40;
 	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_GroundTrace_Internal = 0x410660;
 	static Utils::function<void(std::int32_t nodeIndex, Game::areaParms_t *ap)> CM_AreaEntities = 0x4F7A80;
-	static Utils::function<bool(Game::pmove_t *pm /*eax*/, Game::pml_t *pml)> Jump_Check = 0x407D90;
-	
+
+	float PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/); // ASM
+	bool Jump_Check(Game::pmove_t* pm /*eax*/, Game::pml_t* pml); // ASM
 	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml); // ASM
 	void PM_ClipVelocity_Call(const float *velocityIn, const float *traceNormal, float *velocityOut);
 	bool PM_CorrectAllSolid(Game::pmove_t *pm /*eax*/, Game::pml_t *pml, Game::trace_t *trace); // ASM
