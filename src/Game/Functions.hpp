@@ -355,6 +355,8 @@ namespace Game
 	// --------
 	// MOVEMENT
 
+	extern Game::WeaponDef** BG_WeaponNames;
+
 	extern int* g_entities;
 	extern int* g_clients;
 	extern int* currentTime;
@@ -370,7 +372,9 @@ namespace Game
 	static Utils::function<bool(Game::pmove_t *pm, Game::pml_t *pml, int gravity)> PM_SlideMove_Internal = 0x414F40;
 	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_GroundTrace_Internal = 0x410660;
 	static Utils::function<void(std::int32_t nodeIndex, Game::areaParms_t *ap)> CM_AreaEntities = 0x4F7A80;
-	
+
+	//double PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/); // ASM // broken on release
+	bool Jump_Check(Game::pmove_t* pm /*eax*/, Game::pml_t* pml); // ASM
 	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml); // ASM
 	void PM_ClipVelocity_Call(const float *velocityIn, const float *traceNormal, float *velocityOut);
 	bool PM_CorrectAllSolid(Game::pmove_t *pm /*eax*/, Game::pml_t *pml, Game::trace_t *trace); // ASM
@@ -585,6 +589,7 @@ namespace Game
 	// COMMON
 
 	extern Game::playerState_s* ps_loc;
+	extern Game::pmove_t* pmove;
 
 	extern DWORD* cmd_id;
 	extern DWORD* cmd_argc;
@@ -623,4 +628,12 @@ namespace Game
 
 	Game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
 	void Vec3UnpackUnitVec(Game::PackedUnitVec in, const float *out);
+
+	// ----
+	// Draw
+
+	// Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod)
+
+	void CG_FillAngleYaw(float start, float end, float yaw, float y, float h, float color[4]);
+	void CG_DrawLineYaw(float angle, float yaw, float y, float w, float h, float color[4]);
 }

@@ -230,6 +230,56 @@ namespace Components
 					const char* hudFont_items[] = { "FONT_SMALL_DEV", "FONT_BIG_DEV", "FONT_CONSOLE", "FONT_BIG", "FONT_SMALL", "FONT_BOLD", "FONT_NORMAL", "FONT_EXTRA_BIG", "FONT_OBJECTIVE" };
 					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_hud_fontStyle");
 
+					// ---------------
+					SEPERATORV(4.0f);
+
+					ImGui::Checkbox("Enable Position Hud", Gui::DvarGetSet<bool*>(Dvars::pm_origin_hud)); TT("pm_origin_hud");
+
+					ImGui::SliderFloat("Origin Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_x), Dvars::pm_origin_hud_x->domain.value.min, Dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
+
+					ImGui::SliderFloat("Origin Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_y), Dvars::pm_origin_hud_y->domain.value.min, Dvars::pm_origin_hud_y->domain.value.max, "%.0f"); TT("pm_origin_hud_y");
+
+					ImGui::SliderFloat("Origin Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontScale), Dvars::pm_origin_hud_fontScale->domain.value.min, Dvars::pm_origin_hud_fontScale->domain.value.max, "%.1f"); TT("pm_origin_hud_fontScale");
+
+					ImGui::ColorEdit4("Origin Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_origin_hud_fontColor");
+
+					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
+
+					// ---------------
+					SEPERATORV(4.0f);
+
+					ImGui::Checkbox("Enable mDd world compass", Gui::DvarGetSet<bool*>(Dvars::mdd_compass)); TT("mdd_compass");
+
+					ImGui::SliderFloat2("Compass position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_compass_yh), Dvars::mdd_compass_yh->domain.value.min, Dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
+
+					ImGui::ColorEdit4("Color 0 to 90 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas0), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas0");
+
+					ImGui::ColorEdit4("Color 90 to 180 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas1), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas1");
+
+					ImGui::ColorEdit4("Color 180 to 270 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas2), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas2");
+
+					ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
+
+					ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
+					// ---------------
+					SEPERATORV(4.0f);
+
+					ImGui::Checkbox("Display mDd CampingGaz HUD", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz)); TT("mdd_cgaz");
+
+					ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
+
+					ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
+
+					ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
+
+					ImGui::ColorEdit4("Color for no accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaNoAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaNoAccel");
+
+					ImGui::ColorEdit4("Color for partial accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaPartialAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaPartialAccel");
+
+					ImGui::ColorEdit4("Color for full accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaFullAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaFullAccel");
+
+					ImGui::ColorEdit4("Color for turn zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaTurnZone), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaTurnZone");
+
 					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 					ImGui::EndTabItem();
 				}

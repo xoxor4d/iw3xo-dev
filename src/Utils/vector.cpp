@@ -2,13 +2,6 @@
 #include "vector.hpp"
 #include "cmath"
 
-#define	PITCH				0		// up / down
-#define	YAW					1		// left / right
-#define	ROLL				2		// fall over
-
-#define M_PI				3.14159265358979323846f
-
-
 namespace glm
 {
 	// ---------------------------------------------------
@@ -152,6 +145,11 @@ namespace Utils
 		vec_t _VectorLengthSquared(const vec3_t v) 
 		{
 			return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+		}
+
+		vec_t _VectorLengthSquared2(const vec2_t v)
+		{
+			return (v[0] * v[0] + v[1] * v[1]);
 		}
 
 		vec_t _Distance(const vec3_t p1, const vec3_t p2) 
@@ -340,6 +338,13 @@ namespace Utils
 
 			v1 = floor((float)(angle * 0.0027777778f) + 0.5f);
 			return ((float)(angle * 0.0027777778f) - v1) * 360.0f;
+		}
+
+		// returns angle normalized to the range [-PI <= angle < PI]
+		float _AngleNormalizePI(float angle)
+		{
+			angle = fmodf(angle + M_PI, 2 * M_PI);
+			return angle < 0 ? angle + M_PI : angle - M_PI;
 		}
 
 		void _AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)

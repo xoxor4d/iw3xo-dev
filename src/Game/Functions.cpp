@@ -1011,15 +1011,44 @@ namespace Game
 	// --------
 	// MOVEMENT
 
+	Game::WeaponDef** BG_WeaponNames = reinterpret_cast<Game::WeaponDef**>(0x736DB8);
+
 	int* g_entities = reinterpret_cast<int*>(0x12885C4);
 	int* g_clients = reinterpret_cast<int*>(0x13255A8);
 	int* currentTime = reinterpret_cast<int*>(0x13EB894);
 	int* CanDamageContentMask = reinterpret_cast<int*>(0x802011);
 
+	//// broken on release
+	//double PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/)
+	//{
+	//	const static uint32_t PM_CmdScale_Walk_Func = 0x40F040;
+	//	__asm
+	//	{
+	//		push	pm
+	//		//mov		ecx, cmd
+	//		lea		ecx, [cmd]
+
+	//		Call	PM_CmdScale_Walk_Func
+	//		add     esp, 4h
+	//	}
+	//}
+
+	bool Jump_Check(Game::pmove_t* pm /*eax*/, Game::pml_t* pml)
+	{
+		const static uint32_t Jump_Check_Func = 0x407D90;
+		__asm
+		{
+			push	pml
+			mov		eax, pm
+
+			Call	Jump_Check_Func
+			add     esp, 4h
+		}
+	}
+
 	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml)
 	{
 		const static uint32_t PM_Friction_Func = 0x40E860;
-
 		__asm
 		{
 			pushad
@@ -1613,6 +1642,7 @@ namespace Game
 	// COMMON
 
 	Game::playerState_s* ps_loc = reinterpret_cast<Game::playerState_s*>(0x13255A8);
+	Game::pmove_t* pmove = reinterpret_cast<Game::pmove_t*>(0x8C9C90);
 
 	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
 	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);
@@ -1699,5 +1729,103 @@ namespace Game
 			pop ecx
 			retn
 		}
+	}
+
+	// ----
+	// Draw
+
+	// Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod)
+
+	// Adjusted for resolution and screen aspect ratio
+	void CG_AdjustFrom640(float* x, float* y, float* w, float* h)
+	{
+		assert(x);
+		assert(y);
+		assert(w);
+		assert(h);
+		float screenXScale = Game::cgs->refdef.width / 640.f;
+		// scale for screen sizes
+		*x *= screenXScale;
+		*y *= screenXScale; // Note that screenXScale is used to avoid widescreen stretching.
+		*w *= screenXScale;
+		*h *= screenXScale; // Note that screenXScale is used to avoid widescreen stretching.
+	}
+
+	// Coordinates are 640*480 virtual values
+	void CG_FillRect(float x, float y, float w, float h, float color[4])
+	{
+		if (!w || !h) return;
+
+		CG_AdjustFrom640(&x, &y, &w, &h);
+		void* material = Material_RegisterHandle("white", 3);
+		Game::R_AddCmdDrawStretchPic(material, x, y, w, h, 0.0f, 0.0f, 0.0f, 0.0f, color);
+	}
+
+	static inline bool AngleInFov(float angle)
+	{
+		float const half_fov_x = atanf(Game::cgs->refdef.tanHalfFovX);
+		return angle > -half_fov_x && angle < half_fov_x;
+	}
+
+	static inline float Projection(float angle)
+	{
+		float const half_fov_x = atanf(Game::cgs->refdef.tanHalfFovX);
+		if (angle >= half_fov_x) return 0;
+		if (angle <= -half_fov_x) return SCREEN_WIDTH;
+		return SCREEN_WIDTH / 2 * (1 - tanf(angle) / tanf(half_fov_x));
+	}
+
+	typedef struct
+	{
+		float	x1;
+		float	x2;
+		bool	split;
+	} range_t;
+
+	static inline range_t AnglesToRange(float start, float end, float yaw)
+	{
+		if (fabsf(end - start) > 2 * M_PI)
+		{
+			range_t const ret = { 0, SCREEN_WIDTH, false };
+			return ret;
+		}
+
+		bool split = end > start;
+		start = Utils::vector::_AngleNormalizePI(start - yaw);
+		end = Utils::vector::_AngleNormalizePI(end - yaw);
+
+		if (end > start)
+		{
+			split = !split;
+			float const tmp = start;
+			start = end;
+			end = tmp;
+		}
+
+		range_t const ret = { Projection(start), Projection(end), split };
+		return ret;
+	}
+
+	void CG_FillAngleYaw(float start, float end, float yaw, float y, float h, float color[4])
+	{
+		range_t const range = AnglesToRange(start, end, yaw);
+		if (!range.split)
+		{
+			CG_FillRect(range.x1, y, range.x2 - range.x1, h, color);
+		}
+		else
+		{
+			CG_FillRect(0, y, range.x1, h, color);
+			CG_FillRect(range.x2, y, SCREEN_WIDTH - range.x2, h, color);
+		}
+	}
+
+	void CG_DrawLineYaw(float angle, float yaw, float y, float w, float h, float color[4])
+	{
+		angle = Utils::vector::_AngleNormalizePI(angle - yaw);
+		if (!AngleInFov(angle)) return;
+
+		float const x = Projection(angle);
+		CG_FillRect(x - w / 2, y, w, h, color);
 	}
 }

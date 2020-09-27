@@ -1,5 +1,11 @@
 #pragma once
 
+#define	PITCH				0		// up / down
+#define	YAW					1		// left / right
+#define	ROLL				2		// fall over
+
+#define M_PI				3.14159265358979323846f
+
 namespace glm
 {
 	// ---------------------------------------------------
@@ -26,6 +32,7 @@ namespace Utils
 
 		#define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
 		#define VectorLength(x)			(sqrt((x)[0] * (x)[0] + (x)[1] * (x)[1] + (x)[2] * (x)[2]))
+		#define VectorLength2(x)		(sqrt((x)[0] * (x)[0] + (x)[1] * (x)[1]))
 		#define VectorSubtract(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2])
 		#define VectorAdd(a,b,c)		((c)[0]=(a)[0]+(b)[0],(c)[1]=(a)[1]+(b)[1],(c)[2]=(a)[2]+(b)[2])
 		#define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
@@ -47,6 +54,7 @@ namespace Utils
 		vec_t	_DotProduct(const vec3_t v1, const vec3_t v2);
 		vec_t	_VectorLength(const vec3_t v);
 		vec_t	_VectorLengthSquared(const vec3_t v);
+		vec_t	_VectorLengthSquared2(const vec2_t v);
 		vec_t	_Distance(const vec3_t p1, const vec3_t p2);
 		vec_t	_DistanceSquared(const vec3_t p1, const vec3_t p2);
 		vec_t	_VectorNormalize(vec3_t v);		// returns vector length
@@ -66,6 +74,7 @@ namespace Utils
 		void	_Vector4toVector3(const vec4_t in, vec3_t out);
 
 		float	_AngleNormalize180(const float angle);
+		float   _AngleNormalizePI(float angle);
 		void	_AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 		void	_VectorToAngles(const vec3_t value1, vec3_t angles);
 		void	_VectorToAnglesWithRoll(vec3_t angles, const vec3_t forward, const vec3_t up, bool flippitch);

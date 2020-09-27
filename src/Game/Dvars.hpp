@@ -98,6 +98,13 @@ namespace Dvars
 	extern Game::dvar_s* pm_hud_fontStyle;
 	extern Game::dvar_s* pm_hud_fontColor;
 
+	extern Game::dvar_s* pm_origin_hud;
+	extern Game::dvar_s* pm_origin_hud_x;
+	extern Game::dvar_s* pm_origin_hud_y;
+	extern Game::dvar_s* pm_origin_hud_fontScale;
+	extern Game::dvar_s* pm_origin_hud_fontStyle;
+	extern Game::dvar_s* pm_origin_hud_fontColor;
+
 	extern Game::dvar_s* pm_debug_prints;
 	extern Game::dvar_s* pm_debug_traceOrigin;
 	extern Game::dvar_s* pm_debug_traceVelocity;
@@ -188,4 +195,23 @@ namespace Dvars
 	// Random stock
 	extern Game::dvar_s* snaps;
 	extern Game::dvar_s* cg_fovScale;
+
+	// Compass
+	extern Game::dvar_s* mdd_compass;
+	extern Game::dvar_s* mdd_compass_yh;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas0;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas1;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas2;
+	extern Game::dvar_s* mdd_compass_quadrant_rgbas3;
+	extern Game::dvar_s* mdd_compass_ticks_rgba;
+
+	// CGaz
+	extern Game::dvar_s* mdd_cgaz;
+	extern Game::dvar_s* mdd_cgaz_ground;
+	extern Game::dvar_s* mdd_cgaz_speed;
+	extern Game::dvar_s* mdd_cgaz_yh;
+	extern Game::dvar_s* mdd_cgaz_rgbaNoAccel;
+	extern Game::dvar_s* mdd_cgaz_rgbaPartialAccel;
+	extern Game::dvar_s* mdd_cgaz_rgbaFullAccel;
+	extern Game::dvar_s* mdd_cgaz_rgbaTurnZone;
 }

@@ -123,6 +123,31 @@ namespace Components
 										 "Total amount of Polygons drawn: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount));
 			}
 		}
+
+		// Pmove Origin Hud
+		if (Dvars::pm_origin_hud && Dvars::pm_origin_hud->current.enabled)
+		{
+			float x = Game::cgs->predictedPlayerState.origin[0];
+			float y = Game::cgs->predictedPlayerState.origin[1];
+			float z = Game::cgs->predictedPlayerState.origin[2];
+
+			float angle = Game::cgs->refdefViewAngles[YAW];
+
+			Game::DrawTextWithEngine(
+				/* x	*/ Dvars::pm_origin_hud_x->current.value,
+				/* y	*/ Dvars::pm_origin_hud_y->current.value,
+				/* scaX */ Dvars::pm_origin_hud_fontScale->current.value,
+				/* scaY */ Dvars::pm_origin_hud_fontScale->current.value,
+				/* font */ _CG::GetFontForStyle(Dvars::pm_origin_hud_fontStyle->current.integer),
+				/* colr */ Dvars::pm_origin_hud_fontColor->current.vector,
+				/* txt	*/ Utils::VA("(X: %f, Y: %f, Z: %.3lf) YAW: %f", x, y, z, angle));
+		}
+
+		// mDd proxymod compass
+		Compass::main();
+
+		// mDd proxymod CGaz
+		CGaz::main();
 	}
 
 	// Hook call to CG_Drawcrosshair in CG_Draw2D ~ only active if cg_draw2d
