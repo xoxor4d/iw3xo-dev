@@ -355,6 +355,8 @@ namespace Game
 	// --------
 	// MOVEMENT
 
+	extern Game::WeaponDef** BG_WeaponNames;
+
 	extern int* g_entities;
 	extern int* g_clients;
 	extern int* currentTime;
@@ -371,7 +373,7 @@ namespace Game
 	static Utils::function<void(Game::pmove_t *pm, Game::pml_t *pml)> PM_GroundTrace_Internal = 0x410660;
 	static Utils::function<void(std::int32_t nodeIndex, Game::areaParms_t *ap)> CM_AreaEntities = 0x4F7A80;
 
-	float PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/); // ASM
+	//double PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/); // ASM // broken on release
 	bool Jump_Check(Game::pmove_t* pm /*eax*/, Game::pml_t* pml); // ASM
 	void PM_Friction(Game::playerState_s *ps, Game::pml_t *pml); // ASM
 	void PM_ClipVelocity_Call(const float *velocityIn, const float *traceNormal, float *velocityOut);

@@ -1011,23 +1011,27 @@ namespace Game
 	// --------
 	// MOVEMENT
 
+	Game::WeaponDef** BG_WeaponNames = reinterpret_cast<Game::WeaponDef**>(0x736DB8);
+
 	int* g_entities = reinterpret_cast<int*>(0x12885C4);
 	int* g_clients = reinterpret_cast<int*>(0x13255A8);
 	int* currentTime = reinterpret_cast<int*>(0x13EB894);
 	int* CanDamageContentMask = reinterpret_cast<int*>(0x802011);
 
-	float PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/)
-	{
-		const static uint32_t PM_CmdScale_Walk_Func = 0x40F040;
-		__asm
-		{
-			push	pm
-			mov		ecx, cmd
+	//// broken on release
+	//double PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd /*ecx*/)
+	//{
+	//	const static uint32_t PM_CmdScale_Walk_Func = 0x40F040;
+	//	__asm
+	//	{
+	//		push	pm
+	//		//mov		ecx, cmd
+	//		lea		ecx, [cmd]
 
-			Call	PM_CmdScale_Walk_Func
-			add     esp, 4h
-		}
-	}
+	//		Call	PM_CmdScale_Walk_Func
+	//		add     esp, 4h
+	//	}
+	//}
 
 	bool Jump_Check(Game::pmove_t* pm /*eax*/, Game::pml_t* pml)
 	{

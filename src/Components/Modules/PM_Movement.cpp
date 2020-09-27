@@ -1893,13 +1893,13 @@ namespace Components
 
 		switch (trace.hitType)
 		{
-			case 2:
-			case 3:
-				pm->ps->groundEntityNum = 1022;
-			
 			case 1:
 				pm->ps->groundEntityNum = trace.hitId;
 				break;
+
+			case 2:
+			case 3:
+				pm->ps->groundEntityNum = 1022;
 
 			default:
 				pm->ps->groundEntityNum = 1023;

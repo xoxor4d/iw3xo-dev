@@ -1,18 +1,76 @@
 // Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod/blob/master/src/cg_cgaz.c)
 #include "STDInclude.hpp"
 
-#define PM_NOCLIP			2
-#define PM_UFO				3
-#define PM_SPEC				4
+#define PM_NORMAL				0x0
+#define PM_NORMAL_LINKED		0x1
+#define PM_NOCLIP				0x2
+#define PM_UFO					0x3
+#define PM_SPEC					0x4
+#define PM_INTERMISSION			0x5
+#define PM_LASTSTAND			0x6
+#define PM_DEAD					0x7
+#define PM_DEAD_LINKED			0x8
 
-#define SURF_SLICK			0x2
+#define SURF_SLICK				0x2
 
-#define PMF_PRONE			0x1
-#define	PMF_TIME_KNOCKBACK	0x100
-#define PMF_SPRINTING		0x8000
-#define PMF_TOOK_DAMAGE		0x10000
+#define SURF_NODAMAGE			0x1
+#define SURF_SLICK				0x2
+#define SURF_SKY				0x4
+#define SURF_LADDER				0x8
+#define SURF_NOIMPACT			0x10
+#define SURF_NOMARKS			0x20
+#define SURF_NODRAW				0x80
+#define SURF_NOPENETRATE		0x100
+#define SURF_NOLIGHTMAP			0x400
+#define SURF_NOSTEPS			0x2000
+#define SURF_NONSOLID			0x4000
+#define SURF_NODLIGHT			0x20000
+#define SURF_NOCASTSHADOW		0x40000
+#define SURF_MANTLEON			0x2000000
+#define SURF_MANTLEOVER			0x4000000
+#define SURF_PORTAL				0x80000000
+#define SURF_BARK				0x100000
+#define SURF_BRICK				0x200000
+#define SURF_CARPET				0x300000
+#define SURF_CLOTH				0x400000
+#define SURF_CONCRETE			0x500000
+#define SURF_DIRT				0x600000
+#define SURF_FLESH				0x700000
+#define SURF_FOLIAGE			0x800000
+#define SURF_GLASS				0x900000
+#define SURF_GRASS				0xA00000
+#define SURF_GRAVEL				0xB00000
+#define SURF_ICE				0xC00000
+#define SURF_METAL				0xD00000
+#define SURF_MUD				0xE00000
+#define SURF_PAPER				0xF00000
+#define SURF_PLASTER			0x1000000
+#define SURF_ROCK				0x1100000
+#define SURF_SAND				0x1200000
+#define SURF_SNOW				0x1300000
+#define SURF_WATER				0x1400000
+#define SURF_WOOD				0x1500000
+#define SURF_ASPHALT			0x1600000
+#define SURF_CERAMIC			0x1700000
+#define SURF_PLASTIC			0x1800000
+#define SURF_RUBBER				0x1900000
+#define SURF_CUSHION			0x1A00000
+#define SURF_FRUIT				0x1B00000
+#define SURF_PAINTEDMETAL		0x1C00000
 
-#define PMF_FOLLOW			2				// spectate following another player
+#define PMF_PRONE				0x1
+#define PMF_MANTLE				0x4
+#define PMF_LADDER				0x8
+#define PMF_BACKWARDS_RUN		0x20
+#define PMF_LEAN				0x40
+#define	PMF_TIME_KNOCKBACK		0x100
+#define PMF_RESPAWNED			0x400
+#define PMF_JUMPING				0x4000
+#define PMF_SPRINTING			0x8000
+#define PMF_TOOK_DAMAGE			0x10000
+#define PMF_VEHICLE_ATTACHED	0x100000
+
+#define PMF_FOLLOW				2 // spectate following another player
 
 // movement parameters
 #define pm_accelerate			9.0f
@@ -186,7 +244,7 @@ namespace Components
 			max = abs(cmd->rightmove);
 		}
 
-		if (!max)
+		if (!max) 
 		{
 			return 0.0f;
 		}
@@ -194,17 +252,25 @@ namespace Components
 		total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
 		scale = (float)ps->speed * (float)max / (total * 127.0f);
 		
-		if (ps->pm_flags & 0x40 || 0.0f != ps->leanf)
+		if (ps->pm_flags & 0x40 || 0.0f != ps->leanf) 
+		{
 			scale *= 0.4f;
+		}
 		
-		if (ps->pm_type == PM_NOCLIP)
+		if (ps->pm_type == PM_NOCLIP) 
+		{
 			scale *= 3.0f;
-		
-		if (ps->pm_type == PM_UFO)
+		}
+			
+		if (ps->pm_type == PM_UFO) 
+		{
 			scale *= 6.0f;
+		}
 		
-		if (ps->pm_type == PM_SPEC)
+		if (ps->pm_type == PM_SPEC) 
+		{
 			scale *= player_spectateSpeedScale;
+		}
 
 		return scale;
 	}
@@ -219,7 +285,7 @@ namespace Components
 	{
 		Game::PM_Friction(pm->ps, pml);
 
-		const float scale = PM_CmdScale(pm->ps, &pm->cmd);
+		const float scale = CGaz::PM_CmdScale(pm->ps, &pm->cmd);
 
 		// project moves down to flat plane
 		pml->forward[2] = 0;
@@ -251,6 +317,160 @@ namespace Components
 		return ((-player_dmgtimer_minScale / player_dmgtimer_maxTime) * damage_timer + 1.0f);
 	}
 
+	float CGaz::PM_GetViewHeightLerpTime(Game::playerState_s* ps, int iTarget, int bDown)
+	{
+		if (iTarget == 11) 
+		{
+			return 400.0f;
+		}
+
+		if (iTarget != 40) 
+		{
+			return 200.0f;
+		}
+		
+		if (bDown) 
+		{
+			return 200.0f;
+		}
+
+		return 400.0f;
+	}
+
+	float CGaz::PM_GetViewHeightLerp(Game::pmove_t* pm, int iFromHeight, int iToHeight)
+	{
+		float fLerpFrac;
+
+		if (!pm->ps->viewHeightLerpTime)
+		{
+			return 0.0f;
+		}
+
+		if (iFromHeight != -1 && iToHeight != -1
+			&& (iToHeight != pm->ps->viewHeightLerpTarget || iToHeight == 40 
+				&& (iFromHeight != 11 || pm->ps->viewHeightLerpDown) 
+				&& (iFromHeight != 60 || !pm->ps->viewHeightLerpDown)))
+		{
+			return 0.0f;
+		}
+
+		fLerpFrac = (float)(pm->cmd.serverTime - pm->ps->viewHeightLerpTime) / CGaz::PM_GetViewHeightLerpTime(pm->ps, pm->ps->viewHeightLerpTarget, pm->ps->viewHeightLerpDown);
+		if (fLerpFrac >= 0.0f)
+		{
+			if (fLerpFrac > 1.0f) 
+			{
+				fLerpFrac = 1.0f;
+			}
+		}
+		else
+		{
+			fLerpFrac = 0.0f;
+		}
+
+		return fLerpFrac;
+	}
+
+	float CGaz::PM_CmdScaleForStance(Game::pmove_t* pm)
+	{
+		float lerpFrac;
+
+		lerpFrac = CGaz::PM_GetViewHeightLerp(pm, 40, 11);
+
+		if (lerpFrac != 0.0) 
+		{
+			return 0.15000001f * lerpFrac + (1.0f - lerpFrac) * 0.64999998f;
+		}
+			
+		lerpFrac = CGaz::PM_GetViewHeightLerp(pm, 11, 40);
+
+		if (lerpFrac != 0.0f) 
+		{
+			return 0.64999998f * lerpFrac + (1.0f - lerpFrac) * 0.15000001f;
+		}
+
+		if (pm->ps->viewHeightTarget == 11) 
+		{
+			return 0.15000001f;
+		}
+
+		if (pm->ps->viewHeightTarget == 22 || pm->ps->viewHeightTarget == 40) 
+		{
+			return 0.64999998f;
+		}
+
+		return 1.0f;
+	}
+
+	float CGaz::PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd)
+	{
+		float total, speed, scale;
+
+		bool isProne = pm->ps->pm_flags & 1 && pm->ps->fWeaponPosFrac > 0.0f;
+
+		total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
+
+		if (cmd->forwardmove >= 0)
+		{
+			speed = fabs((float)cmd->forwardmove);
+		}
+		else
+		{
+			speed = fabs((float)cmd->forwardmove * Game::Dvar_FindVar("player_backSpeedScale")->current.value);
+		}
+
+		if (speed - fabs((float)cmd->rightmove * Game::Dvar_FindVar("player_strafeSpeedScale")->current.value) < 0.0f)
+		{
+			speed = fabs((float)cmd->rightmove * Game::Dvar_FindVar("player_strafeSpeedScale")->current.value);
+		}
+
+		if (speed == 0.0f)
+		{
+			return 0.0f;
+		}
+
+		scale = ((float)pm->ps->speed * speed) / (127.0f * total);
+
+		if (pm->ps->pm_flags & PMF_LEAN || pm->ps->leanf != 0.0 || isProne)
+		{
+			scale *= 0.40000001f;
+		}
+
+		if (pm->ps->pm_flags & PMF_SPRINTING && pm->ps->viewHeightTarget == 60)
+		{
+			scale *= Game::Dvar_FindVar("player_sprintSpeedScale")->current.value;
+		}
+
+		if (pm->ps->pm_type == PM_NOCLIP)
+		{
+			scale *= 3.0f;
+		}
+		else if (pm->ps->pm_type == PM_UFO)
+		{
+			scale *=  6.0f;
+		}
+		else
+		{
+			scale = CGaz::PM_CmdScaleForStance(pm) * scale;
+		}
+
+		auto weapon = Game::BG_WeaponNames[pm->ps->weapon];
+
+		if (!pm->ps->weapon || weapon->moveSpeedScale <= 0.0f || pm->ps->pm_flags & PMF_LEAN || isProne)
+		{
+			if (pm->ps->weapon && weapon->adsMoveSpeedScale > 0.0f) {
+				scale = scale * weapon->adsMoveSpeedScale;
+			}
+		}
+		else
+		{
+			scale = scale * weapon->moveSpeedScale;
+		}
+
+		// skip shellshock stuff
+
+		return scale * pm->ps->moveSpeedScaleMultiplier;
+	}
+
 	/*
 	===================
 	PM_WalkMove
@@ -260,7 +480,6 @@ namespace Components
 	void CGaz::PM_WalkMove(Game::pmove_t *pm, Game::pml_t *pml)
 	{
 		float accelerate;
-		//Game::usercmd_s cmd;
 
 		if (Game::Jump_Check(pm, pml))
 		{
@@ -271,10 +490,10 @@ namespace Components
 
 		Game::PM_Friction(pm->ps, pml);
 
-		//memcpy(&cmd, &pm->cmd, sizeof(cmd));
+		float scale = CGaz::PM_CmdScale_Walk(pm, &pm->cmd);
+		float dmg_scale = CGaz::PM_DamageScale_Walk(pm->ps->damageTimer) * scale;
 
-		const float scale = Game::PM_CmdScale_Walk(pm, &pm->cmd);
-		const float dmg_scale = CGaz::PM_DamageScale_Walk(pm->ps->damageTimer) * scale;
+		//Game::Com_PrintMessage(0, Utils::VA("%.4lf\n", scale), 0);
 
 		// project moves down to flat plane
 		pml->forward[2] = 0;
