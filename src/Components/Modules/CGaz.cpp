@@ -571,7 +571,7 @@ namespace Components
 
 	void CGaz::main()
 	{
-		if ((Dvars::mdd_cgaz->current.enabled && !Dvars::mdd_cgaz->current.enabled) || (Game::cgs && Game::cgs->demoType))
+		if ((Dvars::mdd_cgaz && !Dvars::mdd_cgaz->current.enabled) || (Game::cgs && Game::cgs->demoType))
 		{
 			return;
 		}
