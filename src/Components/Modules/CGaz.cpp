@@ -11,8 +11,6 @@
 #define PM_DEAD					0x7
 #define PM_DEAD_LINKED			0x8
 
-#define SURF_SLICK				0x2
-
 #define SURF_NODAMAGE			0x1
 #define SURF_SLICK				0x2
 #define SURF_SKY				0x4
@@ -59,18 +57,17 @@
 #define SURF_PAINTEDMETAL		0x1C00000
 
 #define PMF_PRONE				0x1
+#define PMF_FOLLOW				0x2 // spectate following another player
 #define PMF_MANTLE				0x4
 #define PMF_LADDER				0x8
 #define PMF_BACKWARDS_RUN		0x20
 #define PMF_LEAN				0x40
-#define	PMF_TIME_KNOCKBACK		0x100
+#define PMF_TIME_KNOCKBACK		0x100
 #define PMF_RESPAWNED			0x400
 #define PMF_JUMPING				0x4000
 #define PMF_SPRINTING			0x8000
 #define PMF_TOOK_DAMAGE			0x10000
 #define PMF_VEHICLE_ATTACHED	0x100000
-
-#define PMF_FOLLOW				2 // spectate following another player
 
 // movement parameters
 #define pm_accelerate			9.0f
@@ -244,7 +241,7 @@ namespace Components
 			max = abs(cmd->rightmove);
 		}
 
-		if (!max) 
+		if (!max)
 		{
 			return 0.0f;
 		}
@@ -252,22 +249,22 @@ namespace Components
 		total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
 		scale = (float)ps->speed * (float)max / (total * 127.0f);
 		
-		if (ps->pm_flags & 0x40 || 0.0f != ps->leanf) 
+		if (ps->pm_flags & PMF_LEAN || 0.0f != ps->leanf)
 		{
 			scale *= 0.4f;
 		}
 		
-		if (ps->pm_type == PM_NOCLIP) 
+		if (ps->pm_type == PM_NOCLIP)
 		{
 			scale *= 3.0f;
 		}
-			
-		if (ps->pm_type == PM_UFO) 
+
+		if (ps->pm_type == PM_UFO)
 		{
 			scale *= 6.0f;
 		}
 		
-		if (ps->pm_type == PM_SPEC) 
+		if (ps->pm_type == PM_SPEC)
 		{
 			scale *= player_spectateSpeedScale;
 		}
@@ -301,7 +298,7 @@ namespace Components
 
 		float const wishspeed = scale * VectorLength2(s.wishvel);
 
-		PM_Accelerate(wishspeed, pm_airaccelerate);
+		CGaz::PM_Accelerate(wishspeed, pm_airaccelerate);
 	}
 
 	float CGaz::PM_DamageScale_Walk(int damage_timer)
@@ -319,17 +316,17 @@ namespace Components
 
 	float CGaz::PM_GetViewHeightLerpTime(Game::playerState_s* ps, int iTarget, int bDown)
 	{
-		if (iTarget == 11) 
+		if (iTarget == 11)
 		{
 			return 400.0f;
 		}
 
-		if (iTarget != 40) 
+		if (iTarget != 40)
 		{
 			return 200.0f;
 		}
 		
-		if (bDown) 
+		if (bDown)
 		{
 			return 200.0f;
 		}
@@ -357,7 +354,7 @@ namespace Components
 		fLerpFrac = (float)(pm->cmd.serverTime - pm->ps->viewHeightLerpTime) / CGaz::PM_GetViewHeightLerpTime(pm->ps, pm->ps->viewHeightLerpTarget, pm->ps->viewHeightLerpDown);
 		if (fLerpFrac >= 0.0f)
 		{
-			if (fLerpFrac > 1.0f) 
+			if (fLerpFrac > 1.0f)
 			{
 				fLerpFrac = 1.0f;
 			}
@@ -376,24 +373,24 @@ namespace Components
 
 		lerpFrac = CGaz::PM_GetViewHeightLerp(pm, 40, 11);
 
-		if (lerpFrac != 0.0) 
+		if (lerpFrac != 0.0f)
 		{
 			return 0.15000001f * lerpFrac + (1.0f - lerpFrac) * 0.64999998f;
 		}
 			
 		lerpFrac = CGaz::PM_GetViewHeightLerp(pm, 11, 40);
 
-		if (lerpFrac != 0.0f) 
+		if (lerpFrac != 0.0f)
 		{
 			return 0.64999998f * lerpFrac + (1.0f - lerpFrac) * 0.15000001f;
 		}
 
-		if (pm->ps->viewHeightTarget == 11) 
+		if (pm->ps->viewHeightTarget == 11)
 		{
 			return 0.15000001f;
 		}
 
-		if (pm->ps->viewHeightTarget == 22 || pm->ps->viewHeightTarget == 40) 
+		if (pm->ps->viewHeightTarget == 22 || pm->ps->viewHeightTarget == 40)
 		{
 			return 0.64999998f;
 		}
@@ -405,7 +402,7 @@ namespace Components
 	{
 		float total, speed, scale;
 
-		bool isProne = pm->ps->pm_flags & 1 && pm->ps->fWeaponPosFrac > 0.0f;
+		bool isProne = pm->ps->pm_flags & PMF_PRONE && pm->ps->fWeaponPosFrac > 0.0f;
 
 		total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
 
@@ -446,11 +443,11 @@ namespace Components
 		}
 		else if (pm->ps->pm_type == PM_UFO)
 		{
-			scale *=  6.0f;
+			scale *= 6.0f;
 		}
 		else
 		{
-			scale = CGaz::PM_CmdScaleForStance(pm) * scale;
+			scale *= CGaz::PM_CmdScaleForStance(pm);
 		}
 
 		auto weapon = Game::BG_WeaponNames[pm->ps->weapon];
@@ -492,8 +489,6 @@ namespace Components
 
 		float scale = CGaz::PM_CmdScale_Walk(pm, &pm->cmd);
 		float dmg_scale = CGaz::PM_DamageScale_Walk(pm->ps->damageTimer) * scale;
-
-		//Game::Com_PrintMessage(0, Utils::VA("%.4lf\n", scale), 0);
 
 		// project moves down to flat plane
 		pml->forward[2] = 0;
