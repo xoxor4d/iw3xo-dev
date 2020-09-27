@@ -3399,7 +3399,7 @@ namespace Components
 			CM_ShowBrushCollision(viewParms, frustumPlanes, 6);
 
 			// draw added polys / lines
-			if (*Game::tessSurface) 
+			if (Game::tess->indexCount)
 			{
 				Game::RB_EndTessSurface();
 			}

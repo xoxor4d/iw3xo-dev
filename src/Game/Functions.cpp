@@ -208,13 +208,23 @@ namespace Game
 
 
 	// ---------------
+	// GENERAL STRUCTS
+
+	Game::clientActive_t* clients = reinterpret_cast<Game::clientActive_t*>(0xC5F930);
+	Game::clientStatic_t* cls = reinterpret_cast<Game::clientStatic_t*>(0x956D80);
+	Game::cg_s* cgs = reinterpret_cast<Game::cg_s*>(0x74E338);
+	Game::GfxBuffers* gfxBuf = reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
+	Game::GfxScene* scene = reinterpret_cast<Game::GfxScene*>(0xCF10280);
+	//Game::serverStatic_t* svs = reinterpret_cast<Game::serverStatic_t*>(0x185C480); // cba
+
+
+	// ---------------
 	// RADIANT / CGAME
 
 	const char* g_entityBeginParsePoint		= reinterpret_cast<const char*>(0x1113674);
 	const char* g_entityEndParsePoint		= reinterpret_cast<const char*>(0x1113678);
 	int* clientActive_cmdNumber				= reinterpret_cast<int*>(0xCC5FF8); // part of clientActive_t
-	Game::cg_s *cgs					= reinterpret_cast<Game::cg_s*>(0x74E338);
-
+	
 	char* Com_Parse(const char **data_p /*edi*/)
 	{
 		const static uint32_t Com_Parse_Func = 0x571380;
@@ -237,6 +247,7 @@ namespace Game
 			add     esp, 4
 		}
 	}
+
 
 	// ---------
 	// FASTFILES
@@ -294,12 +305,6 @@ namespace Game
 	int* vertexCount = reinterpret_cast<int*>(0xD2B082C);
 	void* frontEndDataOut = reinterpret_cast<void*>(0xCC9827C);
 
-	int* polyVertColor_Minus_0x4 = reinterpret_cast<int*>(0xD085EEC);
-	int* polyVertColor = reinterpret_cast<int*>(0xD085EF0);
-	int* polyVertColor_Plus_0xC = reinterpret_cast<int*>(0xD085EFC);
-	char* indices = reinterpret_cast<char*>(0xD0B0820);
-	int* indices_plus_0x2 = reinterpret_cast<int*>(0xD0B0822);
-	int* indices_plus_0x4 = reinterpret_cast<int*>(0xD0B0824);
 	char* initStringDvarValue = reinterpret_cast<char*>(0x6BFEA7);
 
 	Game::clipMap_t* cm = reinterpret_cast<Game::clipMap_t*>(0x14098C0);
@@ -320,7 +325,6 @@ namespace Game
 	// print3d // DebugStrings / Lines
 	int* clsDebugFromServer = reinterpret_cast<int*>(0xC5B020);
 	bool* ifRendererStarted = reinterpret_cast<bool*>(0x956E88);
-	Game::clientStatic_t *cls = reinterpret_cast<Game::clientStatic_t *>(0x956D80);
 	Game::clientDebugStringInfo_t *clsDebugSV_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B044);
 	Game::clientDebugStringInfo_t *clsDebugCL_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B024);
 
@@ -369,19 +373,17 @@ namespace Game
 		}
 	}
 
+
 	// ------
 	// Devgui
 
 	bool* mouse_enabled = reinterpret_cast<bool*>(0xCC147D1);
 
+
 	// --------
 	// RENDERER
 
 	Game::MaterialLoadGlob* mtlLoadGlob = reinterpret_cast<Game::MaterialLoadGlob*>(0xD541330);
-
-	bool* gfxRenderTargets = reinterpret_cast<bool*>(0xD573F18);
-	bool* tessSurface = reinterpret_cast<bool*>(0xD2B0828);
-	int* tessSurfaceInt = reinterpret_cast<int*>(0xD2B0828);
 
 	int* RenderTargetWidth = reinterpret_cast<int*>(0xD573EBC); //D573EBC
 	int* RenderTargetHeight = reinterpret_cast<int*>(0xD573EC0); // D573EC0
@@ -390,9 +392,6 @@ namespace Game
 	int* wnd_SceneHeight = reinterpret_cast<int*>(0xCC9D0E4); // CC9D0E4
 	float* wnd_SceneAspect = reinterpret_cast<float*>(0xCC9D0FC); // CC9D0FC
 
-	//const char** code_textures_string_array
-
-	//IDirect3DDevice9* dx9_device = *reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
 	IDirect3DDevice9* dx9_device = reinterpret_cast<IDirect3DDevice9*>(0xCC9D06C);
 	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
 
@@ -700,6 +699,7 @@ namespace Game
 			add		esp,8
 		}
 	}
+
 
 	// ---------
 	// UI / MENU
@@ -1247,6 +1247,7 @@ namespace Game
 		}
 	}
 	
+
 	// -----
 	// DVARs 
 

@@ -699,7 +699,7 @@ namespace Components
 	// :: CG_CalcViewValues :: directly set refdef from parsed radiant camera commands
 	void Radiant_UpdateGameCamera()
 	{
-		int cmdNum = *Game::clientActive_cmdNumber;
+		int cmdNum = Game::clients->cmdNumber; //*Game::clientActive_cmdNumber;
 		Game::usercmd_s cmd = Game::usercmd_s();
 
 		// spawn a camera model on first camera move or if invalid

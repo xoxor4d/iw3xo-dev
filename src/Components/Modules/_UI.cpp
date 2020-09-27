@@ -518,18 +518,18 @@ namespace Components
 		mousePos.y = mousePos.y * 2.0f - 1.0f;
 
 		// filterTap 6
-		Game::gfxCmdBufSourceState->input.consts[27][0] = Dvars::ui_button_highlight_radius->current.value;
-		Game::gfxCmdBufSourceState->input.consts[27][1] = Dvars::ui_button_highlight_brightness->current.value;
-		Game::gfxCmdBufSourceState->input.consts[27][2] = Dvars::ui_button_outline_radius->current.value;
-		Game::gfxCmdBufSourceState->input.consts[27][3] = Dvars::ui_button_outline_brightness->current.value;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6][0] = Dvars::ui_button_highlight_radius->current.value;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6][1] = Dvars::ui_button_highlight_brightness->current.value;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6][2] = Dvars::ui_button_outline_radius->current.value;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6][3] = Dvars::ui_button_outline_brightness->current.value;
 
 		// filterTap 7
-		Game::gfxCmdBufSourceState->input.consts[28][0] = mousePos.x;
-		Game::gfxCmdBufSourceState->input.consts[28][1] = mousePos.y;	
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7][0] = mousePos.x;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7][1] = mousePos.y;
 #if DEBUG		
-		Game::gfxCmdBufSourceState->input.consts[28][2] = Dvars::xo_menu_dbg->current.value; 
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7][2] = Dvars::xo_menu_dbg->current.value;
 #endif
-		Game::gfxCmdBufSourceState->input.consts[28][3] = menu_gameTime;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7][3] = menu_gameTime;
 
 		// get current viewport width / height and update ui_dvars
 		int vpWidth = (int)floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));

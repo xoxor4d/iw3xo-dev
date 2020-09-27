@@ -290,7 +290,7 @@ namespace Components
 	// overflow check for render-surf
 	void _Debug::RB_CheckTessOverflow(int vertexCount)
 	{
-		if (vertexCount + *Game::vertexCount > 5450 || (*Game::tessSurfaceInt + 6) > 0x100000)
+		if (vertexCount + *Game::vertexCount > 5450 || (Game::tess->indexCount + 6) > 0x100000)
 		{
 			Game::RB_EndTessSurface();
 			Game::RB_BeginSurface(*Game::OverflowTessTech, *Game::OverflowTessSurf);
@@ -405,7 +405,7 @@ namespace Components
 		if (Game::OverflowTessSurf != Game::builtIn_material_unlit_depth || *Game::OverflowTessTech != Game::MaterialTechniqueType::TECHNIQUE_UNLIT)
 		{
 			// draw / skip left over polys
-			if (Game::tessSurface)
+			if (Game::tess->indexCount)
 			{
 				Game::RB_EndTessSurface();
 			}
@@ -508,7 +508,7 @@ namespace Components
 			if (Game::OverflowTessSurf != Game::builtIn_material_unlit_depth || *Game::OverflowTessTech != Game::MaterialTechniqueType::TECHNIQUE_WIREFRAME_SOLID)
 			{
 				// draw / skip left over polys
-				if (Game::tessSurface)
+				if (Game::tess->indexCount)
 				{
 					Game::RB_EndTessSurface();
 				}

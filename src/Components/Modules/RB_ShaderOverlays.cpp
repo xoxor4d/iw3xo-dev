@@ -51,7 +51,7 @@ namespace Components
 			return;
 		}
 
-		if (*Game::tessSurface)
+		if (Game::tess->indexCount)
 		{
 			Game::RB_EndTessSurface();
 		}
@@ -67,19 +67,19 @@ namespace Components
 			// SSAO DVARS WITHIN SHADER CONSTANT FILTERTAP
 
 			// FilterTap 0
-			Game::gfxCmdBufSourceState->input.consts[21][0] = Dvars::xo_ssao_noisescale->current.value;
-			Game::gfxCmdBufSourceState->input.consts[21][1] = Dvars::xo_ssao_quality->current.value;
-			Game::gfxCmdBufSourceState->input.consts[21][2] = fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
-			Game::gfxCmdBufSourceState->input.consts[21][3] = fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = Dvars::xo_ssao_noisescale->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = Dvars::xo_ssao_quality->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
 
 			// FilterTap 1
-			Game::gfxCmdBufSourceState->input.consts[22][0] = Dvars::xo_ssao_radius->current.value;
-			Game::gfxCmdBufSourceState->input.consts[22][2] = Game::Dvar_FindVar("cg_fov")->current.value / Game::Dvar_FindVar("cg_fovScale")->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1][0] = Dvars::xo_ssao_radius->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1][2] = Game::Dvar_FindVar("cg_fov")->current.value / Game::Dvar_FindVar("cg_fovScale")->current.value;
 
 			// FilterTap 2
-			Game::gfxCmdBufSourceState->input.consts[23][0] = Dvars::xo_ssao_contrast->current.value;
-			Game::gfxCmdBufSourceState->input.consts[23][1] = Dvars::xo_ssao_attenuation->current.value;
-			Game::gfxCmdBufSourceState->input.consts[23][2] = Dvars::xo_ssao_angleBias->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][0] = Dvars::xo_ssao_contrast->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = Dvars::xo_ssao_attenuation->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][2] = Dvars::xo_ssao_angleBias->current.value;
 
 			// Camera Angles / Axis
 			Dvars::xo_camDir0->current.value = Game::gfxCmdBufSourceState->input.data->viewParms->axis[0][0];
@@ -117,8 +117,8 @@ namespace Components
 					// DEBUG :: Non Blured AO
 					DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_ssao", 0.0f, _SSAO_DBG_MATSCALE * fullscreenY, _SSAO_DBG_MATSCALE * fullscreenX, _SSAO_DBG_MATSCALE * fullscreenY);
 
-					Game::gfxCmdBufSourceState->input.consts[21][2] = fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
-					Game::gfxCmdBufSourceState->input.consts[21][3] = fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
+					Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
+					Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
 				}
 
 				// PASS 3 :: BLUR AO
@@ -127,8 +127,8 @@ namespace Components
 				// DEBUG :: Blured AO
 				if (Dvars::xo_ssao_debugTargets->current.enabled)
 				{
-					Game::gfxCmdBufSourceState->input.consts[21][2] = _SSAO_DBG_MATSCALE * fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
-					Game::gfxCmdBufSourceState->input.consts[21][3] = _SSAO_DBG_MATSCALE * fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
+					Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = _SSAO_DBG_MATSCALE * fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
+					Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = _SSAO_DBG_MATSCALE * fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
 
 					DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_ssao_blur", 0.0f, 2.0f * _SSAO_DBG_MATSCALE * fullscreenY, _SSAO_DBG_MATSCALE * fullscreenX, _SSAO_DBG_MATSCALE * fullscreenY);
 
@@ -152,13 +152,13 @@ namespace Components
 			DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FLOAT_Z, "floatz_display", 0.0f, 0.0f, fullscreenX, fullscreenY);
 
 			// FilterTap 0
-			Game::gfxCmdBufSourceState->input.consts[21][0] = Dvars::xo_outliner_scale->current.value;
-			Game::gfxCmdBufSourceState->input.consts[21][1] = Dvars::xo_outliner_depthDiffScale->current.value;
-			Game::gfxCmdBufSourceState->input.consts[21][2] = Dvars::xo_outliner_depthThreshold->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = Dvars::xo_outliner_scale->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = Dvars::xo_outliner_depthDiffScale->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = Dvars::xo_outliner_depthThreshold->current.value;
 
 			// FilterTap 2
-			Game::gfxCmdBufSourceState->input.consts[23][0] = Dvars::xo_outliner_toonEnable->current.enabled ? 1.0f : 0.0f;
-			Game::gfxCmdBufSourceState->input.consts[23][1] = Dvars::xo_outliner_toonShades->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][0] = Dvars::xo_outliner_toonEnable->current.enabled ? 1.0f : 0.0f;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = Dvars::xo_outliner_toonShades->current.value;
 
 			// Draw Outliner
 			DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_outliner", 0.0f, 0.0f, fullscreenX, fullscreenY);

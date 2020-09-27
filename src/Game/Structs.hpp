@@ -5151,7 +5151,6 @@ namespace Game
 			int rendererStarted;
 			int soundStarted;
 			int uiStarted;
-			//int devGuiStarted; no longer in here
 			int frametime;
 			int realtime;
 			int realFrametime;
@@ -5159,11 +5158,11 @@ namespace Game
 			float mapCenter[3];
 			int numlocalservers;
 			serverInfo_t localServers[128];
-			int ui_displayedServerAmount; //0x4F48 
-			int ui_totalServerAmount; //0x4F4C 
-			int ui_someothercrap; //0x4F50 
-			int waitglobalserverresponse; //0x4F54 
-			int numglobalservers; //0x4F58
+			int ui_displayedServerAmount;
+			int ui_totalServerAmount;
+			int ui_someothercrap;
+			int waitglobalserverresponse;
+			int numglobalservers;
 			serverInfo_t globalServers[20000];
 			int numfavoriteservers;
 			serverInfo_t favoriteServers[128];
@@ -5172,9 +5171,9 @@ namespace Game
 			char updateChallenge[1024];
 			char updateInfoString[1024];
 			netadr_t authorizeServer;
-			Material *whiteMaterial;
-			Material *consoleMaterial;
-			Font_s *consoleFont;
+			Material* whiteMaterial;
+			Material* consoleMaterial;
+			Font_s* consoleFont;
 			char autoupdateServerNames[5][64];
 			netadr_t autoupdateServer;
 			vidConfig_t vidConfig;
@@ -5829,6 +5828,15 @@ namespace Game
 			bool usingKnife;
 		};
 
+		//struct __declspec(align(2)) DObjModel_s
+		//{
+		//	XModel* model;
+		//	unsigned __int16 boneName;
+		//	bool ignoreCollision;
+		//};
+
+		struct XAnimTree_s;
+
 		struct bgs_t
 		{
 			animScriptData_t animScriptData;
@@ -5838,21 +5846,11 @@ namespace Game
 			int frametime;
 			int anim_user;
 			XModel *(__cdecl *GetXModel)(const char *);
-			//void (__cdecl *CreateDObj)(DObjModel_s *, unsigned __int16, XAnimTree_s *, int, int, clientInfo_t *);
-			void* DObjModel_s;
-
-			//unsigned __int16 (__cdecl *AttachWeapon)(DObjModel_s *, unsigned __int16, clientInfo_t *);
-			unsigned __int16 AttachWeapon;
-
-			//DObj_s *(__cdecl *GetDObj)(int, int);
-			void* DObj_s;
-
-			//void (__cdecl *SafeDObjFree)(int, int);
-			void* SafeDObjFree;
-
-			//void *(__cdecl *AllocXAnim)(int);
-			void* AllocXAnim;
-
+			void *CreateDObj; //void(__cdecl* CreateDObj)(DObjModel_s*, unsigned __int16, XAnimTree_s*, int, int, clientInfo_t*);
+			unsigned __int16 AttachWeapon; //unsigned __int16 (__cdecl *AttachWeapon)(DObjModel_s *, unsigned __int16, clientInfo_t *);
+			void *DObj; //DObj_s *(__cdecl *GetDObj)(int, int);
+			void (__cdecl *SafeDObjFree)(int, int);
+			void *(__cdecl *AllocXAnim)(int);
 			clientInfo_t clientinfo[64];
 		};
 
@@ -6239,6 +6237,374 @@ namespace Game
 			MaterialRaw* sortMtlRaw;
 		};
 
+		struct GfxDynamicIndices
+		{
+			volatile int used;
+			int total;
+			unsigned __int16* indices;
+		};
+
+		struct GfxIndexBufferState
+		{
+			volatile int used;
+			int total;
+			IDirect3DIndexBuffer9* buffer;
+			unsigned __int16* indices;
+		};
+
+		struct GfxPackedVertexNormal
+		{
+			PackedUnitVec normal;
+			PackedUnitVec tangent;
+		};
+
+		struct __declspec(align(4)) GfxBuffers
+		{
+			GfxDynamicIndices smodelCache;
+			IDirect3DVertexBuffer9* smodelCacheVb;
+			GfxIndexBufferState preTessIndexBufferPool[2];
+			GfxIndexBufferState* preTessIndexBuffer;
+			int preTessBufferFrame;
+			GfxIndexBufferState dynamicIndexBufferPool[1];
+			GfxIndexBufferState* dynamicIndexBuffer;
+			GfxVertexBufferState skinnedCacheVbPool[2];
+			char* skinnedCacheLockAddr;
+			GfxVertexBufferState dynamicVertexBufferPool[1];
+			GfxVertexBufferState* dynamicVertexBuffer;
+			IDirect3DVertexBuffer9* particleCloudVertexBuffer;
+			IDirect3DIndexBuffer9* particleCloudIndexBuffer;
+			int dynamicBufferFrame;
+			GfxPackedVertexNormal skinnedCacheNormals[2][147456];
+			GfxPackedVertexNormal* skinnedCacheNormalsAddr;
+			GfxPackedVertexNormal* oldSkinnedCacheNormalsAddr;
+			unsigned int skinnedCacheNormalsFrameCount;
+			bool fastSkin;
+			bool skinCache;
+		};
+
+		struct GfxVisibleLight
+		{
+			int drawSurfCount;
+			GfxDrawSurf drawSurfs[1024];
+		};
+
+		struct GfxShadowCookie
+		{
+			DpvsPlane planes[5];
+			volatile int drawSurfCount;
+			GfxDrawSurf drawSurfs[256];
+		};
+
+		struct GfxSkinnedXModelSurfs
+		{
+			void* firstSurf;
+		};
+
+		struct GfxSceneEntityCull
+		{
+			volatile unsigned int state;
+			float mins[3];
+			float maxs[3];
+			char lods[32];
+			GfxSkinnedXModelSurfs skinnedSurfs;
+		};
+
+		union GfxSceneEntityInfo
+		{
+			cpose_t* pose;
+			unsigned __int16* cachedLightingHandle;
+		};
+
+		struct XAnimParent
+		{
+			unsigned __int16 flags;
+			unsigned __int16 children;
+		};
+
+		union $2714E77E76DE9429E851020801EAFDE5
+		{
+			XAnimParts* parts;
+			XAnimParent animParent;
+		};
+
+		struct XAnimEntry
+		{
+			unsigned __int16 numAnims;
+			unsigned __int16 parent;
+			$2714E77E76DE9429E851020801EAFDE5 ___u2;
+		};
+
+		struct XAnim_s
+		{
+			const char* debugName;
+			unsigned int size;
+			const char** debugAnimNames;
+			XAnimEntry entries[1];
+		};
+
+		struct __declspec(align(4)) XAnimTree_s
+		{
+			XAnim_s* anims;
+			int info_usage;
+			volatile int calcRefCount;
+			volatile int modifyRefCount;
+			unsigned __int16 children;
+		};
+
+		struct DSkelPartBits
+		{
+			int anim[4];
+			int control[4];
+			int skel[4];
+		};
+
+		struct DSkel
+		{
+			DSkelPartBits partBits;
+			int timeStamp;
+			DObjAnimMat* mat;
+		};
+
+		struct DObj_s
+		{
+			XAnimTree_s* tree;
+			unsigned __int16 duplicateParts;
+			unsigned __int16 entnum;
+			char duplicatePartsSize;
+			char numModels;
+			char numBones;
+			unsigned int ignoreCollision;
+			volatile int locked;
+			DSkel skel;
+			float radius;
+			unsigned int hidePartBits[4];
+			XModel** models;
+		};
+
+		struct __declspec(align(4)) GfxSceneEntity
+		{
+			float lightingOrigin[3];
+			GfxScaledPlacement placement;
+			GfxSceneEntityCull cull;
+			unsigned __int16 gfxEntIndex;
+			unsigned __int16 entnum;
+			DObj_s* obj;
+			GfxSceneEntityInfo info;
+			char reflectionProbeIndex;
+		};
+
+		struct __declspec(align(4)) GfxSceneModel
+		{
+			XModelDrawInfo info;
+			XModel* model;
+			DObj_s* obj;
+			GfxScaledPlacement placement;
+			unsigned __int16 gfxEntIndex;
+			unsigned __int16 entnum;
+			float radius;
+			unsigned __int16* cachedLightingHandle;
+			float lightingOrigin[3];
+			char reflectionProbeIndex;
+		};
+
+		struct __declspec(align(4)) GfxSceneBrush
+		{
+			BModelDrawInfo info;
+			unsigned __int16 entnum;
+			GfxBrushModel* bmodel;
+			GfxPlacement placement;
+			char reflectionProbeIndex;
+		};
+
+		union GfxEntCellRefInfo
+		{
+			float radius;
+			GfxBrushModel* bmodel;
+		};
+
+		struct GfxSceneDpvs
+		{
+			unsigned int localClientNum;
+			char* entVisData[7];
+			unsigned __int16* sceneXModelIndex;
+			unsigned __int16* sceneDObjIndex;
+			GfxEntCellRefInfo* entInfo[4];
+		};
+
+#pragma warning( push )
+#pragma warning( disable : 4324 )
+		struct __declspec(align(64)) GfxScene
+		{
+			GfxDrawSurf bspDrawSurfs[8192];
+			GfxDrawSurf smodelDrawSurfsLight[8192];
+			GfxDrawSurf entDrawSurfsLight[8192];
+			GfxDrawSurf bspDrawSurfsDecal[512];
+			GfxDrawSurf smodelDrawSurfsDecal[512];
+			GfxDrawSurf entDrawSurfsDecal[512];
+			GfxDrawSurf bspDrawSurfsEmissive[8192];
+			GfxDrawSurf smodelDrawSurfsEmissive[8192];
+			GfxDrawSurf entDrawSurfsEmissive[8192];
+			GfxDrawSurf fxDrawSurfsEmissive[8192];
+			GfxDrawSurf fxDrawSurfsEmissiveAuto[8192];
+			GfxDrawSurf fxDrawSurfsEmissiveDecal[8192];
+			GfxDrawSurf bspSunShadowDrawSurfs0[4096];
+			GfxDrawSurf smodelSunShadowDrawSurfs0[4096];
+			GfxDrawSurf entSunShadowDrawSurfs0[4096];
+			GfxDrawSurf bspSunShadowDrawSurfs1[8192];
+			GfxDrawSurf smodelSunShadowDrawSurfs1[8192];
+			GfxDrawSurf entSunShadowDrawSurfs1[8192];
+			GfxDrawSurf bspSpotShadowDrawSurfs0[256];
+			GfxDrawSurf smodelSpotShadowDrawSurfs0[256];
+			GfxDrawSurf entSpotShadowDrawSurfs0[512];
+			GfxDrawSurf bspSpotShadowDrawSurfs1[256];
+			GfxDrawSurf smodelSpotShadowDrawSurfs1[256];
+			GfxDrawSurf entSpotShadowDrawSurfs1[512];
+			GfxDrawSurf bspSpotShadowDrawSurfs2[256];
+			GfxDrawSurf smodelSpotShadowDrawSurfs2[256];
+			GfxDrawSurf entSpotShadowDrawSurfs2[512];
+			GfxDrawSurf bspSpotShadowDrawSurfs3[256];
+			GfxDrawSurf smodelSpotShadowDrawSurfs3[256];
+			GfxDrawSurf entSpotShadowDrawSurfs3[512];
+			GfxDrawSurf shadowDrawSurfs[512];
+			unsigned int shadowableLightIsUsed[32];
+			int maxDrawSurfCount[34];
+			volatile int drawSurfCount[34];
+			GfxDrawSurf* drawSurfs[34];
+			GfxDrawSurf fxDrawSurfsLight[8192];
+			GfxDrawSurf fxDrawSurfsLightAuto[8192];
+			GfxDrawSurf fxDrawSurfsLightDecal[8192];
+			GfxSceneDef def;
+			int addedLightCount;
+			GfxLight addedLight[32];
+			bool isAddedLightCulled[32];
+			float dynamicSpotLightNearPlaneOffset;
+			GfxVisibleLight visLight[4];
+			GfxVisibleLight visLightShadow[1];
+			GfxShadowCookie cookie[24];
+			unsigned int* entOverflowedDrawBuf;
+			volatile int sceneDObjCount;
+			GfxSceneEntity sceneDObj[512];
+			char sceneDObjVisData[7][512];
+			volatile int sceneModelCount;
+			GfxSceneModel sceneModel[1024];
+			char sceneModelVisData[7][1024];
+			volatile int sceneBrushCount;
+			GfxSceneBrush sceneBrush[512];
+			char sceneBrushVisData[3][512];
+			unsigned int sceneDynModelCount;
+			unsigned int sceneDynBrushCount;
+			DpvsPlane shadowFarPlane[2];
+			DpvsPlane shadowNearPlane[2];
+			GfxSceneDpvs dpvs;
+		};
+#pragma warning( pop )
+
+		struct clSnapshot_t
+		{
+			int valid;
+			int snapFlags;
+			int serverTime;
+			int messageNum;
+			int deltaNum;
+			int ping;
+			int cmdNum;
+			playerState_s ps;
+			int numEntities;
+			int numClients;
+			int parseEntitiesNum;
+			int parseClientsNum;
+			int serverCommandNum;
+		};
+
+		struct gameState_t
+		{
+			int stringOffsets[2442];
+			char stringData[131072];
+			int dataCount;
+		};
+
+		enum StanceState
+		{
+			CL_STANCE_STAND = 0x0,
+			CL_STANCE_CROUCH = 0x1,
+			CL_STANCE_PRONE = 0x2,
+		};
+
+		struct ClientArchiveData
+		{
+			int serverTime;
+			float origin[3];
+			float velocity[3];
+			int bobCycle;
+			int movementDir;
+			float viewangles[3];
+		};
+
+		struct outPacket_t
+		{
+			int p_cmdNumber;
+			int p_serverTime;
+			int p_realtime;
+		};
+
+		struct clientActive_t
+		{
+			bool usingAds;
+			int timeoutcount;
+			clSnapshot_t snap;
+			bool alwaysFalse;
+			int serverTime;
+			int oldServerTime;
+			int oldFrameServerTime;
+			int serverTimeDelta;
+			int oldSnapServerTime;
+			int extrapolatedSnapshot;
+			int newSnapshots;
+			gameState_t gameState;
+			char mapname[64];
+			int parseEntitiesNum;
+			int parseClientsNum;
+			int mouseDx[2];
+			int mouseDy[2];
+			int mouseIndex;
+			bool stanceHeld;
+			StanceState stance;
+			StanceState stancePosition;
+			int stanceTime;
+			int cgameUserCmdWeapon;
+			int cgameUserCmdOffHandIndex;
+			float cgameFOVSensitivityScale;
+			float cgameMaxPitchSpeed;
+			float cgameMaxYawSpeed;
+			float cgameKickAngles[3];
+			float cgameOrigin[3];
+			float cgameVelocity[3];
+			float cgameViewangles[3];
+			int cgameBobCycle;
+			int cgameMovementDir;
+			int cgameExtraButtons;
+			int cgamePredictedDataServerTime;
+			float viewangles[3];
+			int serverId;
+			int skelTimeStamp;
+			volatile int skelMemPos;
+			char skelMemory[262144];
+			char* skelMemoryStart;
+			bool allowedAllocSkel;
+			__declspec(align(4)) usercmd_s cmds[128];
+			int cmdNumber;
+			ClientArchiveData clientArchive[256];
+			int clientArchiveIndex;
+			outPacket_t outPackets[32];
+			clSnapshot_t snapshots[32];
+			entityState_s entityBaselines[1024];
+			entityState_s parseEntities[2048];
+			clientState_s parseClients[2048];
+			int corruptedTranslationFile;
+			char translationVersion[256];
+			float vehicleViewYaw;
+			float vehicleViewPitch;
+		};
 
 		struct dynBrush_t
 		{

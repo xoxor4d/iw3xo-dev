@@ -120,13 +120,23 @@ namespace Game
 
 
 	// ---------------
+	// GENERAL STRUCTS
+
+	extern Game::clientActive_t* clients;
+	extern Game::clientStatic_t* cls;
+	extern Game::cg_s* cgs;
+	extern Game::GfxBuffers* gfxBuf;
+	extern Game::GfxScene* scene;
+	//extern Game::serverStatic_t* svs; // cba
+
+
+	// ---------------
 	// RADIANT / CGAME
 
 	extern const char* g_entityBeginParsePoint;
 	extern const char* g_entityEndParsePoint;
 	extern int* clientActive_cmdNumber;
-	extern Game::cg_s *cgs;
-
+	
 	char* Com_Parse(const char **data_p /*edi*/); // ASM
 	bool CL_GetUserCmd(int cmdNumber /*eax*/, Game::usercmd_s *ucmd);
 
@@ -165,12 +175,6 @@ namespace Game
 	extern int* vertexCount;
 	extern void* frontEndDataOut;
 
-	extern int* polyVertColor_Minus_0x4;
-	extern int* polyVertColor;
-	extern int* polyVertColor_Plus_0xC;
-	extern char* indices;
-	extern int* indices_plus_0x2;
-	extern int* indices_plus_0x4;
 	extern char* initStringDvarValue;
 
 	extern Game::clipMap_t* cm;
@@ -195,7 +199,6 @@ namespace Game
 	// print3d // DebugStrings / Lines
 	extern int* clsDebugFromServer;
 	extern bool* ifRendererStarted;
-	extern Game::clientStatic_t *cls;
 	extern Game::clientDebugStringInfo_t *clsDebugSV_Strings;
 	extern Game::clientDebugStringInfo_t *clsDebugCL_Strings;
 
@@ -214,10 +217,6 @@ namespace Game
 
 	extern Game::MaterialLoadGlob* mtlLoadGlob; // 0xD541330;
 
-	extern bool* gfxRenderTargets;
-	extern bool* tessSurface;
-	extern int* tessSurfaceInt;
-
 	extern int* RenderTargetWidth;
 	extern int* RenderTargetHeight;
 	extern int* RenderTargetArray;
@@ -225,7 +224,6 @@ namespace Game
 	extern int* wnd_SceneHeight;
 	extern float* wnd_SceneAspect;
 
-	//extern const char** code_textures_string_array;
 	extern IDirect3DDevice9* dx9_device;
 	extern IDirect3DDevice9** dx9_device_ptr;
 
