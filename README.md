@@ -5,6 +5,7 @@ A compatible Radiant, built for use with IW3xo, that enables a live-link between
 
 Pre-build binaries: https://github.com/xoxor4d/iw3xo-dev/releases  
 Changelog: https://github.com/xoxor4d/iw3xo-dev/wiki/Changelog
+Project Page: https://xoxor4d.github.io/projects/iw3xo/
 
 ___
 
@@ -28,9 +29,10 @@ ___
 ___
 
 Requires:
-1. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
-2. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
-3. English localization (other languages work when renamed:)
+1. CoD4 1.7
+2. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
+3. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
+4. English localization (other languages work when renamed:)
   - __root/localization.txt__ -> change first line to "english"
   - __root/main/__ -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
   - __root/zone/__ -> rename folder "yourlanguage" to "english"
