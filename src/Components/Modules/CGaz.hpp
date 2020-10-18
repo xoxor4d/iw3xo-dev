@@ -20,7 +20,7 @@ namespace Components
 
 		static float PM_CmdScaleForStance(Game::pmove_t* pm);
 		static float PM_GetViewHeightLerp(Game::pmove_t* pm, int iFromHeight, int iToHeight);
-		static float PM_GetViewHeightLerpTime(Game::playerState_s* ps, int iTarget, int bDown);
+		static float PM_GetViewHeightLerpTime(int iTarget, int bDown);
 
 		static float PM_CmdScale(Game::playerState_s* ps, Game::usercmd_s* cmd);
 		static float PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd);

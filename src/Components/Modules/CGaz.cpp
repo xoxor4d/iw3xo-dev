@@ -314,7 +314,7 @@ namespace Components
 		return ((-player_dmgtimer_minScale / player_dmgtimer_maxTime) * damage_timer + 1.0f);
 	}
 
-	float CGaz::PM_GetViewHeightLerpTime(Game::playerState_s* ps, int iTarget, int bDown)
+	float CGaz::PM_GetViewHeightLerpTime(int iTarget, int bDown)
 	{
 		if (iTarget == 11)
 		{
@@ -351,7 +351,7 @@ namespace Components
 			return 0.0f;
 		}
 
-		fLerpFrac = (float)(pm->cmd.serverTime - pm->ps->viewHeightLerpTime) / CGaz::PM_GetViewHeightLerpTime(pm->ps, pm->ps->viewHeightLerpTarget, pm->ps->viewHeightLerpDown);
+		fLerpFrac = (float)(pm->cmd.serverTime - pm->ps->viewHeightLerpTime) / CGaz::PM_GetViewHeightLerpTime(pm->ps->viewHeightLerpTarget, pm->ps->viewHeightLerpDown);
 		if (fLerpFrac >= 0.0f)
 		{
 			if (fLerpFrac > 1.0f)
