@@ -388,7 +388,7 @@ namespace Components
 		}
 
 		float	max = Game::scrPlace->scaleVirtualToReal[1] * 0.3f;
-		char*	font;
+		const char*	font;
 
 		auto ui_smallFont		= Game::Dvar_FindVar("ui_smallFont");
 		auto ui_extraBigFont	= Game::Dvar_FindVar("ui_extraBigFont");
@@ -1204,7 +1204,7 @@ namespace Components
 			/* maxVal	*/ 10.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		static std::vector <char*> r_customAspectratio = 
+		static std::vector <const char*> r_customAspectratio =
 		{ 
 			"auto", 
 			"4:3", 

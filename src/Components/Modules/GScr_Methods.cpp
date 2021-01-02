@@ -53,7 +53,7 @@ namespace Components
 		return true;
 	}
 
-	bool Scr_AddMethod(char *cmd_name, xfunction_t function, bool developer)
+	bool Scr_AddMethod(const char *cmd_name, xfunction_t function, bool developer)
 	{
 		Game::scr_function_t  *cmd;
 

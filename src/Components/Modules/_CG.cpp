@@ -4,7 +4,7 @@ namespace Components
 {
 	// *
 	// return font string for style
-	char* _CG::GetFontForStyle(int fontStyle)
+	const char* _CG::GetFontForStyle(int fontStyle)
 	{
 		return	fontStyle == 0 ? FONT_SMALL_DEV : fontStyle == 1 ? FONT_BIG_DEV		: fontStyle == 2 ? FONT_CONSOLE :
 				fontStyle == 3 ? FONT_BIG		: fontStyle == 4 ? FONT_SMALL		: fontStyle == 5 ? FONT_BOLD :
@@ -79,8 +79,8 @@ namespace Components
 		// Pmove Speed Hud
 		if (Dvars::pm_hud_enable && Dvars::pm_hud_enable->current.enabled)
 		{
-			char* movementType	= Dvars::pm_movementType->current.integer == Game::PM_MTYPE::STOCK ? "Stock" 
-								: Dvars::pm_movementType->current.integer == Game::PM_MTYPE::DEFRAG ? "Defrag" : "CS-Surf";
+			const char* movementType = Dvars::pm_movementType->current.integer == Game::PM_MTYPE::STOCK ? "Stock" 
+									 : Dvars::pm_movementType->current.integer == Game::PM_MTYPE::DEFRAG ? "Defrag" : "CS-Surf";
 
 			float xySpeed = sqrtf(Game::Globals::locPmove_playerVelocity.x * Game::Globals::locPmove_playerVelocity.x
 								+ Game::Globals::locPmove_playerVelocity.y * Game::Globals::locPmove_playerVelocity.y);

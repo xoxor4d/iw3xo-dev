@@ -2477,7 +2477,7 @@ namespace Components
 		// -----
 		// Dvars
 
-		static std::vector <char*> pm_movementTypeEnum = 
+		static std::vector <const char*> pm_movementTypeEnum =
 		{ 
 			"STOCK", 
 			"DEFRAG", 

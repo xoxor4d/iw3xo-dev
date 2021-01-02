@@ -9,7 +9,7 @@ namespace Components
 		~_CG();
 		const char* getName() override { return "_CG"; };
 
-		static char* GetFontForStyle(int fontStyle);
+		static const char* GetFontForStyle(int fontStyle);
 
 	private:
 	};

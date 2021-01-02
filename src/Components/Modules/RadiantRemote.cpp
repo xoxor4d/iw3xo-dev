@@ -1608,7 +1608,7 @@ namespace Components
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		static std::vector <char*> radiant_syncCameraEnum = { "DISABLED", "RADIANT_TO_GAME", "GAME_TO_RADIANT", "BOTH",};
+		static std::vector <const char*> radiant_syncCameraEnum = { "DISABLED", "RADIANT_TO_GAME", "GAME_TO_RADIANT", "BOTH",};
 		Dvars::radiant_syncCamera = Game::Dvar_RegisterEnum(
 			/* name		*/ "radiant_syncCamera",
 			/* desc		*/ "enable live-link camera sync",

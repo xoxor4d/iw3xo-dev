@@ -3512,7 +3512,7 @@ namespace Components
 			/* maxVal	*/ 1,
 			/* flags	*/ Game::dvar_flags::none);
 
-		static std::vector <char*> r_drawCollisionMatFilter = 
+		static std::vector <const char*> r_drawCollisionMatFilter = 
 		{ 
 			"none", 
 			"clip", 

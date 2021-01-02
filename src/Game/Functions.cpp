@@ -431,7 +431,7 @@ namespace Game
 		}
 	}
 
-	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, char* font, const float *color, const char* text)
+	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, const char* font, const float *color, const char* text)
 	{
 		void* fontHandle = R_RegisterFont(font, sizeof(font));
 		R_AddCmdDrawTextASM(text, 0x7FFFFFFF, fontHandle, x, y, scaleX, scaleY, 0.0f, color, 0);
@@ -1309,13 +1309,13 @@ namespace Game
 		return nullptr;
 	}
 
-	char* Dvar_EnumToString(const dvar_s *dvar)
+	const char* Dvar_EnumToString(const dvar_s *dvar)
 	{
-		char *result;
+		const char *result;
 
 		if (dvar->domain.enumeration.stringCount) 
 		{
-			result = *(char **)(dvar->domain.integer.max + 4 * dvar->current.integer);
+			result = *(const char **)(dvar->domain.integer.max + 4 * dvar->current.integer);
 		}
 		else 
 		{

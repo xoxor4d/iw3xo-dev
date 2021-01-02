@@ -206,6 +206,14 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4754D5 + 2, 0xB0); // end on "_dn" + 1 instead of "_bk" (6 images)
 		Utils::Hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // msg when "r_smp_backend" is enabled (must be set to 0 or we obtain purple images)
 
+		// increase hunkTotal from 10mb to 15mb
+		Utils::Hook::Set<BYTE>(0x563A21 + 8, 0xF0);
+
+		// gmem from 128 to 512
+		Utils::Hook::Set<BYTE>(0x4FF23B + 4, 0x20);
+		//gmem prim pos ^
+		Utils::Hook::Set<BYTE>(0x4FF26B + 9, 0x20);
+
 		// Force debug logging
 		Utils::Hook::Nop(0x4FCB9D, 8);
 

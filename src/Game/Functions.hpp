@@ -263,7 +263,7 @@ namespace Game
 	Game::MaterialTechnique * RB_BeginSurface(Game::MaterialTechniqueType techType, Game::Material material); // ASM
 	Game::MaterialTechnique * RB_BeginSurface_CustomMaterial(Game::MaterialTechniqueType techType, Game::Material *material); // ASM
 
-	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, char* font, const float *color, const char* text);
+	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, const char* font, const float *color, const char* text);
 	void R_AddCmdDrawTextASM(const char *text, int maxChars, void *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
 	void RB_StandardDrawCommands(Game::GfxViewInfo *viewInfo);																															
 	void R_AddCmdDrawStretchPic(void *material, float x, float y, float w, float h, float null1, float null2, float null3, float null4, float *color); // ASM
@@ -444,10 +444,10 @@ namespace Game
 	}
 
 	// using RegisterNew - ENUM (04)
-	static Utils::function<dvar_s* (const char *dvarName, DvarType typeEnum, std::uint16_t flags, const char *description, std::int32_t defaultIndex, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t enumSize, char** enumData)>
+	static Utils::function<dvar_s* (const char *dvarName, DvarType typeEnum, std::uint16_t flags, const char *description, std::int32_t defaultIndex, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t enumSize, const char** enumData)>
 		Dvar_RegisterEnum_r = 0x56C130;
 
-	inline dvar_s* Dvar_RegisterEnum(const char* dvarName, const char* description, std::int32_t defaultValue, std::int32_t enumSize, char** enumData, std::uint16_t flags) {
+	inline dvar_s* Dvar_RegisterEnum(const char* dvarName, const char* description, std::int32_t defaultValue, std::int32_t enumSize, const char** enumData, std::uint16_t flags) {
 		return Dvar_RegisterEnum_r(dvarName, DvarType::DVAR_TYPE_ENUM, flags, description, defaultValue, 0, 0, 0, enumSize, enumData);
 	}
 
@@ -473,7 +473,7 @@ namespace Game
 	void Dvar_SetValue(dvar_s* _dvar, const char *_dvarValue);
 
 	Game::dvar_s* Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description);
-	char* Dvar_EnumToString(const dvar_s *a1);
+	const char* Dvar_EnumToString(const dvar_s *a1);
 
 	void Dvar_SetString(const char *text /*eax*/, dvar_s *dvar /*esi*/); //ASM
 	

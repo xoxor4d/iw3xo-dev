@@ -15,8 +15,8 @@ const char* CON_HELP_PRINT =	"---------------- CONSOLE HELP --------------------
 // init console addon struct
 Game::Console_Addons conAddon = Game::Console_Addons();
 
-static char* con_mapdir = "maps/mp";
-static char* con_mapext = "autocomplete"; // change d3dbsp to autocomplete
+static const char* con_mapdir = "maps/mp";
+static const char* con_mapext = "autocomplete"; // change d3dbsp to autocomplete
 
 namespace Components
 {
@@ -1224,6 +1224,13 @@ namespace Components
 		Game::conDrawInputGlob->inputTextLen = currentInputText;
 		Game::conDrawInputGlob->autoCompleteChoice[0] = 0;
 
+		int	 CmdOrDvar = 0;
+
+		auto var_con_originalCommand = con_tokenizedInput;
+		int  var_con_currentMatchCount = 0;
+		int  var_con_isDvarCommand = 0;
+
+		float outputSliderWidth = 16.0f;
 
 		if (inputTextLenPrev != currentInputText)
 		{
@@ -1252,9 +1259,8 @@ namespace Components
 			goto REDRAW_CURSOR_RETURN;
 		}
 
-		auto	var_con_originalCommand = con_tokenizedInput;
-		int		CmdOrDvar;
-
+		var_con_originalCommand = con_tokenizedInput;
+		
 		if (XO_Console::Cmd_Argc() > 1 && Con_IsDvarCommand(con_tokenizedInput))
 		{
 			CmdOrDvar = 1;
@@ -1319,7 +1325,8 @@ CON_MATCH_PREFIX_ONLY:
 			}
 		}
 
-		int var_con_currentMatchCount = Game::conDrawInputGlob->matchCount;
+		var_con_currentMatchCount = Game::conDrawInputGlob->matchCount;
+
 		if (!Game::conDrawInputGlob->matchCount)
 		{
 			Game::Con_DrawInputPrompt();
@@ -1328,7 +1335,8 @@ CON_MATCH_PREFIX_ONLY:
 			goto REDRAW_CURSOR_RETURN;
 		}
 
-		int var_con_isDvarCommand = Game::conDrawInputGlob->matchIndex;
+		var_con_isDvarCommand = Game::conDrawInputGlob->matchIndex;
+
 		if (Game::conDrawInputGlob->matchIndex < Game::conDrawInputGlob->matchCount && Game::conDrawInputGlob->autoCompleteChoice[0])
 		{
 			if (Game::conDrawInputGlob->matchIndex >= 0)
@@ -1347,7 +1355,6 @@ CON_MATCH_PREFIX_ONLY:
 
 		Game::Con_DrawInputPrompt();
 
-	
 	CON_SKIP_INPUT_PROMPT:
 		Game::conDrawInputGlob->y = Game::conDrawInputGlob->y + (2 * Game::conDrawInputGlob->fontHeight + 15.0f);
 		Game::conDrawInputGlob->x = Game::conDrawInputGlob->leftX;
@@ -1368,7 +1375,7 @@ CON_MATCH_PREFIX_ONLY:
 		// --------------------------------------------------------------------------- 
 		// :: Too many matches to show ( 1 line )
 
-		float outputSliderWidth = 16.0f;
+		outputSliderWidth = 16.0f;
 
 		if(Game::conDrawInputGlob->matchCount > Dvars::xo_con_maxMatches->current.integer)
 		{

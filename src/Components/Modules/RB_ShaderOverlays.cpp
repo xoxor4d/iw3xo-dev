@@ -177,7 +177,27 @@ namespace Components
 		auto r_showFloatZDebug	= Game::Dvar_FindVar("r_showFloatZDebug");
 		auto sc_showDebug		= Game::Dvar_FindVar("sc_showDebug");
 		
-		if (Dvars::xo_shaderoverlay && Dvars::xo_ssao_debugnormal && (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled))
+		if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 1)
+		{
+			Game::RB_ShowFbColorDebug_Screen();
+		}
+
+		else if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 2)
+		{
+			Game::RB_ShowFbColorDebug_Feedback();
+		}
+
+		else if (r_showFloatZDebug && r_showFloatZDebug->current.enabled)
+		{
+			Game::RB_ShowFloatZDebug();
+		}
+
+		else if (sc_showDebug && sc_showDebug->current.enabled)
+		{
+			Game::RB_ShowShadowsDebug();
+		}
+
+		else if (Dvars::xo_shaderoverlay && Dvars::xo_ssao_debugnormal && (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled))
 		{
 			auto r_zFeather		= Game::Dvar_FindVar("r_zFeather");
 			auto r_distortion	= Game::Dvar_FindVar("r_distortion");
@@ -206,31 +226,12 @@ namespace Components
 			{
 				RB_DrawCustomShaders(Dvars::xo_shaderoverlay_custom->current.string);
 			}
+
 			// use pre-defined materials
 			else
 			{
 				RB_DrawCustomShaders(Game::Dvar_EnumToString(Dvars::xo_shaderoverlay));
 			}
-		}
-
-		else if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 1)
-		{
-			Game::RB_ShowFbColorDebug_Screen();
-		}
-
-		else if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 2)
-		{
-			Game::RB_ShowFbColorDebug_Feedback();
-		}
-
-		else if (r_showFloatZDebug && r_showFloatZDebug->current.enabled)
-		{
-			Game::RB_ShowFloatZDebug();
-		}
-
-		else if (sc_showDebug && sc_showDebug->current.enabled)
-		{
-			Game::RB_ShowShadowsDebug();
 		}
 
 		if (Dvars::xo_shaderdbg_matrix && Dvars::xo_shaderdbg_matrix->current.enabled)
@@ -486,7 +487,7 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-		static std::vector <char*> xo_shaderoverlayEnum =
+		static std::vector <const char*> xo_shaderoverlayEnum =
 		{
 			"NONE",
 			"Z_SHADER_SSAO",
