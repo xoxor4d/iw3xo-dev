@@ -9,6 +9,13 @@ Project Page: https://xoxor4d.github.io/projects/iw3xo/
 
 ___
 
+<p float="left">
+  <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg" width="49%" />
+  <img src="https://xoxor4d.github.io/assets/img/iw3xo/originVelocity.jpg" width="49%" align="right" /> 
+</p>
+
+___
+
 #### Building the project:
 1. Clone the repo (zip does not include deps)
 2. Hit "generate.bat" to build project files with premake
