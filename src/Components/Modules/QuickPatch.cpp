@@ -151,7 +151,7 @@ namespace Components
 			// push    msg
 			// push    dropType
 
-			// just skip the error and R_SetSampler
+			// skip error and R_SetSampler
 			//push	ebx // GfxCmdBufState* <- wrong
 			//push	ebp // GfxCmdBufSourceState*
 			//push	edi // MaterialShaderArgument*
@@ -273,6 +273,17 @@ namespace Components
 		// Hook "Com_Error(1, "Tried to use '%s' when it isn't valid\n", codeSampler)" to skip a call to R_SetSampler
 		Utils::Hook(0x64BCF1, codesampler_error01_stub, HOOK_JUMP).install()->quick(); // R_SetupPassPerObjectArgs
 		Utils::Hook(0x64C350, codesampler_error02_stub, HOOK_JUMP).install()->quick(); // R_SetPassShaderStableArguments (not really used)
+
+
+		// *
+		// bouncepatch stuff
+
+		//Utils::Hook::Set<BYTE>(0x40E3FA, 0xEB); Utils::Hook::Set<BYTE>(0x40E3FA + 1, 0x20); // jnp 0040E41C -> jmp 0040E41C = Bounce on everything - projVelocity
+		//Utils::Hook::Set<BYTE>(0x40E3E8, 0xD9); Utils::Hook::Set<BYTE>(0x40E3E8 + 1, 0xEB); // fld1 to fldpi - projVelocity
+		//Utils::Hook::Set<FLOAT>(0x6D8D84, 0.005f); // Float 0.3 -> 0.005 = ignore angles - stepslidemove
+
+		// elevator slide along all edges
+		//Utils::Hook::Set<BYTE>(0x4103E2, 0x01);
 
 
 		// *

@@ -1532,7 +1532,6 @@ namespace Components
 		}
 
 		PM_Q3_StepSlideMove(pm, pml, false);
-		//Game::PM_StepSlideMove(pm, pml, false);
 	}
 
 	// STOCK/Q3/CS :: Entrypoint - Combined Q3CPM/Source AirMove ->
@@ -1629,18 +1628,8 @@ namespace Components
 			}
 
 			// Q3 RampSliding and RampJumping
-			if (Dvars::pm_movementType->current.integer == Game::PM_MTYPE::DEFRAG) 
-			{
-				PM_Q3_StepSlideMove(pm, pml, true);
-				//Game::PM_StepSlideMove(pm, pml, true);
-			}
-
-			// Stock StepSlide and SlideMove // why is that here?, will never reach that code lol
-			else 
-			{
-				Game::PM_StepSlideMove(pm, pml, 1);
-			}
-
+			PM_Q3_StepSlideMove(pm, pml, true);
+			
 			//Game::PM_SetMovementDir(pm, pml);
 			//PM_CopyVelocityToLocal(ps);
 
@@ -1900,10 +1889,10 @@ namespace Components
 			case 2:
 			case 3:
 				pm->ps->groundEntityNum = 1022;
+				break;
 
 			default:
 				pm->ps->groundEntityNum = 1023;
-				break;
 		}
 
 		//pm->ps->groundEntityNum = trace.entityNum;
@@ -2137,6 +2126,32 @@ namespace Components
 
 	#pragma endregion
 	#pragma region MOVEMENT-ASM
+
+	// CM_IsEdgeWalkable -> return 0 to always bounce on terrain edges
+	__declspec(naked) void CM_IsEdgeWalkable_stub()
+	{
+		__asm
+		{
+			sbb     edx, edx;	// og
+			neg     edx;		// og
+
+			push	eax;
+			mov		eax, Dvars::pm_terrainEdgeBounces;
+			cmp		byte ptr[eax + 12], 1;
+			pop		eax;
+
+			je		edge_bounces;
+
+			// stock
+			mov     al, dl;
+			retn;
+
+			// terrain edge bounces enabled
+			edge_bounces:
+			mov		al, 0;
+			retn;
+		}
+	}
 
 	// old way of enabling auto bunnyhop :: cs
 	__declspec(naked) void pm_auto_bunnyhop_stub()
@@ -2580,6 +2595,12 @@ namespace Components
 			/* flags	*/ Game::dvar_flags::none);
 #endif
 
+		Dvars::pm_terrainEdgeBounces = Game::Dvar_RegisterBool(
+			/* name		*/ "pm_terrainEdgeBounces",
+			/* desc		*/ "ability to bounce on terrain edges",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::none);
+
 		Dvars::pm_crashland = Game::Dvar_RegisterBool(
 			/* name		*/ "pm_crashland",
 			/* desc		*/ "disable this to completely skip any fall related effects",
@@ -2810,6 +2831,10 @@ namespace Components
 		
 		// hook PM_GroundTrace - Bottom of PmoveSingle ( q3 rampslide )				- using stock func if stock movementtype
 		Utils::Hook(0x414B95, PM_Q3_GroundTrace, HOOK_CALL).install()->quick();
+
+		// hook CM_IsEdgeWalkable to implement terrain edge bounces
+		Utils::Hook::Nop(0x4EFCD1, 6);
+		Utils::Hook(0x4EFCD1, CM_IsEdgeWalkable_stub, HOOK_JUMP).install()->quick();
 
 		// implement rocket pre-fire to hopefully fix rocketdelay <- like in Q3
 		Utils::Hook(0x4C7F64, pm_fix_rocketdelay_stub, HOOK_JUMP).install()->quick();

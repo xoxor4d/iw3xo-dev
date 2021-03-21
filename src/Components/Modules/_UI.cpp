@@ -517,6 +517,12 @@ namespace Components
 		mousePos.x = mousePos.x * 2.0f - 1.0f;
 		mousePos.y = mousePos.y * 2.0f - 1.0f;
 
+		// filterTap 5
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5][0] = Dvars::ui_eyes_position->current.vector[0];
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5][1] = Dvars::ui_eyes_position->current.vector[1];
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5][2] = Dvars::ui_eyes_size->current.value;
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5][3] = Dvars::ui_eyes_alpha->current.value;
+
 		// filterTap 6
 		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6][0] = Dvars::ui_button_highlight_radius->current.value;
 		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6][1] = Dvars::ui_button_highlight_brightness->current.value;
@@ -534,6 +540,10 @@ namespace Components
 		// get current viewport width / height and update ui_dvars
 		int vpWidth = (int)floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));
 		int vpHeight = (int)floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
+
+		// set rendersize (needed?)
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE][0] = static_cast<float>(vpWidth);
+		Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE][1] = static_cast<float>(vpHeight);
 
 		if (Dvars::ui_renderWidth && Dvars::ui_renderHeight)
 		{
@@ -1122,6 +1132,30 @@ namespace Components
 			/* default	*/ 0.7f,
 			/* minVal	*/ 0.0f,
 			/* maxVal	*/ 2.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::ui_eyes_position = Game::Dvar_RegisterVec2(
+			/* name		*/ "ui_eyes_position",
+			/* desc		*/ "position of main menu eyes",
+			/* default	*/ 0.925f, 0.85f,
+			/* minVal	*/ -2.0f,
+			/* maxVal	*/ 2.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::ui_eyes_size = Game::Dvar_RegisterFloat(
+			/* name		*/ "ui_eyes_size",
+			/* desc		*/ "size of main menu eyes",
+			/* default	*/ 0.03f,
+			/* minVal	*/ 0.0001f,
+			/* maxVal	*/ 1.0f,
+			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::ui_eyes_alpha = Game::Dvar_RegisterFloat(
+			/* name		*/ "ui_eyes_alpha",
+			/* desc		*/ "alpha of main menu eyes",
+			/* default	*/ 0.5f,
+			/* minVal	*/ 0.0f,
+			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
 #if DEBUG

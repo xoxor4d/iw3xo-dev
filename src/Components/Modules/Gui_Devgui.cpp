@@ -193,7 +193,7 @@ namespace Components
 
 					ImGui::Checkbox("Bhop Auto", &Dvars::pm_bhop_auto->current.enabled); TT("pm_bhop_auto");
 					ImGui::SameLine();
-					ImGui::Checkbox("Bhop Slowdown", &Dvars::pm_bhop_slowdown->current.enabled); TT("pm_bhop_slowdown");
+					ImGui::Checkbox("Bhop Slowdown", &Dvars::pm_bhop_slowdown->current.enabled); TT("pm_bhop_slowdown, disable landing induced velocity decreases");
 
 					auto jump_slowdownenable = Game::Dvar_FindVar("jump_slowdownenable");
 					if (jump_slowdownenable)
@@ -202,7 +202,10 @@ namespace Components
 						ImGui::Checkbox("Jump Slowdown", &jump_slowdownenable->current.enabled); TT("jump_slowdownenable");
 					}
 
-					ImGui::Checkbox("Crashland", &Dvars::pm_crashland->current.enabled); TT("pm_crashland");
+					ImGui::Checkbox("Crashland", &Dvars::pm_crashland->current.enabled); TT("pm_crashland, completely disable the crashland function and its side-effects");
+					ImGui::SameLine();
+					ImGui::Checkbox("Terrain Edge Bounces", &Dvars::pm_terrainEdgeBounces->current.enabled); TT("pm_terrainEdgeBounces, ability to bounce on terrain edges");
+
 					if (Dvars::pm_movementType && Dvars::pm_movementType->current.integer == 1) // Only avail. if quake movement is used
 					{
 						ImGui::SameLine();
@@ -261,6 +264,7 @@ namespace Components
 					ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
 
 					ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
+					
 					// ---------------
 					SEPERATORV(4.0f);
 
@@ -861,6 +865,20 @@ namespace Components
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
 			ImGui::SliderFloat("Background Alpha", Gui::DvarGetSet<float*>(Dvars::_imgui_window_alpha), 0.0f, 1.0f, "%.2f"); TT("_imgui_window_alpha");
+
+			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Main Menu", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat2("Eyes Position", Gui::DvarGetSet<float*>(Dvars::ui_eyes_position), 0.001f, Dvars::ui_eyes_position->domain.value.min, Dvars::ui_eyes_position->domain.value.max, "%.4f"); TT("ui_eyes_position");
+			ImGui::DragFloat("Eyes Size", Gui::DvarGetSet<float*>(Dvars::ui_eyes_size), 0.001f, Dvars::ui_eyes_size->domain.value.min, Dvars::ui_eyes_size->domain.value.max, "%.4f"); TT("ui_eyes_size");
+			ImGui::DragFloat("Eyes Alpha", Gui::DvarGetSet<float*>(Dvars::ui_eyes_alpha), 0.001f, Dvars::ui_eyes_alpha->domain.value.min, Dvars::ui_eyes_alpha->domain.value.max, "%.4f"); TT("ui_eyes_alpha");
+
+			// --------------- 
+			//SEPERATORV(4.0f);
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}

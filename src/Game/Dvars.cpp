@@ -32,6 +32,9 @@ namespace Dvars
 	Game::dvar_s* ui_changelog02 = nullptr;
 	Game::dvar_s* ui_changelog03 = nullptr;
 	Game::dvar_s* ui_changelog04 = nullptr;
+	Game::dvar_s* ui_eyes_position = nullptr;
+	Game::dvar_s* ui_eyes_size = nullptr;
+	Game::dvar_s* ui_eyes_alpha = nullptr;
 	Game::dvar_s* xo_menu_dbg = nullptr;
 
 	// ImGui
@@ -72,6 +75,7 @@ namespace Dvars
 	Game::dvar_s* pm_crashland = nullptr;
 	Game::dvar_s* pm_rocketJumpHeight = nullptr;
 	Game::dvar_s* pm_disableSprint = nullptr;
+	Game::dvar_s* pm_terrainEdgeBounces = nullptr;
 	Game::dvar_s* pm_bhop_auto = nullptr;
 	Game::dvar_s* pm_bhop_slowdown = nullptr;
 	Game::dvar_s* pm_cpm_useQuakeDamage = nullptr;

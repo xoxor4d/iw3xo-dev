@@ -32,6 +32,9 @@ namespace Dvars
 	extern Game::dvar_s* ui_changelog02;
 	extern Game::dvar_s* ui_changelog03;
 	extern Game::dvar_s* ui_changelog04;
+	extern Game::dvar_s* ui_eyes_position;
+	extern Game::dvar_s* ui_eyes_size;
+	extern Game::dvar_s* ui_eyes_alpha;
 	extern Game::dvar_s* xo_menu_dbg;
 
 
@@ -79,6 +82,7 @@ namespace Dvars
 	extern Game::dvar_s* pm_crashland;
 	extern Game::dvar_s* pm_rocketJumpHeight;
 	extern Game::dvar_s* pm_disableSprint;
+	extern Game::dvar_s* pm_terrainEdgeBounces;
 	extern Game::dvar_s* pm_bhop_auto;
 	extern Game::dvar_s* pm_bhop_slowdown;
 	extern Game::dvar_s* pm_cpm_useQuakeDamage;
