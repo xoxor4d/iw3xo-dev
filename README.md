@@ -10,8 +10,8 @@ Project Page: https://xoxor4d.github.io/projects/iw3xo/
 ___
 
 <p float="left">
-  <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg" width="49%" />
-  <img src="https://xoxor4d.github.io/assets/img/iw3xo/originVelocity.jpg" width="49%" align="right" /> 
+  <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg" width="48%" />
+  <img src="https://xoxor4d.github.io/assets/img/iw3xo/originVelocity.jpg" width="48%" align="right" /> 
 </p>
 
 ___
