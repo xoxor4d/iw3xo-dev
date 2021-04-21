@@ -129,6 +129,7 @@ namespace Dvars
 	extern Game::dvar_s* r_aspectRatio;
 	extern Game::dvar_s* r_noborder;
 	extern Game::dvar_s* r_d3d9ex;
+	extern Game::dvar_s* r_dumpShaders;
 
 
 	// Debug collision

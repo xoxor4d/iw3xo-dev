@@ -122,6 +122,7 @@ namespace Dvars
 	Game::dvar_s* r_aspectRatio = nullptr;
 	Game::dvar_s* r_noborder = nullptr;
 	Game::dvar_s* r_d3d9ex = nullptr;
+	Game::dvar_s* r_dumpShaders = nullptr;
 
 
 	// Debug Collision

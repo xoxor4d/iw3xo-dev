@@ -1,4 +1,7 @@
 #include "STDInclude.hpp"
+#include<iostream>
+#include<fstream>
+#include <unordered_set>
 
 namespace Components
 {
@@ -247,9 +250,76 @@ namespace Components
 	// ----------------------------
 #ifdef DEVGUI_OCEAN
 
+	// no reason to dump the same shader multiple times over the lifespan of the current session
+	std::unordered_set<std::string> r_dumped_shader_set;
+
+	bool folder_ps_exists = false;
+	bool folder_vs_exists = false;
+
+	bool dumpedshader_contains(const std::unordered_set<std::string>& set, const std::string& s)
+	{
+		return set.find(s) != set.end();
+	}
+
 	void pixelshader_custom_constants(Game::GfxCmdBufState* state)
 	{
-		// fixup cod4 code constants
+		// dump shaders at runtime ~> TODO: move that to its own function / hook
+		if (Dvars::r_dumpShaders && Dvars::r_dumpShaders->current.enabled)
+		{
+			const auto basePath = Game::Dvar_FindVar("fs_basepath");
+
+			if (!basePath) {
+				return;
+			}
+
+			std::string filePath = basePath->current.string + "\\iw3xo\\shader_dump\\"s;
+
+			if (state && state->pass)
+			{
+				if (state->pass->vertexShader && state->pass->vertexShader->name)
+				{
+					// check if shader was already dumped
+					if(!dumpedshader_contains(r_dumped_shader_set, "vs_"s + state->pass->vertexShader->name))
+					{
+						if (!folder_vs_exists)
+						{
+							std::filesystem::create_directories(filePath + "vertexShader\\");
+							folder_vs_exists = true;
+						}
+
+						std::uint16_t bin_size = state->pass->vertexShader->prog.loadDef.programSize;
+						std::ofstream outfile(filePath + "vertexShader\\" + "vs_" + state->pass->vertexShader->name, std::ofstream::binary);
+
+						outfile.write(reinterpret_cast<char*>(state->pass->vertexShader->prog.loadDef.program), bin_size * 4);
+						outfile.close();
+
+						r_dumped_shader_set.emplace("vs_"s + state->pass->vertexShader->name);
+					}
+				}
+
+				if (state->pass->pixelShader && state->pass->pixelShader->name)
+				{
+					// check if shader was already dumped
+					if (!dumpedshader_contains(r_dumped_shader_set, "ps_"s + state->pass->pixelShader->name))
+					{
+						if (!folder_ps_exists)
+						{
+							std::filesystem::create_directories(filePath + "pixelShader\\");
+							folder_ps_exists = true;
+						}
+						
+						std::uint16_t bin_size = state->pass->pixelShader->prog.loadDef.programSize;
+						std::ofstream outfile(filePath + "pixelShader\\" + "ps_" + state->pass->pixelShader->name, std::ofstream::binary);
+
+						outfile.write(reinterpret_cast<char*>(state->pass->pixelShader->prog.loadDef.program), bin_size * 4);
+						outfile.close();
+
+						r_dumped_shader_set.emplace("ps_"s + state->pass->pixelShader->name);
+					}
+				}
+			}
+		}
+
 		if (state && state->pass)
 		{
 			// loop through all argument defs to find custom codeconsts
@@ -480,6 +550,12 @@ namespace Components
 	{
 		// -----
 		// Dvars
+
+		 Dvars::r_dumpShaders = Game::Dvar_RegisterBool(
+			/* name		*/ "r_dumpShaders",
+			/* desc		*/ "dump loaded shaders at runtime",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::none);
 
 		Dvars::xo_shaderdbg_matrix = Game::Dvar_RegisterBool(
 			/* name		*/ "xo_shaderdbg_matrix",

@@ -179,6 +179,14 @@ namespace Components
 				Game::Com_PrintMessage(0, "^1Error: ^7r_smp_backend must be set to 0!", 0);
 			}
 		}
+
+		if (const auto& r_aaSamples = Game::Dvar_FindVar("r_aaSamples"))
+		{
+			if (r_aaSamples->current.integer != 1)
+			{
+				Game::Com_PrintMessage(0, "^1Error: ^7r_aaSamples must be set to 1 (Disable AA)!", 0);
+			}
+		}
 	}
 
 	__declspec(naked) void cubemap_shot_f_stub()
@@ -201,7 +209,7 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		// fix cubemapshot_f
+		// fix cubemapshot_f (needs disabled AA, disabled r_smp_backend and game-resolution > then cubemapshot resolution)
 		Utils::Hook::Nop(0x47549E, 3); // start with suffix "_rt" and not with junk memory
 		Utils::Hook::Set<BYTE>(0x4754D5 + 2, 0xB0); // end on "_dn" + 1 instead of "_bk" (6 images)
 		Utils::Hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // msg when "r_smp_backend" is enabled (must be set to 0 or we obtain purple images)
