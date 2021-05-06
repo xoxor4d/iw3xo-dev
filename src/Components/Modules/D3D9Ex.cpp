@@ -1,5 +1,6 @@
 // https://github.com/IW4x/iw4x-client/blob/develop/src/Components/Modules/D3D9Ex.cpp
 #include "STDInclude.hpp"
+//#include <d3d9on12.h>
 
 namespace Components
 {
@@ -643,9 +644,9 @@ namespace Components
 
 #pragma endregion
 
-#pragma region D3D9
+#pragma region _D3D9
 
-	HRESULT __stdcall D3D9Ex::D3D9::QueryInterface(REFIID riid, void** ppvObj)
+	HRESULT __stdcall D3D9Ex::_D3D9::QueryInterface(REFIID riid, void** ppvObj)
 	{
 		*ppvObj = nullptr;
 
@@ -659,117 +660,264 @@ namespace Components
 		return hRes;
 	}
 
-	ULONG __stdcall D3D9Ex::D3D9::AddRef()
+	ULONG __stdcall D3D9Ex::_D3D9::AddRef()
 	{
 		return m_pIDirect3D9->AddRef();
 	}
 
-	ULONG __stdcall D3D9Ex::D3D9::Release()
+	ULONG __stdcall D3D9Ex::_D3D9::Release()
 	{
 		ULONG count = m_pIDirect3D9->Release();
 		if (!count) delete this;
 		return count;
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::RegisterSoftwareDevice(void* pInitializeFunction)
+	HRESULT __stdcall D3D9Ex::_D3D9::RegisterSoftwareDevice(void* pInitializeFunction)
 	{
 		return m_pIDirect3D9->RegisterSoftwareDevice(pInitializeFunction);
 	}
 
-	UINT __stdcall D3D9Ex::D3D9::GetAdapterCount()
+	UINT __stdcall D3D9Ex::_D3D9::GetAdapterCount()
 	{
 		return m_pIDirect3D9->GetAdapterCount();
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier)
+	HRESULT __stdcall D3D9Ex::_D3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier)
 	{
 		return m_pIDirect3D9->GetAdapterIdentifier(Adapter, Flags, pIdentifier);
 	}
 
-	UINT __stdcall D3D9Ex::D3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
+	UINT __stdcall D3D9Ex::_D3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 	{
 		return m_pIDirect3D9->GetAdapterModeCount(Adapter, Format);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
+	HRESULT __stdcall D3D9Ex::_D3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
 	{
 		return m_pIDirect3D9->EnumAdapterModes(Adapter, Format, Mode, pMode);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
+	HRESULT __stdcall D3D9Ex::_D3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
 	{
 		return m_pIDirect3D9->GetAdapterDisplayMode(Adapter, pMode);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceType(UINT iAdapter, D3DDEVTYPE DevType, D3DFORMAT DisplayFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
+	HRESULT __stdcall D3D9Ex::_D3D9::CheckDeviceType(UINT iAdapter, D3DDEVTYPE DevType, D3DFORMAT DisplayFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 	{
 		return m_pIDirect3D9->CheckDeviceType(iAdapter, DevType, DisplayFormat, BackBufferFormat, bWindowed);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
+	HRESULT __stdcall D3D9Ex::_D3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 	{
 		return m_pIDirect3D9->CheckDeviceFormat(Adapter, DeviceType, AdapterFormat, Usage, RType, CheckFormat);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels)
+	HRESULT __stdcall D3D9Ex::_D3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels)
 	{
 		return m_pIDirect3D9->CheckDeviceMultiSampleType(Adapter, DeviceType, SurfaceFormat, Windowed, MultiSampleType, pQualityLevels);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
+	HRESULT __stdcall D3D9Ex::_D3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 	{
 		return m_pIDirect3D9->CheckDepthStencilMatch(Adapter, DeviceType, AdapterFormat, RenderTargetFormat, DepthStencilFormat);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
+	HRESULT __stdcall D3D9Ex::_D3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 	{
 		return m_pIDirect3D9->CheckDeviceFormatConversion(Adapter, DeviceType, SourceFormat, TargetFormat);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
+	HRESULT __stdcall D3D9Ex::_D3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
 	{
 		return m_pIDirect3D9->GetDeviceCaps(Adapter, DeviceType, pCaps);
 	}
 
-	HMONITOR __stdcall D3D9Ex::D3D9::GetAdapterMonitor(UINT Adapter)
+	HMONITOR __stdcall D3D9Ex::_D3D9::GetAdapterMonitor(UINT Adapter)
 	{
 		return m_pIDirect3D9->GetAdapterMonitor(Adapter);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
+	HRESULT __stdcall D3D9Ex::_D3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
 	{
-		//BehaviorFlags |= D3DCREATE_ENABLE_PRESENTSTATS;
-
 		HRESULT hres = m_pIDirect3D9->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
+		
 		*ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
 		Game::Globals::d3d9_device = *ppReturnedDeviceInterface;
 		
 		return hres;
 	}
 
+
 #pragma endregion
+
+#pragma region _D3D9Ex
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::QueryInterface(REFIID riid, void** ppvObj)
+	{
+		*ppvObj = nullptr;
+
+		HRESULT hRes = m_pIDirect3D9Ex->QueryInterface(riid, ppvObj);
+
+		if (hRes == NOERROR)
+		{
+			*ppvObj = this;
+		}
+
+		return hRes;
+	}
+
+	ULONG __stdcall D3D9Ex::_D3D9Ex::AddRef()
+	{
+		return m_pIDirect3D9Ex->AddRef();
+	}
+
+	ULONG __stdcall D3D9Ex::_D3D9Ex::Release()
+	{
+		ULONG count = m_pIDirect3D9Ex->Release();
+		if (!count) delete this;
+		return count;
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::RegisterSoftwareDevice(void* pInitializeFunction)
+	{
+		return m_pIDirect3D9Ex->RegisterSoftwareDevice(pInitializeFunction);
+	}
+
+	UINT __stdcall D3D9Ex::_D3D9Ex::GetAdapterCount()
+	{
+		return m_pIDirect3D9Ex->GetAdapterCount();
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier)
+	{
+		return m_pIDirect3D9Ex->GetAdapterIdentifier(Adapter, Flags, pIdentifier);
+	}
+
+	UINT __stdcall D3D9Ex::_D3D9Ex::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
+	{
+		return m_pIDirect3D9Ex->GetAdapterModeCount(Adapter, Format);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
+	{
+		return m_pIDirect3D9Ex->EnumAdapterModes(Adapter, Format, Mode, pMode);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
+	{
+		return m_pIDirect3D9Ex->GetAdapterDisplayMode(Adapter, pMode);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CheckDeviceType(UINT iAdapter, D3DDEVTYPE DevType, D3DFORMAT DisplayFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
+	{
+		return m_pIDirect3D9Ex->CheckDeviceType(iAdapter, DevType, DisplayFormat, BackBufferFormat, bWindowed);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
+	{
+		return m_pIDirect3D9Ex->CheckDeviceFormat(Adapter, DeviceType, AdapterFormat, Usage, RType, CheckFormat);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels)
+	{
+		return m_pIDirect3D9Ex->CheckDeviceMultiSampleType(Adapter, DeviceType, SurfaceFormat, Windowed, MultiSampleType, pQualityLevels);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
+	{
+		return m_pIDirect3D9Ex->CheckDepthStencilMatch(Adapter, DeviceType, AdapterFormat, RenderTargetFormat, DepthStencilFormat);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
+	{
+		return m_pIDirect3D9Ex->CheckDeviceFormatConversion(Adapter, DeviceType, SourceFormat, TargetFormat);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
+	{
+		return m_pIDirect3D9Ex->GetDeviceCaps(Adapter, DeviceType, pCaps);
+	}
+
+	HMONITOR __stdcall D3D9Ex::_D3D9Ex::GetAdapterMonitor(UINT Adapter)
+	{
+		return m_pIDirect3D9Ex->GetAdapterMonitor(Adapter);
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
+	{
+		HRESULT hres = m_pIDirect3D9Ex->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
+		
+		*ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
+		Game::Globals::d3d9_device = *ppReturnedDeviceInterface;
+
+		return hres;
+	}
+
+	UINT __stdcall D3D9Ex::_D3D9Ex::GetAdapterModeCountEx(UINT Adapter, const D3DDISPLAYMODEFILTER* pFilter)
+	{
+		return (m_pIDirect3D9Ex->GetAdapterModeCountEx(Adapter, pFilter));
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::EnumAdapterModesEx(UINT Adapter, const D3DDISPLAYMODEFILTER* pFilter, UINT Mode, D3DDISPLAYMODEEX* pMode)
+	{
+		return (m_pIDirect3D9Ex->EnumAdapterModesEx(Adapter, pFilter, Mode, pMode));
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::GetAdapterDisplayModeEx(UINT Adapter, D3DDISPLAYMODEEX* pMode, D3DDISPLAYROTATION* pRotation)
+	{
+		return (m_pIDirect3D9Ex->GetAdapterDisplayModeEx(Adapter, pMode, pRotation));
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::CreateDeviceEx(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, D3DDISPLAYMODEEX* pFullscreenDisplayMode, IDirect3DDevice9Ex** ppReturnedDeviceInterface)
+	{
+		return (m_pIDirect3D9Ex->CreateDeviceEx(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, pFullscreenDisplayMode, ppReturnedDeviceInterface));
+	}
+
+	HRESULT __stdcall D3D9Ex::_D3D9Ex::GetAdapterLUID(UINT Adapter, LUID* pLUID)
+	{
+		return (m_pIDirect3D9Ex->GetAdapterLUID(Adapter, pLUID));
+	}
+#pragma endregion
+
+	/*HMODULE GetD3D9Module()
+	{
+		static HMODULE hModule = []() -> HMODULE
+		{
+			constexpr UINT MaxPath = 4096;
+
+			wchar_t dllPath[MaxPath];
+
+			GetSystemDirectoryW(dllPath, MaxPath);
+			wcscat_s(dllPath, L"\\d3d9.dll");
+
+			return LoadLibraryW(dllPath);
+		}();
+
+		return hModule;
+	}*/
 
 	IDirect3D9* __stdcall D3D9Ex::Direct3DCreate9Stub(UINT sdk)
 	{
-		if(Dvars::r_d3d9ex->current.enabled)
+		if (Dvars::r_d3d9ex && Dvars::r_d3d9ex->current.enabled)
 		{
-			IDirect3D9Ex* test = nullptr;
+			//D3D9ON12_ARGS arg = { };
+			//arg.Enable9On12 = TRUE;
+			//return reinterpret_cast<decltype(Direct3DCreate9On12)*>(GetProcAddress(GetD3D9Module(), "Direct3DCreate9On12"))(sdk, &arg, 1);
 
-			if (FAILED(Direct3DCreate9Ex(sdk, &test))) 
-				return nullptr;
+			IDirect3D9Ex* d3d9ex = nullptr;
+			
+			if (SUCCEEDED(Direct3DCreate9Ex(sdk, &d3d9ex))) {
+				return (new D3D9Ex::_D3D9Ex(d3d9ex));
+			}
 
-			return (new D3D9Ex::D3D9(test));
+			Game::Com_PrintMessage(0, "Direct3D9Ex failed to initialize. Defaulting to Direct3D9.\n", 0);
 		}
-		else
-		{
-			return Direct3DCreate9(sdk);
-		}
+
+		return (new D3D9Ex::_D3D9(Direct3DCreate9(sdk)));
 	}
 
 	D3D9Ex::D3D9Ex()
 	{
-		// do not load module when dedicated -> check commandline
-
 		Dvars::r_d3d9ex = Game::Dvar_RegisterBool(
 			/* name		*/ "r_d3d9ex",
 			/* desc		*/ "extended d3d9 interface",

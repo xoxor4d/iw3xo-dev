@@ -394,6 +394,14 @@ namespace Game
 
 	dvar_s* Dvar_FindVar(const char* dvar);
 
+	// --- properly register integer dvars ---
+	void	Dvar_ReregisterInt(dvar_s* dvar /*eax*/, std::uint32_t flags /*edi*/, const char* dvarName, DvarType type, const char* description, int x, int y, int z, int w, int min, int max); // ASM
+	dvar_s* Dvar_RegisterIntWrapper_r(const char* dvarName, DvarType type, std::uint16_t flags, const char* description, int x, int y, int z, int w, int min, int max);
+	
+	inline dvar_s* Dvar_RegisterIntWrapper(const char* dvarName, const char* description, int defaultValue, int minValue, int maxValue, std::uint16_t flags)
+	{ return Dvar_RegisterIntWrapper_r(dvarName, DVAR_TYPE_INT, flags, description, minValue, 0, 0, 0, minValue, maxValue); }
+	// -----------------------------------------
+
 	static Utils::function<void(dvar_s* dvar, float value, int source)> Dvar_SetFloat = 0x56C960;
 
 	static Utils::function<dvar_s* (const char *dvarName, float defaultValue, float minValue, float maxValue, std::uint16_t flags, const char *description)>

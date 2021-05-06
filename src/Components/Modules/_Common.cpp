@@ -5,10 +5,11 @@ namespace Components
 	// *
 	// Dvars
 
-	// register string dvars
-	void R_RegisterStringDvars()
+	// register additional dvars in R_Init->R_RegisterDvars
+	void R_RegisterAdditionalDvars()
 	{
 		_UI::MainMenu_Changelog();
+		_Renderer::R_RegisterBufferDvars();
 		RB_ShaderOverlays::Register_StringDvars();
 	}
 
@@ -63,14 +64,14 @@ namespace Components
 		}
 	}
 
-	__declspec(naked) void R_RegisterStringDvars_stub()
+	__declspec(naked) void R_RegisterAdditionalDvars_stub()
 	{
 		const static uint32_t R_RegisterSunDvars_Func = 0x636FC0;
 		const static uint32_t retnPt = 0x629D7F;
 		__asm
 		{
 			pushad
-			Call	R_RegisterStringDvars
+			Call	R_RegisterAdditionalDvars
 			popad
 
 			Call	R_RegisterSunDvars_Func
@@ -430,6 +431,16 @@ namespace Components
 		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_WEAPON, 2400);
 		Game::db_realloc_xasset_pool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
 
+
+		// increase hunkTotal from 10mb to 15mb
+		Utils::Hook::Set<BYTE>(0x563A21 + 8, 0xF0);
+
+		// gmem from 128 to 512
+		Utils::Hook::Set<BYTE>(0x4FF23B + 4, 0x20);
+		//gmem prim pos ^
+		Utils::Hook::Set<BYTE>(0x4FF26B + 9, 0x20);
+
+
 		// *
 		// Dvars
 
@@ -437,7 +448,7 @@ namespace Components
 		Utils::Hook(0x46CB09, R_BeginRegistration_stub, HOOK_JUMP).install()->quick();
 
 		// Register String Dvars (doing so on module load crashes the game (SL_GetStringOfSize))
-		Utils::Hook(0x629D7A, R_RegisterStringDvars_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x629D7A, R_RegisterAdditionalDvars_stub, HOOK_JUMP).install()->quick();
 
 		// Disable dvar cheat / write protection
 		Utils::Hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();

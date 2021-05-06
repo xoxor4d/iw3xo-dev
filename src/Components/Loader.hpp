@@ -12,6 +12,7 @@ namespace Components
 		bool _Game;
 		bool _Map;
 		bool _Common;
+		bool _Renderer;
 		bool Command;
 		bool QuickPatch;
 		bool GScr_Methods;
@@ -69,6 +70,7 @@ namespace Components
 #include "Modules/_Game.hpp"
 #include "Modules/_Map.hpp"
 #include "Modules/_Common.hpp"
+#include "Modules/_Renderer.hpp"
 #include "Modules/Command.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/GScr_Methods.hpp"

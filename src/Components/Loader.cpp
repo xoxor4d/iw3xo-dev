@@ -13,30 +13,31 @@ namespace Components
 		Loader::MemAllocator.clear();
 
 		// global bools for more dynamic modules (choose which modules to load)
-		active._UI = true;
-		active._CG = true;
-		active._Pmove = true;
-		active._Debug = true;
-		active._Game = true;
-		active._Map = true;
-		active._Common = true;
-		active.Command = true;
-		active.GScr_Methods = true;
-		active.QuickPatch = true;
-		active.Scheduler = true;
+		active._UI			= true;
+		active._CG			= true;
+		active._Pmove		= true;
+		active._Debug		= true;
+		active._Game		= true;
+		active._Map			= true;
+		active._Common		= true;
+		active._Renderer	= true;
+		active.Command		= true;
+		active.GScr_Methods	= true;
+		active.QuickPatch	= true;
+		active.Scheduler	= true;
 		
-		active.D3D9Ex = true;
-		active.MenuExport = true;
-		active.PM_Movement = true;
-		active.XO_Console = true;
-		active.RB_DrawCollision = true;
+		active.D3D9Ex			 = true;
+		active.MenuExport		 = true;
+		active.PM_Movement		 = true;
+		active.XO_Console		 = true;
+		active.RB_DrawCollision	 = true;
 		active.RB_ShaderOverlays = true;
-		active.RadiantRemote = true;
-		active.Window = true;
-		active.Gui = active.Window == active.D3D9Ex; // needs the window module and d3d9ex (enabled)
-		active.Gui_Devgui = active.Gui; // obv. needs imgui
-		active.Compass = true;
-		active.CGaz = true;
+		active.RadiantRemote	 = true;
+		active.Window			 = true;
+		active.Gui				 = active.Window == active.D3D9Ex; // needs the window module and d3d9ex (enabled)
+		active.Gui_Devgui		 = active.Gui; // obv. needs imgui
+		active.Compass			 = true;
+		active.CGaz				 = true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_UI);
@@ -46,6 +47,7 @@ namespace Components
 		REGISTER_MODULE(_Game);
 		REGISTER_MODULE(_Map);
 		REGISTER_MODULE(_Common);
+		REGISTER_MODULE(_Renderer);
 		REGISTER_MODULE(Command);
 		REGISTER_MODULE(GScr_Methods);
 		REGISTER_MODULE(QuickPatch);

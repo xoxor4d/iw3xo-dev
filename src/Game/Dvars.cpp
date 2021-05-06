@@ -2,6 +2,21 @@
 
 namespace Dvars
 {
+	Game::dvar_s* r_buf_skinnedCacheVb = nullptr;
+	Game::dvar_s* r_buf_smodelCacheVb = nullptr;
+	Game::dvar_s* r_buf_smodelCacheIb = nullptr;
+	Game::dvar_s* r_buf_tempSkin = nullptr;
+	Game::dvar_s* r_buf_dynamicVertexBuffer = nullptr;
+	Game::dvar_s* r_buf_dynamicIndexBuffer = nullptr;
+	Game::dvar_s* r_buf_preTessIndexBuffer = nullptr;
+	
+
+	Game::dvar_s* r_debugShaderToggle = nullptr;
+	Game::dvar_s* r_setmaterial_hk = nullptr;
+
+	Game::dvar_s* r_wireframe_world = nullptr;
+	Game::dvar_s* r_wireframe_xmodels = nullptr;
+
 	// Radiant
 	Game::dvar_s* radiant_live = nullptr;
 	Game::dvar_s* radiant_livePort = nullptr;

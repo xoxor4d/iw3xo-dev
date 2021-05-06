@@ -1360,6 +1360,47 @@ namespace Game
 		}
 	}
 
+	void Dvar_ReregisterInt(dvar_s* dvar /*eax*/, std::uint32_t flags /*edi*/, const char* dvarName, DvarType dvartype, const char* description, int x, int y, int z, int w, int min, int max)
+	{
+		const static uint32_t Dvar_Reregister_Func = 0x56BFF0;
+		__asm
+		{
+			pushad
+
+			push	max;
+			push	min;
+			push	w;
+			push	z;
+			push	y;
+			push	x;
+			push	description;
+			push	dvartype;
+			push	dvarName;
+
+			mov		edi, flags;
+			mov		eax, [dvar];
+
+			Call	Dvar_Reregister_Func;
+			add		esp, 24h;
+
+			popad
+		}
+	}
+
+	// aaaaaaaaaaaaaaaaaaaaaar
+	Game::dvar_s* Dvar_RegisterIntWrapper_r(const char* dvarName, DvarType type, std::uint16_t flags, const char* description, int x, int y, int z, int w, int min, int max)
+	{
+		auto dvar = Dvar_FindVar(dvarName);
+		if (!dvar)
+		{
+			return Utils::function<Game::dvar_s*(const char* dvarName, DvarType type, std::uint16_t flags, const char* description, int x, int y, int z, int w, int min, int max)>(0x56C130)
+				(dvarName, type, flags, description, x, y, z, w, min, max); // Dvar_RegisterNew
+		}
+
+		Dvar_ReregisterInt(dvar, static_cast<std::uint32_t>(flags), dvarName, type, description, x, y, z, w, min, max);
+
+		return dvar;
+	}
 
 	// -------
 	// CONSOLE 

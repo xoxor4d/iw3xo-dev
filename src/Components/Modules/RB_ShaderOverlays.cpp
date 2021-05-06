@@ -327,12 +327,12 @@ namespace Components
 			{
 				const auto arg_def = &state->pass->args[arg];
 
-				if (arg_def->type == 5)
+				if (arg_def && arg_def->type == 5)
 				{
 					// ------------------------------------------------------------------------------------------------------------
 					// ocean shader
 
-					if (!Utils::Q_stricmp(state->pass->pixelShader->name, "worldfx_ocean"))
+					if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "worldfx_ocean"))
 					{
 						// vertex + pixel
 						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
@@ -431,12 +431,12 @@ namespace Components
 			mov		edx, [esp + 0Ch];
 
 			pushad
-				push	edx
-				call	pixelshader_custom_constants
-				add		esp, 4
-				popad
+			push	edx
+			call	pixelshader_custom_constants
+			add		esp, 4
+			popad
 
-				retn
+			retn
 		}
 	}
 
@@ -452,10 +452,10 @@ namespace Components
 			{
 				const auto arg_def = &state->pass->args[arg];
 
-				if (arg_def->type == 3)
+				if (arg_def && arg_def->type == 3)
 				{
 					// ocean shader
-					if (!Utils::Q_stricmp(state->pass->vertexShader->name, "worldfx_ocean"))
+					if (state->pass->vertexShader && !Utils::Q_stricmp(state->pass->vertexShader->name, "worldfx_ocean"))
 					{
 						// vertex + pixel
 						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
@@ -526,13 +526,13 @@ namespace Components
 			mov		edx, [esp + 0Ch];
 
 			pushad
-				push	edx // state
-				push	ecx // source
-				call	vertexshader_custom_constants
-				add		esp, 8
-				popad
+			push	edx // state
+			push	ecx // source
+			call	vertexshader_custom_constants
+			add		esp, 8
+			popad
 
-				retn
+			retn
 		}
 	}
 #endif

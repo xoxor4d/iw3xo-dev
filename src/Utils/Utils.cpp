@@ -408,6 +408,15 @@ namespace Utils
 		}
 	}
 
+	bool Contains(std::string haystack, std::string needle)
+	{
+		if (haystack.find(needle) != std::string::npos) {
+			return true;
+		}
+
+		return false;
+	}
+
 	bool StartsWith(std::string haystack, std::string needle)
 	{
 		return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));

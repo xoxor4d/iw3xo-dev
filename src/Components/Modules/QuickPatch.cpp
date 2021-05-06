@@ -88,140 +88,10 @@ namespace Components
 		}
 	}
 
-	void codesampler_error(Game::MaterialShaderArgument* arg, Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state, const char* sampler, int droptype, const char* msg, ...)
-	{
-		if (!sampler || !state || !state->material || !state->technique) {
-			return;
-		}
-
-		//__debugbreak();
-
-		Game::Com_PrintMessage(0, Utils::VA(
-			"^1Tried to use sampler <%s> when it isn't valid!\n"
-			"^7[Passdump]\n"
-			"|-> Material ----- %s\n"
-			"|-> Technique ----	%s\n"
-			"|-> RenderTarget - %s\n"
-			"|-> Not setting sampler using R_SetSampler!\n", 
-			sampler, state->material->info.name, state->technique->name, Game::RendertargetStringFromID(state->renderTargetId)), 0);
-	}
-
-	// R_SetupPassPerObjectArgs
-	__declspec(naked) void codesampler_error01_stub()
-	{
-		const static uint32_t rtnPt = 0x64BD0F; // offset after call to R_SetSampler
-		__asm
-		{
-			// args pushed before:
-			// push    fmt
-			// push    msg
-			// push    dropType
-
-			mov     eax, [esp + 8h]	// move sampler string into eax
-			push	eax					// decreased esp by 4
-			mov     eax, [esp + 14h]	// move GfxCmdBufState* into eax (now at 14h)
-			push	eax					// GfxCmdBufState*
-			push	ebx					// GfxCmdBufSourceState*
-			push	edi					// MaterialShaderArgument*
-#if DEBUG
-			Call	codesampler_error	// only dump info on debug builds
-#endif
-			add		esp, 28
-
-			mov     eax, [esp + 14h]
-			mov     ecx, [esp + 24h]
-			movzx   esi, word ptr[edi + 2]
-			push    eax
-			push    ecx
-			push    ebx
-			mov     eax, ebp
-			//call    R_SetSampler		// skip call on null sampler
-			jmp		rtnPt
-		}
-	}
-
-	// R_SetPassShaderStableArguments (not used anymore?)
-	__declspec(naked) void codesampler_error02_stub()
-	{
-		const static uint32_t rtnPt = 0x64C36C; // offset after call to R_SetSampler
-		__asm
-		{
-			// args pushed before:
-			// push    fmt
-			// push    msg
-			// push    dropType
-
-			// skip error and R_SetSampler
-			//push	ebx // GfxCmdBufState* <- wrong
-			//push	ebp // GfxCmdBufSourceState*
-			//push	edi // MaterialShaderArgument*
-			//Call	codesampler_error
-			add		esp, 12
-
-			mov     eax, [esp + 20h]
-			movzx   esi, word ptr[edi + 2]
-			push    eax
-			mov     eax, [esp + 18h]
-			push    ebx
-			push    ebp
-			//call    R_SetSampler
-
-			jmp		rtnPt
-		}
-	}
-
-	void cubemap_shot_f_sync_msg()
-	{
-		if (const auto& r_smp_backend = Game::Dvar_FindVar("r_smp_backend"))
-		{
-			if (r_smp_backend->current.enabled)
-			{
-				Game::Com_PrintMessage(0, "^1Error: ^7r_smp_backend must be set to 0!", 0);
-			}
-		}
-
-		if (const auto& r_aaSamples = Game::Dvar_FindVar("r_aaSamples"))
-		{
-			if (r_aaSamples->current.integer != 1)
-			{
-				Game::Com_PrintMessage(0, "^1Error: ^7r_aaSamples must be set to 1 (Disable AA)!", 0);
-			}
-		}
-	}
-
-	__declspec(naked) void cubemap_shot_f_stub()
-	{
-		const static uint32_t R_SyncRenderThread_Func = 0x5F6070;
-		const static uint32_t rtnPt = 0x475411;
-		__asm
-		{
-			call	R_SyncRenderThread_Func
-
-			pushad
-			call	cubemap_shot_f_sync_msg
-			popad
-
-			jmp		rtnPt
-		}
-	}
-
 	// ----------------------------
 
 	QuickPatch::QuickPatch()
 	{
-		// fix cubemapshot_f (needs disabled AA, disabled r_smp_backend and game-resolution > then cubemapshot resolution)
-		Utils::Hook::Nop(0x47549E, 3); // start with suffix "_rt" and not with junk memory
-		Utils::Hook::Set<BYTE>(0x4754D5 + 2, 0xB0); // end on "_dn" + 1 instead of "_bk" (6 images)
-		Utils::Hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // msg when "r_smp_backend" is enabled (must be set to 0 or we obtain purple images)
-
-		// increase hunkTotal from 10mb to 15mb
-		Utils::Hook::Set<BYTE>(0x563A21 + 8, 0xF0);
-
-		// gmem from 128 to 512
-		Utils::Hook::Set<BYTE>(0x4FF23B + 4, 0x20);
-		//gmem prim pos ^
-		Utils::Hook::Set<BYTE>(0x4FF26B + 9, 0x20);
-
 		// Force debug logging
 		Utils::Hook::Nop(0x4FCB9D, 8);
 
@@ -273,14 +143,6 @@ namespace Components
 		Utils::Hook(0x4BF04A, Fix_ConsolePrints04, HOOK_JUMP).install()->quick(); 
 		Utils::Hook::Nop(0x4BF05B, 5); // gamename
 		Utils::Hook::Nop(0x4BF06C, 5); // gamedate
-
-
-		// *
-		// Renderer
-		
-		// Hook "Com_Error(1, "Tried to use '%s' when it isn't valid\n", codeSampler)" to skip a call to R_SetSampler
-		Utils::Hook(0x64BCF1, codesampler_error01_stub, HOOK_JUMP).install()->quick(); // R_SetupPassPerObjectArgs
-		Utils::Hook(0x64C350, codesampler_error02_stub, HOOK_JUMP).install()->quick(); // R_SetPassShaderStableArguments (not really used)
 
 
 		// *

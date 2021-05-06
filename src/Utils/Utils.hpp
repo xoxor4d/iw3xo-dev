@@ -37,6 +37,7 @@ namespace Utils
 	bool EndsWith(std::string haystack, std::string needle);
 	std::vector<std::string> Explode(const std::string& str, char delim);
 	void Replace(std::string &string, std::string find, std::string replace);
+	bool Contains(std::string haystack, std::string needle);
 	bool StartsWith(std::string haystack, std::string needle);
 	void EraseSubstring(std::string &base, std::string replace);
 	unsigned int OneAtATime(const char *key, size_t len);

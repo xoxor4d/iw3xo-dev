@@ -2,6 +2,20 @@
 
 namespace Dvars
 {
+	extern Game::dvar_s* r_buf_skinnedCacheVb;
+	extern Game::dvar_s* r_buf_smodelCacheVb;
+	extern Game::dvar_s* r_buf_smodelCacheIb;
+	extern Game::dvar_s* r_buf_tempSkin;
+	extern Game::dvar_s* r_buf_dynamicVertexBuffer;
+	extern Game::dvar_s* r_buf_dynamicIndexBuffer;
+	extern Game::dvar_s* r_buf_preTessIndexBuffer;
+
+	extern Game::dvar_s* r_debugShaderToggle;
+	extern Game::dvar_s* r_setmaterial_hk;
+
+	extern Game::dvar_s* r_wireframe_world;
+	extern Game::dvar_s* r_wireframe_xmodels;
+
 	// Radiant
 	extern Game::dvar_s* radiant_live;
 	extern Game::dvar_s* radiant_livePort;

@@ -1513,11 +1513,21 @@ namespace Game
 			MTL_WORLDVERT_TEX_5_NRM_3 = 0xB,
 		};
 
-		struct MaterialTechniqueSet
+		/*struct MaterialTechniqueSet // org
 		{
 			char *name;
 			MaterialWorldVertexFormat worldVertFormat;
 			MaterialTechnique *techniques[34];
+		};*/
+
+		struct MaterialTechniqueSet
+		{
+			char* name;
+			MaterialWorldVertexFormat worldVertFormat;
+			bool hasBeenUploaded;
+			char unused[1];
+			MaterialTechniqueSet* remappedTechniqueSet;
+			MaterialTechnique* techniques[34];
 		};
 
 #pragma pack(push, 4)
@@ -4517,7 +4527,8 @@ namespace Game
 		{
 			volatile int used;
 			int total;
-			int IDirect3DVertexBuffer9; // 
+			//int IDirect3DVertexBuffer9; // 
+			IDirect3DVertexBuffer9* buffer;
 			char *verts;
 		};
 
@@ -6605,6 +6616,154 @@ namespace Game
 			float vehicleViewYaw;
 			float vehicleViewPitch;
 		};
+
+#pragma warning( push )
+#pragma warning( disable : 4324 )
+		struct __declspec(align(128)) r_global_permanent_t
+		{
+			Material* sortedMaterials[2048];
+			int needSortMaterials;
+			int materialCount;
+			GfxImage* whiteImage;
+			GfxImage* blackImage;
+			GfxImage* blackImage3D;
+			GfxImage* blackImageCube;
+			GfxImage* grayImage;
+			GfxImage* identityNormalMapImage;
+			GfxImage* specularityImage;
+			GfxImage* outdoorImage;
+			GfxImage* pixelCostColorCodeImage;
+			GfxLightDef* dlightDef;
+			Material* defaultMaterial;
+			Material* whiteMaterial;
+			Material* additiveMaterial;
+			Material* pointMaterial;
+			Material* lineMaterial;
+			Material* lineMaterialNoDepth;
+			Material* clearAlphaStencilMaterial;
+			Material* shadowClearMaterial;
+			Material* shadowCookieOverlayMaterial;
+			Material* shadowCookieBlurMaterial;
+			Material* shadowCasterMaterial;
+			Material* shadowOverlayMaterial;
+			Material* depthPrepassMaterial;
+			Material* glareBlindMaterial;
+			Material* pixelCostAddDepthAlwaysMaterial;
+			Material* pixelCostAddDepthDisableMaterial;
+			Material* pixelCostAddDepthEqualMaterial;
+			Material* pixelCostAddDepthLessMaterial;
+			Material* pixelCostAddDepthWriteMaterial;
+			Material* pixelCostAddNoDepthWriteMaterial;
+			Material* pixelCostColorCodeMaterial;
+			Material* stencilShadowMaterial;
+			Material* stencilDisplayMaterial;
+			Material* floatZDisplayMaterial;
+			Material* colorChannelMixerMaterial;
+			Material* frameColorDebugMaterial;
+			Material* frameAlphaDebugMaterial;
+			GfxImage* rawImage;
+			GfxWorld* world;
+			Material* feedbackReplaceMaterial;
+			Material* feedbackBlendMaterial;
+			Material* feedbackFilmBlendMaterial;
+			Material* cinematicMaterial;
+			Material* dofDownsampleMaterial;
+			Material* dofNearCocMaterial;
+			Material* smallBlurMaterial;
+			Material* postFxDofMaterial;
+			Material* postFxDofColorMaterial;
+			Material* postFxColorMaterial;
+			Material* postFxMaterial;
+			Material* symmetricFilterMaterial[8];
+			Material* shellShockBlurredMaterial;
+			Material* shellShockFlashedMaterial;
+			Material* glowConsistentSetupMaterial;
+			Material* glowApplyBloomMaterial;
+			int savedScreenTimes[4];
+		};
+#pragma warning( pop )
+
+		struct Image_MemUsage
+		{
+			int total;
+			int lightmap;
+			int minspec;
+		};
+
+		struct trStatistics_t
+		{
+			int c_indexes;
+			int c_fxIndexes;
+			int c_viewIndexes;
+			int c_shadowIndexes;
+			int c_vertexes;
+			int c_batches;
+			float dc;
+			Image_MemUsage c_imageUsage;
+		};
+
+		struct GfxLodRamp
+		{
+			float scale;
+			float bias;
+		};
+
+		struct __declspec(align(4)) GfxLodParms
+		{
+			float origin[3];
+			GfxLodRamp ramp[2];
+		};
+
+#pragma warning( push )
+#pragma warning( disable : 4324 )
+		struct __declspec(align(8)) r_globals_t
+		{
+			GfxViewParms identityViewParms;
+			bool inFrame;
+			bool registered;
+			bool forbidDelayLoadImages;
+			bool ignorePrecacheErrors;
+			float viewOrg[3];
+			float viewDir[3];
+			unsigned int frontEndFrameCount;
+			int totalImageMemory;
+			Material* materialHashTable[2048];
+			GfxFog fogSettings[5];
+			int fogIndex;
+			GfxColor color_axis;
+			GfxColor color_allies;
+			int team;
+			trStatistics_t* stats;
+			GfxLodParms lodParms;
+			GfxLodParms correctedLodParms;
+			bool hasAnyImageOverrides;
+			bool useSunLightOverride;
+			bool useSunDirOverride;
+			bool useSunDirLerp;
+			float sunLightOverride[3];
+			float sunDirOverride[3];
+			float sunDirOverrideTarget[3];
+			int sunDirLerpBeginTime;
+			int sunDirLerpEndTime;
+			GfxScaledPlacement identityPlacement;
+			GfxViewParms* debugViewParms;
+			int endTime;
+			bool distortion;
+			bool drawSModels;
+			bool drawXModels;
+			bool drawBModels;
+			const char* codeImageNames[27];
+			unsigned int viewInfoCount;
+			int sunShadowFull;
+			float sunShadowmapScale;
+			float sunShadowmapScaleNum;
+			unsigned int sunShadowSize;
+			float sunShadowPartitionRatio;
+			int drawSunShadow;
+			int skinnedCacheReachedThreshold;
+			float waterFloatTime;
+		};
+#pragma warning( pop )
 
 		struct dynBrush_t
 		{

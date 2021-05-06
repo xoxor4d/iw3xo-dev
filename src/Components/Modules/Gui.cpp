@@ -38,10 +38,9 @@ namespace Components
 	{
 		IDirect3DDevice9* device;
 
-		// pretty useless, we need d3d9ex anyway .. would have to hook the default vtable(endscene) to not depend on d3d9ex
-		if (Components::active.D3D9Ex && Dvars::r_d3d9ex && Dvars::r_d3d9ex->current.enabled)
+		if (Components::active.D3D9Ex)
 		{
-			// get the device from D3D9Ex::D3D9::CreateDevice
+			// get the device from D3D9Ex::_D3D9/Ex::CreateDevice
 			device = Game::Globals::d3d9_device;
 		}
 		else
@@ -278,22 +277,22 @@ namespace Components
 
 		Command::Add("devgui_demo", "", "opens the imgui demo menu", [this](Command::Params)
 		{
-			if (!Dvars::r_d3d9ex->current.enabled)
-			{
-				Game::Com_PrintMessage(0, "Please enable <r_d3d9ex> first!", 0);
-				return;
-			}
+			//if (!Dvars::r_d3d9ex->current.enabled)
+			//{
+			//	Game::Com_PrintMessage(0, "Please enable <r_d3d9ex> first!", 0);
+			//	return;
+			//}
 
 			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], 0, true);
 		});
 
 		Command::Add("devgui", "", "opens the devgui", [this](Command::Params)
 		{
-			if (!Dvars::r_d3d9ex->current.enabled)
-			{
-				Game::Com_PrintMessage(0, "Please enable <r_d3d9ex> first!", 0);
-				return;
-			}
+			//if (!Dvars::r_d3d9ex->current.enabled)
+			//{
+			//	Game::Com_PrintMessage(0, "Please enable <r_d3d9ex> first!", 0);
+			//	return;
+			//}
 
 			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], 0, true);
 		});
