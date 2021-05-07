@@ -123,7 +123,7 @@ namespace Components
 	bool r_disable_prepass_material = false;
 
 	// changing MaterialTechType at 0x633282 to 1C -> wireframe (look at enum MaterialTechniqueType)
-	bool R_SetMaterial(Game::MaterialTechniqueType techType, Game::GfxCmdBufSourceState* src, Game::GfxCmdBufState* state, Game::GfxDrawSurf drawSurf)
+	int R_SetMaterial(Game::MaterialTechniqueType techType, Game::GfxCmdBufSourceState* src, Game::GfxCmdBufState* state, Game::GfxDrawSurf drawSurf)
 	{
 		Game::Material*			 current_material;
 		Game::MaterialTechnique* current_technique;
@@ -263,7 +263,10 @@ namespace Components
 		}
 
 		// if debug_material was set
-		if (debug_material && debug_material->techniqueSet && debug_material->techniqueSet->remappedTechniqueSet && debug_material->techniqueSet->remappedTechniqueSet->techniques
+		if (   debug_material 
+			&& debug_material->techniqueSet 
+			&& debug_material->techniqueSet->remappedTechniqueSet 
+			&& debug_material->techniqueSet->remappedTechniqueSet->techniques
 			&& debug_material->techniqueSet->remappedTechniqueSet->techniques[newTechType])
 		{
 			//current_material = debug_material;
@@ -297,6 +300,21 @@ namespace Components
 			}
 		}
 
+		const auto& r_logFile = Game::Dvar_FindVar("r_logFile");
+		if (r_logFile->current.integer && current_material)
+		{
+			auto string = Utils::VA("R_SetMaterial( %s, %s, %i )\n", current_material->info.name, current_technique->name, newTechType);
+
+			const static uint32_t RB_LogPrint_Funk = 0x63CF40;
+			__asm
+			{
+				pushad;
+				mov		edx, string;
+				call	RB_LogPrint_Funk;
+				popad;
+			}
+		}
+
 		state->origTechType = state->techType;
 		state->techType = newTechType;
 
@@ -305,7 +323,8 @@ namespace Components
 
 	__declspec(naked) void R_SetMaterial_stub()
 	{
-		const static uint32_t rtnPt = 0x648F8E;
+		const static uint32_t rtn_to_set_shadowable_light = 0x648F92;
+		const static uint32_t rtn_to_rtn = 0x648F48;
 		__asm
 		{
 			push	esi; // techType
@@ -313,7 +332,12 @@ namespace Components
 			pop		esi;
 			add     esp, 10h;
 
-			jmp		rtnPt;
+			test    eax, eax; // do not return BOOL if you test 4 byte sized registers :>
+			jz      memes;
+			jmp		rtn_to_set_shadowable_light;
+
+		memes:
+			jmp		rtn_to_rtn;
 		}
 	}
 
@@ -530,6 +554,7 @@ namespace Components
 			Utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 		}
 
+		Game::Com_PrintMessage(0, Utils::VA("Allocated smodelCache (smodelCacheIb) of size: 0x%.8x\n", smodel_cache_ib_size), 0);
 		gfxBuf.smodelCache.indices = static_cast<unsigned __int16*>(mem_reserve);
 	}
 
@@ -660,6 +685,11 @@ namespace Components
 		*           'r_fastSkin' or 'r_skinCache' needs to be disabled or
 		*			  the client will crash if you hit an unkown limit
 		*/
+
+		// crash 2 triggered : MAX_SCENE_SURFS_SIZE(131072) exceeded - not drawing surface
+		// > R_DrawBModel 
+		// > frontEndDataOut->surfPos > 0x20000
+		// > GfxBackEndData->surfsBuffer[131072] ......
 
 		// Create dynamic rendering buffers
 		Utils::Hook(0x5F3EC2, R_CreateDynamicBuffers, HOOK_CALL).install()->quick();

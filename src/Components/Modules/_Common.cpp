@@ -19,18 +19,18 @@ namespace Components
 		//auto fs_usedevdir = Game::Dvar_FindVar("fs_usedevdir");
 		auto in_mouse = Game::Dvar_FindVar("in_mouse");
 
-		if (dedicated && dedicated->current.integer == 0)
+		if (dedicated && !dedicated->current.integer)
 		{
-			auto sv_pure = Game::Dvar_FindVar("sv_pure");
+			auto sv_pure		= Game::Dvar_FindVar("sv_pure");
+			auto r_zFeather		= Game::Dvar_FindVar("r_zFeather");
+			auto r_distortion	= Game::Dvar_FindVar("r_distortion");
+			auto r_fastSkin		= Game::Dvar_FindVar("r_fastSkin");
 
 			if (sv_pure && sv_pure->current.enabled)
 			{
 				Game::Dvar_SetValue(sv_pure, false); // quick set the value
-				Game::Cmd_ExecuteSingleCommand(0, 0, "sv_pure 0\n");
+				Game::Cmd_ExecuteSingleCommand(0, 0, "sv_pure 0\n"); // does this reset stats?
 			}
-
-			auto r_zFeather = Game::Dvar_FindVar("r_zFeather");
-			auto r_distortion = Game::Dvar_FindVar("r_distortion");
 
 			// force depthbuffer
 			if (r_zFeather && !r_zFeather->current.enabled)
@@ -38,10 +38,16 @@ namespace Components
 				Game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
 			}
 
-			// enable distortion (its rendertarget is needed)
+			// enable distortion (it creates a rendertarget thats needed)
 			if (r_distortion && !r_distortion->current.enabled)
 			{
 				Game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
+			}
+
+			// disable r_fastSkin in-case someone increased renderbuffers
+			if (r_fastSkin && r_fastSkin->current.enabled)
+			{
+				Game::Cmd_ExecuteSingleCommand(0, 0, "r_fastSkin 0\n");
 			}
 		}
 
