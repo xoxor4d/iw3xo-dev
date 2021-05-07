@@ -689,7 +689,7 @@ namespace Components
 		// crash 2 triggered : MAX_SCENE_SURFS_SIZE(131072) exceeded - not drawing surface
 		// > R_DrawBModel 
 		// > frontEndDataOut->surfPos > 0x20000
-		// > GfxBackEndData->surfsBuffer[131072] ......
+		// > GfxBackEndData->surfsBuffer[131072] ...... :>
 
 		// Create dynamic rendering buffers
 		Utils::Hook(0x5F3EC2, R_CreateDynamicBuffers, HOOK_CALL).install()->quick();
