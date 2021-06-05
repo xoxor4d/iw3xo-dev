@@ -2,15 +2,28 @@
 
 #define GET_UIMATERIAL(ptr) (Game::Material*) *(DWORD*)(ptr)
 
+// spacing dummy
+#define SPACING(x, y) ImGui::Dummy(ImVec2(x, y)) 
+
+// seperator with spacing
+#define SEPERATORV(spacing, enabled) SPACING(0.0f, spacing); \
+	if(enabled) { ImGui::Separator(); SPACING(0.0f, spacing); }
+
+// fade from black into main menu on first start 
+#define mainmenu_init_fadeTime 50.0f
+
 namespace Components
 {
 	int _UI::GetTextHeight(Game::Font_s *font)
 	{
 		if (font)
+		{
 			return font->pixelHeight;
-
-		else 
+		}
+		else
+		{
 			return 16;
+		}
 	}
 
 	float _UI::ScrPlace_ApplyX(int horzAlign, const float x, const float xOffs)
@@ -299,95 +312,423 @@ namespace Components
 		*h = _h;
 	}
 
-	void _UI::MainMenu_Changelog()
+	void _UI::redraw_cursor()
 	{
-		Game::Cbuf_AddText(Utils::VA(
-			"set ui_changelog01_y_offs %d;"
-			"set ui_changelog02_y_offs %d;"
-			"set ui_changelog03_y_offs %d;"
-			"set ui_changelog04_y_offs %d;",
-			IW3XO_CHANGELOG_01_Y_OFFS, IW3XO_CHANGELOG_02_Y_OFFS, IW3XO_CHANGELOG_03_Y_OFFS, IW3XO_CHANGELOG_04_Y_OFFS), 0);
+		// get material handle
+		void* cur_material = Game::Material_RegisterHandle("ui_cursor", 3);
 
-		Game::Cbuf_AddText(Utils::VA(
-			"set ui_changelog01_title %s;"
-			"set ui_changelog02_title %s;"
-			"set ui_changelog03_title %s;"
-			"set ui_changelog04_title %s;",
-			IW3XO_CHANGELOG_01_TITLE, IW3XO_CHANGELOG_02_TITLE, IW3XO_CHANGELOG_03_TITLE, IW3XO_CHANGELOG_04_TITLE), 0);
+		float cur_w = (32.0f * Game::scrPlace->scaleVirtualToReal[0]) / Game::scrPlace->scaleVirtualToFull[0];
+		float cur_h = (32.0f * Game::scrPlace->scaleVirtualToReal[1]) / Game::scrPlace->scaleVirtualToFull[1];
+		float cur_x = Game::_uiContext->cursor.x - 0.5f * cur_w;
+		float cur_y = Game::_uiContext->cursor.y - 0.5f * cur_h;
 
-		Game::Cbuf_AddText(Utils::VA(
-			"set ui_changelog01_sep %d;"
-			"set ui_changelog02_sep %d;"
-			"set ui_changelog03_sep %d;"
-			"set ui_changelog04_sep %d;",
-			IW3XO_CHANGELOG_01_SEP, IW3XO_CHANGELOG_02_SEP, IW3XO_CHANGELOG_03_SEP, IW3XO_CHANGELOG_04_SEP), 0);
+		// set up texcoords
+		float s0, s1;
+		float t0, t1;
 
+		if (cur_w >= 0.0f)
+		{
+			s0 = 0.0f;
+			s1 = 1.0f;
+		}
+		else
+		{
+			cur_w = -cur_w;
+			s0 = 1.0f;
+			s1 = 0.0f;
+		}
+
+		if (cur_h >= 0.0f)
+		{
+			t0 = 0.0f;
+			t1 = 1.0f;
+		}
+		else
+		{
+			cur_h = -cur_h;
+			t0 = 1.0f;
+			t1 = 0.0f;
+		}
+
+		// scale 640x480 rect to viewport resolution and draw the cursor
+		_UI::ScrPlace_ApplyRect(&cur_x, &cur_w, &cur_y, &cur_h, VERTICAL_ALIGN_FULLSCREEN, VERTICAL_ALIGN_FULLSCREEN);
+		Game::R_AddCmdDrawStretchPic(cur_material, cur_x, cur_y, cur_w, cur_h, s0, t0, s1, t1, 0);
+	}
+
+
+	/* ---------------------------------------------------------- */
+	/* ------------------- general main menu -------------------- */
+
+	float	mainmenu_fadeTime = mainmenu_init_fadeTime;
+	float	mainmenu_fadeColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	// D3D9Ex::D3D9Device::Release() resets mainmenu vars on vid_restart
+	void main_menu_fade_in()
+	{
+		if (!Game::Sys_IsMainThread() || Game::Globals::mainmenu_fadeDone || !Game::_uiContext)
+		{
+			return;
+		}
+
+		if (mainmenu_fadeTime >= 0.0f)
+		{
+			mainmenu_fadeTime -= 0.5f;
+			mainmenu_fadeColor[3] = (mainmenu_fadeTime * (1.0f / mainmenu_init_fadeTime));
+
+			Game::ConDraw_Box(mainmenu_fadeColor, 0.0f, 0.0f, (float)Game::_uiContext->screenWidth, (float)Game::_uiContext->screenHeight);
+			return;
+		}
+
+		// reset fade vars
+		mainmenu_fadeTime = mainmenu_init_fadeTime;
+		mainmenu_fadeColor[3] = 1.0f;
+
+		Game::Globals::mainmenu_fadeDone = true;
+	}
+
+	// *
+	// called from <Gui::render_loop>
+	void _UI::create_changelog(Game::gui_menus_t& menu)
+	{
+		// do not keep mouse cursor around if another ImGui was active
+		menu.mouse_ignores_menustate = true;
+
+		//ImGuiContext* g = ImGui::GetCurrentContext();
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImGuiIO& io = ImGui::GetIO();
+
+		io.WantCaptureKeyboard = false;
+		io.WantCaptureMouse = true;
+
+		Game::UiContext* ui = Game::_uiContext;
+		int pushed_styles = 0, pushed_colors = 0;
+		
+		// ImGui is rendered on EndScene so UI_MainMenu_FadeIn wont work => fade manually
+		if (!Game::Globals::mainmenu_fadeDone)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f - mainmenu_fadeColor[3]);		pushed_styles++;
+		}
+
+		// set window size once
+		if (!menu.one_time_init)
+		{
+			menu.got_layout_from_menu = false;
+
+			if (ui)
+			{
+				for (auto m = 0; m < ui->openMenuCount && !menu.got_layout_from_menu; m++)
+				{
+					if (ui->menuStack[m] && !Utils::Q_stricmp(ui->menuStack[m]->window.name, "main_text"))
+					{
+						for (auto i = 0; i < ui->menuStack[m]->itemCount && !menu.got_layout_from_menu; i++)
+						{
+							if (ui->menuStack[m]->items[i] && ui->menuStack[m]->items[i]->window.name)
+							{
+								if (!Utils::Q_stricmp(ui->menuStack[m]->items[i]->window.name, "changelog_container"))
+								{
+									Gui::set_menu_layout(
+										menu,
+										ui->menuStack[m]->items[i]->window.rect.x,
+										ui->menuStack[m]->items[i]->window.rect.y,
+										ui->menuStack[m]->items[i]->window.rect.w,
+										ui->menuStack[m]->items[i]->window.rect.h,
+										ui->menuStack[m]->items[i]->window.rect.horzAlign,
+										ui->menuStack[m]->items[i]->window.rect.vertAlign);
+
+									menu.got_layout_from_menu = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// only draw the changelog if we found the "changelog_container" itemdef (the user might not have loaded )
+		if (menu.got_layout_from_menu)
+		{
+			if (!menu.one_time_init)
+			{
+				_UI::ScrPlaceFull_ApplyRect(&menu.position[0], &menu.size[0], &menu.position[1], &menu.size[1], menu.horzAlign, menu.vertAlign);
+				ImGui::SetNextWindowPos(ImVec2(menu.position[0], menu.position[1]), ImGuiCond_Always); //ImGuiCond_FirstUseEver);
+				ImGui::SetNextWindowSize(ImVec2(menu.size[0], menu.size[1]), ImGuiCond_Always); //ImGuiCond_FirstUseEver);
+
+				menu.one_time_init = true;
+			}
+		}
+		else
+		{
+			// disable changelog gui
+			menu.menustate = false;
+			return;
+		}
+
+		// changelog styles
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);				pushed_styles++;
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);				pushed_styles++;
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, -38.0f));	pushed_styles++;
+
+		// scollbar style
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(1, 1, 1, 0.025f));
+
+		// early out if the window is collapsed, as an optimization.
+		if (!ImGui::Begin("Changelog", &menu.menustate, 
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | 
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoBringToFrontOnFocus)) // < always keep changelog behind the cursor gui
+		{
+			// pop scrollbar style
+			ImGui::PopStyleColor(1);
+			
+			ImGui::End();
+			return;
+		}
+
+		// pop scrollbar style
+		ImGui::PopStyleColor(1);
+
+
+		// https://raw.githubusercontent.com/wiki/xoxor4d/iw3xo-dev/Changelog.md
+		// https://github.com/mekhontsev/imgui_md
+		
+		// TODO: get changelog using https://github.com/jpbarrette/curlpp
+		const std::string markdownText = R"(
+<a name="3410"></a>
+## Build [[3410]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3410)
+### __[Dependencies]__
+> * added [imgui_md](https://github.com/mekhontsev/imgui_md)
+> * added [dxsdk](https://github.com/devKlausS/dxsdk)
+
+### __[General]__
+> * added "_Client" module
+> * added "_Renderer" module
+> * added "Mvm" module
+> * cleanup and refactoring
+
+### __[Common]__
+> * increased Hunk
+> * increased Gmem
+
+### __[Rendering / Shaders]__
+> * proper d3d implementation
+> * devgui no longer needs r_d3d9ex enabled ^
+> * minor fixes for shader overlays
+> * sampler.resolvedPostSun now includes the latest frame with filmtweaks/visions
+> * added dvar "r_debugShaderTexcoord" :: show world and model uv's / texcoords
+> * added dvar "r_dumpShaders" :: dump shader binaries at runtime
+> * added dvar"r_wireframe_xmodels" and "r_wireframe_world" :: make xmodels / world surfaces use the wireframe technique (use r_clear and r_clearcolor to manipulate filling-colors)
+> * added dvar "r_cullWorld" and "r_cullEntities" to disable culling :: can be useful for vertex manipulating shaders (latched dvars, requires a vid_restart)
+> * added dvar "r_drawDynents" :: disable drawing of dynamic entities
+> * added dvars to increase rendering buffers such as skinnedCache, smodelCache and various others ("r_buf_" :: make sure to disable r_fastSkin when rocking custom sizes :: r_fastSkin disabled by default)
+> * R_MAX_SKINNED_CACHE_VERTICES and TEMP_SKIN_BUF_SIZE warnings are now dynamic and adjust to their respective buffer sizes ^
+
+### __[Moviemaking]__
+> * fixed an out of memory error when trying to take screenshots with R_TakeScreenshot when using heavy mods
+> * fixed cl_avidemo screenshots being black (iw3mvm support)
+> * added dvar "cl_avidemo_streams" :: same as iw3mvm mvm_streams but with customization options :: "cl_avidemo_streams_" (iw3mvm support)
+> * added dvar "cl_pause_demo" :: pause demo's
+
+### __[Movement]__
+> * added dvar "pm_terrainEdgeBounces" :: allow terrainEdges to be bounceable (somewhat mimics console behavior)
+
+### __[DevGui]__
+> * movement tweaks :: moved hud and CGaz settings into the debug tab 
+
+### __[Menu]__
+> * eyes (ui_eyes_position, ui_eyes_size, ui_eyes_alpha) :>
+> * proper changelog gui (symbiosis between ImGui and cod4 menus)
+
+---
+
+<a name="3386"></a>
+## Build [[3386]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3386)
+### __[General]__
+> * Added dvar r_aspectRatio_custom (21:9 = 2.333) -> Use r_aspectRatio "custom" to enable
+> * Automatically load xcommon_iw3xo_addon.ff if found in zone/language (user fastfile to overwrite loaded assets)
+> * cubeMapShot command fixed (disable r_smp_backend when using it)
+
+### __[Map Export]__
+> * Fixed brush indices drawing when using r_drawCollision_brushIndexVisible
+> * Minor fixes to texture scaling when exporting maps
+> * Use dvar mapexport_brush5Sides to export brushes with only 5 sides
+> * All IW3xo created files will now be placed in their respective directories in root/iw3xo/
+
+### __[ImGui / Ocean Shader]__
+> * Implemented Ocean tab to tweak ocean shader settings in realtime
+> * Use the export button to export shader settings
+> * Shaders needs preprocessor #define USE_CUSTOM_CONSTANTS for this to work
+> * Visit https://xoxor4d.github.io/projects/cod4-ocean/
+
+### __[Shader Overlays]__
+> * xo_shaderoverlay can now be set to custom (define postfx material with xo_shaderoverlay_custom)
+> * Added dvar xo_shaderdbg_matrix to debug transformation matrices
+
+---
+
+<a name="3369"></a>
+## Build [[3369]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3369)
+### __[General]__
+> * shortcut ALT + Enter now works without developer mode
+> * some dvar mins/maxs have been changed (mainly collision and shader dvars)
+> * collision hud now uses the correct dvar to determine its color
+> * fixed a visual issue with weapon bullet spread
+> * some changes to dvar mins and maxs (mostly postfx shaders and debug collision)
+
+### __[Menus]__
+> * rawfile menu loading [/menu_loadlist_raw <menulist_name.txt>] (needs fs_usedevdir enabled)
+> * open any loaded menu by name [/menu_open <menu_name>, /menu_open_ingame <menu_name>]
+> * close any loaded menu by name [/menu_closebyname <menu_name>]
+> * Menu Exporter [/menu_export, /menu_list ...] ((c) SheepWizard)
+> * menu_loadlist_raw no longer drops the player when it was unable to find specified menu
+
+### __[Menus]__
+> * implemented ImGui (currently needs <r_d3d9ex> to be enabled)
+> * theres now a devgui for most of the dvars that where added [/devgui]
+> * imgui demo menu [/devgui_demo]
+
+---
+
+<a name="3333"></a>
+## Build [[3333]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3333)
+### __[General]__
+> * Increased asset pools (c) IW4x
+> * Usage of <xo_shaderoverlay> now disables <r_glow_allowed>
+> * Refactoring
+
+### __[Renderer]__
+> * r_d3d9ex [enables extended dx9 interface (on by default)] (c) IW4x
+> * Fixed invalid sampler crashes when drawing debug polygons
+> * Increased performance when using unlit debug polygons (r_drawCollision_polyLit 0)
+
+### __[Map Export]__
+> * fixed brushmodel exporting
+> * now skipping brushes with more then 128 points
+> * play with <mapexport_brushEpsilon1/2> and <mapexport_brushMinSize> to export smaller but prob. invalid brushes
+
+### __[Console]__
+> * fixed matchbox-values
+> * re-added dvars <xo_conhintBoxTxtColor ...>
+
+---
+
+<a name="3284"></a>
+## Build [[3284]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3284)
+### __[General]__
+> * Fixed font size issues  
+> * Borderless fullscreen (r_noborder + vid_xpos/ypos 0) (c) IW4x  
+
+### __[Movement]__
+> * pm_debug_drawAxis [Draw axial information (Axis/Fps Zones)]  
+> * pm_debug_drawAxis_radius [Radius of axis/zones circle]  
+> * pm_debug_drawAxis_height [Height offset (from player origin)]  
+> * pm_debug_drawAxis_col125/250/333 [Color of zone]  
+
+---
+
+<a name="3262"></a>
+## Build [[3262]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3262)
+### __[Map-Export]__
+> * Fixed some texture scale issues  
+> * Fixed some texture scale issues  
+> * Exporter now writes brush contents    
+> * Some brushside generation fixes  
+> * Selection feature [Export only certain parts of the map by defining a bounding box]  
+> * mapexport_selectionMode  [Enables selection mode]
+> * mapexport_selectionAdd     [Adds a point to the bounding box (needs 2 in total)]
+> * mapexport_selectionClear   [Reset bounding box]
+> * mapexport_brushMinSize   [Only export complex brushes if their diagonal length is greater then this]
+> * mapexport_brushEpsilon1  [Brushside generation epsilon 1 (adv. only)]
+> * mapexport_brushEpsilon2  [Brushside generation epsilon 2 (adv. only)]
+
+### __[UI]__
+> * added changelog to the main menu  
+ 
+---
+
+<a name="3214"></a>
+## Build [[3214]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3214)
+### __[Map-Export]__
+> * Fixed an access violation that could occur while getting brush indices from clipmap->leafbrushNodes[node].data.leaf.brushes (unfinished but fixes it for now)  
+> * Added brushmodel support
+
+### __[PM_Movement]__
+> * Changed default value for "pm_cpm_useQuakeDamage" to false (dvar influences stock rocket jumping)  
+		)";
+
+		// pop styles but keep the first one (alpha)
+		ImGui::PopStyleVar(pushed_styles - 1);	pushed_styles = 1;
+
+		// *
+		// markdown
+
+		// tooltip styles
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);				pushed_styles++;
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);				pushed_styles++;
+		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 8.0f);					pushed_styles++;
+
+
+		// markdown link color :: IM_COL32()
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(ImColor(200, 229, 120, 203)));	pushed_colors++;
+		// ^ link __
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(ImColor(182, 209, 107, 100)));		pushed_colors++;
+
+		// draw markdown
+		ImGui::Indent(16.0f); SPACING(0.0f, 4.0f);
+			Gui::markdown(markdownText.c_str(), markdownText.c_str() + markdownText.size());
+		ImGui::Indent(-16.0f); SPACING(0.0f, 4.0f);
+
+		// pop all colors
+		ImGui::PopStyleColor(pushed_colors);	pushed_colors = 0;;
+
+		// pop all styles
+		ImGui::PopStyleVar(pushed_styles);		pushed_styles = 0;
+
+		// end changelog
+		ImGui::End();
+
+		// *
+		// re-draw the mouse cursor
+
+		// fullscreen gui
+		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y), ImGuiCond_Always);
+
+		io.WantCaptureKeyboard = false;
+		io.WantCaptureMouse = false;
+
+		if (!ImGui::Begin("", &menu.menustate, 
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | 
+			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoBackground))
+		{
+			ImGui::End();
+			return;
+		}
+
+		Gui::redraw_cursor();
+		
+		ImGui::End();
+	}
+
+	void _UI::main_menu_register_dvars()
+	{
 		Dvars::ui_main_title = Game::Dvar_RegisterString(
 			/* name		*/ "ui_changelog_title",
 			/* desc		*/ "menu helper",
 			/* value	*/ Utils::VA(IW3XO_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, __TIMESTAMP__),
 			/* flags	*/ Game::dvar_flags::read_only);
-
-		Dvars::ui_changelog01 = Game::Dvar_RegisterString(
-			/* name		*/ "ui_changelog01",
-			/* desc		*/ "menu helper",
-			/* value	*/ IW3XO_CHANGELOG_01,
-			/* flags	*/ Game::dvar_flags::read_only);
-
-		Dvars::ui_changelog02 = Game::Dvar_RegisterString(
-			/* name		*/ "ui_changelog02",
-			/* desc		*/ "menu helper",
-			/* value	*/ IW3XO_CHANGELOG_02,
-			/* flags	*/ Game::dvar_flags::read_only);
-
-		Dvars::ui_changelog03 = Game::Dvar_RegisterString(
-			/* name		*/ "ui_changelog03",
-			/* desc		*/ "menu helper",
-			/* value	*/ IW3XO_CHANGELOG_03,
-			/* flags	*/ Game::dvar_flags::read_only);
-
-		Dvars::ui_changelog04 = Game::Dvar_RegisterString(
-			/* name		*/ "ui_changelog04",
-			/* desc		*/ "menu helper",
-			/* value	*/ IW3XO_CHANGELOG_04,
-			/* flags	*/ Game::dvar_flags::read_only);
 	}
 
-	// fade from black into main menu on first start 
-	#define mainmenu_init_fadeTime 50.0f
-
-	bool	mainmenu_fadeDone = false;
-	float	mainmenu_fadeTime = mainmenu_init_fadeTime;
-	float	mainmenu_fadeColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	void UI_MainMenu_FadeIn()
-	{
-		if (!Game::Sys_IsMainThread() || mainmenu_fadeDone || !Game::_uiContext)
-		{
-			return;
-		}
-			
-		if (mainmenu_fadeTime >= 0.0f)
-		{
-			mainmenu_fadeTime -= 0.5f;
-			mainmenu_fadeColor[3] = (mainmenu_fadeTime * (1.0f / mainmenu_init_fadeTime));
-			
-			Game::ConDraw_Box(mainmenu_fadeColor, 0.0f, 0.0f, (float)Game::_uiContext->screenWidth, (float)Game::_uiContext->screenHeight);
-			return;
-		}
-
-		mainmenu_fadeDone = true;
-	}
-
-	// draw version string in main menu
-	void UI_MainMenu_Ver()
+	// *
+	// draw additional stuff to the main menu
+	void main_menu()
 	{
 		if (!Game::Sys_IsMainThread()) 
 		{
 			return;
 		}
 
-		float	max = Game::scrPlace->scaleVirtualToReal[1] * 0.3f;
+		float max = Game::scrPlace->scaleVirtualToReal[1] * 0.3f;
 		const char*	font;
 
 		auto ui_smallFont		= Game::Dvar_FindVar("ui_smallFont");
@@ -405,16 +746,20 @@ namespace Components
 					font = FONT_NORMAL;
 				}
 			}
-			else 
+			else
+			{
 				font = FONT_EXTRA_BIG;
+			}
 		}
-		else 
+		else
+		{
 			font = FONT_SMALL;
+		}
 
 		// get font handle
-		auto fontHandle = Game::R_RegisterFont(font, sizeof(font));
-		
-		if (!fontHandle) {
+		auto font_handle = Game::R_RegisterFont(font, sizeof(font));
+		if (!font_handle) 
+		{
 			return;
 		}
 
@@ -422,7 +767,7 @@ namespace Components
 		float offs_y = -10.0f; 
 		float scale = 0.25f;
 
-		float scale_x = scale * 48.0f / fontHandle->pixelHeight;
+		float scale_x = scale * 48.0f / font_handle->pixelHeight;
 		float scale_y = scale_x;
 
 		// place container
@@ -437,16 +782,13 @@ namespace Components
 			textBackground = Utils::VA("IW3xo :: %.lf :: %s :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE, "DEBUG");
 		}
 
-		// I was drawing 2 strings, because there was a problem with the R_AddCmdDrawText wrapper
-		// I somehow fixed that .. but we are still drawing 2 because I like it with a backdrop shadow :x
-
 		// Background String
 		float colorBackground[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 		Game::R_AddCmdDrawTextASM(
 			/* txt */ textBackground,
 			/* max */ 0x7FFFFFFF,
-			/* fot */ fontHandle,
+			/* fot */ font_handle,
 			/*  x  */ offs_x + 3.0f,
 			/*  y  */ offs_y + 3.0f,
 			/* scX */ scale_x,
@@ -461,7 +803,7 @@ namespace Components
 		Game::R_AddCmdDrawTextASM(
 			/* txt */ textForeground,
 			/* max */ 0x7FFFFFFF,
-			/* fot */ fontHandle,
+			/* fot */ font_handle,
 			/*  x  */ offs_x,
 			/*  y  */ offs_y,
 			/* scX */ scale_x,
@@ -471,28 +813,75 @@ namespace Components
 			/* sty */ 0);
 
 		// fade in the menu on first start
-		UI_MainMenu_FadeIn();
+		main_menu_fade_in();
+
+
+		/* ---------------------------------------------------------- */
+		/* --------------------- changelog gui ---------------------- */
+		
+		// _Client::OnDisconnect() hides / shows the changelog when connecting/disconnecting
+		// D3D9Ex::D3D9Device::Release() resets mainmenu vars on vid_restart
+		if (Components::active.Gui)
+		{
+			// do not draw the changelog when the Com_Error menu is open
+			const auto& com_errorMessage = Game::Dvar_FindVar("com_errorMessage");
+			if (com_errorMessage && com_errorMessage->current.string[0])
+			{
+				return;
+			}
+
+			// open changelog gui at startup
+			if (!Game::Globals::loaded_MainMenu)
+			{
+				GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG].menustate = true;
+			}
+
+			Game::UiContext* ui = Game::_uiContext;
+
+			if (ui)
+			{
+				// draw/hide the gui using menu localvars
+				for (auto var = 0; var < 255; var++)
+				{
+					if (ui->localVars.table[var].name && !Utils::Q_stricmp(ui->localVars.table[var].name, "ui_maincontent_update"))
+					{
+						if (ui->localVars.table[var].u.integer == 0)
+						{
+							GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG].menustate = true;
+						}
+						else // close
+						{
+							GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG].menustate = false;
+						}
+
+						break;
+					}
+				}
+			}
+		}
 
 		Game::Globals::loaded_MainMenu = true;
 	}
 
-	// -- UI_MainMenu_Ver
-	__declspec(naked) void UI_MainMenu_ver_stub()
+	// Main Menu Version (UI_VersionNumber Call in UI_Refresh)
+	__declspec(naked) void main_menu_stub()
 	{
 		__asm
 		{
-			Call	UI_MainMenu_Ver
+			call	main_menu;
 			push	0x54353A;
-			retn
+			retn;
 		}
 	}
 
-	// --------------------------------------------------------------
+	
+	/* ---------------------------------------------------------- */
+	/* --------------- main menu shader constants --------------- */
 
-	// gameTime constant is only updated in-game, so .. lets fix that
+	// gameTime constant is only updated in-game, lets fix that
 	float menu_gameTime = 0.0f;
 
-	void UI_SetCustom_CodeConstants()
+	void set_custom_codeconstants()
 	{
 		if (!Game::_uiContext || !Game::gfxCmdBufSourceState)
 		{
@@ -552,37 +941,40 @@ namespace Components
 		}
 	}
 
-	// -- UI_SetCustom_CodeConstants
+	// hook "R_RenderAllLeftovers" in RB_Draw3DCommon to set custom codeconstants
 	__declspec(naked) void RB_Draw3DCommon_stub()
 	{
 		const static uint32_t R_RenderAllLeftovers_Func = 0x615570;
 		__asm
 		{
-			pushad
-			Call	UI_SetCustom_CodeConstants
-			popad
+			pushad;
+			call	set_custom_codeconstants;
+			popad;
 
 			// args are on the stack
-			Call	R_RenderAllLeftovers_Func
+			call	R_RenderAllLeftovers_Func;
 
-			push	6156F1h
-			retn
+			push	0x6156F1;
+			retn;
 		}
 	}
 
-	Game::Material* ui_white_material;
 
-	void UI_InitWhiteMaterial()
+	/* ---------------------------------------------------------- */
+	/* ------------------- ui fixes and addons ------------------ */
+	
+	Game::Material* ui_white_material;
+	
+	void init_white_material()
 	{
 		ui_white_material = GET_UIMATERIAL(0xCAF06F0); // white material pointer
-
 		if (!ui_white_material)
 		{
 			ui_white_material = Game::Material_RegisterHandle("white", 3);
 		}
 	}
 	
-	// ITEM-SLIDER :: Background
+	// ITEM-SLIDER :: Change material "ui_scrollbar" to white and add a color (background)
 	__declspec(naked) void Item_ListBox_Paint_SliderBackground_stub()
 	{
 		const static uint32_t returnPt = 0x55330D; // jump onto the call to UI_DrawHandlePic
@@ -593,59 +985,56 @@ namespace Components
 		const static float meme2 =  0.0f; // add additional height
 		const static float width =  6.0f;
 
-		const static float color[4] = LISTBOX_SLIDER_BACKGROUND_COLOR;
-		const static float *colorPtr = color; // we need a ptr to our color
-
-		// white material ptr location @ 0xCAF06F0 -points-to> 0xFA4EC8
+		const static float  color[4] = LISTBOX_SLIDER_BACKGROUND_COLOR;
+		const static float* colorPtr = color; // we need a ptr to our color
+		// white material ptr location @ 0xCAF06F0 points-to 0xFA4EC8
 		__asm
 		{
-			pushad
-			Call	UI_InitWhiteMaterial
-			popad
+			pushad;
+			call	init_white_material;
+			popad;
 
-			fld     dword ptr[esp + 50h]		// stock op
-			mov     eax, [edi]					// stock op
-			fadd	yOffs						// stock op -- itemheight + yOffs
-			mov		ecx, [ebp + eax * 4 + 4]	// stock op
-			mov		[ebp + eax * 4 + 8], ecx	// stock op
+			fld     dword ptr[esp + 50h];		// stock op
+			mov     eax, [edi];					// stock op
+			fadd	yOffs;						// stock op -- itemheight + yOffs
+			mov		ecx, [ebp + eax * 4 + 4];	// stock op
+			mov		[ebp + eax * 4 + 8], ecx;	// stock op
 
-			// ---------------------------------------------------
 			// material <-> color
-			mov     edx, ui_white_material//[0xFA4EC8]		// ui white material handle
-			mov     eax, [ebx + 18h]		// stock op
-			fstp    dword ptr[esp + 50h]	// stock op
-			fld     dword ptr[ebx + 10h]	// stock op
-			mov     ecx, [ebx + 14h]		// stock op
-			fadd	hOffs					// stock op -- h - hOffs
-			add     esp, 1Ch				// stock op
-			push    edx						// stock op -- material
-			push    eax						// stock op -- vertAlign
-			fstp    dword ptr[esp + 20h]	// stock op
-			push    ecx						// stock op -- horzAlign
-			fld     dword ptr[esp + 24h]	// stock op
-			sub     esp, 10h				// stock op
-			fadd	meme2					// stock op -- new h + 1.0f
-			mov     ecx, colorPtr			// color -- was "xor ecx, ecx"
+			mov     edx, ui_white_material;	// ui white material handle
+			mov     eax, [ebx + 18h];		// stock op
+			fstp    dword ptr[esp + 50h];	// stock op
+			fld     dword ptr[ebx + 10h];	// stock op
+			mov     ecx, [ebx + 14h];		// stock op
+			fadd	hOffs;					// stock op -- h - hOffs
+			add     esp, 1Ch;				// stock op
+			push    edx;					// stock op -- material
+			push    eax;					// stock op -- vertAlign
+			fstp    dword ptr[esp + 20h];	// stock op
+			push    ecx;					// stock op -- horzAlign
+			fld     dword ptr[esp + 24h];	// stock op
+			sub     esp, 10h;				// stock op
+			fadd	meme2;					// stock op -- new h + 1.0f
+			mov     ecx, colorPtr;			// color -- was "xor ecx, ecx"
 
-			// ---------------------------------------------------
 			// continue till we are at x
-			mov     edx, esi				// stock op -- placement
-			fstp    dword ptr[esp + 44h]	// stock op
-			fld     dword ptr[esp + 44h]	// stock op
-			fstp    dword ptr[esp + 0Ch]	// stock op -- h
-			fld		width					// stock op
-			fstp    dword ptr[esp + 8]		// stock op -- w
-			fld     dword ptr[esp + 50h]	// stock op
-			fstp    dword ptr[esp + 4]		// stock op -- y
-			fld     dword ptr[esp + 30h]	// stock op
-			fadd	xOffs
-			fstp    dword ptr[esp]			// stock op -- x
+			mov     edx, esi;				// stock op -- placement
+			fstp    dword ptr[esp + 44h];	// stock op
+			fld     dword ptr[esp + 44h];	// stock op
+			fstp    dword ptr[esp + 0Ch];	// stock op -- h
+			fld		width;					// stock op
+			fstp    dword ptr[esp + 8];		// stock op -- w
+			fld     dword ptr[esp + 50h];	// stock op
+			fstp    dword ptr[esp + 4];		// stock op -- y
+			fld     dword ptr[esp + 30h];	// stock op
+			fadd	xOffs;
+			fstp    dword ptr[esp];			// stock op -- x
 
 			jmp		returnPt;
 		}
 	}
 
-	// ITEM-SLIDER :: Thumb
+	// ITEM-SLIDER :: Change material "material_ui_scrollbar_thumb" to white and add a color (thumb)
 	__declspec(naked) void Item_ListBox_Paint_SliderThumb_stub()
 	{
 		const static uint32_t returnPt = 0x5533C7; // jump onto the call to UI_DrawHandlePic
@@ -656,101 +1045,43 @@ namespace Components
 		const static float yOffs = -(hOffs * 0.5f) + 3.0f;
 		
 
-		const static float color[4] = LISTBOX_SLIDER_THUMB_COLOR;
-		const static float *colorPtr = color; // we need a ptr to our color
-		// white material ptr location @ 0xCAF06F0 -points-to> 0xFA4EC8
+		const static float  color[4] = LISTBOX_SLIDER_THUMB_COLOR;
+		const static float* colorPtr = color; // we need a ptr to our color
+		// white material ptr location @ 0xCAF06F0 points-to 0xFA4EC8
 		__asm
 		{
-			pushad
-			Call	UI_InitWhiteMaterial
-			popad
+			pushad;
+			call	init_white_material;
+			popad;
 
 			// material <-> color
-			mov     edx, ui_white_material		// ui white material handle
-			fld		boxWH				// stock op
-			mov     eax, [ebx + 18h]	// stock op
-			mov     ecx, [ebx + 14h]	// stock op
-			push    edx					// stock op -- material
-			push    eax					// stock op -- vertAlign
-			push    ecx					// stock op -- horzAlign
-			sub     esp, 10h				// stock op
-			fadd	hOffs
-			fst     dword ptr[esp + 0Ch]	// stock op -- h (uses boxWH)
-			mov     ecx, colorPtr			// color -- was "xor ecx, ecx"
-			fsub	hOffs
-			fstp    dword ptr[esp + 8]		// stock op -- w (uses boxWH)
-			mov     edx, esi				// stock op
-			fld     dword ptr[esp + 34h]	// stock op
-			fadd	yOffs
-			fstp    dword ptr[esp + 4]		// stock op -- y
-			fld     dword ptr[esp + 30h]	// stock op
-			fadd	xOffs
-			fstp    dword ptr[esp]			// stock op -- x
+			mov     edx, ui_white_material;		// ui white material handle
+			fld		boxWH;						// stock op
+			mov     eax, [ebx + 18h];			// stock op
+			mov     ecx, [ebx + 14h];			// stock op
+			push    edx;						// stock op -- material
+			push    eax;						// stock op -- vertAlign
+			push    ecx;						// stock op -- horzAlign
+			sub     esp, 10h;					// stock op
+			fadd	hOffs;
+			fst     dword ptr[esp + 0Ch];		// stock op -- h (uses boxWH)
+			mov     ecx, colorPtr;				// color -- was "xor ecx, ecx"
+			fsub	hOffs;
+			fstp    dword ptr[esp + 8];			// stock op -- w (uses boxWH)
+			mov     edx, esi;					// stock op
+			fld     dword ptr[esp + 34h];		// stock op
+			fadd	yOffs;
+			fstp    dword ptr[esp + 4];			// stock op -- y
+			fld     dword ptr[esp + 30h];		// stock op
+			fadd	xOffs;
+			fstp    dword ptr[esp];				// stock op -- x
 
 			jmp		returnPt;
 		}
 	}
 
-	// --------------------------------------------------------------
-
-	// ultrawide dvar helper func
-	void SetUltrawideDvar(bool state)
-	{
-		if (Dvars::ui_ultrawide)
-		{
-			Game::Dvar_SetValue(Dvars::ui_ultrawide, state);
-		}
-	}
-
-	void set_custom_aspect_ratio()
-	{
-		*(float*)(0xCC9D0F8) = Dvars::r_aspectRatio_custom->current.value;
-	}
-
-	// -- UltrawideDvarFalse
-	__declspec(naked) void R_AspectRatio_Reset_Ultrawide_stub()
-	{
-		const static uint32_t returnPt = 0x5F3534;
-		__asm
-		{
-			pushad
-			push	0
-			Call	SetUltrawideDvar
-			add		esp, 4h
-			popad
-
-			mov     eax, [eax + 0Ch]	// overwritten op
-			cmp     eax, 3				// overwritten op
-
-			jmp		returnPt			// jump back to break op
-		}
-	}
-
-	// -- UltrawideDvarTrue // use default switchcase to implement 21:9
-	__declspec(naked) void R_AspectRatio_Ultrawide_stub()
-	{
-		const static float ultraWideAspect = 2.3333333f;
-		const static uint32_t returnPt = 0x5F35E5;
-		__asm
-		{
-			pushad
-			push	1
-			Call	SetUltrawideDvar
-			add		esp, 4h
-
-			Call	set_custom_aspect_ratio
-			popad
-
-			mov     ecx, 1				// widescreen true
-			jmp		returnPt			// jump back to break op
-		}
-	}
-
-	// --------------------------------------------------------------
-
-	// used to add custom uiScripts for menus 
-	// :: returns true when it matched a valid uiScript string to skip the original function to avoid error prints and to make overwriting stock uiScripts a thing
-	int UI_uiScriptAddons(const char *arg)
+	// add custom uiScripts for menus :: returns true when a valid uiScript string was matched => skip the original function to avoid error prints and to make overwriting stock uiScripts a thing
+	int scripts_addons(const char *arg)
 	{
 		if (!Utils::Q_stricmpn(arg, "StartServerCustom", 0x7FFFFFFF))
 		{
@@ -811,107 +1142,165 @@ namespace Components
 		return 0;
 	}
 
-	// -- UI_uiScriptsAddons()
-	__declspec(naked) void UI_uiScriptsAddons_stub()
+	// hook "Item_RunScript" to implement custom uiScripts callable from menu files
+	__declspec(naked) void scripts_addons_stub()
 	{
 		const static char* overwrittenStr = "StartServer";
 		const static uint32_t stockScripts = 0x545BF2;  // next op after hook spot
 		const static uint32_t ifAddonReturn = 0x546E52; // jump to the valid return point if we had a valid match in addons
 		__asm
 		{
-										// call our addon function
-			lea     edx, [esp + 58h]	// out arg // was at 5C but as we push, we offset esp ;)
-										// we don't need to take care of edx after this so .. 
-			pushad						
-			push	edx					
-			Call	UI_uiScriptAddons
-			add		esp,4
-			test	eax, eax
-			je		STOCK_FUNC			// jump if UI_uiScriptsAddons was false
-			popad
+			lea     edx, [esp + 58h];	// 'out' arg was at 0x5C but we hooked at the push before it => 'out' arg at esp+5C - 4 ;)
+	
+			pushad;
+			push	edx;
+			call	scripts_addons;
+			add		esp, 4;
+			test	eax, eax;
+			je		STOCK_FUNC;			// jump if UI_uiScriptsAddons was false
+			popad;
 
-			jmp		ifAddonReturn		// return to skip the stock function
+			jmp		ifAddonReturn;		// return to skip the stock function
 
 			STOCK_FUNC:
-			popad
-			push	overwrittenStr
-			jmp		stockScripts		// jump back and exec the original function
+			popad;
+			push	overwrittenStr;		// the original push we hooked at
+			jmp		stockScripts;		// jump back and exec the original function
 		}
 	}
 
-	//Fixes rect not being drawn properly when a border is applied
+	// fix rect not being drawn properly when a border is applied
 	_declspec(naked) void Window_Paint_Border_Side_Fix() 
 	{
 		const static uint32_t returnPT = 0x54B6FA;
 		_asm 
 		{
-			cmp     dword ptr[ebx + 3Ch], 2	//if border 2
-			je		short border_2
+			cmp     dword ptr[ebx + 3Ch], 2;	//if border 2
+			je		short border_2;
 
-			cmp     dword ptr[ebx + 3Ch], 3	//if border 3
-			je		short border_3
+			cmp     dword ptr[ebx + 3Ch], 3;	//if border 3
+			je		short border_3;
 
 			//fix for full border
-			fld     dword ptr[ebx + 48h]	//stock op
-			fadd    dword ptr[esp + 10h]	//stock op
-			fstp    dword ptr[esp + 10h]	//stock op
-			fld     dword ptr[ebx + 48h]	//stock op
-			fadd    dword ptr[esp + 14h]	//stock op
-			fstp    dword ptr[esp + 14h]	//stock op
-			fld     dword ptr[ebx + 48h]	//stock op
-			fld     dword ptr[esp + 18h]	//stock op
-			fsub    st, st(1)				//stock op
-			fsub    st, st(1)
-			fstp    dword ptr[esp + 18h]	//stock op
-			fsubr   dword ptr[esp + 1Ch]	//subract border size (st0) from height, save in st0
-			fsub	dword ptr[ebx + 48h]	//subract boder size from st0
-			fstp    dword ptr[esp + 1Ch]	//stock op
-			jmp		returnPT
+			fld     dword ptr[ebx + 48h];	//stock op
+			fadd    dword ptr[esp + 10h];	//stock op
+			fstp    dword ptr[esp + 10h];	//stock op
+			fld     dword ptr[ebx + 48h];	//stock op
+			fadd    dword ptr[esp + 14h];	//stock op
+			fstp    dword ptr[esp + 14h];	//stock op
+			fld     dword ptr[ebx + 48h];	//stock op
+			fld     dword ptr[esp + 18h];	//stock op
+			fsub    st, st(1);				//stock op
+			fsub    st, st(1);
+			fstp    dword ptr[esp + 18h];	//stock op
+			fsubr   dword ptr[esp + 1Ch];	//subract border size (st0) from height, save in st0
+			fsub	dword ptr[ebx + 48h];	//subract boder size from st0
+			fstp    dword ptr[esp + 1Ch];	//stock op
+			jmp		returnPT;
 
 
 			//fix for border 2
-			border_2 :
+			border_2:
 
-			fld     dword ptr[ebx + 48h]	//load bordersize
-			fadd    dword ptr[esp + 14h]	//add y to bordersize
-			fstp    dword ptr[esp + 14h]	//store y, pop st0
+			fld     dword ptr[ebx + 48h];	//load bordersize
+			fadd    dword ptr[esp + 14h];	//add y to bordersize
+			fstp    dword ptr[esp + 14h];	//store y, pop st0
 
-			fld     dword ptr[ebx + 48h]	//load bordersize
-			fsubr	dword ptr[esp + 1Ch]
-			fsub	dword ptr[ebx + 48h]
-			fstp	dword ptr[esp + 1Ch]	//store width
-			jmp		returnPT
+			fld     dword ptr[ebx + 48h];	//load bordersize
+			fsubr	dword ptr[esp + 1Ch];
+			fsub	dword ptr[ebx + 48h];
+			fstp	dword ptr[esp + 1Ch];	//store width
+			jmp		returnPT;
 
 
 			//fix for border 3
-			border_3 :
+			border_3:
 			
-			fld     dword ptr[ebx + 48h]	//load bordersize
-			fadd    dword ptr[esp + 10h]	//add x to bordersize
-			fstp    dword ptr[esp + 10h]	//store x, pop st0
+			fld     dword ptr[ebx + 48h];	//load bordersize
+			fadd    dword ptr[esp + 10h];	//add x to bordersize
+			fstp    dword ptr[esp + 10h];	//store x, pop st0
 
-			fld     dword ptr[ebx + 48h]	//load bordersize
-			fsubr   dword ptr[esp + 18h]
-			fsub	dword ptr[ebx + 48h]
-			fstp    dword ptr[esp + 18h]	//store height
-			jmp		returnPT
+			fld     dword ptr[ebx + 48h];	//load bordersize
+			fsubr   dword ptr[esp + 18h];
+			fsub	dword ptr[ebx + 48h];
+			fstp    dword ptr[esp + 18h];	//store height
+			jmp		returnPT;
 		}
 	}
 
-	// Do not drop the player when UI_LoadMenus_LoadObj fails to load a menu
+	// do not drop the player when UI_LoadMenus_LoadObj fails to load a menu
 	__declspec(naked) void load_raw_menulist_error_stub()
 	{
 		__asm
 		{
-			add     esp, 18h	// hook is placed on call to FS_FOpenFileReadForThread, so fix the stack
+			add     esp, 18h;	// hook is placed on call to FS_FOpenFileReadForThread, so fix the stack
 			
-			xor		eax, eax	// return a nullptr
-			pop		edi			// epilog
-			pop		esi
-			pop		ebp
-			pop		ebx
-			pop		ecx
-			retn
+			xor		eax, eax;	// return a nullptr
+			pop		edi;			// epilog
+			pop		esi;
+			pop		ebp;
+			pop		ebx;
+			pop		ecx;
+			retn;
+		}
+	}
+
+
+	/* ---------------------------------------------------------- */
+	/* ---------------------- aspect ratio ---------------------- */
+
+	void set_ultrawide_dvar(bool state)
+	{
+		if (Dvars::ui_ultrawide)
+		{
+			Game::Dvar_SetValue(Dvars::ui_ultrawide, state);
+		}
+	}
+
+	void set_custom_aspect_ratio()
+	{
+		if (Dvars::r_aspectRatio_custom)
+		{
+			*(float*)(0xCC9D0F8) = Dvars::r_aspectRatio_custom->current.value;
+		}
+	}
+
+	// hook R_AspectRatio to initially reset the ultrawide dvar (menu helper)
+	__declspec(naked) void aspect_ratio_custom_reset_stub()
+	{
+		const static uint32_t returnPt = 0x5F3534;
+		__asm
+		{
+			pushad;
+			push	0;
+			call	set_ultrawide_dvar;
+			add		esp, 4h;
+			popad;
+
+			mov     eax, [eax + 0Ch];	// overwritten op
+			cmp     eax, 3;				// overwritten op
+
+			jmp		returnPt;			// jump back to break op
+		}
+	}
+
+	// set custom aspect ratio by using the default switchcase in R_AspectRatio
+	__declspec(naked) void aspect_ratio_custom_stub()
+	{
+		const static float ultraWideAspect = 2.3333333f;
+		const static uint32_t returnPt = 0x5F35E5;
+		__asm
+		{
+			pushad;
+			push	1;
+			call	set_ultrawide_dvar;
+			add		esp, 4h;
+
+			Call	set_custom_aspect_ratio;
+			popad;
+
+			mov     ecx, 1;				// widescreen true
+			jmp		returnPt;			// jump back to break op
 		}
 	}
 
@@ -921,33 +1310,32 @@ namespace Components
 		// Main Menu Hooks
 
 		// Main Menu Version (UI_VersionNumber Call in UI_Refresh)
-		Utils::Hook(0x543535, UI_MainMenu_ver_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x543535, main_menu_stub, HOOK_JUMP).install()->quick();
 
 		// hook "R_RenderAllLeftovers" in RB_Draw3DCommon to set custom codeconstants
 		Utils::Hook(0x6156EC, RB_Draw3DCommon_stub, HOOK_JUMP).install()->quick();
 
 		// hook "Item_RunScript" to implement custom uiScripts callable from menu files
-		Utils::Hook(0x545BED, UI_uiScriptsAddons_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x545BED, scripts_addons_stub, HOOK_JUMP).install()->quick();
 
 
 		// *
 		// List Box Slider
 
 		// Change material "ui_scrollbar" to white and add a color (background)
-		Utils::Hook::Nop(0x5532A0, 6);	Utils::Hook(0x5532A0, Item_ListBox_Paint_SliderBackground_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x5532A0, 6);		Utils::Hook(0x5532A0, Item_ListBox_Paint_SliderBackground_stub, HOOK_JUMP).install()->quick();
 		
-		// disable drawing of upper arrow
-		Utils::Hook::Nop(0x55329B, 5); // nop "UI_DrawHandlePic" call
+		// disable drawing of upper arrow :: nop "UI_DrawHandlePic" call
+		Utils::Hook::Nop(0x55329B, 5);
 
-		// disable drawing of lower arrow
-		Utils::Hook::Nop(0x55335A, 5); // nop "UI_DrawHandlePic" call
+		// disable drawing of lower arrow :: nop "UI_DrawHandlePic" call
+		Utils::Hook::Nop(0x55335A, 5);
 
 		// Change material "material_ui_scrollbar_thumb" to white and add a color (thumb)
-		Utils::Hook::Nop(0x553394, 6);	Utils::Hook(0x553394, Item_ListBox_Paint_SliderThumb_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x553394, 6);		Utils::Hook(0x553394, Item_ListBox_Paint_SliderThumb_stub, HOOK_JUMP).install()->quick();
 
 		// Fix border drawing bug
-		Utils::Hook::Nop(0x54B6C9, 7);
-		Utils::Hook(0x54B6C9, Window_Paint_Border_Side_Fix, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x54B6C9, 7);		Utils::Hook(0x54B6C9, Window_Paint_Border_Side_Fix, HOOK_JUMP).install()->quick();
 
 		// Do not drop the player when UI_LoadMenus_LoadObj fails to load a menu
 		Utils::Hook(0x5587FF, load_raw_menulist_error_stub, HOOK_JUMP).install()->quick();
@@ -955,6 +1343,14 @@ namespace Components
 
 		// *
 		// Commands
+
+		Command::Add("mainmenu_reload", "", "reloads zone \"xcommon_iw3xo_menu\"", [](Command::Params)
+		{
+				// re-calculate the gui layout
+				GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG].one_time_init = false;
+
+				Game::Cmd_ExecuteSingleCommand(0, 0, "loadzone xcommon_iw3xo_menu\n");
+		});
 
 		// loads a menulist (txt file) and adds menus within it to the uicontext->menu stack
 		Command::Add("menu_loadlist_raw", "<menulist_name.txt>", "rawfile :: load a menulist (txt file) and add included menus to the uicontext->menu stack (<fs_usedevdir> must be enabled)", [](Command::Params params)
@@ -1137,7 +1533,7 @@ namespace Components
 		Dvars::ui_eyes_position = Game::Dvar_RegisterVec2(
 			/* name		*/ "ui_eyes_position",
 			/* desc		*/ "position of main menu eyes",
-			/* default	*/ 0.925f, 0.85f,
+			/* default	*/ 0.70f, 0.026f,
 			/* minVal	*/ -2.0f,
 			/* maxVal	*/ 2.0f,
 			/* flags	*/ Game::dvar_flags::saved);
@@ -1145,7 +1541,7 @@ namespace Components
 		Dvars::ui_eyes_size = Game::Dvar_RegisterFloat(
 			/* name		*/ "ui_eyes_size",
 			/* desc		*/ "size of main menu eyes",
-			/* default	*/ 0.03f,
+			/* default	*/ 0.0041f,
 			/* minVal	*/ 0.0001f,
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
@@ -1222,13 +1618,11 @@ namespace Components
 		// *
 		// Display
 
-		// Hook R_AspectRatio to initially reset the ultrawide dvar
-		Utils::Hook::Nop(0x5F352E, 6);
-		Utils::Hook(0x5F352E, R_AspectRatio_Reset_Ultrawide_stub, HOOK_JUMP).install()->quick();
+		// Hook R_AspectRatio to initially reset the ultrawide dvar (menu helper)
+		Utils::Hook::Nop(0x5F352E, 6);		Utils::Hook(0x5F352E, aspect_ratio_custom_reset_stub, HOOK_JUMP).install()->quick();
 
-		// Set 21:9 aspect by using the default switchcase in R_AspectRatio
-		Utils::Hook::Nop(0x5F35FA, 6);
-		Utils::Hook(0x5F35FA, R_AspectRatio_Ultrawide_stub, HOOK_JUMP).install()->quick();
+		// Set custom aspect ratio by using the default switchcase in R_AspectRatio
+		Utils::Hook::Nop(0x5F35FA, 6);		Utils::Hook(0x5F35FA, aspect_ratio_custom_stub, HOOK_JUMP).install()->quick();
 
 		Dvars::r_aspectRatio_custom = Game::Dvar_RegisterFloat(
 			/* name		*/ "r_aspectRatio_custom",
@@ -1250,7 +1644,7 @@ namespace Components
 
 		Dvars::r_aspectRatio = Game::Dvar_RegisterEnum(
 			/* name		*/ "r_aspectRatio",
-			/* desc		*/ "Screen aspect ratio. \"auto\" does not choose 21:9 automatically!",
+			/* desc		*/ "Screen aspect ratio. Use \"custom\" and \"r_aspectRatio_custom\" if your aspect ratio is not natively supported! (21/9 = 2.3333)",
 			/* default	*/ 0,
 			/* enumSize	*/ r_customAspectratio.size(),
 			/* enumData */ r_customAspectratio.data(),

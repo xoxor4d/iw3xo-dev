@@ -2,6 +2,7 @@
 
 namespace Game
 {
+	//char GfxBackEndData_surfsBuffer[0x60000]; // memes
 
 #ifdef DEVGUI_OCEAN
 	namespace ocean
@@ -156,22 +157,23 @@ namespace Game
 	namespace Globals
 	{
 		// Init
-		std::string loadedModules;
-		bool loaded_MainMenu;
+		std::string loadedModules = "";
+		bool loaded_MainMenu = false;
+		bool mainmenu_fadeDone = false;
 
 		// Radiant
-		Game::cgsAddon cgsAddons = Game::cgsAddon();
-		Game::savedRadiantBrushes rad_savedBrushes = Game::savedRadiantBrushes();
-		Game::dynBrushesArray_t dynBrushes = Game::dynBrushesArray_t();
-		Game::dynBrushModelsArray_t dynBrushModels = Game::dynBrushModelsArray_t();
+		Game::cgsAddon				cgsAddons			= Game::cgsAddon();
+		Game::savedRadiantBrushes	rad_savedBrushes	= Game::savedRadiantBrushes();
+		Game::dynBrushesArray_t		dynBrushes			= Game::dynBrushesArray_t();
+		Game::dynBrushModelsArray_t dynBrushModels		= Game::dynBrushModelsArray_t();
 
 		// Movement
 		bool locPmove_checkJump = false; // if Jumped in Check_Jump, reset after x frames in PmoveSingle
 
-		glm::vec3 locPmove_playerVelocity = { 0.0f, 0.0f, 0.0f };	// grab local player velocity
-		glm::vec3 locPmove_playerOrigin = { 0.0f, 0.0f, 0.0f };		// grab local player origin
-		glm::vec3 locPmove_playerAngles = { 0.0f, 0.0f, 0.0f };		// grab local player angles
-		glm::vec3 locPmove_cameraOrigin = { 0.0f, 0.0f, 0.0f };		// grab local camera origin
+		glm::vec3 locPmove_playerVelocity	= { 0.0f, 0.0f, 0.0f };	// grab local player velocity
+		glm::vec3 locPmove_playerOrigin		= { 0.0f, 0.0f, 0.0f };	// grab local player origin
+		glm::vec3 locPmove_playerAngles		= { 0.0f, 0.0f, 0.0f };	// grab local player angles
+		glm::vec3 locPmove_cameraOrigin		= { 0.0f, 0.0f, 0.0f };	// grab local camera origin
 
 		// Devgui
 		Game::gui_t gui = Game::gui_t();
@@ -180,18 +182,18 @@ namespace Game
 		IDirect3DDevice9* d3d9_device = nullptr;
 
 		// Collision
-		bool dbgColl_initialized = false;	// debug collision was used
-		int  dbgColl_drawnBrushAmount = 0;	// total amount of brushes used for calculations of planes 
-		int  dbgColl_drawnPlanesAmount = 0; // total amount of planes rendered for hud
-		int  dbgColl_drawnPlanesAmountTemp = 0; // total amount of planes rendered used to count while drawing 
+		bool dbgColl_initialized			= false; // debug collision was used
+		int  dbgColl_drawnBrushAmount		= 0; // total amount of brushes used for calculations of planes 
+		int  dbgColl_drawnPlanesAmount		= 0; // total amount of planes rendered for hud
+		int  dbgColl_drawnPlanesAmountTemp	= 0; // total amount of planes rendered used to count while drawing 
 		
 		std::string	r_drawCollision_materialList_string = "";
 
 		// Frametime
-		int serverTime = 0;
-		int serverTimeOld = 0;
+		int serverTime		= 0;
+		int serverTimeOld	= 0;
 		int serverFrameTime = 0;
-		int pmlFrameTime = 0;
+		int pmlFrameTime	= 0;
 
 		// Misc
 		int Q3_LastProjectileWeaponUsed = 0; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired
@@ -201,6 +203,13 @@ namespace Game
 		Game::GfxMatrix projectionMatrix = Game::GfxMatrix();
 		Game::GfxMatrix viewProjectionMatrix = Game::GfxMatrix();
 		Game::GfxMatrix inverseViewProjectionMatrix = Game::GfxMatrix();
+
+#ifdef DEVGUI_XO_BLUR
+		float xo_blur_directions = 32.0f;
+		float xo_blur_quality = 16.0f;
+		float xo_blur_size = 32.0f;
+		float xo_blur_alpha = 1.0f;
+#endif
 	}
 
 	float COLOR_WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -210,28 +219,31 @@ namespace Game
 	// ---------------
 	// GENERAL STRUCTS
 
-	Game::clientActive_t* clients = reinterpret_cast<Game::clientActive_t*>(0xC5F930);
-	Game::clientStatic_t* cls = reinterpret_cast<Game::clientStatic_t*>(0x956D80);
-	Game::cg_s* cgs = reinterpret_cast<Game::cg_s*>(0x74E338);
-	Game::GfxBuffers* gfxBuf = reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
-	Game::GfxScene* scene = reinterpret_cast<Game::GfxScene*>(0xCF10280);
+	Game::clientActive_t*		clients = reinterpret_cast<Game::clientActive_t*>(0xC5F930);
+	Game::clientStatic_t*		cls = reinterpret_cast<Game::clientStatic_t*>(0x956D80);
+	Game::clientConnection_t&	clc = *reinterpret_cast<Game::clientConnection_t*>(0x8F4CE0);
+	Game::cg_s*					cgs = reinterpret_cast<Game::cg_s*>(0x74E338);
+	Game::GfxBuffers*			gfxBuf = reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
+	Game::GfxScene*				scene = reinterpret_cast<Game::GfxScene*>(0xCF10280);
 	//Game::serverStatic_t* svs = reinterpret_cast<Game::serverStatic_t*>(0x185C480); // cba
 
+	int*	com_frameTime = reinterpret_cast<int*>(0x1476EFC);
+	float*	com_timescaleValue = reinterpret_cast<float*>(0x1435D68);
 
 	// ---------------
 	// RADIANT / CGAME
 
 	const char* g_entityBeginParsePoint		= reinterpret_cast<const char*>(0x1113674);
 	const char* g_entityEndParsePoint		= reinterpret_cast<const char*>(0x1113678);
-	int* clientActive_cmdNumber				= reinterpret_cast<int*>(0xCC5FF8); // part of clientActive_t
+	int*		clientActive_cmdNumber		= reinterpret_cast<int*>(0xCC5FF8); // part of clientActive_t
 	
 	char* Com_Parse(const char **data_p /*edi*/)
 	{
 		const static uint32_t Com_Parse_Func = 0x571380;
 		__asm
 		{
-			mov     edi, data_p
-			Call	Com_Parse_Func
+			mov     edi, data_p;
+			Call	Com_Parse_Func;
 		}
 	}
 
@@ -240,11 +252,11 @@ namespace Game
 		const static uint32_t CL_GetUserCmd_Func = 0x45AB40;
 		__asm
 		{
-			mov     eax, cmdNumber
-			push	ucmd
+			mov     eax, cmdNumber;
+			push	ucmd;
 
-			Call	CL_GetUserCmd_Func
-			add     esp, 4
+			Call	CL_GetUserCmd_Func;
+			add     esp, 4;
 		}
 	}
 
@@ -262,16 +274,21 @@ namespace Game
 	const char** zone_mod							= reinterpret_cast<const char**>(0xCC9D13C);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7265E0);
-	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7263A0);
+	unsigned int* g_poolSize	= reinterpret_cast<unsigned int*>(0x7263A0);
 
 	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x726A10);
 
 	XAssetHeader db_realloc_xasset_pool(XAssetType type, unsigned int newSize)
 	{
 		int elSize = DB_GetXAssetSizeHandlers[type]();
-		XAssetHeader poolEntry = { Utils::Memory::GetAllocator()->allocate(newSize * elSize) };
+		
+		XAssetHeader poolEntry = { 
+			Utils::Memory::GetAllocator()->allocate(newSize * elSize) 
+		};
+
 		DB_XAssetPool[type] = poolEntry;
 		g_poolSize[type] = newSize;
+
 		return poolEntry;
 	}
 
@@ -280,11 +297,11 @@ namespace Game
 		const static uint32_t DB_FileExists_Func = 0x48B9B0;
 		__asm
 		{
-			push	source
-			mov		eax, fileName
+			push	source;
+			mov		eax, fileName;
 
-			Call	DB_FileExists_Func
-			add     esp, 4h
+			Call	DB_FileExists_Func;
+			add     esp, 4h;
 		}
 	}
 
@@ -293,8 +310,8 @@ namespace Game
 		const static uint32_t FS_DisplayPath_Func = 0x55D510;
 		__asm
 		{
-			mov		eax, bLanguageCull
-			Call	FS_DisplayPath_Func
+			mov		eax, bLanguageCull;
+			Call	FS_DisplayPath_Func;
 		}
 	}
 
@@ -302,28 +319,28 @@ namespace Game
 	// ---------
 	// COLLISION 
 
-	int* vertexCount = reinterpret_cast<int*>(0xD2B082C);
-	void* frontEndDataOut = reinterpret_cast<void*>(0xCC9827C);
+	int*  vertexCount		= reinterpret_cast<int*>(0xD2B082C);
+	void* frontEndDataOut	= reinterpret_cast<void*>(0xCC9827C);
 
 	char* initStringDvarValue = reinterpret_cast<char*>(0x6BFEA7);
 
 	Game::clipMap_t* cm = reinterpret_cast<Game::clipMap_t*>(0x14098C0);
 	Game::ComWorld* com = reinterpret_cast<Game::ComWorld*>(0x1435CB8);
 
-	Game::MaterialTechniqueType* OverflowTessTech = reinterpret_cast<Game::MaterialTechniqueType*>(0xD540EFC);
-	Game::Material* OverflowTessSurf = reinterpret_cast<Game::Material*>(0xD540EF8);
-	Game::Material* builtIn_material_unlit = reinterpret_cast<Game::Material*>(0xCC9A2C4); // 0xCC9A2B4
-	Game::Material* builtIn_material_unlit_depth = reinterpret_cast<Game::Material*>(0xCC9A2C0);
+	Game::MaterialTechniqueType*	OverflowTessTech = reinterpret_cast<Game::MaterialTechniqueType*>(0xD540EFC);
+	Game::Material*					OverflowTessSurf = reinterpret_cast<Game::Material*>(0xD540EF8);
+	Game::Material*					builtIn_material_unlit = reinterpret_cast<Game::Material*>(0xCC9A2C4); // 0xCC9A2B4
+	Game::Material*					builtIn_material_unlit_depth = reinterpret_cast<Game::Material*>(0xCC9A2C0);
 
 	Game::materialCommands_t* tess = reinterpret_cast<Game::materialCommands_t*>(0xD085EE0);
 	
-	Game::DebugGlobals* debugGlob = reinterpret_cast<Game::DebugGlobals*>((((char*)frontEndDataOut) + 0x11E71C));
-	Game::GfxBackEndData *_frontEndDataOut = reinterpret_cast<Game::GfxBackEndData *>(0xCC9827C);
-	Game::GfxBackEndData *_backEndData = reinterpret_cast<Game::GfxBackEndData *>(0xD0704BC);
-	Game::GfxWorld * _gfxWorld = reinterpret_cast<Game::GfxWorld *>(0xD0701E0);
+	Game::DebugGlobals*		debugGlob = reinterpret_cast<Game::DebugGlobals*>((((char*)frontEndDataOut) + 0x11E71C));
+	Game::GfxBackEndData*	_frontEndDataOut = reinterpret_cast<Game::GfxBackEndData *>(0xCC9827C);
+	Game::GfxBackEndData*	_backEndData = reinterpret_cast<Game::GfxBackEndData *>(0xD0704BC);
+	Game::GfxWorld*			_gfxWorld = reinterpret_cast<Game::GfxWorld *>(0xD0701E0);
 
 	// print3d // DebugStrings / Lines
-	int* clsDebugFromServer = reinterpret_cast<int*>(0xC5B020);
+	int*  clsDebugFromServer = reinterpret_cast<int*>(0xC5B020);
 	bool* ifRendererStarted = reinterpret_cast<bool*>(0x956E88);
 	Game::clientDebugStringInfo_t *clsDebugSV_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B044);
 	Game::clientDebugStringInfo_t *clsDebugCL_Strings = reinterpret_cast<Game::clientDebugStringInfo_t*>(0xC5B024);
@@ -350,12 +367,12 @@ namespace Game
 		const static uint32_t R_AddDebugPolygon_Func = 0x60DAC0;
 		__asm
 		{
-			mov		esi, debugGlob
-			push	points
-			push	pointCount
+			mov		esi, debugGlob;
+			push	points;
+			push	pointCount;
 
-			Call	R_AddDebugPolygon_Func
-			add     esp, 8
+			Call	R_AddDebugPolygon_Func;
+			add     esp, 8;
 		}
 	}
 
@@ -364,12 +381,12 @@ namespace Game
 		const static uint32_t R_AddDebugPolygon_Func = 0x60DAC0;
 		__asm
 		{
-			mov		esi, debugGlobalsEntry
-			push	points
-			push	pointCount
+			mov		esi, debugGlobalsEntry;
+			push	points;
+			push	pointCount;
 
-			Call	R_AddDebugPolygon_Func
-			add     esp, 8
+			Call	R_AddDebugPolygon_Func;
+			add     esp, 8;
 		}
 	}
 
@@ -392,11 +409,12 @@ namespace Game
 	int* wnd_SceneHeight = reinterpret_cast<int*>(0xCC9D0E4); // CC9D0E4
 	float* wnd_SceneAspect = reinterpret_cast<float*>(0xCC9D0FC); // CC9D0FC
 
-	IDirect3DDevice9* dx9_device = reinterpret_cast<IDirect3DDevice9*>(0xCC9D06C);
+	IDirect3DDevice9*  dx9_device = reinterpret_cast<IDirect3DDevice9*>(0xCC9D06C);
 	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
 
-	Game::Material* floatz_display = reinterpret_cast<Game::Material*>(0xFA5378);
-	GfxCmdBufSourceState* gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);
+	Game::Material*			floatz_display = reinterpret_cast<Game::Material*>(0xFA5378);
+	GfxCmdBufSourceState*	gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);
+
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_client = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B054);
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_server = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B074);
 
@@ -442,14 +460,14 @@ namespace Game
 		const static uint32_t RB_BeginSurface_Func = 0x61A220;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		edi, techType
-			mov		esi, [material]
+			mov		edi, techType;
+			mov		esi, [material];
 
-			Call	RB_BeginSurface_Func
+			Call	RB_BeginSurface_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -458,14 +476,14 @@ namespace Game
 		const static uint32_t RB_BeginSurface_Func = 0x61A220;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		edi, techType
-			mov		esi, material
+			mov		edi, techType;
+			mov		esi, material;
 
-			Call	RB_BeginSurface_Func
+			Call	RB_BeginSurface_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -475,31 +493,31 @@ namespace Game
 		const static uint32_t R_AddCmdDrawText_Func = 0x5F6B00;
 		__asm
 		{
-			push	style
-			sub     esp, 14h
+			push	style;
+			sub     esp, 14h;
 
-			fld		rotation
-			fstp	[esp + 10h]
+			fld		rotation;
+			fstp	[esp + 10h];
 
-			fld		yScale
-			fstp	[esp + 0Ch]
+			fld		yScale;
+			fstp	[esp + 0Ch];
 
-			fld		xScale
-			fstp	[esp + 8]
+			fld		xScale;
+			fstp	[esp + 8];
 
-			fld		y
-			fstp	[esp + 4]
+			fld		y;
+			fstp	[esp + 4];
 
-			fld		x
-			fstp	[esp]
+			fld		x;
+			fstp	[esp];
 
-			push	font
-			push	maxChars
-			push	text
-			mov		ecx, [color]
+			push	font;
+			push	maxChars;
+			push	text;
+			mov		ecx, [color];
 
-			Call	R_AddCmdDrawText_Func
-			add		esp, 24h
+			Call	R_AddCmdDrawText_Func;
+			add		esp, 24h;
 		}
 	}
 
@@ -509,8 +527,8 @@ namespace Game
 		const static uint32_t RB_StandardDrawCommands_Func = 0x64AFB0;
 		__asm
 		{
-			mov		eax, viewInfo
-			Call	RB_StandardDrawCommands_Func
+			mov		eax, viewInfo;
+			Call	RB_StandardDrawCommands_Func;
 		}
 	}
 
@@ -519,61 +537,61 @@ namespace Game
 		const static uint32_t R_AddCmdDrawStretchPic_Func = 0x5F65F0;
 		__asm
 		{
-			pushad
+			pushad;
 
-			push	color
-			mov		eax, [material]
-			sub		esp, 20h
+			push	color;
+			mov		eax, [material];
+			sub		esp, 20h;
 
-			fld		null4
-			fstp	[esp + 1Ch]
+			fld		null4;
+			fstp	[esp + 1Ch];
 
-			fld		null3
-			fstp	[esp + 18h]
+			fld		null3;
+			fstp	[esp + 18h];
 
-			fld		null2
-			fstp	[esp + 14h]
+			fld		null2;
+			fstp	[esp + 14h];
 
-			fld		null1
-			fstp	[esp + 10h]
+			fld		null1;
+			fstp	[esp + 10h];
 
-			fld		h
-			fstp	[esp + 0Ch]
+			fld		h;
+			fstp	[esp + 0Ch];
 
-			fld		w
-			fstp	[esp + 8h]
+			fld		w;
+			fstp	[esp + 8h];
 
-			fld		y
-			fstp	[esp + 4h]
+			fld		y;
+			fstp	[esp + 4h];
 
-			fld		x
-			fstp	[esp]
+			fld		x;
+			fstp	[esp];
 
-			call	R_AddCmdDrawStretchPic_Func
-			add		esp, 24h
+			call	R_AddCmdDrawStretchPic_Func;
+			add		esp, 24h;
 
-			popad
+			popad;
 		}
 	}
 
 	void R_SetRenderTarget(int target)
 	{
 		const static uint32_t R_SetRenderTarget_Func = 0x632B60;
-		const static uint32_t _gfxCmdBufSourceState = 0xD53F5F0; // State
+		const static uint32_t _gfxCmdBufSourceState  = 0xD53F5F0; // State
 		const static uint32_t _gfxCmdBufSourceSource = 0xD5404F0; // Source // should be switched? using Struct "GfxCmdBufState" on 0xD5404F0 works
 
 		__asm
 		{
-			pushad
+			pushad;
 
-			push	_gfxCmdBufSourceSource // eax
-			push	_gfxCmdBufSourceState // ecx
-			mov     eax, target
+			push	_gfxCmdBufSourceSource; // eax
+			push	_gfxCmdBufSourceState; // ecx
+			mov     eax, target;
 
-			call	R_SetRenderTarget_Func
-			add     esp, 8
+			call	R_SetRenderTarget_Func;
+			add     esp, 8;
 
-			popad
+			popad;
 		}
 	}
 
@@ -584,12 +602,12 @@ namespace Game
 
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		edi, [_gfxCmdBufSourceState]
-			call	R_Set2D_Func
+			mov		edi, [_gfxCmdBufSourceState];
+			call	R_Set2D_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -600,12 +618,12 @@ namespace Game
 
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		edx, [_gfxCmdBufSourceState]
-			call	R_Set3D_Func
+			mov		edx, [_gfxCmdBufSourceState];
+			call	R_Set3D_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -614,40 +632,40 @@ namespace Game
 		const static uint32_t RB_DrawStretchPic_Func = 0x610E10;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		eax, material
-			push    0FFFFFFFFh // -1
-			sub     esp, 20h
+			mov		eax, material;
+			push    0FFFFFFFFh; // -1
+			sub     esp, 20h;
 
-			fld		texcoord3
-			fstp	[esp + 1Ch]
+			fld		texcoord3;
+			fstp	[esp + 1Ch];
 
-			fld		texcoord2
-			fstp	[esp + 18h]
+			fld		texcoord2;
+			fstp	[esp + 18h];
 
-			fld		texcoord1
-			fstp	[esp + 14h]
+			fld		texcoord1;
+			fstp	[esp + 14h];
 
-			fld		texcoord0
-			fstp	[esp + 10h]
+			fld		texcoord0;
+			fstp	[esp + 10h];
 
-			fld		h
-			fstp	[esp + 0Ch]
+			fld		h;
+			fstp	[esp + 0Ch];
 
-			fld		w
-			fstp	[esp + 8h]
+			fld		w;
+			fstp	[esp + 8h];
 
-			fld		y
-			fstp	[esp + 4h]
+			fld		y;
+			fstp	[esp + 4h];
 
-			fld		x
-			fstp	[esp]
+			fld		x;
+			fstp	[esp];
 
-			Call	RB_DrawStretchPic_Func
-			add     esp, 24h
+			Call	RB_DrawStretchPic_Func;
+			add     esp, 24h;
 
-			popad
+			popad;
 		}
 	}
 
@@ -656,33 +674,33 @@ namespace Game
 		const static uint32_t CG_DrawRotatedPicPhysical_Func = 0x431490;
 		__asm
 		{
-			pushad
+			pushad;
 
-			push	[material]
-			push	[color]
-			sub     esp, 14h
+			push	[material];
+			push	[color];
+			sub     esp, 14h;
 
-			fld		a6
-			fstp	[esp + 10h]
+			fld		a6;
+			fstp	[esp + 10h];
 
-			mov     edx, place
+			mov     edx, place;
 
-			fld		a5
-			fstp	[esp + 0Ch]
+			fld		a5;
+			fstp	[esp + 0Ch];
 
-			fld		a4
-			fstp	[esp + 8h]
+			fld		a4;
+			fstp	[esp + 8h];
 
-			fld		a3
-			fstp	[esp + 4h]
+			fld		a3;
+			fstp	[esp + 4h];
 
-			fld		a2
-			fstp	[esp]
+			fld		a2;
+			fstp	[esp];
 
-			call	CG_DrawRotatedPicPhysical_Func
-			add     esp, 1Ch
+			call	CG_DrawRotatedPicPhysical_Func;
+			add     esp, 1Ch;
 
-			popad
+			popad;
 		}
 	}
 
@@ -691,12 +709,12 @@ namespace Game
 		const static uint32_t R_TextWidth_Func = 0x5F1EE0;
 		__asm
 		{
-			push	font
-			push	maxChars
-			mov		eax, [text]
+			push	font;
+			push	maxChars;
+			mov		eax, [text];
 
-			Call	R_TextWidth_Func
-			add		esp,8
+			Call	R_TextWidth_Func;
+			add		esp, 8;
 		}
 	}
 
@@ -704,12 +722,15 @@ namespace Game
 	// ---------
 	// UI / MENU
 
-	DWORD* ui_white_material_ptr = reinterpret_cast<DWORD*>(0xCAF06F0);
-	int* gameTypeEnum = reinterpret_cast<int*>(0xCAF1820);
-	int* mapNameEnum = reinterpret_cast<int*>(0xCAF2330);
+	DWORD*	ui_white_material_ptr = reinterpret_cast<DWORD*>(0xCAF06F0);
+
+	int*	gameTypeEnum = reinterpret_cast<int*>(0xCAF1820);
+	int*	mapNameEnum = reinterpret_cast<int*>(0xCAF2330);
+
 	Game::UiContext* _cgDC = reinterpret_cast<Game::UiContext*>(0x746FA8);
 	Game::UiContext* _uiContext = reinterpret_cast<Game::UiContext*>(0xCAEE200);
-	Game::PlayerKeyState* playerKeys = reinterpret_cast<Game::PlayerKeyState*>(0x8F1DB8);
+
+	Game::PlayerKeyState*	playerKeys = reinterpret_cast<Game::PlayerKeyState*>(0x8F1DB8);
 	Game::clientUIActive_t* clientUI = reinterpret_cast<Game::clientUIActive_t*>(0xC5F8F4);
 
 	ScreenPlacement* scrPlace = reinterpret_cast<ScreenPlacement*>(0xE34420);
@@ -720,13 +741,13 @@ namespace Game
 		const static uint32_t String_Parse_Func = 0x54B510;
 		__asm
 		{
-			push	len
-			lea		eax, [outStr]
-			push	eax
-			mov		eax, p
+			push	len;
+			lea		eax, [outStr];
+			push	eax;
+			mov		eax, p;
 
-			Call	String_Parse_Func
-			add		esp, 8
+			Call	String_Parse_Func;
+			add		esp, 8;
 		}
 	}
 
@@ -735,14 +756,14 @@ namespace Game
 		const static uint32_t Menus_OpenByName_Func = 0x550B50;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		esi, uiDC
-			mov		edi, menuName
+			mov		esi, uiDC;
+			mov		edi, menuName;
 
-			Call	Menus_OpenByName_Func
+			Call	Menus_OpenByName_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -751,14 +772,14 @@ namespace Game
 		const static uint32_t Menus_CloseByName_Func = 0x54C520;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		eax, menuName
-			mov		esi, uiDC
+			mov		eax, menuName;
+			mov		esi, uiDC;
 
-			Call	Menus_CloseByName_Func
+			Call	Menus_CloseByName_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -767,12 +788,12 @@ namespace Game
 		const static uint32_t Menus_CloseAll_Func = 0x54C540;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		esi, uiDC
-			Call	Menus_CloseAll_Func
+			mov		esi, uiDC;
+			Call	Menus_CloseAll_Func;
 
-			popad
+			popad;
 		}
 	}
 	
@@ -780,32 +801,32 @@ namespace Game
 	// ------------------------------------------------------
 	// GSC 
 
-	DWORD* gScrMemTreePub				= reinterpret_cast<DWORD*>(0x14E8A04);
-	DWORD* scrVarPub /*char[1024]*/		= reinterpret_cast<DWORD*>(0x15CA61C);
-	int* scrVarPub_p4 /*scrVarpub+4*/	= reinterpret_cast<int*>(0x15CA620);
-	char* error_message /*char[1023]*/	= reinterpret_cast<char*>(0x1798378);
-	char* errortype /*char[1023]*/		= reinterpret_cast<char*>(0x1798777);
-	int* scr_numParam					= reinterpret_cast<int*>(0x1794074);
+	DWORD*	gScrMemTreePub					= reinterpret_cast<DWORD*>(0x14E8A04);
+	DWORD*	scrVarPub /*char[1024]*/		= reinterpret_cast<DWORD*>(0x15CA61C);
+	int*	scrVarPub_p4 /*scrVarpub+4*/	= reinterpret_cast<int*>(0x15CA620);
+	char*	error_message /*char[1023]*/	= reinterpret_cast<char*>(0x1798378);
+	char*	errortype /*char[1023]*/		= reinterpret_cast<char*>(0x1798777);
+	int*	scr_numParam					= reinterpret_cast<int*>(0x1794074);
 
-	Game::gentity_s* scr_g_entities = reinterpret_cast<Game::gentity_s*>(0x1288500);
-	Game::level_locals_t* level_locals = reinterpret_cast<Game::level_locals_t*>(0x13EB6A8);
+	Game::gentity_s*		scr_g_entities	= reinterpret_cast<Game::gentity_s*>(0x1288500);
+	Game::level_locals_t*	level_locals	= reinterpret_cast<Game::level_locals_t*>(0x13EB6A8);
 
 	void G_SetOrigin(Game::gentity_s* ent, float *origin)
 	{
 		if (ent)
 		{
-			ent->s.lerp.pos.trBase[0] = origin[0];
-			ent->s.lerp.pos.trBase[1] = origin[1];
-			ent->s.lerp.pos.trBase[2] = origin[2];
-			ent->s.lerp.pos.trType = Game::trType_t::TR_STATIONARY;
-			ent->s.lerp.pos.trTime = 0;
-			ent->s.lerp.pos.trDuration = 0;
-			ent->s.lerp.pos.trDelta[0] = 0.0;
-			ent->s.lerp.pos.trDelta[1] = 0.0;
-			ent->s.lerp.pos.trDelta[2] = 0.0;
-			ent->r.currentOrigin[0] = origin[0];
-			ent->r.currentOrigin[1] = origin[1];
-			ent->r.currentOrigin[2] = origin[2];
+			ent->s.lerp.pos.trBase[0]	= origin[0];
+			ent->s.lerp.pos.trBase[1]	= origin[1];
+			ent->s.lerp.pos.trBase[2]	= origin[2];
+			ent->s.lerp.pos.trType		= Game::trType_t::TR_STATIONARY;
+			ent->s.lerp.pos.trTime		= 0;
+			ent->s.lerp.pos.trDuration	= 0;
+			ent->s.lerp.pos.trDelta[0]	= 0.0;
+			ent->s.lerp.pos.trDelta[1]	= 0.0;
+			ent->s.lerp.pos.trDelta[2]	= 0.0;
+			ent->r.currentOrigin[0]		= origin[0];
+			ent->r.currentOrigin[1]		= origin[1];
+			ent->r.currentOrigin[2]		= origin[2];
 		}
 	}
 
@@ -813,18 +834,18 @@ namespace Game
 	{
 		if (ent)
 		{
-			ent->s.lerp.apos.trBase[0] = angles[0];
-			ent->s.lerp.apos.trBase[1] = angles[1];
-			ent->s.lerp.apos.trBase[2] = angles[2];
-			ent->s.lerp.apos.trType = Game::trType_t::TR_STATIONARY;
-			ent->s.lerp.apos.trTime = 0;
+			ent->s.lerp.apos.trBase[0]	= angles[0];
+			ent->s.lerp.apos.trBase[1]	= angles[1];
+			ent->s.lerp.apos.trBase[2]	= angles[2];
+			ent->s.lerp.apos.trType		= Game::trType_t::TR_STATIONARY;
+			ent->s.lerp.apos.trTime		= 0;
 			ent->s.lerp.apos.trDuration = 0;
 			ent->s.lerp.apos.trDelta[0] = 0.0;
 			ent->s.lerp.apos.trDelta[1] = 0.0;
 			ent->s.lerp.apos.trDelta[2] = 0.0;
-			ent->r.currentAngles[0] = angles[0];
-			ent->r.currentAngles[1] = angles[1];
-			ent->r.currentAngles[2] = angles[2];
+			ent->r.currentAngles[0]		= angles[0];
+			ent->r.currentAngles[1]		= angles[1];
+			ent->r.currentAngles[2]		= angles[2];
 		}
 	}
 
@@ -833,8 +854,8 @@ namespace Game
 		const static uint32_t G_ModelIndex_Func = 0x4E21F0;
 		__asm
 		{
-			mov		eax, modelName
-			Call	G_ModelIndex_Func
+			mov		eax, modelName;
+			Call	G_ModelIndex_Func;
 		}
 	}
 
@@ -843,8 +864,8 @@ namespace Game
 		const static uint32_t SV_LinkEntity_Func = 0x536D80;
 		__asm
 		{
-			mov		edi, ent
-			Call	SV_LinkEntity_Func
+			mov		edi, ent;
+			Call	SV_LinkEntity_Func;
 		}
 	}
 
@@ -853,8 +874,8 @@ namespace Game
 		const static uint32_t Scr_ObjectError_Func = 0x523F90;
 		__asm
 		{
-			mov		eax, string
-			Call	Scr_ObjectError_Func
+			mov		eax, string;
+			Call	Scr_ObjectError_Func;
 		}
 	}
 
@@ -863,11 +884,11 @@ namespace Game
 		const static uint32_t Scr_GetVector_Func = 0x5236E0;
 		__asm
 		{
-			mov		edx, [floatOut]
-			mov		eax, argIndex
-			xor		eax, eax
+			mov		edx, [floatOut];
+			mov		eax, argIndex;
+			xor		eax, eax;
 
-			Call	Scr_GetVector_Func
+			Call	Scr_GetVector_Func;
 		}
 	}
 
@@ -890,11 +911,13 @@ namespace Game
 			Game::Com_Error(0, "Internal script stack overflow");
 		}
 
-		uintptr_t v0; // eax
-
 		++ *some_scr_counter;
+
+		uintptr_t v0; // eax
 		v0 = *scr_script_inst + 8;
+
 		*scr_script_inst = v0;
+
 		*(DWORD*)(v0 + 4) = 6;
 		**scr_script_inst_ptr = value;
 	}
@@ -904,8 +927,8 @@ namespace Game
 		const static uint32_t Scr_AddVector_Func = 0x523D10;
 		__asm
 		{
-			mov		esi, [floatOut]
-			Call	Scr_AddVector_Func
+			mov		esi, [floatOut];
+			Call	Scr_AddVector_Func;
 		}
 	}
 
@@ -914,10 +937,10 @@ namespace Game
 		const static uint32_t Scr_GetFloat_Func = 0x523360;
 		__asm
 		{
-			mov		eax, argIndex
-			xor		eax, eax
+			mov		eax, argIndex;
+			xor		eax, eax;
 
-			Call	Scr_GetFloat_Func
+			Call	Scr_GetFloat_Func;
 		}
 	}
 
@@ -964,7 +987,7 @@ namespace Game
 	// ----
 	// IWDs
 
-	const char* fs_gamedir = reinterpret_cast<const char*>(0xCB19898);
+	const char*			fs_gamedir = reinterpret_cast<const char*>(0xCB19898);
 	Game::searchpath_s* fs_searchpaths = reinterpret_cast<Game::searchpath_s*>(0xD5EC4DC);
 
 	char ** Sys_ListFiles(const char *filter /*eax*/, const char *directory, const char *extension, int *numfiles, int wantsubs)
@@ -972,14 +995,14 @@ namespace Game
 		const static uint32_t Sys_ListFiles_Func = 0x572F00;
 		__asm
 		{
-			push	0 // wantsubs
-			push	numfiles
-			push	[extension] // ext
-			push	directory
-			xor		eax, eax // filter
+			push	0;				// wantsubs
+			push	numfiles;
+			push	[extension];	// ext
+			push	directory;
+			xor		eax, eax;		// filter
 
-			Call	Sys_ListFiles_Func
-			add     esp, 10h
+			Call	Sys_ListFiles_Func;
+			add     esp, 10h;
 		}
 	}
 
@@ -988,12 +1011,12 @@ namespace Game
 		const static uint32_t SEH_GetLanguageIndexForName_Func = 0x539250;
 		__asm
 		{
-			lea		ecx, [piLanguageIndex]
-			push	ecx // langIndex
-			mov		edi, [pszLanguageName] //langName
+			lea		ecx, [piLanguageIndex];
+			push	ecx;					// langIndex
+			mov		edi, [pszLanguageName]; // langName
 
-			Call	SEH_GetLanguageIndexForName_Func
-			add     esp, 4
+			Call	SEH_GetLanguageIndexForName_Func;
+			add     esp, 4;
 		}
 	}
 
@@ -1002,8 +1025,8 @@ namespace Game
 		const static uint32_t unzClose_Func = 0x596A50;
 		__asm
 		{
-			mov		edi, [file]
-			Call	unzClose_Func
+			mov		edi, [file];
+			Call	unzClose_Func;
 		}
 	}
 
@@ -1013,9 +1036,10 @@ namespace Game
 
 	Game::WeaponDef** BG_WeaponNames = reinterpret_cast<Game::WeaponDef**>(0x736DB8);
 
-	int* g_entities = reinterpret_cast<int*>(0x12885C4);
-	int* g_clients = reinterpret_cast<int*>(0x13255A8);
-	int* currentTime = reinterpret_cast<int*>(0x13EB894);
+	int* g_entities		= reinterpret_cast<int*>(0x12885C4);
+	int* g_clients		= reinterpret_cast<int*>(0x13255A8);
+	int* currentTime	= reinterpret_cast<int*>(0x13EB894);
+
 	int* CanDamageContentMask = reinterpret_cast<int*>(0x802011);
 
 	//// broken on release
@@ -1038,11 +1062,11 @@ namespace Game
 		const static uint32_t Jump_Check_Func = 0x407D90;
 		__asm
 		{
-			push	pml
-			mov		eax, pm
+			push	pml;
+			mov		eax, pm;
 
-			Call	Jump_Check_Func
-			add     esp, 4h
+			Call	Jump_Check_Func;
+			add     esp, 4h;
 		}
 	}
 
@@ -1051,15 +1075,15 @@ namespace Game
 		const static uint32_t PM_Friction_Func = 0x40E860;
 		__asm
 		{
-			pushad
+			pushad;
 
-			push	pml
-			mov		esi, ps
+			push	pml;
+			mov		esi, ps;
 
-			Call	PM_Friction_Func
-			add     esp, 4h
+			Call	PM_Friction_Func;
+			add     esp, 4h;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1068,17 +1092,17 @@ namespace Game
 		const static uint32_t PM_ClipVelocity_Adr = 0x40E2B0;
 		__asm
 		{
-			pushad
+			pushad;
 
-			push	velocityOut
-			mov		esi, traceNormal
-			mov		edi, velocityIn
+			push	velocityOut;
+			mov		esi, traceNormal;
+			mov		edi, velocityIn;
 
-			call	PM_ClipVelocity_Adr
-			add		esp, 4h
+			call	PM_ClipVelocity_Adr;
+			add		esp, 4h;
 
-			popad
-			retn
+			popad;
+			retn;
 
 		}
 	}
@@ -1088,12 +1112,12 @@ namespace Game
 		const static uint32_t PM_CorrectAllSolid_Func = 0x410370;
 		__asm
 		{
-			push    trace
-			push	pml
-			mov		eax, pm
+			push    trace;
+			push	pml;
+			mov		eax, pm;
 
-			Call	PM_CorrectAllSolid_Func
-			add		esp, 8h
+			Call	PM_CorrectAllSolid_Func;
+			add		esp, 8h;
 		}
 	}
 
@@ -1102,11 +1126,11 @@ namespace Game
 		const static uint32_t PM_GroundTraceMissed_Func = 0x4104E0;
 		__asm
 		{
-			push	pml
-			mov		eax, pm
+			push	pml;
+			mov		eax, pm;
 
-			Call	PM_GroundTraceMissed_Func
-			add		esp, 4h
+			Call	PM_GroundTraceMissed_Func;
+			add		esp, 4h;
 		}
 	}
 
@@ -1117,11 +1141,11 @@ namespace Game
 		const static uint32_t PM_CrashLand_Func = 0x40FFB0;
 		__asm
 		{
-			push	pml
-			mov		esi, ps
+			push	pml;
+			mov		esi, ps;
 
-			Call	PM_CrashLand_Func
-			add		esp, 4h
+			Call	PM_CrashLand_Func;
+			add		esp, 4h;
 		}
 	}
 #pragma warning( pop ) 
@@ -1131,10 +1155,10 @@ namespace Game
 		const static uint32_t PM_AddTouchEnt_Func = 0x40E270;
 		__asm
 		{
-			movzx	edi, entityNum
-			mov		eax, pm
+			movzx	edi, entityNum;
+			mov		eax, pm;
 
-			Call	PM_AddTouchEnt_Func
+			Call	PM_AddTouchEnt_Func;
 		}
 	}
 
@@ -1143,17 +1167,17 @@ namespace Game
 		const static uint32_t PM_playerTrace_Func = 0x40E160;
 		__asm
 		{
-			push	contentMask
-			push	passEntityNum
-			push	[end]
-			push	[maxs]
-			push	[mins]
-			push	[start]
-			push	results
-			mov		esi, pm
+			push	contentMask;
+			push	passEntityNum;
+			push	[end];
+			push	[maxs];
+			push	[mins];
+			push	[start];
+			push	results;
+			mov		esi, pm;
 
-			Call	PM_playerTrace_Func
-			add     esp, 1Ch
+			Call	PM_playerTrace_Func;
+			add     esp, 1Ch;
 		}
 	}
 
@@ -1162,23 +1186,23 @@ namespace Game
 		const static uint32_t G_Damage_Func = 0x4B5560;
 		__asm
 		{
-			push	timeOffset
-			push	a12
-			push	a11
-			push	hitloc
-			push	self_client
-			push	_mod
-			push	flags
-			push	[damage]
-			push	[point]
-			push	attacker
-			push	inflictor
-			push	targ
+			push	timeOffset;
+			push	a12;
+			push	a11;
+			push	hitloc;
+			push	self_client;
+			push	_mod;
+			push	flags;
+			push	[damage];
+			push	[point];
+			push	attacker;
+			push	inflictor;
+			push	targ;
 
-			mov		eax, [dir]
+			mov		eax, [dir];
 
-			Call	G_Damage_Func
-			add     esp, 30h
+			Call	G_Damage_Func;
+			add     esp, 30h;
 		}
 	}
 
@@ -1187,20 +1211,20 @@ namespace Game
 		const static uint32_t CanDamage_Func = 0x4B5770;
 		__asm
 		{
-			push	contentmask
-			push	[coneDirection]
-			push	0 // ??
+			push	contentmask;
+			push	[coneDirection];
+			push	0; // ??
 
-			fld		coneAngleCos
-			fstp	[esp]
+			fld		coneAngleCos;
+			fstp	[esp];
 
-			push	ent
+			push	ent;
 
-			mov		ecx, [centerPos]
-			mov		eax, inflictor
+			mov		ecx, [centerPos];
+			mov		eax, inflictor;
 
-			Call	CanDamage_Func
-			add     esp, 10h
+			Call	CanDamage_Func;
+			add     esp, 10h;
 		}
 	}
 	
@@ -1209,23 +1233,23 @@ namespace Game
 		const static uint32_t Scr_PlayerDamage_Func = 0x4D8B80;
 		__asm
 		{
-			pushad
+			pushad;
 
-			push	timeOffset
-			push	hitLoc
-			push	[point]
-			push	weapon
-			push	_mod
-			push	dflags
-			push	damage
-			push	attacker
-			push	inflictor
-			push	targ
-			mov		eax, [dir]
+			push	timeOffset;
+			push	hitLoc;
+			push	[point];
+			push	weapon;
+			push	_mod;
+			push	dflags;
+			push	damage;
+			push	attacker;
+			push	inflictor;
+			push	targ;
+			mov		eax, [dir];
 
-			call Scr_PlayerDamage_Func
-			add		esp, 28h
-			popad
+			call	Scr_PlayerDamage_Func;
+			add		esp, 28h;
+			popad;
 		}
 	}
 	
@@ -1236,14 +1260,14 @@ namespace Game
 		{
 			push	targetOffset;
 			push	target;
-			push	gunVel
-			push	dir
-			push	weapindex
-			push	ent
-			mov		eax, [kickBack]
+			push	gunVel;
+			push	dir;
+			push	weapindex;
+			push	ent;
+			mov		eax, [kickBack];
 
-			Call	G_FireRocket_Func
-			add     esp, 18h
+			Call	G_FireRocket_Func;
+			add     esp, 18h;
 		}
 	}
 	
@@ -1253,6 +1277,11 @@ namespace Game
 
 	void Dvar_SetValue(dvar_s* _dvar, int _dvarValue)
 	{
+		if (!_dvar)
+		{
+			return;
+		}
+
 		_dvar->current.integer = _dvarValue;
 		_dvar->latched.integer = _dvarValue;
 		//_dvar->modified = false;
@@ -1260,6 +1289,11 @@ namespace Game
 
 	void Dvar_SetValue(dvar_s* _dvar, bool _dvarValue)
 	{
+		if (!_dvar)
+		{
+			return;
+		}
+
 		_dvar->current.enabled = _dvarValue;
 		_dvar->latched.enabled = _dvarValue;
 		//_dvar->modified = false;
@@ -1267,6 +1301,11 @@ namespace Game
 
 	void Dvar_SetValue(dvar_s* _dvar, const float _dvarValue)
 	{
+		if (!_dvar)
+		{
+			return;
+		}
+
 		_dvar->current.value = _dvarValue;
 		_dvar->latched.value = _dvarValue;
 		//_dvar->modified = false;
@@ -1274,6 +1313,11 @@ namespace Game
 
 	void Dvar_SetValue(dvar_s* _dvar, const char *_dvarValue)
 	{
+		if (!_dvar)
+		{
+			return;
+		}
+
 		_dvar->current.string = _dvarValue;
 		_dvar->latched.string = _dvarValue;
 		_dvar->modified = false;
@@ -1330,14 +1374,14 @@ namespace Game
 		const static uint32_t Dvar_SetString_Func = 0x56CA90;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		eax, [text]
-			mov		esi, [dvar]
+			mov		eax, [text];
+			mov		esi, [dvar];
 
-			Call	Dvar_SetString_Func
+			Call	Dvar_SetString_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1345,18 +1389,18 @@ namespace Game
 	{
 		__asm
 		{
-			push	eax
-			pushad
+			push	eax;
+			pushad;
 
-			mov		edi, [esp + 28h]
-			mov		eax, 56B5D0h
-			call	eax
+			mov		edi, [esp + 28h];
+			mov		eax, 56B5D0h;
+			call	eax;
 
-			mov		[esp + 20h], eax
-			popad
+			mov		[esp + 20h], eax;
+			popad;
 
-			pop eax
-			retn
+			pop eax;
+			retn;
 		}
 	}
 
@@ -1365,7 +1409,7 @@ namespace Game
 		const static uint32_t Dvar_Reregister_Func = 0x56BFF0;
 		__asm
 		{
-			pushad
+			pushad;
 
 			push	max;
 			push	min;
@@ -1383,11 +1427,10 @@ namespace Game
 			Call	Dvar_Reregister_Func;
 			add		esp, 24h;
 
-			popad
+			popad;
 		}
 	}
-
-	// aaaaaaaaaaaaaaaaaaaaaar
+	
 	Game::dvar_s* Dvar_RegisterIntWrapper_r(const char* dvarName, DvarType type, std::uint16_t flags, const char* description, int x, int y, int z, int w, int min, int max)
 	{
 		auto dvar = Dvar_FindVar(dvarName);
@@ -1412,9 +1455,9 @@ namespace Game
 	float* con_matchtxtColor_domainDescription = reinterpret_cast<float*>(0x6BDF44); // 0x6BDF44
 
 	// console structs
-	ConDrawInputGlob* conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x8CC2C8);
-	Console* con = reinterpret_cast<Console*>(0x8DC8C0);
-	field_t* g_consoleField = reinterpret_cast<field_t*>(0x8F1B88);
+	ConDrawInputGlob*	conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x8CC2C8);
+	Console*			con = reinterpret_cast<Console*>(0x8DC8C0);
+	field_t*			g_consoleField = reinterpret_cast<field_t*>(0x8F1B88);
 
 	// console variables
 	//Font_s* con_font = reinterpret_cast<Font_s*>(0xC5AE94));
@@ -1429,26 +1472,29 @@ namespace Game
 	bool*	extvar_con_ignoreMatchPrefixOnly = reinterpret_cast<bool*>(0x736BB1);
 
 	// cmd args
-	int* argc_1410B84 = reinterpret_cast<int*>(0x1410B84);
-	int* argc_1410B40 = reinterpret_cast<int*>(0x1410B40);
-	char* argv_6BFEA7 = reinterpret_cast<char*>(0x6BFEA7);
-	int* argv_1410BA4 = reinterpret_cast<int*>(0x1410BA4);
+	int*	argc_1410B84 = reinterpret_cast<int*>(0x1410B84);
+	int*	argc_1410B40 = reinterpret_cast<int*>(0x1410B40);
+	char*	argv_6BFEA7  = reinterpret_cast<char*>(0x6BFEA7);
+	int*	argv_1410BA4 = reinterpret_cast<int*>(0x1410BA4);
+
 	cmd_function_s* cmd_functions = reinterpret_cast<cmd_function_s*>(0x1410B3C);
 
-	SCR_DrawSmallStringExt_t SCR_DrawSmallStringExt = (SCR_DrawSmallStringExt_t)0x474C30;
-	Sys_IsMainThread_t Sys_IsMainThread = (Sys_IsMainThread_t)0x50B5D0;
-	Con_TokenizeInput_t Con_TokenizeInput = (Con_TokenizeInput_t)0x45F350;
-	Con_CancelAutoComplete_t Con_CancelAutoComplete = (Con_CancelAutoComplete_t)0x460A90;
-	Con_DrawInputPrompt_t Con_DrawInputPrompt = (Con_DrawInputPrompt_t)0x460510;
-	Cmd_EndTokenizedString_t Cmd_EndTokenizedString = (Cmd_EndTokenizedString_t)0x4F98C0;
-	ConDrawInput_IncrMatchCounter_t ConDrawInput_IncrMatchCounter = (ConDrawInput_IncrMatchCounter_t)0x45FA40;
-	Con_AnySpaceAfterCommand_t Con_AnySpaceAfterCommand = (Con_AnySpaceAfterCommand_t)0x45F3D0;
-	ConDrawInput_DetailedDvarMatch_t ConDrawInput_DetailedDvarMatch = (ConDrawInput_DetailedDvarMatch_t)0x45FFB0;
-	ConDrawInput_DetailedCmdMatch_t ConDrawInput_DetailedCmdMatch = (ConDrawInput_DetailedCmdMatch_t)0x460370;
-	ConDrawInput_DvarMatch_t ConDrawInput_DvarMatch = (ConDrawInput_DvarMatch_t)0x45FAB0;
-	ConDrawInput_CmdMatch_t ConDrawInput_CmdMatch = (ConDrawInput_CmdMatch_t)0x460440;
-	Con_DrawOutputScrollBar_t Con_DrawOutputScrollBar = (Con_DrawOutputScrollBar_t)0x461860;
-	Con_DrawOutputText_t Con_DrawOutputText = (Con_DrawOutputText_t)0x4619E0;
+	SCR_DrawSmallStringExt_t	SCR_DrawSmallStringExt = (SCR_DrawSmallStringExt_t)0x474C30;
+	Sys_IsMainThread_t			Sys_IsMainThread = (Sys_IsMainThread_t)0x50B5D0;
+	Con_TokenizeInput_t			Con_TokenizeInput = (Con_TokenizeInput_t)0x45F350;
+	Con_CancelAutoComplete_t	Con_CancelAutoComplete = (Con_CancelAutoComplete_t)0x460A90;
+	Con_DrawInputPrompt_t		Con_DrawInputPrompt = (Con_DrawInputPrompt_t)0x460510;
+	Cmd_EndTokenizedString_t	Cmd_EndTokenizedString = (Cmd_EndTokenizedString_t)0x4F98C0;
+
+	ConDrawInput_IncrMatchCounter_t		ConDrawInput_IncrMatchCounter = (ConDrawInput_IncrMatchCounter_t)0x45FA40;
+	Con_AnySpaceAfterCommand_t			Con_AnySpaceAfterCommand = (Con_AnySpaceAfterCommand_t)0x45F3D0;
+	ConDrawInput_DetailedDvarMatch_t	ConDrawInput_DetailedDvarMatch = (ConDrawInput_DetailedDvarMatch_t)0x45FFB0;
+	ConDrawInput_DetailedCmdMatch_t		ConDrawInput_DetailedCmdMatch = (ConDrawInput_DetailedCmdMatch_t)0x460370;
+
+	ConDrawInput_DvarMatch_t	ConDrawInput_DvarMatch = (ConDrawInput_DvarMatch_t)0x45FAB0;
+	ConDrawInput_CmdMatch_t		ConDrawInput_CmdMatch = (ConDrawInput_CmdMatch_t)0x460440;
+	Con_DrawOutputScrollBar_t	Con_DrawOutputScrollBar = (Con_DrawOutputScrollBar_t)0x461860;
+	Con_DrawOutputText_t		Con_DrawOutputText = (Con_DrawOutputText_t)0x4619E0;
 	//Con_IsAutoCompleteMatch_t Con_IsAutoCompleteMatch = (Con_IsAutoCompleteMatch_t)0x45F990;
 
 	void Con_DrawMessageWindowOldToNew(DWORD* msgWindow /*esi*/, int localClientNum, int xPos, int yPos, int charHeight, int horzAlign, int vertAlign, int mode, Font_s* font, const float* color, int textStyle, float msgwndScale, int textAlignMode)
@@ -1456,27 +1502,27 @@ namespace Game
 		const static uint32_t Con_DrawMessageWindowOldToNew_Func = 0x461150;
 		__asm
 		{
-			push	textAlignMode
-			push	0
+			push	textAlignMode;
+			push	0;
 
-			fld		msgwndScale
-			fstp	dword ptr[esp]
+			fld		msgwndScale;
+			fstp	dword ptr[esp];
 
-			push	textStyle
-			push	color
-			push	font
-			push	mode
-			push	vertAlign
-			push	horzAlign
-			push	charHeight
-			push	yPos
-			push	xPos
-			push	localClientNum
+			push	textStyle;
+			push	color;
+			push	font;
+			push	mode;
+			push	vertAlign;
+			push	horzAlign;
+			push	charHeight;
+			push	yPos;
+			push	xPos;
+			push	localClientNum;
 
-			mov		esi, msgWindow
+			mov		esi, msgWindow;
 
-			Call	Con_DrawMessageWindowOldToNew_Func
-			add     esp, 30h
+			Call	Con_DrawMessageWindowOldToNew_Func;
+			add     esp, 30h;
 		}
 	}
 
@@ -1513,31 +1559,31 @@ namespace Game
 		const static uint32_t AddBaseDrawConsoleTextCmd_Func = 0x5F6F60;
 		__asm
 		{
-			push    style
-			sub     esp, 10h
+			push    style;
+			sub     esp, 10h;
 
-			fld		[yScale]
-			fstp	[esp + 0Ch]
+			fld		[yScale];
+			fstp	[esp + 0Ch];
 
-			fld		[xScale]
-			fstp	[esp + 8]
+			fld		[xScale];
+			fstp	[esp + 8];
 
-			fld		[y]
-			fstp	[esp + 4]
+			fld		[y];
+			fstp	[esp + 4];
 
-			fld		[x]
-			fstp	[esp]
+			fld		[x];
+			fstp	[esp];
 
-			push    font
-			push    firstChar
-			push    poolSize
-			push    textPool
+			push    font;
+			push    firstChar;
+			push    poolSize;
+			push    textPool;
 
-			mov     ecx, [colorFloat]
-			mov     eax, [charCount]
+			mov     ecx, [colorFloat];
+			mov     eax, [charCount];
 
-			Call	AddBaseDrawConsoleTextCmd_Func
-			add     esp, 24h
+			Call	AddBaseDrawConsoleTextCmd_Func;
+			add     esp, 24h;
 		}
 	}
 
@@ -1546,15 +1592,15 @@ namespace Game
 		const static uint32_t ConDrawInput_Box_Func = 0x45F700;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		esi, [color]
-			push	lineHeightMulti
+			mov		esi, [color];
+			push	lineHeightMulti;
 
-			call	ConDrawInput_Box_Func
-			add		esp, 4h
+			call	ConDrawInput_Box_Func;
+			add		esp, 4h;
 
-			popad
+			popad;
 		}
 	}
 	
@@ -1563,12 +1609,12 @@ namespace Game
 		const static uint32_t ConDrawInput_TextAndOver_Func = 0x45F500;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		esi, [text]
-			call	ConDrawInput_TextAndOver_Func
+			mov		esi, [text];
+			call	ConDrawInput_TextAndOver_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1577,27 +1623,27 @@ namespace Game
 		const static uint32_t ConDraw_Box_Func = 0x45F540;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		esi, [color]
-			sub		esp, 10h
+			mov		esi, [color];
+			sub		esp, 10h;
 
-			fld		height
-			fstp	[esp + 0Ch]
+			fld		height;
+			fstp	[esp + 0Ch];
 
-			fld		width
-			fstp	[esp + 8h]
+			fld		width;
+			fstp	[esp + 8h];
 
-			fld		y
-			fstp	[esp + 4h]
+			fld		y;
+			fstp	[esp + 4h];
 
-			fld		x
-			fstp	[esp]
+			fld		x;
+			fstp	[esp];
 
-			call	ConDraw_Box_Func
-			add		esp, 10h
+			call	ConDraw_Box_Func;
+			add		esp, 10h;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1606,15 +1652,15 @@ namespace Game
 		const static uint32_t Con_DrawAutoCompleteChoice_Func = 0x460490;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov eax, a1
-			push a2
+			mov eax, a1;
+			push a2;
 
-			call Con_DrawAutoCompleteChoice_Func
-			add esp, 4h
+			call Con_DrawAutoCompleteChoice_Func;
+			add esp, 4h;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1623,8 +1669,8 @@ namespace Game
 		const static uint32_t Cmd_Argv_Func = 0x42A950;
 		__asm
 		{
-			mov		eax, argIndex
-			call	Cmd_Argv_Func
+			mov		eax, argIndex;
+			call	Cmd_Argv_Func;
 		}
 	}
 
@@ -1633,12 +1679,12 @@ namespace Game
 		const static uint32_t Dvar_ForEachName_Func = 0x569D30;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		edi, [func]
-			call	Dvar_ForEachName_Func
+			mov		edi, [func];
+			call	Dvar_ForEachName_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1647,12 +1693,12 @@ namespace Game
 		const static uint32_t Cmd_ForEach_Func = 0x4F9A40;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov		edi, [func]
-			call	Cmd_ForEach_Func
+			mov		edi, [func];
+			call	Cmd_ForEach_Func;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1666,16 +1712,16 @@ namespace Game
 		const static uint32_t BG_AnimScriptEvent_Func = 0x405720;
 		__asm
 		{
-			pushad
+			pushad;
 
-			mov     edi, [ps]
-			push    force
-			mov     eax, event
+			mov     edi, [ps];
+			push    force;
+			mov     eax, event;
 
-			call BG_AnimScriptEvent_Func
-			add esp, 4h
+			call	BG_AnimScriptEvent_Func;
+			add		esp, 4h;
 
-			popad
+			popad;
 		}
 	}
 
@@ -1683,34 +1729,35 @@ namespace Game
 	// ------
 	// COMMON
 
-	Game::playerState_s* ps_loc = reinterpret_cast<Game::playerState_s*>(0x13255A8);
-	Game::pmove_t* pmove = reinterpret_cast<Game::pmove_t*>(0x8C9C90);
+	Game::playerState_s*	ps_loc = reinterpret_cast<Game::playerState_s*>(0x13255A8);
+	Game::pmove_t*			pmove = reinterpret_cast<Game::pmove_t*>(0x8C9C90);
 
-	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
-	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);
-	char*** cmd_argv = reinterpret_cast<char***>(0x1410BA4);
-	cmd_function_s** cmd_ptr = reinterpret_cast<cmd_function_s**>(0x1410B3C);
-	XZone* g_zones = reinterpret_cast<XZone*>(0xFFEFD0);
-	XAssetEntry* g_assetEntryPool = reinterpret_cast<XAssetEntry*>(0xF0D640);
+	DWORD*				cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
+	DWORD*				cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);
+	char***				cmd_argv = reinterpret_cast<char***>(0x1410BA4);
+	cmd_function_s**	cmd_ptr = reinterpret_cast<cmd_function_s**>(0x1410B3C);
+
+	XZone*			g_zones = reinterpret_cast<XZone*>(0xFFEFD0);
+	XAssetEntry*	g_assetEntryPool = reinterpret_cast<XAssetEntry*>(0xF0D640);
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0xE62A80);
-	infoParm_t* infoParams = reinterpret_cast<Game::infoParm_t*>(0x71FBD0); // Count 0x1C
+	infoParm_t*		infoParams = reinterpret_cast<Game::infoParm_t*>(0x71FBD0); // Count 0x1C
 
-	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x4F9AB0);
-	Com_Error_t Com_Error = Com_Error_t(0x4FD330);
-	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4FCA50);
-	DB_FindXAssetHeader_t DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x489570);
-	DB_EnumXAssets_FastFile_t DB_EnumXAssets_FastFile = DB_EnumXAssets_FastFile_t(0x489120);
-	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x7268D0);
-    DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x48A2B0);
+	Cmd_ExecuteSingleCommand_t	Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x4F9AB0);
+	Com_Error_t					Com_Error = Com_Error_t(0x4FD330);
+	Com_PrintMessage_t			Com_PrintMessage = Com_PrintMessage_t(0x4FCA50);
+	DB_FindXAssetHeader_t		DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x489570);
+	DB_EnumXAssets_FastFile_t	DB_EnumXAssets_FastFile = DB_EnumXAssets_FastFile_t(0x489120);
+	DB_GetXAssetNameHandler_t*	DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x7268D0);
+    DB_LoadXAssets_t			DB_LoadXAssets = DB_LoadXAssets_t(0x48A2B0);
 
 	void Cbuf_AddText(const char *text /*eax*/, int localClientNum /*ecx*/)
 	{
 		const static uint32_t Cbuf_AddText_Func = 0x4F8D90;
 		__asm
 		{
-			mov		ecx, localClientNum
-			mov		eax, text
-			Call	Cbuf_AddText_Func
+			mov		ecx, localClientNum;
+			mov		eax, text;
+			Call	Cbuf_AddText_Func;
 		}
 	}
 
@@ -1721,6 +1768,7 @@ namespace Game
 		data->description = NULL;	//data->autoCompleteDir = NULL;
 		data->function = callback;
 		data->next = *cmd_ptr;
+
 		*cmd_ptr = data;
 	}
 
@@ -1731,6 +1779,7 @@ namespace Game
 		data->description = description;
 		data->function = callback;
 		data->next = *cmd_ptr;
+
 		*cmd_ptr = data;
 	}
 
@@ -1750,9 +1799,9 @@ namespace Game
 	{
 		__asm
 		{
-			mov eax, [esp + 4h]
-			push 5645A0h
-			retn
+			mov		eax, [esp + 4h];
+			push	5645A0h;
+			retn;
 		}
 	}
 
@@ -1760,16 +1809,16 @@ namespace Game
 	{
 		__asm
 		{
-			push ecx
-			mov ecx, [esp + 0Ch]
-			push [esp + 08h]
+			push	ecx;
+			mov		ecx, [esp + 0Ch];
+			push	[esp + 08h];
 
-			mov eax, 5647D0h
-			call eax
+			mov		eax, 5647D0h;
+			call	eax;
 
-			add esp, 4h
-			pop ecx
-			retn
+			add		esp, 4h;
+			pop		ecx;
+			retn;
 		}
 	}
 
@@ -1785,7 +1834,9 @@ namespace Game
 		assert(y);
 		assert(w);
 		assert(h);
-		float screenXScale = Game::cgs->refdef.width / 640.f;
+
+		float screenXScale = Game::cgs->refdef.width / 640.0f;
+
 		// scale for screen sizes
 		*x *= screenXScale;
 		*y *= screenXScale; // Note that screenXScale is used to avoid widescreen stretching.
@@ -1796,9 +1847,13 @@ namespace Game
 	// Coordinates are 640*480 virtual values
 	void CG_FillRect(float x, float y, float w, float h, float color[4])
 	{
-		if (!w || !h) return;
+		if (!w || !h)
+		{
+			return;
+		}
 
 		CG_AdjustFrom640(&x, &y, &w, &h);
+
 		void* material = Material_RegisterHandle("white", 3);
 		Game::R_AddCmdDrawStretchPic(material, x, y, w, h, 0.0f, 0.0f, 0.0f, 0.0f, color);
 	}
@@ -1812,8 +1867,17 @@ namespace Game
 	static inline float Projection(float angle)
 	{
 		float const half_fov_x = atanf(Game::cgs->refdef.tanHalfFovX);
-		if (angle >= half_fov_x) return 0;
-		if (angle <= -half_fov_x) return SCREEN_WIDTH;
+
+		if (angle >= half_fov_x)
+		{
+			return 0;
+		}
+			
+		if (angle <= -half_fov_x)
+		{
+			return SCREEN_WIDTH;
+		}
+			
 		return SCREEN_WIDTH / 2 * (1 - tanf(angle) / tanf(half_fov_x));
 	}
 
@@ -1833,15 +1897,17 @@ namespace Game
 		}
 
 		bool split = end > start;
-		start = Utils::vector::_AngleNormalizePI(start - yaw);
-		end = Utils::vector::_AngleNormalizePI(end - yaw);
+
+		start	= Utils::vector::_AngleNormalizePI(start - yaw);
+		end		= Utils::vector::_AngleNormalizePI(end - yaw);
 
 		if (end > start)
 		{
 			split = !split;
 			float const tmp = start;
-			start = end;
-			end = tmp;
+
+			start	= end;
+			end		= tmp;
 		}
 
 		range_t const ret = { Projection(start), Projection(end), split };
@@ -1865,7 +1931,10 @@ namespace Game
 	void CG_DrawLineYaw(float angle, float yaw, float y, float w, float h, float color[4])
 	{
 		angle = Utils::vector::_AngleNormalizePI(angle - yaw);
-		if (!AngleInFov(angle)) return;
+		if (!AngleInFov(angle))
+		{
+			return;
+		}
 
 		float const x = Projection(angle);
 		CG_FillRect(x - w / 2, y, w, h, color);

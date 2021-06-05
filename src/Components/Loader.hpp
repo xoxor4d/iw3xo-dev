@@ -7,6 +7,7 @@ namespace Components
 	{
 		bool _UI;
 		bool _CG;
+		bool _Client;
 		bool _Pmove;
 		bool _Debug;
 		bool _Game;
@@ -30,6 +31,7 @@ namespace Components
 		bool Gui_Devgui;
 		bool Compass;
 		bool CGaz;
+		bool Mvm;
 	};
 
 	extern activeModules_s active;
@@ -65,6 +67,7 @@ namespace Components
 // General modules that have to be included
 #include "Modules/_UI.hpp"
 #include "Modules/_CG.hpp"
+#include "Modules/_Client.hpp"
 #include "Modules/_Pmove.hpp"
 #include "Modules/_Debug.hpp"
 #include "Modules/_Game.hpp"
@@ -88,6 +91,7 @@ namespace Components
 #include "Modules/Gui_Devgui.hpp"
 #include "Modules/Compass.hpp"
 #include "Modules/CGaz.hpp"
+#include "Modules/Mvm.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

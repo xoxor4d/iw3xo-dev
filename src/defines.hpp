@@ -28,6 +28,7 @@
 #define GGUI_MENU_COUNT 4
 
 #define DEVGUI_OCEAN // comment to disable tab
+//#define DEVGUI_XO_BLUR // iw4 blur shader test
 
 // *
 // Screen
@@ -41,33 +42,6 @@
 #else
 	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s\n"
 #endif
-
-#define IW3XO_CHANGELOG_01_Y_OFFS	10
-#define IW3XO_CHANGELOG_01_SEP		1
-#define IW3XO_CHANGELOG_01_TITLE	"[General]\n"
-#define IW3XO_CHANGELOG_01			"-  Added dvar r_aspectRatio_custom (21:9 = 2.333) - Use r_aspectRatio custom to enable\n" \
-									"-  Automatically load xcommon_iw3xo_addon.ff if found in zone/language (user fastfile to overwrite loaded assets)\n" \
-									"-  cubeMapShot fixed (disable r_smp_backend!)"
-
-#define IW3XO_CHANGELOG_02_Y_OFFS	0
-#define IW3XO_CHANGELOG_02_SEP		1
-#define IW3XO_CHANGELOG_02_TITLE	"[Map Export]"
-#define IW3XO_CHANGELOG_02			"-  Fixed brush indices drawing when using r_drawCollision_brushIndexVisible\n"	\
-									"-  Minor fixes to texture scaling when exporting maps\n" \
-									"-  Use dvar mapexport_brush5Sides to export brushes with only 5 sides"
-
-#define IW3XO_CHANGELOG_03_Y_OFFS	-8
-#define IW3XO_CHANGELOG_03_SEP		1
-#define IW3XO_CHANGELOG_03_TITLE	"[ImGui / Ocean Shader]"
-#define IW3XO_CHANGELOG_03			"-  Implemented Ocean tab to tweak ocean shader settings in realtime\n" \
-									"-  Use the export button to export shader settings\n" \
-									"-  Needs #define USE_CUSTOM_CONSTANTS to work"
-
-#define IW3XO_CHANGELOG_04_Y_OFFS	-24
-#define IW3XO_CHANGELOG_04_SEP		1
-#define IW3XO_CHANGELOG_04_TITLE	"[Shader Overlays]"
-#define IW3XO_CHANGELOG_04			"-  xo_shaderoverlay can now be set to custom (define postfx material with xo_shaderoverlay_custom)\n" \
-									"-  Added dvar xo_shaderdbg_matrix to debug transformation matrices"
 
 
 // *
@@ -186,3 +160,39 @@
 #define KEYCATCHER_AUX15 0xDD
 #define KEYCATCHER_AUX16 0xDE
 #define KEYCATCHER_LAST_KEY 0xDF
+
+// UI
+#define HORIZONTAL_ALIGN_SUBLEFT		0	// left edge of a 4:3 screen (safe area not included)
+#define HORIZONTAL_ALIGN_LEFT			1	// left viewable (safe area) edge
+#define HORIZONTAL_ALIGN_CENTER			2	// center of the screen (reticle)
+#define HORIZONTAL_ALIGN_RIGHT			3	// right viewable (safe area) edge
+#define HORIZONTAL_ALIGN_FULLSCREEN		4	// disregards safe area
+#define HORIZONTAL_ALIGN_NOSCALE		5	// uses exact parameters - neither adjusts for safe area nor scales for screen size
+#define HORIZONTAL_ALIGN_TO640			6	// scales a real-screen resolution x down into the 0 - 640 range
+#define HORIZONTAL_ALIGN_CENTER_SAFEAREA 7	// center of the safearea
+
+#define VERTICAL_ALIGN_SUBTOP			0	// top edge of the 4:3 screen (safe area not included)
+#define VERTICAL_ALIGN_TOP				1	// top viewable (safe area) edge
+#define VERTICAL_ALIGN_CENTER			2	// center of the screen (reticle)
+#define VERTICAL_ALIGN_BOTTOM			3	// bottom viewable (safe area) edge
+#define VERTICAL_ALIGN_FULLSCREEN		4	// disregards safe area
+#define VERTICAL_ALIGN_NOSCALE			5	// uses exact parameters - neither adjusts for safe area nor scales for screen size
+#define VERTICAL_ALIGN_TO480			6	// scales a real-screen resolution y down into the 0 - 480 range
+#define VERTICAL_ALIGN_CENTER_SAFEAREA	7	// center of the save area
+
+#define HORIZONTAL_APPLY_LEFT				0
+#define HORIZONTAL_APPLY_CENTER				1
+#define HORIZONTAL_APPLY_RIGHT				2
+#define HORIZONTAL_APPLY_FULLSCREEN			3
+#define HORIZONTAL_APPLY_NONE				4
+#define HORIZONTAL_APPLY_TO640				5
+#define HORIZONTAL_APPLY_CENTER_SAFEAREA	6
+#define HORIZONTAL_APPLY_CONSOLE_SPECIAL	7
+
+#define VERTICAL_APPLY_TOP					0
+#define VERTICAL_APPLY_CENTER				1
+#define VERTICAL_APPLY_BOTTOM				2
+#define VERTICAL_APPLY_FULLSCREEN			3
+#define VERTICAL_APPLY_NONE					4
+#define VERTICAL_APPLY_TO640				5
+#define VERTICAL_APPLY_CENTER_SAFEAREA		6

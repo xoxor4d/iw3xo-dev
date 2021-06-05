@@ -221,7 +221,66 @@ namespace Components
 	}
 
 	_Game::_Game()
-	{ }
+	{ 
+		// *
+		// Commands
+
+		// extend
+		Command::Add("ent_rotateTo", [](Command::Params params)
+		{
+			if (params.Length() < 3)
+			{
+				Game::Com_PrintMessage(0, "Usage :: ent_rotateTo entityID <angles vec3>\n", 0);
+				return;
+			}
+
+			float angles[3] = { 0.0f, 0.0f, 0.0f };
+
+			angles[0] = Utils::try_stof(params[2], true);
+
+			if (params.Length() >= 4)
+			{
+				angles[1] = Utils::try_stof(params[3], true);
+			}
+
+			if (params.Length() >= 5)
+			{
+				angles[2] = Utils::try_stof(params[4], true);
+			}
+
+			int entIdx = Utils::try_stoi(params[1], true);
+			float vRot[3];
+
+			for (auto i = 0; i < 3; ++i)
+			{
+				float v2 = Utils::vector::_AngleNormalize180(angles[i] - Game::scr_g_entities[entIdx].r.currentAngles[i]);
+				vRot[i] = Game::scr_g_entities[entIdx].r.currentAngles[i] + v2;
+			}
+
+			float tAngles[3] =
+			{
+				Game::scr_g_entities[entIdx].r.currentAngles[0],
+				Game::scr_g_entities[entIdx].r.currentAngles[1],
+				Game::scr_g_entities[entIdx].r.currentAngles[2],
+			};
+
+			Game::ScriptMover_SetupMove(
+				&Game::scr_g_entities[entIdx].s.lerp.apos,
+				vRot,
+				4.0f,
+				0.1f,
+				0.1f,
+				tAngles,
+				&Game::scr_g_entities[entIdx].___u30.mover.aSpeed,
+				&Game::scr_g_entities[entIdx].___u30.mover.aMidTime,
+				&Game::scr_g_entities[entIdx].___u30.mover.aDecelTime,
+				Game::scr_g_entities[entIdx].___u30.mover.apos1,
+				Game::scr_g_entities[entIdx].___u30.mover.apos2,
+				Game::scr_g_entities[entIdx].___u30.mover.apos3);
+
+			Game::SV_LinkEntity(&Game::scr_g_entities[entIdx]);
+		});
+	}
 
 	_Game::~_Game()
 	{ }

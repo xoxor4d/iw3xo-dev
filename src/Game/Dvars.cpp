@@ -2,20 +2,14 @@
 
 namespace Dvars
 {
-	Game::dvar_s* r_buf_skinnedCacheVb = nullptr;
-	Game::dvar_s* r_buf_smodelCacheVb = nullptr;
-	Game::dvar_s* r_buf_smodelCacheIb = nullptr;
-	Game::dvar_s* r_buf_tempSkin = nullptr;
-	Game::dvar_s* r_buf_dynamicVertexBuffer = nullptr;
-	Game::dvar_s* r_buf_dynamicIndexBuffer = nullptr;
-	Game::dvar_s* r_buf_preTessIndexBuffer = nullptr;
-	
+	// Client
+	Game::dvar_s* cl_avidemo_streams = nullptr;
+	Game::dvar_s* cl_avidemo_streams_greenscreen = nullptr;
+	Game::dvar_s* cl_avidemo_streams_viewmodel = nullptr;
+	Game::dvar_s* cl_avidemo_streams_depth = nullptr;
+	Game::dvar_s* cl_avidemo_streams_hud = nullptr;
+	Game::dvar_s* cl_pause_demo = nullptr;
 
-	Game::dvar_s* r_debugShaderToggle = nullptr;
-	Game::dvar_s* r_setmaterial_hk = nullptr;
-
-	Game::dvar_s* r_wireframe_world = nullptr;
-	Game::dvar_s* r_wireframe_xmodels = nullptr;
 
 	// Radiant
 	Game::dvar_s* radiant_live = nullptr;
@@ -43,10 +37,6 @@ namespace Dvars
 	Game::dvar_s* ui_developer = nullptr;
 	Game::dvar_s* ui_developer_script = nullptr;
 	Game::dvar_s* ui_main_title = nullptr;
-	Game::dvar_s* ui_changelog01 = nullptr;
-	Game::dvar_s* ui_changelog02 = nullptr;
-	Game::dvar_s* ui_changelog03 = nullptr;
-	Game::dvar_s* ui_changelog04 = nullptr;
 	Game::dvar_s* ui_eyes_position = nullptr;
 	Game::dvar_s* ui_eyes_size = nullptr;
 	Game::dvar_s* ui_eyes_alpha = nullptr;
@@ -138,6 +128,26 @@ namespace Dvars
 	Game::dvar_s* r_noborder = nullptr;
 	Game::dvar_s* r_d3d9ex = nullptr;
 	Game::dvar_s* r_dumpShaders = nullptr;
+
+	Game::dvar_s* r_buf_skinnedCacheVb = nullptr;
+	Game::dvar_s* r_buf_smodelCacheVb = nullptr;
+	Game::dvar_s* r_buf_smodelCacheIb = nullptr;
+	Game::dvar_s* r_buf_tempSkin = nullptr;
+	Game::dvar_s* r_buf_dynamicVertexBuffer = nullptr;
+	Game::dvar_s* r_buf_dynamicIndexBuffer = nullptr;
+	Game::dvar_s* r_buf_preTessIndexBuffer = nullptr;
+
+	Game::dvar_s* r_debugShaderToggle = nullptr;
+	Game::dvar_s* r_setmaterial_hk = nullptr;
+
+	Game::dvar_s* r_wireframe_world = nullptr;
+	Game::dvar_s* r_wireframe_xmodels = nullptr;
+
+	Game::dvar_s* r_cullWorld = nullptr;
+	Game::dvar_s* r_cullEntities = nullptr;
+	Game::dvar_s* r_drawDynents = nullptr;
+
+	Game::dvar_s* r_debugShaderTexcoord = nullptr;
 
 
 	// Debug Collision

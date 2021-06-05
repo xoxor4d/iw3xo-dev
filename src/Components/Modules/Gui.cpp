@@ -32,6 +32,181 @@
 
 namespace Components
 {
+	struct my_markdown : public imgui_md
+	{
+		// fade-in fix
+		void line(ImColor c, bool under) override
+		{
+			ImVec2 mi = ImGui::GetItemRectMin();
+			ImVec2 ma = ImGui::GetItemRectMax();
+
+			if (!under) 
+			{
+				ma.y -= ImGui::GetFontSize() / 2;
+			}
+
+			mi.y = ma.y;
+
+			if (!Game::Globals::mainmenu_fadeDone)
+			{
+				const ImGuiStyle& s = ImGui::GetStyle();
+
+				if (s.Alpha < c.Value.w)
+				{
+					c.Value.w = s.Alpha;
+				}
+			}
+			else
+			{
+				m_mainmenu_fade_done = true;
+			}
+
+			ImGui::GetWindowDrawList()->AddLine(mi, ma, c, 1.0f);
+		}
+
+
+		ImFont* get_font() const override
+		{
+			ImGuiIO& io = ImGui::GetIO();
+
+			if (m_is_table_header) 
+			{
+				return io.Fonts->Fonts[FONTS::BOLD];
+			}
+
+			switch (m_hlevel)
+			{
+				case 0:
+					return m_is_strong ? io.Fonts->Fonts[FONTS::BOLD] : io.Fonts->Fonts[FONTS::REGULAR];
+				case 1:
+					return io.Fonts->Fonts[FONTS::BOLD_LARGER];
+				case 2:
+					return io.Fonts->Fonts[FONTS::BOLD_LARGE];
+				default:
+					return io.Fonts->Fonts[FONTS::BOLD];
+			}
+		};
+
+
+		void open_url() const override
+		{
+			ShellExecuteA(NULL, "open", m_href.c_str(), NULL, NULL, SW_SHOW);
+		}
+
+
+		bool get_image(image_info& nfo) const override
+		{
+			nfo.texture_id = 0;
+			nfo.size = { 40,20 };
+			nfo.uv0 = { 0,0 };
+			nfo.uv1 = { 1,1 };
+			nfo.col_tint = { 1,1,1,1 };
+			nfo.col_border = { 0,0,0,0 };
+
+			if (Game::Globals::loaded_MainMenu && m_href != ""s)
+			{
+				Game::Material* material = Game::Material_RegisterHandle(m_href.c_str(), 3);
+				if (material)
+				{
+					nfo.texture_id = material->textureTable->u.image->texture.data;
+					nfo.size = ImVec2(material->textureTable->u.image->width, material->textureTable->u.image->height);
+				}
+			}
+
+			return true;
+		}
+
+
+		void html_div(const std::string& dclass, bool e) override
+		{
+			if (dclass == "red") 
+			{
+				if (e) 
+				{
+					m_table_border = false;
+					ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+				}
+				else 
+				{
+					ImGui::PopStyleColor();
+					m_table_border = true;
+				}
+			}
+		}
+	};
+
+	//call this function to render your markdown
+	void Gui::markdown(const char* str, const char* str_end)
+	{
+		static my_markdown s_printer;
+		s_printer.print(str, str_end);
+	}
+
+	void Gui::redraw_cursor()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		float cur_w = (32.0f * Game::scrPlace->scaleVirtualToReal[0]) / Game::scrPlace->scaleVirtualToFull[0];
+		float cur_h = (32.0f * Game::scrPlace->scaleVirtualToReal[1]) / Game::scrPlace->scaleVirtualToFull[1];
+		float cur_x = Game::_uiContext->cursor.x - 0.5f * cur_w;
+		float cur_y = Game::_uiContext->cursor.y - 0.5f * cur_h;
+
+		// set up texcoords
+		float s0, s1;
+		float t0, t1;
+
+		if (cur_w >= 0.0f)
+		{
+			s0 = 0.0f;
+			s1 = 1.0f;
+		}
+		else
+		{
+			cur_w = -cur_w;
+			s0 = 1.0f;
+			s1 = 0.0f;
+		}
+
+		if (cur_h >= 0.0f)
+		{
+			t0 = 0.0f;
+			t1 = 1.0f;
+		}
+		else
+		{
+			cur_h = -cur_h;
+			t0 = 1.0f;
+			t1 = 0.0f;
+		}
+
+		_UI::ScrPlace_ApplyRect(&cur_x, &cur_w, &cur_y, &cur_h, HORIZONTAL_ALIGN_FULLSCREEN, VERTICAL_ALIGN_FULLSCREEN);
+
+		if (Game::Globals::loaded_MainMenu)
+		{
+			Game::Material* material = Game::Material_RegisterHandle("ui_cursor", 3);
+			if (material)
+			{
+				float cur_size	= 54.0f;
+				float ofs_x		= 0.0f;
+				float ofs_y		= cur_size;
+
+				ImTextureID image = material->textureTable->u.image->texture.data;
+				
+				ImGui::GetWindowDrawList()->AddImageQuad(
+					image,
+					ImVec2(cur_x +	ofs_x,				cur_y + ofs_y),
+					ImVec2(cur_x + cur_size + ofs_x,	cur_y + ofs_y),
+					ImVec2(cur_x + cur_size + ofs_x,	cur_y - cur_size + ofs_y),
+					ImVec2(cur_x + ofs_x,				cur_y - cur_size + ofs_y),
+					ImVec2(0.0f, 1.0f),
+					ImVec2(1.0f, 1.0f),
+					ImVec2(1.0f, 0.0f),
+					ImVec2(0.0f, 0.0f)
+				);
+			}
+		}
+	}
+
 	// *
 	// initialize imgui
 	void Gui::imgui_init()
@@ -50,6 +225,20 @@ namespace Components
 		}
 
 		ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+
+		// H1 Bold Larger
+		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 32.0f);
+		// H2 Bold Large
+		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 28.0f);
+		// H1 Bold
+		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 24.0f);
+
+		// Regular Large
+		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_regular_compressed_data, fonts::opensans_regular_compressed_size, 24.0f);
+		// Regular
+        io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_regular_compressed_data, fonts::opensans_regular_compressed_size, 18.0f);
+
 		ImGui_ImplWin32_Init(Window::GetWindow());
 		ImGui_ImplDX9_Init(device);
 
@@ -79,6 +268,7 @@ namespace Components
 
 		IMGUI_REGISTERMENU(gui.menus[Game::GUI_MENUS::DEMO], ImGui::ShowDemoWindow(&gui.menus[Game::GUI_MENUS::DEMO].menustate));
 		IMGUI_REGISTERMENU(gui.menus[Game::GUI_MENUS::DEVGUI], Gui_Devgui::create_devgui(gui.menus[Game::GUI_MENUS::DEVGUI]));
+		IMGUI_REGISTERMENU(gui.menus[Game::GUI_MENUS::CHANGELOG], _UI::create_changelog(gui.menus[Game::GUI_MENUS::CHANGELOG]));
 
 		// ------------
 
@@ -171,6 +361,20 @@ namespace Components
 	}
 
 	// *
+	// set menu layout (origin / size / anker)
+	void Gui::set_menu_layout(Game::gui_menus_t& menu, const float x, const float y, const float width, const float height, const int horzAlign = VERTICAL_APPLY_NONE, const int vertAlign = HORIZONTAL_APPLY_NONE)
+	{
+		menu.position[0] = x;
+		menu.position[1] = y;
+
+		menu.size[0] = width;
+		menu.size[1] = height;
+
+		menu.horzAlign = horzAlign;
+		menu.vertAlign = vertAlign;
+	}
+
+	// *
 	void Gui::begin_frame()
 	{
 		ImGui_ImplDX9_NewFrame();
@@ -229,8 +433,16 @@ namespace Components
 					CMDEXEC("menu_open_ingame pregame_loaderror_mp");
 				}
 
-				gui.any_menus_open = true;
-				return true;
+				if (gui.menus[m].mouse_ignores_menustate)
+				{
+					gui.any_menus_open = false;
+					return false;
+				}
+				else
+				{
+					gui.any_menus_open = true;
+					return true;
+				}
 			}
 		}
 
@@ -261,13 +473,13 @@ namespace Components
 	// 
 	Gui::Gui()
 	{
-		
 #if DEBUG
 		// check hotkeys every frame
 		Scheduler::on_frame([this]()
 		{
 			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
 			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
+			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG], KEYCATCHER_F2);
 
 		}, Scheduler::thread::main);
 #endif

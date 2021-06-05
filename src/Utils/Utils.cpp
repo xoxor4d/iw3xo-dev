@@ -519,19 +519,16 @@ namespace Utils
 		CreateDirectoryW(std::wstring(dir.begin(), dir.end()).data(), nullptr);
 	}
 
-	// TODO: Use modern file reading methods
 	bool FileExists(std::string file)
 	{
-		FILE* fp;
-		fopen_s(&fp, file.data(), "r");
+		std::ifstream f(file);
+		return f.good();
+	}
 
-		if (fp)
-		{
-			fclose(fp);
-			return true;
-		}
-
-		return false;
+	bool FileExists(const char* file)
+	{
+		std::ifstream f(file);
+		return f.good();
 	}
 
 	void WriteFile(std::string file, std::string data)

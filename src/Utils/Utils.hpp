@@ -50,6 +50,7 @@ namespace Utils
 
 	void CreateDir(std::string dir);
 	bool FileExists(std::string file);
+	bool FileExists(const char* file);
 	void WriteFile(std::string file, std::string data);
 	std::string ReadFile(std::string file);
 

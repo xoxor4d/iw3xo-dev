@@ -51,14 +51,14 @@ namespace Components
 
 		__asm
 		{
-			pushad
-			push	execution_thread
-			call	execute
-			pop		eax
-			popad
+			pushad;
+			push	execution_thread;
+			call	execute;
+			pop		eax;
+			popad;
 
-			push	4FFF30h
-			retn
+			push	0x4FFF30;
+			retn;
 		}
 	}
 
@@ -70,14 +70,14 @@ namespace Components
 
 		__asm
 		{
-			pushad
-			push	execution_thread
-			call	execute
-			pop		eax
-			popad
+			pushad;
+			push	execution_thread;
+			call	execute;
+			pop		eax;
+			popad;
 
-			push	45CEF0h
-			retn
+			push	0x45CEF0;
+			retn;
 		}
 	}
 
@@ -87,14 +87,14 @@ namespace Components
 
 		__asm
 		{
-			pushad
-			push	execution_thread
-			call	execute
-			pop		eax
-			popad
+			pushad;
+			push	execution_thread;
+			call	execute;
+			pop		eax;
+			popad;
 
-			Call	XO_Console::xo_con_CheckResize
-			retn
+			call	XO_Console::xo_con_CheckResize;
+			retn;
 		}
 	}
 
@@ -104,13 +104,13 @@ namespace Components
 	{
 		__asm
 		{
-			push	[esp + 4h]
+			push	[esp + 4h];
 
-			call	execute_error
-			call	execute_safe
+			call	execute_error;
+			call	execute_safe;
 
-			add		esp, 4h
-			retn
+			add		esp, 4h;
+			retn;
 		}
 	}
 

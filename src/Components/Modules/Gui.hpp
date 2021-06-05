@@ -20,10 +20,16 @@ namespace Components
 
 		static void toggle_mouse(bool state);
 		static void reset_mouse();
+		static void redraw_cursor();
+
+		static void set_menu_layout(Game::gui_menus_t& menu, const float x, const float y, const float width, const float height, const int horzAlign, const int vertAlign);
 
 		static void load_settings();
 		static void save_settings();
 		static bool any_open_menus();
+
+		//static void Markdown(const std::string& markdown_);
+		static void markdown(const char* str, const char* str_end);
 
 		static Game::gui_menus_t&	GetMenu(Game::GUI_MENUS id);
 
@@ -84,6 +90,8 @@ namespace Components
 			Game::Com_Error(1, "dvar was null!");
 			return nullptr;
 		}
+
+       
 
 	private:
 	};

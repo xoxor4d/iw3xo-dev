@@ -1,7 +1,4 @@
 #include "STDInclude.hpp"
-#include<iostream>
-#include<fstream>
-#include <unordered_set>
 
 namespace Components
 {
@@ -111,8 +108,8 @@ namespace Components
 				// DEBUG :: Draw Normals & Non Blured AO
 				if (Dvars::xo_ssao_debugTargets->current.enabled)
 				{
-					Game::gfxCmdBufSourceState->input.consts[21][2] = _SSAO_DBG_MATSCALE * fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
-					Game::gfxCmdBufSourceState->input.consts[21][3] = _SSAO_DBG_MATSCALE * fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
+					Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = _SSAO_DBG_MATSCALE * fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
+					Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = _SSAO_DBG_MATSCALE * fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
 
 					// DEBUG :: Draw Normals
 					DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_ssao_normal", 0.0f, 0.0f, _SSAO_DBG_MATSCALE * fullscreenX, _SSAO_DBG_MATSCALE * fullscreenY);
@@ -174,7 +171,7 @@ namespace Components
 		}
 	}
 
-	void RB_DrawDebugPostEffects()
+	void RB_DrawDebugPostEffects(const Game::GfxViewInfo* viewInfo)
 	{
 		auto r_showFbColorDebug = Game::Dvar_FindVar("r_showFbColorDebug");
 		auto r_showFloatZDebug	= Game::Dvar_FindVar("r_showFloatZDebug");
@@ -245,297 +242,44 @@ namespace Components
 			memcpy(&Game::Globals::viewProjectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->viewProjectionMatrix, sizeof(Game::GfxMatrix));
 			memcpy(&Game::Globals::inverseViewProjectionMatrix, &Game::gfxCmdBufSourceState->input.data->viewParms->inverseViewProjectionMatrix, sizeof(Game::GfxMatrix));
 		}
-	}
 
-	// ----------------------------
-#ifdef DEVGUI_OCEAN
 
-	// no reason to dump the same shader multiple times over the lifespan of the current session
-	std::unordered_set<std::string> r_dumped_shader_set;
+		// *
+		// overwrite resolvedPostSun to include filmTweaks
+		
+		//DrawToRendertarget
+		Game::R_Set2D();
+		Game::R_SetRenderTarget(Game::GfxRenderTargetId::R_RENDERTARGET_RESOLVED_POST_SUN);
 
-	bool folder_ps_exists = false;
-	bool folder_vs_exists = false;
+		auto rgp = reinterpret_cast<Game::r_global_permanent_t*>(0xCC98280);
+		Game::Material* t_material = rgp->postFxColorMaterial; // works without glow/blur/dof
 
-	bool dumpedshader_contains(const std::unordered_set<std::string>& set, const std::string& s)
-	{
-		return set.find(s) != set.end();
-	}
+		/*if (!viewInfo->film.enabled) {
+			t_material = rgp->feedbackBlendMaterial;
+		}*/
 
-	void pixelshader_custom_constants(Game::GfxCmdBufState* state)
-	{
-		// dump shaders at runtime ~> TODO: move that to its own function / hook
-		if (Dvars::r_dumpShaders && Dvars::r_dumpShaders->current.enabled)
+		if (t_material)
 		{
-			const auto basePath = Game::Dvar_FindVar("fs_basepath");
-
-			if (!basePath) {
-				return;
-			}
-
-			std::string filePath = basePath->current.string + "\\iw3xo\\shader_dump\\"s;
-
-			if (state && state->pass)
-			{
-				if (state->pass->vertexShader && state->pass->vertexShader->name)
-				{
-					// check if shader was already dumped
-					if(!dumpedshader_contains(r_dumped_shader_set, "vs_"s + state->pass->vertexShader->name))
-					{
-						if (!folder_vs_exists)
-						{
-							std::filesystem::create_directories(filePath + "vertexShader\\");
-							folder_vs_exists = true;
-						}
-
-						std::uint16_t bin_size = state->pass->vertexShader->prog.loadDef.programSize;
-						std::ofstream outfile(filePath + "vertexShader\\" + "vs_" + state->pass->vertexShader->name, std::ofstream::binary);
-
-						outfile.write(reinterpret_cast<char*>(state->pass->vertexShader->prog.loadDef.program), bin_size * 4);
-						outfile.close();
-
-						r_dumped_shader_set.emplace("vs_"s + state->pass->vertexShader->name);
-					}
-				}
-
-				if (state->pass->pixelShader && state->pass->pixelShader->name)
-				{
-					// check if shader was already dumped
-					if (!dumpedshader_contains(r_dumped_shader_set, "ps_"s + state->pass->pixelShader->name))
-					{
-						if (!folder_ps_exists)
-						{
-							std::filesystem::create_directories(filePath + "pixelShader\\");
-							folder_ps_exists = true;
-						}
-						
-						std::uint16_t bin_size = state->pass->pixelShader->prog.loadDef.programSize;
-						std::ofstream outfile(filePath + "pixelShader\\" + "ps_" + state->pass->pixelShader->name, std::ofstream::binary);
-
-						outfile.write(reinterpret_cast<char*>(state->pass->pixelShader->prog.loadDef.program), bin_size * 4);
-						outfile.close();
-
-						r_dumped_shader_set.emplace("ps_"s + state->pass->pixelShader->name);
-					}
-				}
-			}
+			Game::RB_DrawStretchPic(t_material, 0.0f, 0.0f, Game::scrPlace->realViewableMax[0], Game::scrPlace->realViewableMax[1], 0.0, 0.0, 1.0, 1.0);
 		}
 
-		if (state && state->pass)
-		{
-			// loop through all argument defs to find custom codeconsts
-			for (auto arg = 0; arg < state->pass->perObjArgCount + state->pass->perPrimArgCount + state->pass->stableArgCount; arg++)
-			{
-				const auto arg_def = &state->pass->args[arg];
-
-				if (arg_def && arg_def->type == 5)
-				{
-					// ------------------------------------------------------------------------------------------------------------
-					// ocean shader
-
-					if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "worldfx_ocean"))
-					{
-						// vertex + pixel
-						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_WaveAmplitude, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1) {
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_WavesIntensity, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2) {
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_WavesNoise, 1);
-						}
-
-						// pixel only
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
-						{
-							float constant[4] = { Game::ocean::_AmbientColor[0], Game::ocean::_AmbientColor[1], Game::ocean::_AmbientColor[2], Game::ocean::_AmbientDensity };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
-						{
-							float constant[4] = { Game::ocean::_ShoreColor[0], Game::ocean::_ShoreColor[1], Game::ocean::_ShoreColor[2], Game::ocean::_DiffuseDensity };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
-						{
-							float constant[4] = { Game::ocean::_SurfaceColor[0], Game::ocean::_SurfaceColor[1], Game::ocean::_SurfaceColor[2], Game::ocean::_NormalIntensity };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6)
-						{
-							float constant[4] = { Game::ocean::_DepthColor[0], Game::ocean::_DepthColor[1], Game::ocean::_DepthColor[2], Game::ocean::_ShoreFade };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7)
-						{
-							float constant[4] = { Game::ocean::_RefractionValues[0], Game::ocean::_RefractionValues[1], Game::ocean::_RefractionValues[2], Game::ocean::_RefractionScale };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_R)
-						{
-							float constant[4] = { Game::ocean::_HorizontalExtinction[0], Game::ocean::_HorizontalExtinction[1], Game::ocean::_HorizontalExtinction[2], Game::ocean::_Distortion };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_G)
-						{
-							float constant[4] = { Game::ocean::_WaterClarity, Game::ocean::_WaterTransparency, Game::ocean::_RadianceFactor, 0.0f };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_B)
-						{
-							float constant[4] = { Game::ocean::_SpecularValues[0], Game::ocean::_SpecularValues[1], Game::ocean::_SpecularValues[2], Game::ocean::_Shininess };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_VIEWMODEL_AND_FAR_BLUR)
-						{
-							float constant[4] = { Game::ocean::_FoamTiling[0], Game::ocean::_FoamTiling[1], Game::ocean::_FoamTiling[2], Game::ocean::_FoamSpeed };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_SCENE)
-						{
-							float constant[4] = { Game::ocean::_FoamRanges[0], Game::ocean::_FoamRanges[1], Game::ocean::_FoamRanges[2], Game::ocean::_FoamIntensity };
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_SCALE) {
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, Game::ocean::_FoamNoise, 1);
-						}
-					}
-				}
-			}
-		}
+		Game::RB_EndTessSurface();
 	}
 
-	__declspec(naked) void R_SetPassPixelShaderStableArguments_stub()
+	__declspec(naked) void RB_DrawDebugPostEffects_Pre()
 	{
 		__asm
 		{
-			pop     edi		// org op
-			pop     esi		// org op
-			pop     ebp		// org op
-			pop     ebx		// org op
-			add     esp, 8	// org op
+			pushad;
+			push	esi; // GfxViewInfo
+			call	RB_DrawDebugPostEffects;
+			add		esp, 4;
+			popad;
 
-			// GfxCmdBufState
-			mov		edx, [esp + 0Ch];
-
-			pushad
-			push	edx
-			call	pixelshader_custom_constants
-			add		esp, 4
-			popad
-
-			retn
+			push	0x64AD75;
+			retn;
 		}
 	}
-
-	// ----------------------------
-
-	void vertexshader_custom_constants(Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state)
-	{
-		// fixup cod4 code constants
-		if (state && state->pass)
-		{
-			// loop through all argument defs to find custom codeconsts
-			for (auto arg = 0; arg < state->pass->perObjArgCount + state->pass->perPrimArgCount + state->pass->stableArgCount; arg++)
-			{
-				const auto arg_def = &state->pass->args[arg];
-
-				if (arg_def && arg_def->type == 3)
-				{
-					// ocean shader
-					if (state->pass->vertexShader && !Utils::Q_stricmp(state->pass->vertexShader->name, "worldfx_ocean"))
-					{
-						// vertex + pixel
-						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
-							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, Game::ocean::_WaveAmplitude, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1) {
-							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, Game::ocean::_WavesIntensity, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2) {
-							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, Game::ocean::_WavesNoise, 1);
-						}
-
-						// vertex only
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
-						{
-							float constant[4] = { Game::ocean::_WindDirection[0], Game::ocean::_WindDirection[1], Game::ocean::_HeightIntensity, Game::ocean::_WaveAmplitudeFactor };
-							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
-						{
-							float constant[4] = { Game::ocean::_WaveSteepness, Game::ocean::_TextureTiling, Game::ocean::_WaveTiling, Game::ocean::_Time };
-							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						else if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
-						{
-							float constant[4] = { Game::ocean::_VisibleWaveDist, Game::ocean::_HeightMapScale, Game::ocean::_HeightMapScroll, 0.0f };
-							(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						// matrix if bigger then 58 (matrix fuckery :bad:)
-						//if (arg_def->u.codeConst.index >= 58)
-						//{
-						//	float* matrix;
-						//	// R_GetCodeMatrix
-						//	matrix = Utils::function<float* (Game::GfxCmdBufSourceState * source, int argIndex, char row)>(0x631D90)(source, arg_def->u.codeConst.index, arg_def->u.codeConst.firstRow);
-						//	
-						//	if (matrix)
-						//	{
-						//		matrix[3] += 0.2f;
-						//		matrix[6] += 0.2f;
-						//		matrix[9] += 0.2f;
-						//		matrix[12] += 0.2f;
-						//		(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, matrix, arg_def->u.codeConst.rowCount);
-						//	}
-						//}
-					}
-				}
-			}
-		}
-	}
-
-	__declspec(naked) void R_SetVertexShaderConstantFromCode_stub()
-	{
-		__asm
-		{
-			pop     edi		// org op
-			pop     esi		// org op
-			pop     ebp		// org op
-			pop     ebx		// org op
-			add     esp, 8	// org op
-
-			// GfxCmdBufState
-			mov		ecx, [esp + 8h];
-			mov		edx, [esp + 0Ch];
-
-			pushad
-			push	edx // state
-			push	ecx // source
-			call	vertexshader_custom_constants
-			add		esp, 8
-			popad
-
-			retn
-		}
-	}
-#endif
 
 	void RB_ShaderOverlays::Register_StringDvars()
 	{
@@ -604,7 +348,7 @@ namespace Components
 		Dvars::xo_ssao_quality		= Game::Dvar_RegisterFloat("xo_ssao_quality", "hlsl constant filtertap[0][1] :: _QUALITY :: 0 = Low, 1 = High", 0.0f, 0.0f, 1.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 1
-		Dvars::xo_ssao_radius = Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.75f, 0.0f, 20.0f, Game::dvar_flags::none);
+		Dvars::xo_ssao_radius		= Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.75f, 0.0f, 20.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 2
 		Dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.6f, 0.0f, 20.0f, Game::dvar_flags::none);
@@ -625,6 +369,7 @@ namespace Components
 		Dvars::xo_outliner_toonEnable = Game::Dvar_RegisterBool("xo_outliner_toonEnable", "hlsl constant filtertap[2][0] :: toggle use of a simple toon shader", false, Game::dvar_flags::none);
 		Dvars::xo_outliner_toonShades = Game::Dvar_RegisterFloat("xo_outliner_toonShades", "hlsl constant filtertap[2][1] :: Max amount of shades / colors used by the toon shader", 6.0f, 0.0f, 64.0f, Game::dvar_flags::none);
 
+
 		// -----
 		// Hooks
 
@@ -632,18 +377,8 @@ namespace Components
 		Utils::Hook::Nop(0x658FB2, 2);
 
 		// Rewrite RB_DrawDebugPostEffects (Entry for custom post-effects)
-		Utils::Hook(0x64AD70, RB_DrawDebugPostEffects, HOOK_CALL).install()->quick();
-
-
-#ifdef DEVGUI_OCEAN
-		// custom pixelshader code constants
-		Utils::Hook::Nop(0x64BEDB, 7);
-		Utils::Hook(0x64BEDB, R_SetPassPixelShaderStableArguments_stub, HOOK_JUMP).install()->quick();
-
-		// custom vertexshader code constants / per object
-		Utils::Hook::Nop(0x64BD22, 7);
-		Utils::Hook(0x64BD22, R_SetVertexShaderConstantFromCode_stub, HOOK_JUMP).install()->quick();
-#endif
+		//Utils::Hook(0x64AD70, RB_DrawDebugPostEffects, HOOK_CALL).install()->quick();
+		Utils::Hook(0x64AD70, RB_DrawDebugPostEffects_Pre, HOOK_JUMP).install()->quick();
 	}
 
 	RB_ShaderOverlays::~RB_ShaderOverlays()

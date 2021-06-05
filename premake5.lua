@@ -1,3 +1,33 @@
+dependencies = {
+	basePath = "./deps"
+}
+
+function dependencies.load()
+	dir = path.join(dependencies.basePath, "premake/*.lua")
+	deps = os.matchfiles(dir)
+
+	for i, dep in pairs(deps) do
+		dep = dep:gsub(".lua", "")
+		require(dep)
+	end
+end
+
+function dependencies.imports()
+	for i, proj in pairs(dependencies) do
+		if type(i) == 'number' then
+			proj.import()
+		end
+	end
+end
+
+function dependencies.projects()
+	for i, proj in pairs(dependencies) do
+		if type(i) == 'number' then
+			proj.project()
+		end
+	end
+end
+
 newaction {
 	trigger = "generate-buildinfo",
 	description = "Sets up build information file like version.h.",
@@ -25,16 +55,25 @@ newaction {
 	end
 }
 
+dependencies.load()
+
 workspace "iw3xo-dev"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
-	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
-	configurations { "Debug", "Release" }
-	architecture "x32"
-	platforms "x86"
+
+	configurations { 
+        "Debug", 
+        "Release" 
+    }
+    
+    platforms "Win32"
+	architecture "x86"
+
+    buildoptions "/std:c++latest"
 	systemversion "latest"
-	startproject "iw3x"
+    symbols "On"
+    staticruntime "On"
 
 	disablewarnings {
 		"4100",
@@ -43,57 +82,69 @@ workspace "iw3xo-dev"
 		"26451",
 	}
 
-	buildoptions {
-		"/std:c++latest"
-	}
-	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
+	defines { 
+        "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" 
+    }
 
 	configuration "windows"
-		defines { "_WINDOWS", "WIN32" }
-		staticruntime "On"
-		
-		if symbols ~= nil then
-			symbols "On"
-		else
-			flags { "Symbols" }
-		end
-
+		defines { 
+            "_WINDOWS", 
+            "WIN32" 
+        }
+        
 	configuration "Release"
-		defines { "NDEBUG" }
-		flags { "MultiProcessorCompile", "LinkTimeOptimization", "No64BitChecks" }
-		optimize "Full"
+        optimize "Full"
+		
+        defines { 
+            "NDEBUG" 
+        }
 
+		flags { 
+            "MultiProcessorCompile", 
+            "LinkTimeOptimization", 
+            "No64BitChecks" 
+        }
+		
 	configuration "Debug"
-		defines { "DEBUG", "_DEBUG" }
-		flags { "MultiProcessorCompile", "No64BitChecks" }
-		optimize "Debug"
+        optimize "Debug"
+		defines { 
+            "DEBUG", 
+            "_DEBUG" 
+        }
 
+		flags { 
+            "MultiProcessorCompile", 
+            "No64BitChecks" 
+        }
+		
+    configuration {}
+
+    startproject "iw3x"
 	project "iw3x"
 		kind "SharedLib"
 		language "C++"
-		files {
+
+        pchheader "STDInclude.hpp"
+		pchsource "src/STDInclude.cpp"
+		
+        files {
 			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
-        links { 
-			"glm",
-			"imgui"
-		}
+
 		includedirs {
 			"%{prj.location}/src",
-			"./src",
-			"./deps/glm/glm", 
-			"./deps/imgui",
-		}
-		resincludedirs {
-			"$(ProjectDir)src" -- fix for VS IDE
+			"./src"
 		}
 
-		-- Pre-compiled header
-		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
-		pchsource "src/STDInclude.cpp" -- real path
-		buildoptions { "/Zm100 -Zm100" }
+		resincludedirs {
+			"$(ProjectDir)src"
+		}
+
+		buildoptions { 
+            "/Zm100 -Zm100" 
+        }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
@@ -113,64 +164,19 @@ workspace "iw3xo-dev"
 		warnings "Extra"
 
 		configuration "Release"
-			flags { "FatalCompileWarnings" }
+			flags { 
+                "FatalCompileWarnings" 
+            }
 			
 			-- Pre-build
 			prebuildcommands {
 			"cd %{_MAIN_SCRIPT_DIR}",
 			"tools\\premake5 generate-buildinfo"
 			}
+            
 		configuration {}
 
-	group "External dependencies"
+        dependencies.imports()
 
-        -- glm
-		project "glm"
-			language "C++"
-
-			files
-			{
-				"./deps/glm/glm/*.cpp",
-				"./deps/glm/glm/*.hpp",
-                "./deps/glm/glm/detail/*.cpp",
-                "./deps/glm/glm/detail/*.hpp",
-                "./deps/glm/glm/ext/*.cpp",
-                "./deps/glm/glm/ext/*.hpp",
-                "./deps/glm/glm/gtc/*.cpp",
-                "./deps/glm/glm/gtc/*.hpp",
-                "./deps/glm/glm/gtx/*.cpp",
-                "./deps/glm/glm/gtx/*.hpp",
-                "./deps/glm/glm/simd/*.cpp",
-                "./deps/glm/glm/simd/*.hpp"
-			}
-            --links { "glm" }
-		    includedirs {
-			"./deps/glm;" 
-		    }
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as glm doesn't export anything
-			kind "StaticLib"
-
-		-- imgui
-		project "imgui"
-			language "C++"
-
-			files
-			{
-				"./deps/imgui/*.cpp",
-				"./deps/imgui/*.hpp",
-                "./deps/imgui/*.h"
-			}
-            --links { "glm" }
-		    includedirs {
-			"./deps/imgui;" 
-		    }
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as glm doesn't export anything
-			kind "StaticLib"
+        group "Dependencies"
+            dependencies.projects()

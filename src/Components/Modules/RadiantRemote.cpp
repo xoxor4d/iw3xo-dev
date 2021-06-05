@@ -455,12 +455,15 @@ namespace Components
 				}
 			}
 
+#pragma warning(push)
+#pragma warning(disable: 6385)
 			// make all unused brushmodels non-colliding
 			for (auto dynA = Game::Globals::rad_savedBrushes.brushSelectedCount + Game::Globals::rad_savedBrushes.brushSavedCount; dynA < Game::Globals::dynBrushModels.mapped_bmodels; dynA++)
 			{
 				_Game::gEnt_BrushModelSetCollision(Game::Globals::dynBrushModels.brushes[dynA].ent, false);
 				_Game::gEnt_MoveToInstant(Game::Globals::dynBrushModels.brushes[dynA].ent, glm::toVec3(Game::Globals::dynBrushModels.brushes[dynA].originalOrigin));
 			}
+#pragma warning(pop)
 
 			Game::Globals::rad_savedBrushes.wasModified = false;
 		}
@@ -769,24 +772,23 @@ namespace Components
 		const static uint32_t retnStock = 0x451C69; // back to cmp cgs_renderingThirdPerson, 0
 		__asm
 		{
-			Call	CG_CalcTurretViewValues_Func	// overwritten op
+			call	CG_CalcTurretViewValues_Func;	// overwritten op
 
-			cmp		Game::Globals::cgsAddons.radiantCamInUse, 0
-			je		STOCK
+			cmp		Game::Globals::cgsAddons.radiantCamInUse, 0;
+			je		STOCK;
 
-			pushad
-			Call	Radiant_UpdateGameCamera		// update the radiant cam on camera move
-			popad
+			pushad;
+			call	Radiant_UpdateGameCamera;		// update the radiant cam on camera move
+			popad;
 
 			// if we do not sync the camera <> viewpos but only the camera model position
-			cmp		Game::Globals::cgsAddons.radiantCamSyncEnabled, 0
-			je		STOCK
+			cmp		Game::Globals::cgsAddons.radiantCamSyncEnabled, 0;
+			je		STOCK;
 
-			jmp		retnRadiantCam
+			jmp		retnRadiantCam;
 
-
-			STOCK:
-				jmp		retnStock
+		STOCK:
+			jmp		retnStock;
 		}
 	}
 
@@ -797,17 +799,17 @@ namespace Components
 		const static uint32_t retnPt = 0x451C97; // back to next op
 		__asm
 		{
-			cmp		Game::Globals::cgsAddons.radiantCamInUse, 0
-			je		STOCK
-			cmp		Game::Globals::cgsAddons.radiantCamSyncEnabled, 0 // not needed
-			je		STOCK
+			cmp		Game::Globals::cgsAddons.radiantCamInUse, 0;
+			je		STOCK;
+			cmp		Game::Globals::cgsAddons.radiantCamSyncEnabled, 0; // not needed
+			je		STOCK;
 
-								// if radiantCamInUse
-			jmp		retnPt		// skip CG_ApplyViewAnimation
+			// if radiantCamInUse : skip CG_ApplyViewAnimation
+			jmp		retnPt;
 
-			STOCK :
-				Call	CG_ApplyViewAnimation_Func
-				jmp		retnPt
+		STOCK :
+			call	CG_ApplyViewAnimation_Func;
+			jmp		retnPt;
 		}
 	}
 

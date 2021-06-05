@@ -25,7 +25,7 @@ namespace Components
 		ImGuiIO& io = ImGui::GetIO();
 
 		style.Colors[ImGuiCol_WindowBg].w = Dvars::_imgui_window_alpha->current.value;
-		style.WindowMinSize.x = 510.0f;
+		style.WindowMinSize.x = 580.0f;
 		style.WindowMinSize.y = 400.0f;
 		//style.WindowPadding.x = 24.0f;
 		//style.WindowPadding.y = 4.0f;
@@ -217,73 +217,6 @@ namespace Components
 					ImGui::DragFloat("Rocketjump Knockback", &Dvars::pm_rocketJumpHeight->current.value, 1.0f, Dvars::pm_rocketJumpHeight->domain.value.min, Dvars::pm_rocketJumpHeight->domain.value.max, "%.0f"); TT("pm_rocketJumpHeight");
 					//ImGui::SliderFloat("Rocketjump Knockback", &Dvars::pm_rocketJumpHeight->current.value, Dvars::pm_rocketJumpHeight->domain.value.min, Dvars::pm_rocketJumpHeight->domain.value.max, "%.0f"); TT("pm_rocketJumpHeight");
 
-					// --------------- 
-					SEPERATORV(4.0f);
-
-					ImGui::Checkbox("Enable Hud", Gui::DvarGetSet<bool*>(Dvars::pm_hud_enable)); TT("pm_hud_enable");
-
-					ImGui::SliderFloat("Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_hud_x), Dvars::pm_hud_x->domain.value.min, Dvars::pm_hud_x->domain.value.max, "%.0f"); TT("pm_hud_x");
-
-					ImGui::SliderFloat("Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_hud_y), Dvars::pm_hud_y->domain.value.min, Dvars::pm_hud_y->domain.value.max, "%.0f"); TT("pm_hud_y");
-
-					ImGui::SliderFloat("Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontScale), Dvars::pm_hud_fontScale->domain.value.min, Dvars::pm_hud_fontScale->domain.value.max, "%.1f"); TT("pm_hud_fontScale");
-
-					ImGui::ColorEdit4("Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_hud_fontColor");
-
-					const char* hudFont_items[] = { "FONT_SMALL_DEV", "FONT_BIG_DEV", "FONT_CONSOLE", "FONT_BIG", "FONT_SMALL", "FONT_BOLD", "FONT_NORMAL", "FONT_EXTRA_BIG", "FONT_OBJECTIVE" };
-					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_hud_fontStyle");
-
-					// ---------------
-					SEPERATORV(4.0f);
-
-					ImGui::Checkbox("Enable Position Hud", Gui::DvarGetSet<bool*>(Dvars::pm_origin_hud)); TT("pm_origin_hud");
-
-					ImGui::SliderFloat("Origin Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_x), Dvars::pm_origin_hud_x->domain.value.min, Dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
-
-					ImGui::SliderFloat("Origin Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_y), Dvars::pm_origin_hud_y->domain.value.min, Dvars::pm_origin_hud_y->domain.value.max, "%.0f"); TT("pm_origin_hud_y");
-
-					ImGui::SliderFloat("Origin Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontScale), Dvars::pm_origin_hud_fontScale->domain.value.min, Dvars::pm_origin_hud_fontScale->domain.value.max, "%.1f"); TT("pm_origin_hud_fontScale");
-
-					ImGui::ColorEdit4("Origin Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_origin_hud_fontColor");
-
-					ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
-
-					// ---------------
-					SEPERATORV(4.0f);
-
-					ImGui::Checkbox("Enable mDd world compass", Gui::DvarGetSet<bool*>(Dvars::mdd_compass)); TT("mdd_compass");
-
-					ImGui::SliderFloat2("Compass position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_compass_yh), Dvars::mdd_compass_yh->domain.value.min, Dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
-
-					ImGui::ColorEdit4("Color 0 to 90 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas0), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas0");
-
-					ImGui::ColorEdit4("Color 90 to 180 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas1), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas1");
-
-					ImGui::ColorEdit4("Color 180 to 270 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas2), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas2");
-
-					ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
-
-					ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
-					
-					// ---------------
-					SEPERATORV(4.0f);
-
-					ImGui::Checkbox("Display mDd CampingGaz HUD", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz)); TT("mdd_cgaz");
-
-					ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
-
-					ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
-
-					ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
-
-					ImGui::ColorEdit4("Color for no accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaNoAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaNoAccel");
-
-					ImGui::ColorEdit4("Color for partial accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaPartialAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaPartialAccel");
-
-					ImGui::ColorEdit4("Color for full accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaFullAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaFullAccel");
-
-					ImGui::ColorEdit4("Color for turn zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaTurnZone), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaTurnZone");
-
 					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 					ImGui::EndTabItem();
 				}
@@ -336,6 +269,74 @@ namespace Components
 		if (ImGui::CollapsingHeader("Debug"))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			// --------------- 
+
+			ImGui::Checkbox("Enable Hud", Gui::DvarGetSet<bool*>(Dvars::pm_hud_enable)); TT("pm_hud_enable");
+
+			ImGui::SliderFloat("Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_hud_x), Dvars::pm_hud_x->domain.value.min, Dvars::pm_hud_x->domain.value.max, "%.0f"); TT("pm_hud_x");
+
+			ImGui::SliderFloat("Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_hud_y), Dvars::pm_hud_y->domain.value.min, Dvars::pm_hud_y->domain.value.max, "%.0f"); TT("pm_hud_y");
+
+			ImGui::SliderFloat("Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontScale), Dvars::pm_hud_fontScale->domain.value.min, Dvars::pm_hud_fontScale->domain.value.max, "%.1f"); TT("pm_hud_fontScale");
+
+			ImGui::ColorEdit4("Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_hud_fontColor");
+
+			const char* hudFont_items[] = { "FONT_SMALL_DEV", "FONT_BIG_DEV", "FONT_CONSOLE", "FONT_BIG", "FONT_SMALL", "FONT_BOLD", "FONT_NORMAL", "FONT_EXTRA_BIG", "FONT_OBJECTIVE" };
+			ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_hud_fontStyle");
+
+			// ---------------
+			SEPERATORV(4.0f);
+
+			ImGui::Checkbox("Enable Position Hud", Gui::DvarGetSet<bool*>(Dvars::pm_origin_hud)); TT("pm_origin_hud");
+
+			ImGui::SliderFloat("Origin Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_x), Dvars::pm_origin_hud_x->domain.value.min, Dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
+
+			ImGui::SliderFloat("Origin Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_y), Dvars::pm_origin_hud_y->domain.value.min, Dvars::pm_origin_hud_y->domain.value.max, "%.0f"); TT("pm_origin_hud_y");
+
+			ImGui::SliderFloat("Origin Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontScale), Dvars::pm_origin_hud_fontScale->domain.value.min, Dvars::pm_origin_hud_fontScale->domain.value.max, "%.1f"); TT("pm_origin_hud_fontScale");
+
+			ImGui::ColorEdit4("Origin Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_origin_hud_fontColor");
+
+			ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
+
+			// ---------------
+			SEPERATORV(4.0f);
+
+			ImGui::Checkbox("Enable mDd world compass", Gui::DvarGetSet<bool*>(Dvars::mdd_compass)); TT("mdd_compass");
+
+			ImGui::SliderFloat2("Compass position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_compass_yh), Dvars::mdd_compass_yh->domain.value.min, Dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
+
+			ImGui::ColorEdit4("Color 0 to 90 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas0), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas0");
+
+			ImGui::ColorEdit4("Color 90 to 180 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas1), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas1");
+
+			ImGui::ColorEdit4("Color 180 to 270 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas2), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas2");
+
+			ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
+
+			ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
+
+			// ---------------
+			SEPERATORV(4.0f);
+
+			ImGui::Checkbox("Display mDd CampingGaz HUD", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz)); TT("mdd_cgaz");
+
+			ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
+
+			ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
+
+			ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
+
+			ImGui::ColorEdit4("Color for no accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaNoAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaNoAccel");
+
+			ImGui::ColorEdit4("Color for partial accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaPartialAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaPartialAccel");
+
+			ImGui::ColorEdit4("Color for full accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaFullAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaFullAccel");
+
+			ImGui::ColorEdit4("Color for turn zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaTurnZone), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaTurnZone");
+
+			SPACING(0.0f, 4.0f);
 
 			const char* drawAxis_items[] = { "disabled", "axis only", "fps zone circle" };
 			ImGui::Combo("Draw Axis", &Dvars::pm_debug_drawAxis->current.integer, drawAxis_items, IM_ARRAYSIZE(drawAxis_items)); TT("pm_debug_drawAxis");
@@ -400,8 +401,7 @@ namespace Components
 			SPACING(0.0f, 4.0f);
 			ImGui::Text("Amount of brushes to render: %d\nAmount of brushsides to render: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount);
 #if DEBUG
-			ImGui::SameLine();
-			SPACING(112.0f, 0.0f);
+			SPACING(0.0f, 4.0f);
 			ImGui::Checkbox("Brush Debug Prints", Gui::DvarGetSet<bool*>(Dvars::r_drawCollision_brushDebug)); TT("r_drawCollision_brushDebug");
 #endif
 			SPACING(0.0f, 4.0f);
@@ -502,10 +502,13 @@ namespace Components
 			{
 				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-				//ImGui::Text("Amount of selected brushes for export: %d\nAmount of selected brushsides for export: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount);
-				ImGui::Text("Amount of selected brushes for export: <needs work>\nAmount of selected brushsides for export: <needs work>");
-				ImGui::SameLine();
-				SPACING(84.0f, 0.0f);
+				ImGui::Text("Note:");
+				SPACING(0.0f, 1.0f);
+	
+				//ImGui::Text("Amount of selected brushes for export: <needs work>\nAmount of selected brushsides for export: <needs work>");
+				ImGui::Text("Only selected brushes will be exported. Select brushes with debug-collision settings above.\nIf you want to export all brushes, set Brush Amount to \"0\" and Material Include to \"all\".");
+				//ImGui::SameLine();
+				//SPACING(0.0f, 0.0f);
 				ImGui::SameLine();
 				if (ImGui::Button("Export Map")) { CMDEXEC("mapexport"); } TT("mapexport");
 
@@ -604,8 +607,17 @@ namespace Components
 			ImGui::Checkbox("Enable Toon", &Dvars::xo_outliner_toonEnable->current.enabled); TT("xo_outliner_toonEnable");
 
 			ImGui::SliderFloat("Shade Amount", &Dvars::xo_outliner_toonShades->current.value, Dvars::xo_outliner_toonShades->domain.value.min, Dvars::xo_outliner_toonShades->domain.value.max, "%.0f"); TT("xo_outliner_toonShades");
+		
 		}
 
+#ifdef DEVGUI_XO_BLUR
+		SPACING(0.0f, 4.0f);
+
+		ImGui::DragFloat("xo_blur_directions", &Game::Globals::xo_blur_directions, 0.25, 0.0001f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_quality", &Game::Globals::xo_blur_quality, 0.25, 0.0001f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_size", &Game::Globals::xo_blur_size, 0.25, 0.0001f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_alpha", &Game::Globals::xo_blur_alpha, 0.25, -50.0f, 50.0f, "%.1f");
+#endif
 		SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 	}
 
@@ -709,7 +721,7 @@ namespace Components
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 
-		if (ImGui::CollapsingHeader("Lighttweaks"))
+		if (ImGui::CollapsingHeader("Lighttweaks", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			auto r_lightTweakSunColor = Game::Dvar_FindVar("r_lightTweakSunColor");
 			auto r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection");
@@ -872,6 +884,13 @@ namespace Components
 		if (ImGui::CollapsingHeader("Main Menu", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			ImGui::DragFloat("Highlight Radius", Gui::DvarGetSet<float*>(Dvars::ui_button_highlight_radius), 0.001f, Dvars::ui_button_highlight_radius->domain.value.min, Dvars::ui_button_highlight_radius->domain.value.max, "%.4f"); TT("ui_button_highlight_radius");
+			ImGui::DragFloat("Highlight Brightness", Gui::DvarGetSet<float*>(Dvars::ui_button_highlight_brightness), 0.001f, Dvars::ui_button_highlight_brightness->domain.value.min, Dvars::ui_button_highlight_brightness->domain.value.max, "%.4f"); TT("ui_button_highlight_brightness");
+			ImGui::DragFloat("Outline Radius", Gui::DvarGetSet<float*>(Dvars::ui_button_outline_radius), 0.001f, Dvars::ui_button_outline_radius->domain.value.min, Dvars::ui_button_outline_radius->domain.value.max, "%.4f"); TT("ui_button_outline_radius");
+			ImGui::DragFloat("Outline Brightness", Gui::DvarGetSet<float*>(Dvars::ui_button_outline_brightness), 0.001f, Dvars::ui_button_outline_brightness->domain.value.min, Dvars::ui_button_outline_brightness->domain.value.max, "%.4f"); TT("ui_button_outline_brightness");
+
+			SEPERATORV(4.0f);
 
 			ImGui::DragFloat2("Eyes Position", Gui::DvarGetSet<float*>(Dvars::ui_eyes_position), 0.001f, Dvars::ui_eyes_position->domain.value.min, Dvars::ui_eyes_position->domain.value.max, "%.4f"); TT("ui_eyes_position");
 			ImGui::DragFloat("Eyes Size", Gui::DvarGetSet<float*>(Dvars::ui_eyes_size), 0.001f, Dvars::ui_eyes_size->domain.value.min, Dvars::ui_eyes_size->domain.value.max, "%.4f"); TT("ui_eyes_size");

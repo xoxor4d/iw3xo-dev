@@ -4294,6 +4294,47 @@ namespace Game
 			int dataSize;
 		};
 
+		struct clientConnection_t
+		{
+			int qport;
+			int clientNum;
+			int lastPacketSentTime;
+			int lastPacketTime;
+			netadr_t serverAddress;
+			int connectTime;
+			int connectPacketCount;
+			char serverMessage[256];
+			int challenge;
+			int checksumFeed;
+			int reliableSequence;
+			int reliableAcknowledge;
+			char reliableCommands[128][1024];
+			int serverMessageSequence;
+			int serverCommandSequence;
+			int lastExecutedServerCommand;
+			char serverCommands[128][1024];
+			bool isServerRestarting;
+			int lastClientArchiveIndex;
+			char demoName[64];
+			int demorecording;
+			int demoplaying;
+			int isTimeDemo;
+			int demowaiting;
+			int firstDemoFrameSkipped;
+			int demofile;
+			int timeDemoLog;
+			int timeDemoFrames;
+			int timeDemoStart;
+			int timeDemoPrev;
+			int timeDemoBaseTime;
+			netchan_t netchan;
+			char netchanOutgoingBuffer[2048];
+			char netchanIncomingBuffer[131072];
+			netProfileInfo_t OOBProf;
+			char statPacketsToSend;
+			int statPacketSendTime[7];
+		};
+
 		struct __declspec() client_t
 		{
 			clientHeader_t header;
@@ -4500,6 +4541,19 @@ namespace Game
 			unsigned int pad[2];
 		};
 
+		struct GfxViewParmsNoPad
+		{
+			GfxMatrix viewMatrix;
+			GfxMatrix projectionMatrix;
+			GfxMatrix viewProjectionMatrix;
+			GfxMatrix inverseViewProjectionMatrix;
+			float origin[4];
+			float axis[3][3];
+			float depthHackNearClip;
+			float zNear;
+			float zFar;
+		};
+
 		struct GfxViewParms
 		{
 			GfxMatrix viewMatrix;
@@ -4646,7 +4700,9 @@ namespace Game
 			int cameraView;
 		};
 
-		struct __declspec() ShadowCookie
+#pragma warning(push)
+#pragma warning(disable: 4324)
+		struct __declspec(align(16)) ShadowCookie
 		{
 			GfxMatrix shadowLookupMatrix;
 			float boxMin[3];
@@ -4658,11 +4714,12 @@ namespace Game
 			__declspec(align(1)) GfxDrawSurfListInfo receiverInfo;
 		};
 
-		struct __declspec() ShadowCookieList
+		struct __declspec(align(16)) ShadowCookieList
 		{
 			ShadowCookie cookies[24];
 			unsigned int cookieCount;
 		};
+#pragma warning(pop)
 
 		struct PointLightPartition
 		{
@@ -4886,13 +4943,13 @@ namespace Game
 
 		struct GfxViewInfo
 		{
-			GfxViewParms viewParms;
+			GfxViewParmsNoPad viewParms;
 			GfxSceneDef sceneDef;
 			GfxViewport sceneViewport;
 			GfxViewport displayViewport;
 			GfxViewport scissorViewport;
 			ShadowType dynamicShadowType;
-			__declspec() ShadowCookieList shadowCookieList;
+			__declspec(align(16)) ShadowCookieList shadowCookieList;
 			int localClientNum;
 			int isRenderingFullScreen;
 			bool needsFloatZ;
@@ -4940,6 +4997,39 @@ namespace Game
 			GFX_USE_VIEWPORT_FOR_VIEW = 0x0,
 			GFX_USE_VIEWPORT_FULL = 0x1,
 		};
+
+		enum CODEIMAGES
+		{
+			blackSampler = 0x0,
+			whiteSampler = 0x1,
+			identityNormalMapSampler = 0x2,
+			null3 = 0x3,
+			null4 = 0x4,
+			null5 = 0x5,
+			shadowCookieSampler = 0x6,
+			shadowmapSamplerSun = 0x7,
+			shadowmapSamplerSpot = 0x8,
+			feedbackSampler = 0x9,
+			resolvedPostSun = 0xA,
+			resolvedScene = 0xB,
+			postEffect0 = 0xC,
+			postEffect1 = 0xD,
+			skySampler = 0xE,
+			attenuationSampler = 0xF,
+			dynamicShadowSampler = 0x10,
+			outdoorSampler = 0x11,
+			floatzSampler = 0x12,
+			processedFloatZSampler = 0x13,
+			rawFloatZSampler = 0x14,
+			caseTextureSampler = 0x15,
+			cinematicY = 0x16,
+			cinematicCr = 0x17,
+			cinematicCb = 0x18,
+			cinematicA = 0x19,
+			null26 = 0x1A,
+			null27 = 0x1B,
+		};
+
 
 		struct __declspec() GfxCmdBufSourceState
 		{
@@ -5063,6 +5153,20 @@ namespace Game
 			GfxColor color;
 			float texCoord[2];
 			PackedUnitVec normal;
+		};
+
+		struct GfxRenderTargetSurface
+		{
+			IDirect3DSurface9* color;
+			IDirect3DSurface9* depthStencil;
+		};
+
+		struct GfxRenderTarget
+		{
+			GfxImage* image;
+			GfxRenderTargetSurface surface;
+			unsigned int width;
+			unsigned int height;
 		};
 
 		struct __declspec() materialCommands_t
@@ -6718,7 +6822,8 @@ namespace Game
 #pragma warning( disable : 4324 )
 		struct __declspec(align(8)) r_globals_t
 		{
-			GfxViewParms identityViewParms;
+			//GfxViewParms identityViewParms;
+			GfxViewParmsNoPad identityViewParms;
 			bool inFrame;
 			bool registered;
 			bool forbidDelayLoadImages;
@@ -6835,18 +6940,22 @@ namespace Game
 			DEMO = 0,
 			DEVGUI = 1,
 			EMPTY2 = 2,
-			EMPTY3 = 4
+			CHANGELOG = 3
 		};
 
 		struct gui_menus_t
 		{
 			bool menustate;
+			bool mouse_ignores_menustate;
 			bool was_open;
 			bool hk_is_clicked;
 			bool hk_is_down;
 			bool one_time_init;
+			bool got_layout_from_menu;
 			float position[2];
 			float size[2];
+			int horzAlign;
+			int vertAlign;
 		};
 
 		struct gui_t

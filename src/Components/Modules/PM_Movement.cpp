@@ -2147,7 +2147,7 @@ namespace Components
 			retn;
 
 			// terrain edge bounces enabled
-			edge_bounces:
+		edge_bounces:
 			mov		al, 0;
 			retn;
 		}
@@ -2158,27 +2158,28 @@ namespace Components
 	{
 		__asm
 		{
-			push	eax
-			mov		eax, Dvars::pm_bhop_auto
-			cmp		byte ptr[eax + 12], 1
-			pop		eax
-			je		auto_hop
+			push	eax;
+			mov		eax, Dvars::pm_bhop_auto;
+			cmp		byte ptr[eax + 12], 1;
+			pop		eax;
+			je		auto_hop;
 
 			// auto hop not enabled
-			test    eax, 400h // overwritten op
-			push	407DDAh   // jump back to the next op
+			test    eax, 0x400; // overwritten op
+			push	0x407DDA;   // jump back to the next op
 			retn 
 
 			// auto hop enabled
-			auto_hop:
-			test    eax, 400h // overwritten op
-			jz		stock1
-			push	407DF3h
-			retn
+		auto_hop:
+			test    eax, 0x400; // overwritten op
+			jz		stock1;
+			
+			push	0x407DF3;
+			retn;
 
-			stock1:
-			push 407DEDh
-			retn
+		stock1:
+			push 0x407DED;
+			retn;
 		}
 	}
 
@@ -2187,24 +2188,24 @@ namespace Components
 	{
 		__asm
 		{
-			push	eax
-			mov		eax, Dvars::pm_bhop_slowdown
-			cmp		byte ptr[eax + 12], 0
-			pop		eax
-			je		auto_hop_slowdown
+			push	eax;
+			mov		eax, Dvars::pm_bhop_slowdown;
+			cmp		byte ptr[eax + 12], 0;
+			pop		eax;
+			je		auto_hop_slowdown;
 
 			// bhop slowdown enabled
-			test    edi, edi				// overwritten op
-			fld     dword ptr[esi + 28h]	// overwritten op
-			push	410318h					// jump back to the next intact op
-			retn
+			test    edi, edi;				// overwritten op
+			fld     dword ptr[esi + 28h];	// overwritten op
+			push	410318h;				// jump back to the next intact op
+			retn;
 
 			// auto bhop enabled
-			auto_hop_slowdown :
-			test    edi, edi				// overwritten op
+		auto_hop_slowdown:
+			test    edi, edi;				// overwritten op
 											// we dont care about the next 30 bytes (Utils::Hook::Nop(0x410315, 30))
-			push	410333h					// overjump
-			retn
+			push	410333h;				// overjump
+			retn;
 		}
 	}
 
@@ -2214,29 +2215,29 @@ namespace Components
 		const static uint32_t PM_CrashLand_Func = 0x40FFB0;
 		__asm
 		{
-			jne		loc_4108ED	// overwritten op
+			jne		loc_4108ED;		// overwritten op
 
-			push	eax
-			mov		eax, Dvars::pm_crashland
-			cmp		byte ptr[eax + 12], 0
-			pop		eax
-			je		disable_crashland
+			push	eax;
+			mov		eax, Dvars::pm_crashland;
+			cmp		byte ptr[eax + 12], 0;
+			pop		eax;
+			je		disable_crashland;
 
 			// crashland enabled
-			push    edx
-			mov     esi, ebp
-			call	PM_CrashLand_Func
-			push	4108EAh
-			retn
+			push    edx;
+			mov     esi, ebp;
+			call	PM_CrashLand_Func;
+			push	4108EAh;
+			retn;
 
-			disable_crashland :
-			jne		loc_4108ED
-			push	4108EDh		// overjump call to pm_crashland
-			retn
+		disable_crashland:
+			jne		loc_4108ED;
+			push	4108EDh;		// overjump call to pm_crashland
+			retn;
 
-			loc_4108ED :
-			push	4108EDh
-			retn
+		loc_4108ED:
+			push	4108EDh;
+			retn;
 		}
 	}
 
@@ -2246,10 +2247,10 @@ namespace Components
 		const static uint32_t RetAddr = 0x4E9F34;
 		__asm
 		{
-			mov		eax, Dvars::pm_rocketJumpHeight
-			fld		[eax + 12]
+			mov		eax, Dvars::pm_rocketJumpHeight;
+			fld		[eax + 12];
 
-			jmp		RetAddr
+			jmp		RetAddr;
 		}
 	}
 
@@ -2259,11 +2260,11 @@ namespace Components
 		const static uint32_t RetAddr = 0x4B55AA;
 		__asm
 		{
-			push	eax
-			mov		eax, Dvars::pm_cpm_useQuakeDamage
-			cmp		byte ptr[eax + 12], 1
-			pop		eax
-			jne		stock_damage
+			push	eax;
+			mov		eax, Dvars::pm_cpm_useQuakeDamage;
+			cmp		byte ptr[eax + 12], 1;
+			pop		eax;
+			jne		stock_damage;
 
 			mov     eax, [esp + 4Ch];	// - timeoffset	// overwritten op
 			mov     ecx, [esp + 40h];	// - hitloc		// overwritten op
@@ -2282,21 +2283,21 @@ namespace Components
 			push    edx;				// attacker / self
 			push    eax;				// inflictor
 
-			push	[esp + 60h]
-			push	ebx
+			push	[esp + 60h];
+			push	ebx;
 
-			Call	Q3_DamageClient
-			add		esp, 8h
+			call	Q3_DamageClient;
+			add		esp, 8h;
 
-			push	4B55AAh
-			retn
+			push	4B55AAh;
+			retn;
 
-			stock_damage:
+		stock_damage:
 			mov     eax, [esp + 4Ch];	// overwritten op
 			mov     ecx, [esp + 40h];	// overwritten op
 			
-			push	4B5582h
-			retn
+			push	4B5582h;
+			retn;
 		}
 	}
 
@@ -2319,11 +2320,11 @@ namespace Components
 
 			// we need the value of memedServerTime in eax
 			mov		ecx, memedServerTime;
-			mov		[ebp + 10h], ecx
+			mov		[ebp + 10h], ecx;
 
 			// jump back
 			push	0x4C7F6A;
-			retn
+			retn;
 		}
 	}
 
@@ -2334,22 +2335,22 @@ namespace Components
 		const static uint32_t retnPt = 0x4EA05C;
 		__asm
 		{
-			push	edx
-			mov		edx, Dvars::pm_cpm_useQuakeDamage
-			cmp		byte ptr[edx + 12], 1
-			pop		edx
-			jne		STOCK
+			push	edx;
+			mov		edx, Dvars::pm_cpm_useQuakeDamage;
+			cmp		byte ptr[edx + 12], 1;
+			pop		edx;
+			jne		STOCK;
 
-							// ent is pushed already @ ebx
-			push	eax		// push wp
-			Call	Q3_CalcMuzzlePoints
-			add		esp, 4h
+								// ent is pushed already @ ebx
+			push	eax;		// push wp
+			Call	Q3_CalcMuzzlePoints;
+			add		esp, 4h;
 			
-			jmp		retnPt
+			jmp		retnPt;
 
-			STOCK:
-				Call	G_CalcMuzzlePoints_Func
-				jmp		retnPt
+		STOCK:
+			call	G_CalcMuzzlePoints_Func;
+			jmp		retnPt;
 		}
 	}
 
@@ -2358,13 +2359,13 @@ namespace Components
 	{
 		__asm
 		{
-			push	edi
+			push	edi;
 
-			Call	Weapon_RocketLauncher_Fire
-			add     esp, 4h
+			call	Weapon_RocketLauncher_Fire;
+			add     esp, 4h;
 
 			push	0x4EA176;
-			retn
+			retn;
 		}
 	}
 
@@ -2388,16 +2389,16 @@ namespace Components
 		const static uint32_t retnPt = 0x41471D;
 		__asm
 		{
-			pushad
-			push	edx
-			push	ebx
+			pushad;
+			push	edx;
+			push	ebx;
 
-			Call	PmoveSingle_Mid
-			add		esp, 8h
-			popad
+			call	PmoveSingle_Mid;
+			add		esp, 8h;
+			popad;
 
-			Call	PM_AdjustAimSpreadScale_Func
-			jmp		retnPt
+			call	PM_AdjustAimSpreadScale_Func;
+			jmp		retnPt;
 		}
 	}
 
@@ -2407,26 +2408,26 @@ namespace Components
 		const static uint32_t G_RadiusDamage_Func = 0x4B67C0;
 		__asm
 		{
-			push	eax
-			mov		eax, Dvars::pm_cpm_useQuakeDamage
-			cmp		byte ptr[eax + 12], 1
-			pop		eax
-			jne		STOCK	// use Stock RadiusDamage if useQuakeDamage = false
+			push	eax;
+			mov		eax, Dvars::pm_cpm_useQuakeDamage;
+			cmp		byte ptr[eax + 12], 1;
+			pop		eax;
+			jne		STOCK;		// use Stock RadiusDamage if useQuakeDamage = false
 
 			// everything else is pushed already
-			push	edi		// origin
+			push	edi;		// origin
 
-			Call	Q3_RadiusDamage
-			add		esp, 4h
+			call	Q3_RadiusDamage;
+			add		esp, 4h;
 
 			push	0x4C483F;
-			retn
+			retn;
 
 		STOCK:
-			Call	G_RadiusDamage_Func
+			call	G_RadiusDamage_Func;
 
 			push	0x4C483F;
-			retn
+			retn;
 		}
 	}
 	
@@ -2436,26 +2437,26 @@ namespace Components
 		const static uint32_t G_RadiusDamage_Func = 0x4B67C0;
 		__asm
 		{
-			push	eax
-			mov		eax, Dvars::pm_cpm_useQuakeDamage
-			cmp		byte ptr[eax + 12], 1
-			pop		eax
-			jne		STOCK	// use Stock RadiusDamage if useQuakeDamage = false
+			push	eax;
+			mov		eax, Dvars::pm_cpm_useQuakeDamage;
+			cmp		byte ptr[eax + 12], 1;
+			pop		eax;
+			jne		STOCK;		// use Stock RadiusDamage if useQuakeDamage = false
 
 			// everything else is pushed already
-			push	edi		// origin
+			push	edi;		// origin
 
-			Call	Q3_RadiusDamage
-			add		esp, 4h
+			call	Q3_RadiusDamage;
+			add		esp, 4h;
 
 			push	0x4C4F33;	// ret to "add esp, 28h"
-			retn
+			retn;
 
-		STOCK :
-			Call	G_RadiusDamage_Func
+		STOCK:
+			call	G_RadiusDamage_Func;
 
-			push	0x4C4F33; // ret to "add esp, 28h"
-			retn
+			push	0x4C4F33;	// ret to "add esp, 28h"
+			retn;
 		}
 	}
 

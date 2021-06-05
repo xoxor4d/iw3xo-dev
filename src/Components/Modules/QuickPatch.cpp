@@ -22,12 +22,12 @@ namespace Components
 		const static uint32_t retnPt = 0x46FD05;
 		__asm
 		{
-			pushad
-			Call	PrintLoadedModules
-			popad
+			pushad;
+			call	PrintLoadedModules;
+			popad;
 
-			Call	CL_PreInitRenderer_Func
-			jmp		retnPt
+			call	CL_PreInitRenderer_Func;
+			jmp		retnPt;
 		}
 	}
 
@@ -38,8 +38,8 @@ namespace Components
 		const static char* print = "\n-------------- R_Init --------------\n";
 		__asm
 		{
-			push	print
-			jmp		retnPt
+			push	print;
+			jmp		retnPt;
 		}
 	}
 
@@ -50,8 +50,8 @@ namespace Components
 		const static char* print = "Working directory: %s\n\n";
 		__asm
 		{
-			push	print
-			jmp		retnPt
+			push	print;
+			jmp		retnPt;
 		}
 	}
 
@@ -62,8 +62,8 @@ namespace Components
 		const static char* print = "\n------- Server Initialization ---------\n";
 		__asm
 		{
-			push	print
-			jmp		retnPt
+			push	print;
+			jmp		retnPt;
 		}
 	}
 
@@ -80,15 +80,13 @@ namespace Components
 		const static uint32_t retnPt = 0x4BF04F;
 		__asm
 		{
-			pushad
-			Call	PrintBuildOnInit
-			popad 
+			pushad;
+			call	PrintBuildOnInit;
+			popad;
 
-			jmp		retnPt
+			jmp		retnPt;
 		}
 	}
-
-	// ----------------------------
 
 	QuickPatch::QuickPatch()
 	{
@@ -156,65 +154,6 @@ namespace Components
 		//Utils::Hook::Set<BYTE>(0x4103E2, 0x01);
 
 
-		// *
-		// Commands
-
-		// extend
-		Command::Add("ent_rotateTo", [](Command::Params params)
-		{
-			if (params.Length() < 3) 
-			{
-				Game::Com_PrintMessage(0, "Usage :: ent_rotateTo entityID <angles vec3>\n", 0);
-				return;
-			}
-
-			float angles[3] = { 0.0f, 0.0f, 0.0f };
-
-			angles[0] = Utils::try_stof(params[2], true);
-
-			if (params.Length() >= 4)
-			{
-				angles[1] = Utils::try_stof(params[3], true);
-			}
-				
-			if (params.Length() >= 5)
-			{
-				angles[2] = Utils::try_stof(params[4], true);
-			}
-			
-			int entIdx = Utils::try_stoi(params[1], true);
-			float vRot[3];
-
-			for (auto i = 0; i < 3; ++i)
-			{
-				float v2 = Utils::vector::_AngleNormalize180(angles[i] - Game::scr_g_entities[entIdx].r.currentAngles[i]);
-				vRot[i] = Game::scr_g_entities[entIdx].r.currentAngles[i] + v2;
-			}
-
-			float tAngles[3] =
-			{
-				Game::scr_g_entities[entIdx].r.currentAngles[0],
-				Game::scr_g_entities[entIdx].r.currentAngles[1],
-				Game::scr_g_entities[entIdx].r.currentAngles[2],
-			};
-
-			Game::ScriptMover_SetupMove(
-				&Game::scr_g_entities[entIdx].s.lerp.apos,
-				vRot,
-				4.0f,
-				0.1f,
-				0.1f,
-				tAngles,
-				&Game::scr_g_entities[entIdx].___u30.mover.aSpeed,
-				&Game::scr_g_entities[entIdx].___u30.mover.aMidTime,
-				&Game::scr_g_entities[entIdx].___u30.mover.aDecelTime,
-				Game::scr_g_entities[entIdx].___u30.mover.apos1,
-				Game::scr_g_entities[entIdx].___u30.mover.apos2,
-				Game::scr_g_entities[entIdx].___u30.mover.apos3);
-
-			Game::SV_LinkEntity(&Game::scr_g_entities[entIdx]);
-		});
-
 		Command::Add("patchdvars", [](Command::Params)
 		{
 			Dvars::cg_fovScale = Game::Dvar_RegisterFloat(
@@ -233,8 +172,6 @@ namespace Components
 				/* maxVal	*/ 333,
 				/* flags	*/ Game::dvar_flags::saved);
 		});
-
-		
 	}
 
 	QuickPatch::~QuickPatch()

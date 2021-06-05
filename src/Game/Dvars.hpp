@@ -2,19 +2,14 @@
 
 namespace Dvars
 {
-	extern Game::dvar_s* r_buf_skinnedCacheVb;
-	extern Game::dvar_s* r_buf_smodelCacheVb;
-	extern Game::dvar_s* r_buf_smodelCacheIb;
-	extern Game::dvar_s* r_buf_tempSkin;
-	extern Game::dvar_s* r_buf_dynamicVertexBuffer;
-	extern Game::dvar_s* r_buf_dynamicIndexBuffer;
-	extern Game::dvar_s* r_buf_preTessIndexBuffer;
+	// Client
+	extern Game::dvar_s* cl_avidemo_streams;
+	extern Game::dvar_s* cl_avidemo_streams_greenscreen;
+	extern Game::dvar_s* cl_avidemo_streams_viewmodel;
+	extern Game::dvar_s* cl_avidemo_streams_depth;
+	extern Game::dvar_s* cl_avidemo_streams_hud;
+	extern Game::dvar_s* cl_pause_demo;
 
-	extern Game::dvar_s* r_debugShaderToggle;
-	extern Game::dvar_s* r_setmaterial_hk;
-
-	extern Game::dvar_s* r_wireframe_world;
-	extern Game::dvar_s* r_wireframe_xmodels;
 
 	// Radiant
 	extern Game::dvar_s* radiant_live;
@@ -42,10 +37,6 @@ namespace Dvars
 	extern Game::dvar_s* ui_developer;
 	extern Game::dvar_s* ui_developer_script;
 	extern Game::dvar_s* ui_main_title;
-	extern Game::dvar_s* ui_changelog01;
-	extern Game::dvar_s* ui_changelog02;
-	extern Game::dvar_s* ui_changelog03;
-	extern Game::dvar_s* ui_changelog04;
 	extern Game::dvar_s* ui_eyes_position;
 	extern Game::dvar_s* ui_eyes_size;
 	extern Game::dvar_s* ui_eyes_alpha;
@@ -145,6 +136,25 @@ namespace Dvars
 	extern Game::dvar_s* r_d3d9ex;
 	extern Game::dvar_s* r_dumpShaders;
 
+	extern Game::dvar_s* r_buf_skinnedCacheVb;
+	extern Game::dvar_s* r_buf_smodelCacheVb;
+	extern Game::dvar_s* r_buf_smodelCacheIb;
+	extern Game::dvar_s* r_buf_tempSkin;
+	extern Game::dvar_s* r_buf_dynamicVertexBuffer;
+	extern Game::dvar_s* r_buf_dynamicIndexBuffer;
+	extern Game::dvar_s* r_buf_preTessIndexBuffer;
+
+	extern Game::dvar_s* r_debugShaderToggle;
+	extern Game::dvar_s* r_setmaterial_hk;
+
+	extern Game::dvar_s* r_wireframe_world;
+	extern Game::dvar_s* r_wireframe_xmodels;
+
+	extern Game::dvar_s* r_cullWorld;
+	extern Game::dvar_s* r_cullEntities;
+	extern Game::dvar_s* r_drawDynents;
+
+	extern Game::dvar_s* r_debugShaderTexcoord;
 
 	// Debug collision
 	extern Game::dvar_s* r_drawCollision;

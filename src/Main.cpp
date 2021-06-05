@@ -21,10 +21,10 @@ __declspec(naked) void EntryPoint()
     __asm
     {
         // This has to be called, otherwise the hook is not uninstalled and we're deadlocking
-        call Main::Initialize
+		call	Main::Initialize;
 
-        mov eax, 67493Ch
-        jmp eax
+		mov		eax, 0x67493C;
+		jmp		eax;
     }
 }
 

@@ -33,22 +33,25 @@ namespace Components
 	__declspec(naked) void sv_spawnserver_stub()
 	{
 		const static uint32_t retnPt = 0x52F8A7;
+		__asm
+		{
+			// overwritten op's
+			add     esp, 8;
+			and		esi, 0FFFFFFF0h;
 
-		// overwritten op's
-		__asm	add     esp, 8
-		__asm and esi, 0FFFFFFF0h
-
-		// huh
-		__asm	Call	_Map::OnLoad
-		__asm	jmp		retnPt
+			call	_Map::OnLoad;
+			jmp		retnPt;
+		}
 	}
 
 	__declspec(naked) void com_shutdowninternal_stub()
 	{
 		const static uint32_t Com_Restart_Jmp = 0x5004C0;
-
-		__asm	Call	_Map::OnUnload
-		__asm	jmp		Com_Restart_Jmp
+		__asm
+		{
+			call	_Map::OnUnload;
+			jmp		Com_Restart_Jmp;
+		}
 	}
 
 	// --------

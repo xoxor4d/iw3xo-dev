@@ -8,7 +8,7 @@ namespace Components
 	// register additional dvars in R_Init->R_RegisterDvars
 	void R_RegisterAdditionalDvars()
 	{
-		_UI::MainMenu_Changelog();
+		_UI::main_menu_register_dvars();
 		_Renderer::R_RegisterBufferDvars();
 		RB_ShaderOverlays::Register_StringDvars();
 	}
@@ -51,7 +51,7 @@ namespace Components
 			}
 		}
 
-		// Do not force fs_usedevdir, some mods do not like that. Rather let the user enable it himself if he wants to use rawfile loading
+		// Do not force fs_usedevdir, some mods do not like that.
 		//if (fs_usedevdir && !fs_usedevdir->current.enabled)
 		//{
 		//	Game::Dvar_SetValue(fs_usedevdir, true); // quick set the value
@@ -76,12 +76,12 @@ namespace Components
 		const static uint32_t retnPt = 0x629D7F;
 		__asm
 		{
-			pushad
-			Call	R_RegisterAdditionalDvars
-			popad
+			pushad;
+			call	R_RegisterAdditionalDvars;
+			popad;
 
-			Call	R_RegisterSunDvars_Func
-			jmp		retnPt
+			call	R_RegisterSunDvars_Func;
+			jmp		retnPt;
 		}
 	}
 
@@ -90,12 +90,12 @@ namespace Components
 		const static uint32_t rtnPt = 0x46CB0E;
 		__asm
 		{
-			pushad
-			Call	ForceDvarsOnInit
-			popad
+			pushad;
+			call	ForceDvarsOnInit;
+			popad;
 
-			mov     ecx, 0Ch	// overwritten op
-			jmp		rtnPt
+			mov     ecx, 0Ch;	// overwritten op
+			jmp		rtnPt;
 		}
 	}
 
@@ -105,8 +105,8 @@ namespace Components
 		const static uint32_t overjumpTo = 0x56B3A1;
 		__asm
 		{
-			movzx   eax, word ptr[edi + 8]	// overwritten op
-			jmp		overjumpTo
+			movzx   eax, word ptr[edi + 8];	// overwritten op
+			jmp		overjumpTo;
 		}
 	}
 
@@ -324,18 +324,18 @@ namespace Components
 		const static uint32_t retnPt = 0x500238;
 		__asm
 		{
-			pushad
-			Call	Com_StartHunkUsers
-			popad
+			pushad;
+			call	Com_StartHunkUsers;
+			popad;
 
-			jmp		retnPt			// continue exec
+			jmp		retnPt;			// continue exec
 		}
 	}
 
 	// *
 	// IWDs
 
-	bool iwdMatchXCOMMON(const char* s0)
+	bool iwd_match_xcommon(const char* s0)
 	{
 		if (!Utils::Q_stricmpn(s0, "xcommon_", 8))
 		{
@@ -345,7 +345,7 @@ namespace Components
 		return 1;
 	}
 
-	bool iwdMatchIW(const char* s0)
+	bool iwd_match_iw(const char* s0)
 	{
 		if (!Utils::Q_stricmpn(s0, "iw_", 3))
 		{
@@ -359,30 +359,30 @@ namespace Components
 	__declspec(naked) void FS_MakeIWDsLocalized()
 	{
 		const static uint32_t errMsg = 0x55DBCA;
-		const static uint32_t hax = 0x55DBE8;
+		const static uint32_t retn_pt = 0x55DBE8;
 		__asm
 		{
-			push	edi				// current iwd string + ext
-			Call	iwdMatchIW
-			add		esp, 4
-			test    eax, eax
+			push	edi;				// current iwd string + ext
+			call	iwd_match_iw;
+			add		esp, 4;
+			test    eax, eax;
 
-			je		MATCH			// jump if iwd matched iw_
-									// if not, cmp to xcommon_
-			push	edi				// current iwd string + ext
-			Call	iwdMatchXCOMMON
-			add		esp, 4
-			test    eax, eax
+			je		MATCH;				// jump if iwd matched iw_
+										// if not, cmp to xcommon_
+			push	edi;				// current iwd string + ext
+			call	iwd_match_xcommon;
+			add		esp, 4;
+			test    eax, eax;
 
-			je		MATCH			// jump if iwd matched xcommon_
-			jmp		errMsg			// yeet
+			je		MATCH;				// jump if iwd matched xcommon_
+			jmp		errMsg;				// yeet
 
 
-			MATCH :
-			mov     ebx, [ebp - 4]		// whatever df that is
-			mov		[ebp - 8], 1		// set qLocalized to true ;)
-			mov		[ebp - 0Ch], esi	// whatever df that is
-			jmp		hax
+		MATCH:
+			mov     ebx, [ebp - 4];		// whatever df that is
+			mov		[ebp - 8], 1;		// set qLocalized to true ;)
+			mov		[ebp - 0Ch], esi;	// whatever df that is
+			jmp		retn_pt;
 		}
 	}
 
@@ -458,7 +458,7 @@ namespace Components
 
 		// Disable dvar cheat / write protection
 		Utils::Hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook::Nop(0x56B33A, 1);
+		Utils::Hook::Nop(0x56B339 + 1, 1);
 
 		// *
 		// FastFiles
@@ -467,7 +467,7 @@ namespace Components
 		Utils::Hook(0x5F4810, DB_LoadCommonFastFiles, HOOK_CALL).install()->quick();
 
 		// ^ Com_StartHunkUsers Mid-hook (realloc files that were unloaded on map load)
-		Utils::Hook::Nop(0x50020F, 6);  Utils::Hook(0x50020F, Com_StartHunkUsers_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x50020F, 6);		Utils::Hook(0x50020F, Com_StartHunkUsers_stub, HOOK_JUMP).install()->quick();
 
 		// *
 		// IWDs

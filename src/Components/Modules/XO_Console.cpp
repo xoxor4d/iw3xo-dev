@@ -1621,45 +1621,7 @@ CON_MATCH_PREFIX_ONLY:
 		// Overdraw the cursor so its above the console so we obv. can not return early ;)
 		if ((Game::_uiContext->openMenuCount || Dvars::xo_con_cursorState->current.enabled) && Dvars::xo_con_cursorOverdraw->current.enabled)
 		{
-			// get material handle
-			void *cur_material = Game::Material_RegisterHandle("ui_cursor", 3);
-
-			float cur_w = (32.0f * Game::scrPlace->scaleVirtualToReal[0]) / Game::scrPlace->scaleVirtualToFull[0];
-			float cur_h = (32.0f * Game::scrPlace->scaleVirtualToReal[1]) / Game::scrPlace->scaleVirtualToFull[1];
-			float cur_x = Game::_uiContext->cursor.x - 0.5f * cur_w;
-			float cur_y = Game::_uiContext->cursor.y - 0.5f * cur_h;
-
-			// set up texcoords
-			float s0, s1;
-			float t0, t1;
-
-			if (cur_w >= 0.0f) 
-			{
-				s0 = 0.0f;
-				s1 = 1.0f;
-			}
-			else 
-			{
-				cur_w = -cur_w;
-				s0 = 1.0f;
-				s1 = 0.0f;
-			}
-
-			if (cur_h >= 0.0f) 
-			{
-				t0 = 0.0f;
-				t1 = 1.0f;
-			}
-			else 
-			{
-				cur_h = -cur_h;
-				t0 = 1.0f;
-				t1 = 0.0f;
-			}
-
-			// scale 640x480 rect to viewport resolution and draw the cursor
-			_UI::ScrPlace_ApplyRect(&cur_x, &cur_w, &cur_y, &cur_h, VERTICAL_ALIGN_FULLSCREEN, VERTICAL_ALIGN_FULLSCREEN);
-			Game::R_AddCmdDrawStretchPic(cur_material, cur_x, cur_y, cur_w, cur_h, s0, t0, s1, t1, 0);
+			_UI::redraw_cursor();
 		}
 	}
 
@@ -1673,15 +1635,15 @@ CON_MATCH_PREFIX_ONLY:
 		const static uint32_t RetAddr = 0x460022;
 		__asm
 		{
-			push	eax		// overwritten op
-			push	esi
+			push	eax;		// overwritten op
+			push	esi;
 			
-			call	ConDrawInput_Box_DetailedMatch_UpperBox
+			call	ConDrawInput_Box_DetailedMatch_UpperBox;
 			
-			pop		esi
-			add		esp, 4h
+			pop		esi;
+			add		esp, 4h;
 
-			jmp		RetAddr
+			jmp		RetAddr;
 		}
 	}
 
@@ -1691,15 +1653,15 @@ CON_MATCH_PREFIX_ONLY:
 		const static uint32_t RetAddr = 0x4601FB;
 		__asm
 		{
-			push	eax		// overwritten op
-			push	esi
+			push	eax;		// overwritten op
+			push	esi;
 
-			Call	ConDrawInput_Box_DetailedMatch_LowerBox
+			call	ConDrawInput_Box_DetailedMatch_LowerBox;
 
-			pop		esi
-			add		esp, 4h
+			pop		esi;
+			add		esp, 4h;
 
-			jmp		RetAddr
+			jmp		RetAddr;
 		}
 	}
 
@@ -1709,15 +1671,15 @@ CON_MATCH_PREFIX_ONLY:
 		const static uint32_t RetAddr = 0x4603BF;
 		__asm
 		{
-			push	1		// overwritten op
-			push	esi
+			push	1;		// overwritten op
+			push	esi;
 
-			Call	ConDrawInput_Box_DetailedMatch_UpperBox
+			call	ConDrawInput_Box_DetailedMatch_UpperBox;
 
-			pop		esi
-			add		esp, 4h
+			pop		esi;
+			add		esp, 4h;
 
-			jmp		RetAddr
+			jmp		RetAddr;
 		}
 	}
 
@@ -1737,13 +1699,13 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm
 		{
-			pushad
-			Call	Con_OffsetMatchValues
-			popad
+			pushad;
+			call	Con_OffsetMatchValues;
+			popad;
 			
-			add     esp, 4		// stock
+			add     esp, 4;		// stock
 			push	0x45FAFA;
-			retn
+			retn;
 		}
 	}
 
@@ -1752,16 +1714,16 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm 
 		{
-			pushad
-			Call	Con_OffsetMatchValues
-			popad
+			pushad;
+			call	Con_OffsetMatchValues;
+			popad;
 
-			add     esp, 4		// stock
-			push    6BDF24h		// stock
-			sub     esp, 10h	// stock
+			add     esp, 4;		// stock
+			push    0x6BDF24;	// stock
+			sub     esp, 10h;	// stock
 
 			push	0x460054;
-			retn
+			retn;
 		}
 	}
 
@@ -1770,16 +1732,16 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm
 		{
-			pushad
-			Call	Con_OffsetMatchValues
-			popad
+			pushad;
+			call	Con_OffsetMatchValues;
+			popad;
 
-			add     esp, 4		// stock
-			push    6BDF34h		// stock
-			sub     esp, 10h	// stock
+			add     esp, 4;		// stock
+			push    0x6BDF34;	// stock
+			sub     esp, 10h;	// stock
 
 			push	0x4600D4;
-			retn
+			retn;
 		}
 	}
 
@@ -1788,16 +1750,16 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm
 		{
-			pushad
-			Call	Con_OffsetMatchValues
-			popad
+			pushad;
+			call	Con_OffsetMatchValues;
+			popad;
 
-			add     esp, 4		// stock
-			push    6BDF34h		// stock
-			sub     esp, 10h	// stock
+			add     esp, 4;		// stock
+			push    0x6BDF34;	// stock
+			sub     esp, 10h;	// stock
 
 			push	0x460150;
-			retn
+			retn;
 		}
 	}
 
@@ -1807,7 +1769,7 @@ CON_MATCH_PREFIX_ONLY:
 		const static uint32_t RetAddr = 0x460433;
 		__asm
 		{
-			jmp		RetAddr
+			jmp		RetAddr;
 		}
 	}
 
@@ -1816,16 +1778,16 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm
 		{
-			push	ecx
-			mov		ecx, con_mapdir
-			mov		[eax + 8], ecx
+			push	ecx;
+			mov		ecx, con_mapdir;
+			mov		[eax + 8], ecx;
 
-			mov		ecx, con_mapext
-			mov		[eax + 0Ch], ecx
+			mov		ecx, con_mapext;
+			mov		[eax + 0Ch], ecx;
 
-			pop		ecx
+			pop		ecx;
 			push	0x528F96;
-			retn
+			retn;
 		}
 	}
 
@@ -1834,19 +1796,19 @@ CON_MATCH_PREFIX_ONLY:
 	{
 		__asm
 		{
-			push	ecx
+			push	ecx;
 
-			mov		ecx, con_mapext
-			mov		ebx, ecx
+			mov		ecx, con_mapext;
+			mov		ebx, ecx;
 
-			mov     esi, edi	// stock op inbetween
+			mov     esi, edi;	// stock op inbetween
 
-			mov		ecx, con_mapdir
-			mov		[eax + 8], ecx
+			mov		ecx, con_mapdir;
+			mov		[eax + 8], ecx;
 
-			pop		ecx
+			pop		ecx;
 			push	0x528E5D;
-			retn
+			retn;
 		}
 	}
 
@@ -1881,33 +1843,32 @@ CON_MATCH_PREFIX_ONLY:
 		const static uint32_t retnPt = 0x4615CA;
 		__asm
 		{
-			push	4	// textAlignMode
-			//push	ecx	// whatever that is, we push it in the Con_DrawMessageWindowOldToNew wrapper
+			push	4;					// textAlignMode
+			//push	ecx					// whatever that is, we push it in the Con_DrawMessageWindowOldToNew wrapper
 
-			fstp	dword ptr[esp]	// msgwndScale
-			push	3				// textStyle
+			fstp	dword ptr[esp];		// msgwndScale
+			push	3;					// textStyle
 
-			lea     eax, [esp + 1Ch]// color
-			push    eax				// color
+			lea     eax, [esp + 1Ch];	// color
+			push    eax;				// color
 
-			push    edi				// font
-			push    edx				// mode
-			push    1				// vert
-			push    1				// horz
-			push    12				// charHeight
-			push    4				// yPos
-			push    2				// xPos
+			push    edi;				// font
+			push    edx;				// mode
+			push    1;					// vert
+			push    1;					// horz
+			push    12;					// charHeight
+			push    4;					// yPos
+			push    2;					// xPos
 
-			//push    ecx			// localClientNum
-			push	esi				// esi holds msgWnd
+			//push    ecx				// localClientNum
+			push	esi;				// esi holds msgWnd
 			
-			Call	Con_DrawMessageWindowOldToNew_Proxy
-			add     esp, 2Ch
+			call	Con_DrawMessageWindowOldToNew_Proxy;
+			add     esp, 2Ch;
 
-			jmp		retnPt // after <add esp, 30h>
+			jmp		retnPt;				// after <add esp, 30h>
 		}
 	}
-
 	#pragma endregion
 
 	XO_Console::XO_Console()

@@ -20,13 +20,21 @@
 #include <intrin.h>
 #include <wincrypt.h>
 #include <time.h>
+
+#pragma warning(push)
+#pragma warning(disable: 26495)
 #include <d3d9.h>
+#include <d3dx9.h>
+#pragma warning(pop)
+
 #include <timeapi.h>
 #include <shellapi.h>
 #include <WinSock2.h>
 #include <assert.h>
+
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "d3dx9.lib")
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -49,6 +57,7 @@
 #include <chrono>
 #include <future>
 #include <unordered_map>
+#include <unordered_set>
 #include <tchar.h>
 #pragma warning(pop)
 
@@ -61,6 +70,7 @@
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
+#include <imgui_md.h>
 
 #include "Game/Structs.hpp"
 #include "Utils/vector.hpp"
@@ -75,6 +85,7 @@
 #include "Game/Functions.hpp"
 #include "Game/Dvars.hpp"
 
+#include "Components/Fonts.hpp"
 #include "Components/Loader.hpp"
 
 using namespace std::literals;

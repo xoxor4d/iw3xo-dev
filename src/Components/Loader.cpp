@@ -8,6 +8,8 @@ namespace Components
 	std::vector<Component*> Loader::Components;
 	Utils::Memory::Allocator Loader::MemAllocator;
 
+	#define USE_MODULE(name, state)	active.##name = state
+
 	void Loader::Initialize()
 	{
 		Loader::MemAllocator.clear();
@@ -15,6 +17,7 @@ namespace Components
 		// global bools for more dynamic modules (choose which modules to load)
 		active._UI			= true;
 		active._CG			= true;
+		active._Client		= true;
 		active._Pmove		= true;
 		active._Debug		= true;
 		active._Game		= true;
@@ -34,14 +37,16 @@ namespace Components
 		active.RB_ShaderOverlays = true;
 		active.RadiantRemote	 = true;
 		active.Window			 = true;
-		active.Gui				 = active.Window == active.D3D9Ex; // needs the window module and d3d9ex (enabled)
+		active.Gui				 = active.Window == active.D3D9Ex; // needs the window module and d3d9ex
 		active.Gui_Devgui		 = active.Gui; // obv. needs imgui
 		active.Compass			 = true;
 		active.CGaz				 = true;
+		active.Mvm				 = true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_UI);
 		REGISTER_MODULE(_CG);
+		REGISTER_MODULE(_Client);
 		REGISTER_MODULE(_Pmove);
 		REGISTER_MODULE(_Debug);
 		REGISTER_MODULE(_Game);
@@ -66,6 +71,7 @@ namespace Components
 		REGISTER_MODULE(Gui_Devgui);
 		REGISTER_MODULE(Compass);
 		REGISTER_MODULE(CGaz);
+		REGISTER_MODULE(Mvm);
 	}
 
 	void Loader::Uninitialize()

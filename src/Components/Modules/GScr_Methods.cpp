@@ -539,28 +539,28 @@ namespace Components
 		__asm
 		{
 			// esi is pushed already
-			Call	Player_GetMethod_Stock_Func
-			add     esp, 4
-			test    eax, eax
+			call	Player_GetMethod_Stock_Func;
+			add     esp, 4;
+			test    eax, eax;
 
 			// Return if we got the Handle for a stock method
-			jnz		GotMethodHandle
+			jnz		GotMethodHandle;
 
 			// else look if it is a custom method
-			push    esi
-			Call	Player_GetCustomMethod
-			add     esp, 4
-			test    eax, eax
+			push    esi;
+			call	Player_GetCustomMethod;
+			add     esp, 4;
+			test    eax, eax;
 			
 			// Return if we got the Handle for a custom method
-			jnz		GotMethodHandle
+			jnz		GotMethodHandle;
 
 			// else jump back to the next check in code ( ScriptEnt_GetMethod )
 			push	0x4D8583;
-			retn
+			retn;
 
-			GotMethodHandle:
-				retn
+		GotMethodHandle:
+			retn;
 		}
 	}
 

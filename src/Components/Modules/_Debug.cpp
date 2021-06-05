@@ -589,14 +589,14 @@ namespace Components
 		const static uint32_t RB_DrawDebug = 0x658860;
 		__asm
 		{
-			pushad
-			push	[0xD540220]
-			call	RB_AdditionalDebug
-			add		esp, 4h
-			popad
+			pushad;
+			push	[0xD540220];
+			call	RB_AdditionalDebug;
+			add		esp, 4h;
+			popad;
 
-			call	RB_DrawDebug
-			retn
+			call	RB_DrawDebug;
+			retn;
 		}
 	}
 

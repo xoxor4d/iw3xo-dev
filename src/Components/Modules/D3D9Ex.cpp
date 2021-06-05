@@ -22,6 +22,9 @@ namespace Components
 
 	ULONG D3D9Ex::D3D9Device::Release()
 	{
+		Game::Globals::loaded_MainMenu = false;
+		Game::Globals::mainmenu_fadeDone = false;
+
 		ULONG count = m_pIDirect3DDevice9->Release();
 		if (!count) delete this;
 		return count;
@@ -241,6 +244,11 @@ namespace Components
 
 	HRESULT D3D9Ex::D3D9Device::BeginScene()
 	{
+		if (Components::active.Mvm)
+		{
+			Mvm::avidemo_streams();
+		}
+
 		return m_pIDirect3DDevice9->BeginScene();
 	}
 
@@ -250,7 +258,7 @@ namespace Components
 		{
 			Gui::render_loop();
 		}
-		
+
 		return m_pIDirect3DDevice9->EndScene();
 	}
 

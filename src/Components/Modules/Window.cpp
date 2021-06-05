@@ -56,21 +56,25 @@ namespace Components
 
 	__declspec(naked) void Window::StyleHookStub()
 	{
-		if (Dvars::r_noborder && Dvars::r_noborder->current.enabled)
+		const static uint32_t retn_pt = 0x5F4968;
+		__asm
 		{
-			__asm
-			{
-				mov ebp, WS_VISIBLE | WS_POPUP
-				retn
-			}
-		}
-		else
-		{
-			__asm
-			{
-				mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX
-				retn
-			}
+			push	eax;
+			mov		eax, Dvars::r_noborder;
+			cmp		byte ptr[eax + 12], 1;
+			pop		eax;
+
+			// jump if noborder is false
+			jne		STOCK;
+
+			// if (Dvars::r_noborder->current.enabled)
+			mov		ebp, WS_VISIBLE | WS_POPUP;
+			jmp		retn_pt;
+
+		STOCK:
+			// else
+			mov		ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
+			jmp		retn_pt;
 		}
 	}
 
@@ -131,13 +135,16 @@ namespace Components
 			}
 		}
 
+		// MainWndProc
 		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x57BB20)(hWnd, Msg, wParam, lParam);
 	}
 
 	bool Window::is_noborder()
 	{
 		if (Dvars::r_noborder && Dvars::r_noborder->current.enabled)
+		{
 			return true;
+		}
 
 		return false;
 	}
@@ -145,27 +152,26 @@ namespace Components
 	__declspec(naked) void vid_xypos_stub()
 	{
 		const static uint32_t retnPt = 0x5F4C50;
-
 		__asm
 		{
-			mov		[esi + 10h], eax	// overwritten op (wndParms->y)
-			mov		dword ptr[esi], 0	// overwritten op
+			mov		[esi + 10h], eax;	// overwritten op (wndParms->y)
+			mov		dword ptr[esi], 0;	// overwritten op
 
-			pushad
-			Call	Window::is_noborder
-			test	al, al
-			jnz		NO_BORDER
+			pushad;
+			call	Window::is_noborder;
+			test	al, al;
+			jnz		NO_BORDER;
 
-			popad
-			jmp	retnPt
+			popad;
+			jmp		retnPt;
 
 
-			NO_BORDER:
-			popad				
-			xor		eax, eax			// clear eax
-			mov		[esi + 0Ch], eax	// set wndParms->x to 0 (4 byte)
-			mov		[esi + 10h], eax	// set wndParms->y to 0 (4 byte)
-			jmp		retnPt
+		NO_BORDER:
+			popad;
+			xor		eax, eax;			// clear eax
+			mov		[esi + 0Ch], eax;	// set wndParms->x to 0 (4 byte)
+			mov		[esi + 10h], eax;	// set wndParms->y to 0 (4 byte)
+			jmp		retnPt;
 		}
 	}
 
@@ -178,11 +184,10 @@ namespace Components
 			/* flags	*/ Game::dvar_flags::saved);
 
 		// Main window border
-		Utils::Hook(0x5F4963, Window::StyleHookStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5F4963, Window::StyleHookStub, HOOK_JUMP).install()->quick(); // was HOOK_CALL :>
 
 		// Main window creation
-		Utils::Hook::Nop(0x5F49CA, 6);
-		Utils::Hook(0x5F49CA, Window::CreateMainWindow, HOOK_CALL).install()->quick();
+		Utils::Hook::Nop(0x5F49CA, 6);		Utils::Hook(0x5F49CA, Window::CreateMainWindow, HOOK_CALL).install()->quick();
 
 		// Don't let the game interact with the native cursor
 		Utils::Hook::Set(0x69128C, Window::ShowCursorHook);
@@ -191,8 +196,7 @@ namespace Components
 		Utils::Hook::Set(0x5774EE, Window::MessageHandler);
 
 		// Do not use vid_xpos / vid_ypos when r_noborder is enabled
-		Utils::Hook::Nop(0x5F4C47, 9);
-		Utils::Hook(0x5F4C47, vid_xypos_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x5F4C47, 9);		Utils::Hook(0x5F4C47, vid_xypos_stub, HOOK_JUMP).install()->quick();
 	}
 
 	Window::~Window()
