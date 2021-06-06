@@ -64,6 +64,7 @@ PETool.exe
 verpatch.exe
 user*.bat
 *.zip
+submodules.txt
 
 # IDA
 # =========================

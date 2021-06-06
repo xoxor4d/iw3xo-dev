@@ -90,6 +90,7 @@ namespace Game
 
 		// Devgui
 		extern Game::gui_t gui;
+		extern std::string changelog_html_body;
 
 		// Renderer
 		extern IDirect3DDevice9* d3d9_device;

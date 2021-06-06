@@ -1165,7 +1165,7 @@ namespace Components
 	}
 
 	// Defrag :: G_RadiusDamage - fixes alot of the knockback issues
-	bool Q3_RadiusDamage(vec3_t origin, Game::gentity_s *inflictor, Game::gentity_s *attacker, float fInnerDamage, float fOuterDamage, float radius, float coneAngleCos, float *coneDirection, Game::gentity_s *ignore, int mod, int self_client)
+	bool Q3_RadiusDamage(vec3_t origin, Game::gentity_s *inflictor, Game::gentity_s *attacker, float fInnerDamage, float fOuterDamage, float radius, float coneAngleCos, float *coneDirection, Game::gentity_s *ignore_ent, int mod, int self_client)
 	{
 		float		points;
 		float		dist;
@@ -1205,7 +1205,7 @@ namespace Components
 		{
 			ent = (Game::gentity_s*)&Game::scr_g_entities[entityList[e]]; // fail
 
-			if (ent == ignore) 
+			if (ent == ignore_ent)
 			{
 				continue;
 			}

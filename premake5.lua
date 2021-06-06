@@ -147,7 +147,7 @@ workspace "iw3xo-dev"
         }
 
 		-- Virtual paths
-		if not _OPTIONS["no-new-structure"] then
+		--[[ if not _OPTIONS["no-new-structure"] then
 			vpaths {
 				["Headers/*"] = { "./src/**.hpp" },
 				["Sources/*"] = { "./src/**.cpp" },
@@ -157,7 +157,7 @@ workspace "iw3xo-dev"
 
 		vpaths {
 			["Docs/*"] = { "**.txt","**.md" },
-		}
+		} ]]
 		
 		-- Specific configurations
 		flags { "UndefinedIdentifiers" }

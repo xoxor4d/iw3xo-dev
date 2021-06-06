@@ -466,7 +466,7 @@ namespace Components
 		// changelog styles
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);				pushed_styles++;
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);				pushed_styles++;
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, -38.0f));	pushed_styles++;
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));	pushed_styles++;
 
 		// scollbar style
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(1, 1, 1, 0.025f));
@@ -487,176 +487,19 @@ namespace Components
 		// pop scrollbar style
 		ImGui::PopStyleColor(1);
 
-
+		// default changelog if WinHttp fails
 		// https://raw.githubusercontent.com/wiki/xoxor4d/iw3xo-dev/Changelog.md
 		// https://github.com/mekhontsev/imgui_md
 		
-		// TODO: get changelog using https://github.com/jpbarrette/curlpp
-		const std::string markdownText = R"(
-<a name="3410"></a>
-## Build [[3410]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3410)
-### __[Dependencies]__
-> * added [imgui_md](https://github.com/mekhontsev/imgui_md)
-> * added [dxsdk](https://github.com/devKlausS/dxsdk)
-
-### __[General]__
-> * added "_Client" module
-> * added "_Renderer" module
-> * added "Mvm" module
-> * cleanup and refactoring
-
-### __[Common]__
-> * increased Hunk
-> * increased Gmem
-
-### __[Rendering / Shaders]__
-> * proper d3d implementation
-> * devgui no longer needs r_d3d9ex enabled ^
-> * minor fixes for shader overlays
-> * sampler.resolvedPostSun now includes the latest frame with filmtweaks/visions
-> * added dvar "r_debugShaderTexcoord" :: show world and model uv's / texcoords
-> * added dvar "r_dumpShaders" :: dump shader binaries at runtime
-> * added dvar"r_wireframe_xmodels" and "r_wireframe_world" :: make xmodels / world surfaces use the wireframe technique (use r_clear and r_clearcolor to manipulate filling-colors)
-> * added dvar "r_cullWorld" and "r_cullEntities" to disable culling :: can be useful for vertex manipulating shaders (latched dvars, requires a vid_restart)
-> * added dvar "r_drawDynents" :: disable drawing of dynamic entities
-> * added dvars to increase rendering buffers such as skinnedCache, smodelCache and various others ("r_buf_" :: make sure to disable r_fastSkin when rocking custom sizes :: r_fastSkin disabled by default)
-> * R_MAX_SKINNED_CACHE_VERTICES and TEMP_SKIN_BUF_SIZE warnings are now dynamic and adjust to their respective buffer sizes ^
-
-### __[Moviemaking]__
-> * fixed an out of memory error when trying to take screenshots with R_TakeScreenshot when using heavy mods
-> * fixed cl_avidemo screenshots being black (iw3mvm support)
-> * added dvar "cl_avidemo_streams" :: same as iw3mvm mvm_streams but with customization options :: "cl_avidemo_streams_" (iw3mvm support)
-> * added dvar "cl_pause_demo" :: pause demo's
-
-### __[Movement]__
-> * added dvar "pm_terrainEdgeBounces" :: allow terrainEdges to be bounceable (somewhat mimics console behavior)
-
-### __[DevGui]__
-> * movement tweaks :: moved hud and CGaz settings into the debug tab 
-
-### __[Menu]__
-> * eyes (ui_eyes_position, ui_eyes_size, ui_eyes_alpha) :>
-> * proper changelog gui (symbiosis between ImGui and cod4 menus)
-
----
-
-<a name="3386"></a>
-## Build [[3386]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3386)
-### __[General]__
-> * Added dvar r_aspectRatio_custom (21:9 = 2.333) -> Use r_aspectRatio "custom" to enable
-> * Automatically load xcommon_iw3xo_addon.ff if found in zone/language (user fastfile to overwrite loaded assets)
-> * cubeMapShot command fixed (disable r_smp_backend when using it)
-
-### __[Map Export]__
-> * Fixed brush indices drawing when using r_drawCollision_brushIndexVisible
-> * Minor fixes to texture scaling when exporting maps
-> * Use dvar mapexport_brush5Sides to export brushes with only 5 sides
-> * All IW3xo created files will now be placed in their respective directories in root/iw3xo/
-
-### __[ImGui / Ocean Shader]__
-> * Implemented Ocean tab to tweak ocean shader settings in realtime
-> * Use the export button to export shader settings
-> * Shaders needs preprocessor #define USE_CUSTOM_CONSTANTS for this to work
-> * Visit https://xoxor4d.github.io/projects/cod4-ocean/
-
-### __[Shader Overlays]__
-> * xo_shaderoverlay can now be set to custom (define postfx material with xo_shaderoverlay_custom)
-> * Added dvar xo_shaderdbg_matrix to debug transformation matrices
-
----
-
-<a name="3369"></a>
-## Build [[3369]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3369)
-### __[General]__
-> * shortcut ALT + Enter now works without developer mode
-> * some dvar mins/maxs have been changed (mainly collision and shader dvars)
-> * collision hud now uses the correct dvar to determine its color
-> * fixed a visual issue with weapon bullet spread
-> * some changes to dvar mins and maxs (mostly postfx shaders and debug collision)
-
-### __[Menus]__
-> * rawfile menu loading [/menu_loadlist_raw <menulist_name.txt>] (needs fs_usedevdir enabled)
-> * open any loaded menu by name [/menu_open <menu_name>, /menu_open_ingame <menu_name>]
-> * close any loaded menu by name [/menu_closebyname <menu_name>]
-> * Menu Exporter [/menu_export, /menu_list ...] ((c) SheepWizard)
-> * menu_loadlist_raw no longer drops the player when it was unable to find specified menu
-
-### __[Menus]__
-> * implemented ImGui (currently needs <r_d3d9ex> to be enabled)
-> * theres now a devgui for most of the dvars that where added [/devgui]
-> * imgui demo menu [/devgui_demo]
-
----
-
-<a name="3333"></a>
-## Build [[3333]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3333)
-### __[General]__
-> * Increased asset pools (c) IW4x
-> * Usage of <xo_shaderoverlay> now disables <r_glow_allowed>
-> * Refactoring
-
-### __[Renderer]__
-> * r_d3d9ex [enables extended dx9 interface (on by default)] (c) IW4x
-> * Fixed invalid sampler crashes when drawing debug polygons
-> * Increased performance when using unlit debug polygons (r_drawCollision_polyLit 0)
-
-### __[Map Export]__
-> * fixed brushmodel exporting
-> * now skipping brushes with more then 128 points
-> * play with <mapexport_brushEpsilon1/2> and <mapexport_brushMinSize> to export smaller but prob. invalid brushes
-
-### __[Console]__
-> * fixed matchbox-values
-> * re-added dvars <xo_conhintBoxTxtColor ...>
-
----
-
-<a name="3284"></a>
-## Build [[3284]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3284)
-### __[General]__
-> * Fixed font size issues  
-> * Borderless fullscreen (r_noborder + vid_xpos/ypos 0) (c) IW4x  
-
-### __[Movement]__
-> * pm_debug_drawAxis [Draw axial information (Axis/Fps Zones)]  
-> * pm_debug_drawAxis_radius [Radius of axis/zones circle]  
-> * pm_debug_drawAxis_height [Height offset (from player origin)]  
-> * pm_debug_drawAxis_col125/250/333 [Color of zone]  
-
----
-
-<a name="3262"></a>
-## Build [[3262]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3262)
-### __[Map-Export]__
-> * Fixed some texture scale issues  
-> * Fixed some texture scale issues  
-> * Exporter now writes brush contents    
-> * Some brushside generation fixes  
-> * Selection feature [Export only certain parts of the map by defining a bounding box]  
-> * mapexport_selectionMode  [Enables selection mode]
-> * mapexport_selectionAdd     [Adds a point to the bounding box (needs 2 in total)]
-> * mapexport_selectionClear   [Reset bounding box]
-> * mapexport_brushMinSize   [Only export complex brushes if their diagonal length is greater then this]
-> * mapexport_brushEpsilon1  [Brushside generation epsilon 1 (adv. only)]
-> * mapexport_brushEpsilon2  [Brushside generation epsilon 2 (adv. only)]
-
-### __[UI]__
-> * added changelog to the main menu  
- 
----
-
-<a name="3214"></a>
-## Build [[3214]](https://github.com/xoxor4d/iw3xo-dev/releases/tag/3214)
-### __[Map-Export]__
-> * Fixed an access violation that could occur while getting brush indices from clipmap->leafbrushNodes[node].data.leaf.brushes (unfinished but fixes it for now)  
-> * Added brushmodel support
-
-### __[PM_Movement]__
-> * Changed default value for "pm_cpm_useQuakeDamage" to false (dvar influences stock rocket jumping)  
-		)";
+		const std::string markdownText = 
+R"(
+## Failed to load changelog
+**Visit: [https://github.com/xoxor4d/iw3xo-dev/wiki/Changelog](https://github.com/xoxor4d/iw3xo-dev/wiki/Changelog)**
+)";
 
 		// pop styles but keep the first one (alpha)
 		ImGui::PopStyleVar(pushed_styles - 1);	pushed_styles = 1;
+		
 
 		// *
 		// markdown
@@ -667,24 +510,32 @@ namespace Components
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 8.0f);					pushed_styles++;
 
 
-		// markdown link color :: IM_COL32()
+		// markdown link color and underline :: IM_COL32()
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(ImColor(200, 229, 120, 203)));	pushed_colors++;
-		// ^ link __
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(ImColor(182, 209, 107, 100)));		pushed_colors++;
 
 		// draw markdown
 		ImGui::Indent(16.0f); SPACING(0.0f, 4.0f);
-			Gui::markdown(markdownText.c_str(), markdownText.c_str() + markdownText.size());
+
+			// default changelog if WinHttp failed
+			if (Game::Globals::changelog_html_body.length() == 0)
+			{
+				Gui::markdown(markdownText.c_str(), markdownText.c_str() + markdownText.size());
+			}
+			// real changelog
+			else
+			{
+				Gui::markdown(Game::Globals::changelog_html_body.c_str(), Game::Globals::changelog_html_body.c_str() + Game::Globals::changelog_html_body.size());
+			}
+
 		ImGui::Indent(-16.0f); SPACING(0.0f, 4.0f);
 
-		// pop all colors
-		ImGui::PopStyleColor(pushed_colors);	pushed_colors = 0;;
-
-		// pop all styles
+		// pop all colors/styles
+		ImGui::PopStyleColor(pushed_colors);	pushed_colors = 0;
 		ImGui::PopStyleVar(pushed_styles);		pushed_styles = 0;
 
-		// end changelog
 		ImGui::End();
+
 
 		// *
 		// re-draw the mouse cursor
@@ -816,8 +667,8 @@ namespace Components
 		main_menu_fade_in();
 
 
-		/* ---------------------------------------------------------- */
-		/* --------------------- changelog gui ---------------------- */
+		// *
+		// changelog gui
 		
 		// _Client::OnDisconnect() hides / shows the changelog when connecting/disconnecting
 		// D3D9Ex::D3D9Device::Release() resets mainmenu vars on vid_restart
@@ -1306,6 +1157,19 @@ namespace Components
 
 	_UI::_UI()
 	{
+		// *
+		// get changelog (raw markdown)
+
+		std::string url = "https://raw.githubusercontent.com/wiki/xoxor4d/iw3xo-dev/Changelog.md";
+		std::wstring header, html;
+		Utils::get_html(url, header, html);
+
+		std::transform(html.begin(), html.end(), std::back_inserter(Game::Globals::changelog_html_body), [](wchar_t c)
+		{
+			return (char)c;
+		});
+
+
 		// *
 		// Main Menu Hooks
 

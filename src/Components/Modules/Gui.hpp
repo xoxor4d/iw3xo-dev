@@ -7,6 +7,7 @@ namespace Components
 	public:
 		Gui();
 		~Gui();
+
 		const char* getName() override { return "Gui"; };
 
 		static void imgui_init();

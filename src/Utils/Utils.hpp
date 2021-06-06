@@ -8,6 +8,7 @@ namespace Utils
 	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimer();
 	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrint(const char *string /*no fmt*/);
 	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrintToFile(std::ofstream& file, const char* string /*no fmt*/);
+	
 	void Clock_EndTimerPrintSeconds(std::chrono::time_point<std::chrono::steady_clock> clockStart, const char *string /*%.4f fmt for seconds*/);
 	void Clock_EndTimerPrintSecondsToFile(std::ofstream& file, std::chrono::time_point<std::chrono::steady_clock> clockStart, const char* string /*%.4f fmt for seconds*/);
 
@@ -27,20 +28,24 @@ namespace Utils
 	bool replace(std::string& str, const std::string& from, const std::string& to);
 	void replaceAll(std::string& source, const std::string& from, const std::string& to);
 	void extractIntegerWords(std::string str, std::vector<int> &Integers, bool checkForDuplicates);
-	int extractFirstIntegerFromString(std::string str);
+	int  extractFirstIntegerFromString(std::string str);
+	
 	float floatToRange(float originalStart, float originalEnd, float newStart, float newEnd, float value);
-	int intToRange(int originalStart, int originalEnd, int newStart, int newEnd, int value);
+	int   intToRange(int originalStart, int originalEnd, int newStart, int newEnd, int value);
 	float fmaxOf3(float input, float arg1, float arg2);
 
 	const char *VA(const char *fmt, ...);
 	std::string StrToLower(std::string input);
 	bool EndsWith(std::string haystack, std::string needle);
 	std::vector<std::string> Explode(const std::string& str, char delim);
+	
 	void Replace(std::string &string, std::string find, std::string replace);
 	bool Contains(std::string haystack, std::string needle);
 	bool StartsWith(std::string haystack, std::string needle);
 	void EraseSubstring(std::string &base, std::string replace);
+
 	unsigned int OneAtATime(const char *key, size_t len);
+
 	std::string &LTrim(std::string &s);
 	std::string &RTrim(std::string &s);
 	std::string &Trim(std::string &s);
@@ -58,6 +63,8 @@ namespace Utils
 
 	void byte4_pack_rgba(const float* from, char* to);
 	void byte4_unpack_rgba(const char* from, float* to);
+
+	bool get_html(const std::string& url, std::wstring& header, std::wstring& hmtl);
 
 	template <typename T> bool CompareNumber(T num1, T num2)
 	{

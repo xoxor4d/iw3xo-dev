@@ -207,6 +207,7 @@ namespace Components
 		}
 	}
 
+
 	// *
 	// initialize imgui
 	void Gui::imgui_init()
@@ -226,6 +227,9 @@ namespace Components
 
 		ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
+
+		// *
+		// init fonts (see Fonts.cpp)
 
 		// H1 Bold Larger
 		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 32.0f);
@@ -479,7 +483,7 @@ namespace Components
 		{
 			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
 			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
-			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG], KEYCATCHER_F2);
+			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG], KEYCATCHER_INS);
 
 		}, Scheduler::thread::main);
 #endif

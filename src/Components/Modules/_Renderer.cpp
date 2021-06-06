@@ -815,10 +815,10 @@ namespace Components
 			pop		eax;
 
 			// jump if true
-			je		end;
+			je		disable;
 			call	R_SetPrepassMaterial_Func;
 
-		end:
+		disable:
 			jmp		rtnPt;
 		}
 	}

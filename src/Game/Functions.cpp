@@ -177,6 +177,7 @@ namespace Game
 
 		// Devgui
 		Game::gui_t gui = Game::gui_t();
+		std::string changelog_html_body = "";
 
 		// Renderer
 		IDirect3DDevice9* d3d9_device = nullptr;

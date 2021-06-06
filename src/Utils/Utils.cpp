@@ -293,7 +293,7 @@ namespace Utils
 		return 0;
 	}
 
-	//----------------- original range ------------------------ desired range --------------- value to convert
+	//------------------------------ original range ------------------- desired range ----- value to convert
 	float floatToRange(	float originalStart, float originalEnd, float newStart, float newEnd, float value)                            
 	{
 		if (value == originalStart)
@@ -658,5 +658,40 @@ namespace Utils
 		to[1] = (float)*((unsigned __int8*)from + 1) * 0.0039215689f;
 		to[2] = (float)*((unsigned __int8*)from + 2) * 0.0039215689f;
 		to[3] = (float)*((unsigned __int8*)from + 3) * 0.0039215689f;
+	}
+
+
+	bool get_html(const std::string& url, std::wstring& header, std::wstring& hmtl)
+	{
+		std::wstring wurl = std::wstring(url.begin(), url.end());
+		bool ret = false;
+
+		try
+		{
+			WinHttpClient client(wurl.c_str());
+			std::string url_protocol = url.substr(0, 5);
+
+			std::transform(url_protocol.begin(), url_protocol.end(), url_protocol.begin(), (int (*)(int))std::toupper);
+
+			if (url_protocol == "HTTPS")
+			{
+				client.SetRequireValidSslCertificates(false);
+			}
+
+			client.SetUserAgent(L"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0");
+
+			if (client.SendHttpRequest())
+			{
+				header = client.GetResponseHeader();
+				hmtl = client.GetResponseContent();
+				ret = true;
+			}
+		}
+		catch (...)
+		{
+			header = L"Error";
+			hmtl = L"";
+		}
+		return ret;
 	}
 }
