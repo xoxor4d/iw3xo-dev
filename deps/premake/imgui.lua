@@ -22,6 +22,7 @@ function imgui.project()
 		files {
             path.join(imgui.source, "*.cpp"),
 			path.join(imgui.source, "*.hpp"),
+            path.join(imgui.source, "*.c"),
             path.join(imgui.source, "*.h"),
 		}
 

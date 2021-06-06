@@ -32,7 +32,7 @@ function glm.project()
             path.join(glm.source, "glm/gtx/*.cpp"),
             path.join(glm.source, "glm/gtx/*.hpp"),
             path.join(glm.source, "glm/simd/*.cpp"),
-            path.join(glm.source, "glm/simd/*.hpp"),
+            path.join(glm.source, "glm/simd/*.h"),
 		}
 
 		warnings "Off"
