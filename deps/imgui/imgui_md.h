@@ -118,6 +118,7 @@ protected:
 	std::string m_href;//empty if no link/image
 
 	bool m_mainmenu_fade_done = false;
+	bool m_first_line_rendered = false;
 	bool m_is_underline=false;
 	bool m_is_strikethrough = false;
 	bool m_is_em = false;

@@ -28,6 +28,32 @@ __declspec(naked) void EntryPoint()
     }
 }
 
+void load_addon_libaries()
+{
+	if (LoadLibraryA("iw3xo\\bin\\reshade.dll"))
+	{
+		Game::Globals::loaded_libaries.append("iw3xo\\bin\\reshade.dll\n");
+	}
+
+	// delay-load
+	Components::Scheduler::once([]()
+	{
+		if (Dvars::load_iw3mvm && Dvars::load_iw3mvm->current.enabled)
+		{
+			if (LoadLibraryA("iw3xo\\bin\\iw3mvm.dll"))
+			{
+				Game::Globals::loaded_libaries.append("iw3xo\\bin\\iw3mvm.dll\n");
+			}
+		}
+		
+		if (Game::Globals::loaded_libaries.size())
+		{
+			Game::Com_PrintMessage(0, Utils::VA("\n-------------- Loaded Libaries -------------- \n%s\n", Game::Globals::loaded_libaries.c_str()), 0);
+		}
+	});
+}
+
+
 BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*lpReserved*/)
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
@@ -42,13 +68,17 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		VirtualProtect(GetModuleHandle(nullptr), 0xD536000, PAGE_EXECUTE_READWRITE, &oldProtect);
 
 		Main::EntryPointHook.initialize(0x67493C, EntryPoint)->install();
+		
+		FreeConsole();
+
+		// load additional libaries from '\iw3xo\bin\'
+		load_addon_libaries();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{
 		Main::Uninitialize();
 	}
 
-	FreeConsole();
-
+	//FreeConsole();
 	return TRUE;
 }

@@ -158,8 +158,7 @@ namespace Game
 	{
 		// Init
 		std::string loadedModules = "";
-		bool loaded_MainMenu = false;
-		bool mainmenu_fadeDone = false;
+		std::string loaded_libaries = "";
 
 		// Radiant
 		Game::cgsAddon				cgsAddons			= Game::cgsAddon();
@@ -175,7 +174,10 @@ namespace Game
 		glm::vec3 locPmove_playerAngles		= { 0.0f, 0.0f, 0.0f };	// grab local player angles
 		glm::vec3 locPmove_cameraOrigin		= { 0.0f, 0.0f, 0.0f };	// grab local camera origin
 
-		// Devgui
+		// UI / Devgui
+		bool loaded_MainMenu = false;
+		bool mainmenu_fadeDone = false;
+
 		Game::gui_t gui = Game::gui_t();
 		std::string changelog_html_body = "";
 

@@ -5,7 +5,7 @@ namespace Components
 	// on renderer initialization
 	void PrintLoadedModules()
 	{
-		Game::Com_PrintMessage(0, Utils::VA("-------------- Loading Modules -------------- \n%s\n", Game::Globals::loadedModules.c_str()), 0);
+		Game::Com_PrintMessage(0, Utils::VA("-------------- Loaded Modules -------------- \n%s\n", Game::Globals::loadedModules.c_str()), 0);
 
 		// Add FS Path output print
 		Game::dvar_s* dedicated = Game::Dvar_FindVar("dedicated");
@@ -90,6 +90,12 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
+		Dvars::load_iw3mvm = Game::Dvar_RegisterBool(
+			/* name		*/ "load_iw3mvm",
+			/* desc		*/ "load iw3mvm on startup",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::saved);
+
 		// Force debug logging
 		Utils::Hook::Nop(0x4FCB9D, 8);
 

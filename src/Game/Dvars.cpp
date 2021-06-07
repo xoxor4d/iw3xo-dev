@@ -9,6 +9,7 @@ namespace Dvars
 	Game::dvar_s* cl_avidemo_streams_depth = nullptr;
 	Game::dvar_s* cl_avidemo_streams_hud = nullptr;
 	Game::dvar_s* cl_pause_demo = nullptr;
+	Game::dvar_s* load_iw3mvm = nullptr;
 
 
 	// Radiant

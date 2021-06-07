@@ -121,23 +121,33 @@ void imgui_md::BLOCK_HR(bool e)
 		ImGui::NewLine();
 		//ImGui::Separator();
 
+		auto x = m_first_line_rendered;
 	}
 }
 
 void imgui_md::BLOCK_H(const MD_BLOCK_H_DETAIL* d, bool e)
 {
-	if (e) {
+	if (e) 
+	{
 		m_hlevel = d->level;
-		SPACING(0.0f, 6.0f);
-		//ImGui::NewLine();
-	} else {
+
+		if (m_first_line_rendered)
+		{
+			SPACING(0.0f, 6.0f);
+			//ImGui::NewLine();
+		}
+	} 
+	else 
+	{
 		m_hlevel = 0;
 	}
 
 	set_font(e);
 
-	if (!e) {
-		if (d->level <= 2) {
+	if (!e) 
+	{
+		if (d->level <= 2) 
+		{
 			ImGui::NewLine();
 			ImGui::Separator();
 		}
@@ -170,7 +180,10 @@ void imgui_md::BLOCK_P(bool)
 		return;
 	}
 
-	ImGui::NewLine();
+	if (m_first_line_rendered)
+	{
+		//ImGui::NewLine();
+	}
 }
 
 void imgui_md::BLOCK_TABLE(const MD_BLOCK_TABLE_DETAIL*, bool e)
@@ -427,6 +440,8 @@ void imgui_md::SPAN_DEL(bool e)
 
 void imgui_md::render_text(const char* str, const char* str_end)
 {
+	m_first_line_rendered = true;
+
 	const float scale = ImGui::GetIO().FontGlobalScale;
 	const ImGuiStyle& s = ImGui::GetStyle();
 	bool is_lf = false;

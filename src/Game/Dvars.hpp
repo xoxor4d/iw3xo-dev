@@ -9,6 +9,7 @@ namespace Dvars
 	extern Game::dvar_s* cl_avidemo_streams_depth;
 	extern Game::dvar_s* cl_avidemo_streams_hud;
 	extern Game::dvar_s* cl_pause_demo;
+	extern Game::dvar_s* load_iw3mvm;
 
 
 	// Radiant

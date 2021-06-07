@@ -71,9 +71,8 @@ namespace Game
 	{
 		// Init
 		extern std::string loadedModules;
-		extern bool loaded_MainMenu;
-		extern bool mainmenu_fadeDone;
-
+		extern std::string loaded_libaries;
+		
 		// Radiant
 		extern Game::cgsAddon				cgsAddons;
 		extern Game::savedRadiantBrushes	rad_savedBrushes;
@@ -88,7 +87,10 @@ namespace Game
 		extern glm::vec3 locPmove_playerAngles;		// grab local player angles
 		extern glm::vec3 locPmove_cameraOrigin;		// grab local camera origin
 
-		// Devgui
+		// UI / Devgui
+		extern bool loaded_MainMenu;
+		extern bool mainmenu_fadeDone;
+
 		extern Game::gui_t gui;
 		extern std::string changelog_html_body;
 
