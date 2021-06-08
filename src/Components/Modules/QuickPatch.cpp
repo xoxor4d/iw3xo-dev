@@ -90,12 +90,6 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		Dvars::load_iw3mvm = Game::Dvar_RegisterBool(
-			/* name		*/ "load_iw3mvm",
-			/* desc		*/ "load iw3mvm on startup",
-			/* default	*/ false,
-			/* flags	*/ Game::dvar_flags::saved);
-
 		// Force debug logging
 		Utils::Hook::Nop(0x4FCB9D, 8);
 

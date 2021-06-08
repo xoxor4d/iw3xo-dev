@@ -22,6 +22,7 @@ namespace Components
 		if (dedicated && !dedicated->current.integer)
 		{
 			auto sv_pure		= Game::Dvar_FindVar("sv_pure");
+			auto sv_punkbuster	= Game::Dvar_FindVar("sv_punkbuster");
 			auto r_zFeather		= Game::Dvar_FindVar("r_zFeather");
 			auto r_distortion	= Game::Dvar_FindVar("r_distortion");
 			auto r_fastSkin		= Game::Dvar_FindVar("r_fastSkin");
@@ -29,7 +30,13 @@ namespace Components
 			if (sv_pure && sv_pure->current.enabled)
 			{
 				Game::Dvar_SetValue(sv_pure, false); // quick set the value
-				Game::Cmd_ExecuteSingleCommand(0, 0, "sv_pure 0\n"); // does this reset stats?
+				Game::Cmd_ExecuteSingleCommand(0, 0, "sv_pure 0\n");
+			}
+
+			if (sv_punkbuster && sv_punkbuster->current.enabled)
+			{
+				Game::Dvar_SetValue(sv_punkbuster, false); // quick set the value
+				Game::Cmd_ExecuteSingleCommand(0, 0, "sv_punkbuster 0\n");
 			}
 
 			// force depthbuffer

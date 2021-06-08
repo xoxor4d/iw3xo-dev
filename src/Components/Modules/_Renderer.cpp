@@ -14,6 +14,18 @@ namespace Components
 	/* ---------------------------------------------------------- */
 	/* ------------ create dynamic rendering buffers ------------ */
 
+	IDirect3DDevice9* get_d3d_device()
+	{
+		if (Game::Globals::d3d9_device)
+		{
+			return Game::Globals::d3d9_device;
+		}
+		else
+		{
+			return *Game::dx9_device_ptr;
+		}
+	}
+
 	// Dynamic Indices
 	int R_AllocDynamicIndexBuffer(IDirect3DIndexBuffer9** ib, int sizeInBytes, const char* buffer_name, bool loadForRenderer)
 	{
@@ -21,7 +33,7 @@ namespace Components
 			return 0;
 		}
 
-		HRESULT hr = Game::Globals::d3d9_device->CreateIndexBuffer(sizeInBytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
+		HRESULT hr = get_d3d_device()->CreateIndexBuffer(sizeInBytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
 		if (hr < 0)
 		{
 			const char* msg = Utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
@@ -50,7 +62,7 @@ namespace Components
 			return 0;
 		}
 
-		HRESULT hr = Game::Globals::d3d9_device->CreateVertexBuffer(sizeInBytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, vb, 0);
+		HRESULT hr = get_d3d_device()->CreateVertexBuffer(sizeInBytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, vb, 0);
 		if (hr < 0)
 		{
 			const char* msg = Utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
@@ -172,7 +184,7 @@ namespace Components
 
 		if (r_loadForRenderer)
 		{
-			HRESULT hr = Game::Globals::d3d9_device->CreateVertexBuffer(smodel_cache_vb_size, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, &gfxBuf.smodelCacheVb, 0);
+			HRESULT hr = get_d3d_device()->CreateVertexBuffer(smodel_cache_vb_size, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, &gfxBuf.smodelCacheVb, 0);
 			if (hr < 0)
 			{
 				const char* msg = Utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
@@ -180,6 +192,7 @@ namespace Components
 
 				Utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 			}
+			
 
 			Game::Com_PrintMessage(0, Utils::VA("D3D9: Created Vertexbuffer (smodelCacheVb) of size: 0x%.8x\n", smodel_cache_vb_size), 0);
 		}
@@ -340,23 +353,23 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_cullWorld = Game::Dvar_RegisterBoolWrapper(
-			/* name		*/ "r_cullWorld",
-			/* desc		*/ "Culls invisible world surfaces. Disabling this can be useful for vertex manipulating shaders.",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::latched);
+		//Dvars::r_cullWorld = Game::Dvar_RegisterBoolWrapper(
+		//	/* name		*/ "r_cullWorld",
+		//	/* desc		*/ "Culls invisible world surfaces. Disabling this can be useful for vertex manipulating shaders.",
+		//	/* default	*/ true,
+		//	/* flags	*/ Game::dvar_flags::latched);
 
-		Dvars::r_cullEntities = Game::Dvar_RegisterBoolWrapper(
-			/* name		*/ "r_cullEntities",
-			/* desc		*/ "Culls invisible entities. Disabling this can be useful for vertex manipulating shaders.",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::latched);
+		//Dvars::r_cullEntities = Game::Dvar_RegisterBoolWrapper(
+		//	/* name		*/ "r_cullEntities",
+		//	/* desc		*/ "Culls invisible entities. Disabling this can be useful for vertex manipulating shaders.",
+		//	/* default	*/ true,
+		//	/* flags	*/ Game::dvar_flags::latched);
 
-		Dvars::r_drawDynents = Game::Dvar_RegisterBoolWrapper(
-			/* name		*/ "r_drawDynents",
-			/* desc		*/ "Draw dynamic entities.",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::none);
+		//Dvars::r_drawDynents = Game::Dvar_RegisterBoolWrapper(
+		//	/* name		*/ "r_drawDynents",
+		//	/* desc		*/ "Draw dynamic entities.",
+		//	/* default	*/ true,
+		//	/* flags	*/ Game::dvar_flags::none);
 	}
 
 
@@ -473,6 +486,7 @@ namespace Components
 
 	/* ---------------------------------------------------------- */
 
+#if 0 // disabled for now
 	// R_AddWorldSurfacesPortalWalk
 	__declspec(naked) void r_cull_world_stub_01()
 	{
@@ -484,6 +498,7 @@ namespace Components
 			cmp     esi, ebp;
 			mov		[esp + 10h], eax;
 
+			pushad;
 			push	eax;
 			mov		eax, Dvars::r_cullWorld;
 			cmp		byte ptr[eax + 12], 1;
@@ -491,9 +506,12 @@ namespace Components
 
 			// jump if not culling world
 			jne		SKIP;
+
+			popad;
 			jmp		rtn_pt_stock;
 
 		SKIP:
+			popad;
 			jmp		rtn_pt_skip;
 		}
 	}
@@ -509,6 +527,7 @@ namespace Components
 			fnstsw  ax;
 			test    ah, 41h;
 
+			pushad;
 			push	eax;
 			mov		eax, Dvars::r_cullWorld;
 			cmp		byte ptr[eax + 12], 1;
@@ -516,9 +535,12 @@ namespace Components
 
 			// jump if not culling world
 			jne		SKIP;
+
+			popad;
 			jmp		rtn_pt_stock;
 
 		SKIP:
+			popad;
 			jmp		rtn_pt_skip;
 		}
 	}
@@ -534,6 +556,7 @@ namespace Components
 			fnstsw  ax;
 			test    ah, 1;
 
+			pushad;
 			push	eax;
 			mov		eax, Dvars::r_cullWorld;
 			cmp		byte ptr[eax + 12], 1;
@@ -541,9 +564,12 @@ namespace Components
 
 			// jump if not culling world
 			jne		SKIP;
+
+			popad;
 			jmp		rtn_pt_stock;
 
 		SKIP:
+			popad;
 			jmp		rtn_pt_skip;
 		}
 	}
@@ -559,6 +585,7 @@ namespace Components
 			and		[esp + 18h], edx;
 			cmp     byte ptr[esi + eax], 0;
 
+			pushad;
 			push	eax;
 			mov		eax, Dvars::r_cullEntities;
 			cmp		byte ptr[eax + 12], 1;
@@ -566,9 +593,12 @@ namespace Components
 
 			// jump if not culling world
 			jne		SKIP;
+
+			popad;
 			jmp		rtn_pt_stock;
 
 		SKIP:
+			popad;
 			jmp		rtn_pt_skip;
 		}
 	}
@@ -580,6 +610,7 @@ namespace Components
 		const static uint32_t rtn_pt_stock = 0x62932D;
 		__asm
 		{
+			pushad;
 			push	eax;
 			mov		eax, Dvars::r_drawDynents;
 			cmp		byte ptr[eax + 12], 1;
@@ -587,12 +618,16 @@ namespace Components
 
 			// jump if not culling world
 			jne		SKIP;
+
+			popad;
 			call	R_AddCellDynModelSurfacesInFrustumCmd_Func;
 
 		SKIP:
+			popad;
 			jmp		rtn_pt_stock;
 		}
 	}
+#endif
 
 
 	/* ---------------------------------------------------------- */
@@ -1239,22 +1274,22 @@ namespace Components
 
 		// R_AddWorldSurfacesPortalWalk :: less culling
 		// 0x60B02E -> jl to jmp // 0x7C -> 0xEB //Utils::Hook::Set<BYTE>(0x60B02E, 0xEB);
-		Utils::Hook::Nop(0x60B028, 6); Utils::Hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick();
+		//Utils::Hook::Nop(0x60B028, 6); Utils::Hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
 
 		// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps)
 		// 0x643B08 -> nop //Utils::Hook::Nop(0x643B08, 6);
-		Utils::Hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
 
 		// 0x643B39 -> jmp ^ // 0x74 -> 0xEB //Utils::Hook::Set<BYTE>(0x643B39, 0xEB);
-		Utils::Hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
 
 		// R_AddCellSceneEntSurfacesInFrustumCmd :: active ents like destructible cars / players (disable all culling)
 		// 0x64D17A -> nop // 2 bytes //Utils::Hook::Nop(0x64D17A, 2);
-		Utils::Hook::Nop(0x64D172, 8); Utils::Hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
+		//Utils::Hook::Nop(0x64D172, 8); Utils::Hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
 
 		// R_AddWorkerCmd :: disable dynEnt models
 		// 0x629328 -> nop
-		Utils::Hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
 
 
 		/* ---------------------------------------------------------- */

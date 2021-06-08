@@ -431,6 +431,12 @@ namespace Components
 
 	Mvm::Mvm()
 	{ 
+		Dvars::load_iw3mvm = Game::Dvar_RegisterBool(
+			/* name		*/ "load_iw3mvm",
+			/* desc		*/ "load iw3mvm on startup",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::saved);
+
 		Dvars::cl_avidemo_streams = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "cl_avidemo_streams",
 			/* desc		*/ "just like mvm_streams",

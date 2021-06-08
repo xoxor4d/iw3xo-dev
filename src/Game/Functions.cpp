@@ -412,8 +412,7 @@ namespace Game
 	int* wnd_SceneHeight = reinterpret_cast<int*>(0xCC9D0E4); // CC9D0E4
 	float* wnd_SceneAspect = reinterpret_cast<float*>(0xCC9D0FC); // CC9D0FC
 
-	IDirect3DDevice9*  dx9_device = reinterpret_cast<IDirect3DDevice9*>(0xCC9D06C);
-	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
+	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408); // actual device
 
 	Game::Material*			floatz_display = reinterpret_cast<Game::Material*>(0xFA5378);
 	GfxCmdBufSourceState*	gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);

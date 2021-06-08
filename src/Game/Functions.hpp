@@ -243,7 +243,6 @@ namespace Game
 	extern int*		wnd_SceneHeight;
 	extern float*	wnd_SceneAspect;
 
-	extern IDirect3DDevice9*  dx9_device;
 	extern IDirect3DDevice9** dx9_device_ptr;
 
 	extern Game::Material*				floatz_display;
