@@ -238,7 +238,7 @@ namespace Dvars
 	// CGaz
 	extern Game::dvar_s* mdd_cgaz;
 	extern Game::dvar_s* mdd_cgaz_ground;
-	extern Game::dvar_s* mdd_cgaz_speed;
+	extern Game::dvar_s* mdd_cgaz_min_speed;
 	extern Game::dvar_s* mdd_cgaz_yh;
 	extern Game::dvar_s* mdd_cgaz_rgbaNoAccel;
 	extern Game::dvar_s* mdd_cgaz_rgbaPartialAccel;

@@ -234,7 +234,7 @@ namespace Dvars
 	// CGaz
 	Game::dvar_s* mdd_cgaz = nullptr;
 	Game::dvar_s* mdd_cgaz_ground = nullptr;
-	Game::dvar_s* mdd_cgaz_speed = nullptr;
+	Game::dvar_s* mdd_cgaz_min_speed = nullptr;
 	Game::dvar_s* mdd_cgaz_yh = nullptr;
 	Game::dvar_s* mdd_cgaz_rgbaNoAccel = nullptr;
 	Game::dvar_s* mdd_cgaz_rgbaPartialAccel = nullptr;

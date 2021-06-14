@@ -337,7 +337,7 @@ namespace Components
 
 				ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
 
-				ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
+				ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_min_speed), Dvars::mdd_cgaz_min_speed->domain.integer.min, Dvars::mdd_cgaz_min_speed->domain.integer.max); TT("mdd_cgaz_min_speed");
 
 				ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
 

@@ -573,7 +573,7 @@ namespace Components
 
 		memcpy(&s.pm, &*Game::pmove, sizeof(Game::pmove_t));
 
-		if (!(s.pm.ps->otherFlags & PMF_FOLLOW) && (Utils::vector::_VectorLengthSquared2(s.pm.ps->velocity) >= Dvars::mdd_cgaz_speed->current.integer * Dvars::mdd_cgaz_speed->current.integer))
+		if (!(s.pm.ps->otherFlags & PMF_FOLLOW) && (Utils::vector::_VectorLengthSquared2(s.pm.ps->velocity) >= Dvars::mdd_cgaz_min_speed->current.integer * Dvars::mdd_cgaz_min_speed->current.integer))
 		{
 			CGaz::PmoveSingle(&s.pm, &s.pml);
 		}
@@ -593,8 +593,8 @@ namespace Components
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_speed = Game::Dvar_RegisterInt(
-			/* name		*/ "mdd_cgaz_speed",
+		Dvars::mdd_cgaz_min_speed = Game::Dvar_RegisterInt(
+			/* name		*/ "mdd_cgaz_min_speed",
 			/* desc		*/ "min speed value for draw CGaz",
 			/* default	*/ 1,
 			/* minVal	*/ 1,
