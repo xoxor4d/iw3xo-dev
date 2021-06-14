@@ -2671,56 +2671,6 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::pm_origin_hud = Game::Dvar_RegisterBool(
-			/* name		*/ "pm_origin_hud",
-			/* desc		*/ "Display current player's position.",
-			/* default	*/ false,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::pm_origin_hud_x = Game::Dvar_RegisterFloat(
-			/* name		*/ "pm_origin_hud_x",
-			/* desc		*/ "text offset x",
-			/* default	*/ 10.0f,
-			/* minVal	*/ -1000.0f,
-			/* maxVal	*/ 1000.0f,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::pm_origin_hud_y = Game::Dvar_RegisterFloat(
-			/* name		*/ "pm_origin_hud_y",
-			/* desc		*/ "text offset y",
-			/* default	*/ 230.0f,
-			/* minVal	*/ -1000.0f,
-			/* maxVal	*/ 1000.0f,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::pm_origin_hud_fontScale = Game::Dvar_RegisterFloat(
-			/* name		*/ "pm_origin_hud_fontScale",
-			/* desc		*/ "font scale",
-			/* default	*/ 0.75f,
-			/* minVal	*/ 0.1f,
-			/* maxVal	*/ 10.0f,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::pm_origin_hud_fontStyle = Game::Dvar_RegisterInt(
-			/* name		*/ "pm_origin_hud_fontStyle",
-			/* desc		*/ "font Style",
-			/* default	*/ 1,
-			/* minVal	*/ 0,
-			/* maxVal	*/ 8,
-			/* flags	*/ Game::dvar_flags::saved);
-
-		Dvars::pm_origin_hud_fontColor = Game::Dvar_RegisterVec4(
-			/* name		*/ "pm_origin_hud_fontColor",
-			/* desc		*/ "font color",
-			/* x		*/ 1.0f,
-			/* y		*/ 0.55f,
-			/* z		*/ 0.4f,
-			/* w		*/ 1.0f,
-			/* minValue	*/ 0.0f,
-			/* maxValue	*/ 1.0f,
-			/* flags	*/ Game::dvar_flags::saved);
-
-
 		Dvars::pm_debug_prints = Game::Dvar_RegisterBool(
 			/* name		*/ "pm_debug_prints",
 			/* desc		*/ "enable debug prints for movement related functions",

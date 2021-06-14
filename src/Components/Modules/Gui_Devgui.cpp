@@ -103,20 +103,19 @@ namespace Components
 
 			if (cl_ingame && cl_ingame->current.enabled)
 			{
-				if (ImGui::BeginTabItem("Movement"))
+				if ((Components::active.CGaz || Components::active.Compass || Components::active.PM_Movement || Components::active._CG || Components::active._Pmove) && ImGui::BeginTabItem("Movement"))
 				{
-
 					Gui_Devgui::menu_tab_movement(menu);
 					ImGui::EndTabItem();
 				}
 
-				if (ImGui::BeginTabItem("Collision/Export"))
+				if (Components::active.RB_DrawCollision && ImGui::BeginTabItem("Collision/Export"))
 				{
 					Gui_Devgui::menu_tab_collision(menu);
 					ImGui::EndTabItem();
 				}
 
-				if (ImGui::BeginTabItem("Shaders"))
+				if (Components::active.RB_ShaderOverlays && ImGui::BeginTabItem("Shaders"))
 				{
 					Gui_Devgui::menu_tab_shaders(menu);
 					ImGui::EndTabItem();
@@ -137,7 +136,7 @@ namespace Components
 #endif
 			}
 
-			if (ImGui::BeginTabItem("Radiant"))
+			if (Components::active.RadiantRemote && ImGui::BeginTabItem("Radiant"))
 			{
 				Gui_Devgui::menu_tab_radiant(menu);
 				ImGui::EndTabItem();
@@ -159,221 +158,243 @@ namespace Components
 	// movement tab
 	void Gui_Devgui::menu_tab_movement(Game::gui_menus_t& menu)
 	{
-		// *
-		if (ImGui::CollapsingHeader("Presets", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Components::active.PM_Movement)
 		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			if (ImGui::Button("Stock movement")) { CMDEXEC("pm_preset_stock"); } TT("pm_preset_stock");
-			ImGui::SameLine();
-			if (ImGui::Button("Quake movement")) { CMDEXEC("pm_preset_q3"); } TT("pm_preset_q3");
-			ImGui::SameLine();
-			if (ImGui::Button("Source movement")) { CMDEXEC("pm_preset_cs"); } TT("pm_preset_cs");
-
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-		}
-
-		// *
-		if (ImGui::CollapsingHeader("Movement Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			const char* movementType_items[] = { "Stock", "Quake", "Source" };
-			ImGui::Combo("Movement Type", &Dvars::pm_movementType->current.integer, movementType_items, IM_ARRAYSIZE(movementType_items)); TT("pm_movementType");
-
-			SPACING(0.0f, 4.0f);
-
 			// *
-			if (ImGui::BeginTabBar("movement_tabs"))
+			if (ImGui::CollapsingHeader("Presets", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				// *
-				if (ImGui::BeginTabItem("General"))
-				{
-					ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-					ImGui::Checkbox("Bhop Auto", &Dvars::pm_bhop_auto->current.enabled); TT("pm_bhop_auto");
-					ImGui::SameLine();
-					ImGui::Checkbox("Bhop Slowdown", &Dvars::pm_bhop_slowdown->current.enabled); TT("pm_bhop_slowdown, disable landing induced velocity decreases");
+				if (ImGui::Button("Stock movement")) { CMDEXEC("pm_preset_stock"); } TT("pm_preset_stock");
+				ImGui::SameLine();
+				if (ImGui::Button("Quake movement")) { CMDEXEC("pm_preset_q3"); } TT("pm_preset_q3");
+				ImGui::SameLine();
+				if (ImGui::Button("Source movement")) { CMDEXEC("pm_preset_cs"); } TT("pm_preset_cs");
 
-					auto jump_slowdownenable = Game::Dvar_FindVar("jump_slowdownenable");
-					if (jump_slowdownenable)
-					{
-						ImGui::SameLine();
-						ImGui::Checkbox("Jump Slowdown", &jump_slowdownenable->current.enabled); TT("jump_slowdownenable");
-					}
-
-					ImGui::Checkbox("Crashland", &Dvars::pm_crashland->current.enabled); TT("pm_crashland, completely disable the crashland function and its side-effects");
-					ImGui::SameLine();
-					ImGui::Checkbox("Terrain Edge Bounces", &Dvars::pm_terrainEdgeBounces->current.enabled); TT("pm_terrainEdgeBounces, ability to bounce on terrain edges");
-
-					if (Dvars::pm_movementType && Dvars::pm_movementType->current.integer == 1) // Only avail. if quake movement is used
-					{
-						ImGui::SameLine();
-						ImGui::Checkbox("Disable Sprint", &Dvars::pm_disableSprint->current.enabled); TT("pm_disableSprint");
-					}
-
-					SPACING(0.0f, 4.0f);
-
-					ImGui::DragFloat("Rocketjump Knockback", &Dvars::pm_rocketJumpHeight->current.value, 1.0f, Dvars::pm_rocketJumpHeight->domain.value.min, Dvars::pm_rocketJumpHeight->domain.value.max, "%.0f"); TT("pm_rocketJumpHeight");
-					//ImGui::SliderFloat("Rocketjump Knockback", &Dvars::pm_rocketJumpHeight->current.value, Dvars::pm_rocketJumpHeight->domain.value.min, Dvars::pm_rocketJumpHeight->domain.value.max, "%.0f"); TT("pm_rocketJumpHeight");
-
-					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-					ImGui::EndTabItem();
-				}
-
-				// *
-				if (ImGui::BeginTabItem("Quake"))
-				{
-					ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-					ImGui::SliderFloat("Airstop Accelerate", &Dvars::pm_cpm_airstopAccelerate->current.value, Dvars::pm_cpm_airstopAccelerate->domain.value.min, Dvars::pm_cpm_airstopAccelerate->domain.value.max, "%.0f"); TT("pm_cpm_airstopAccelerate");
-
-					ImGui::SliderFloat("Strafe Accelerate", &Dvars::pm_cpm_strafeAccelerate->current.value, Dvars::pm_cpm_strafeAccelerate->domain.value.min, Dvars::pm_cpm_strafeAccelerate->domain.value.max, "%.0f"); TT("pm_cpm_strafeAccelerate");
-
-					ImGui::SliderFloat("Air Accelerate", &Dvars::pm_cpm_airAccelerate->current.value, Dvars::pm_cpm_airAccelerate->domain.value.min, Dvars::pm_cpm_airAccelerate->domain.value.max, "%.0f"); TT("pm_cpm_airAccelerate");
-
-					ImGui::SliderFloat("Air Control", &Dvars::pm_cpm_airControl->current.value, Dvars::pm_cpm_airControl->domain.value.min, Dvars::pm_cpm_airControl->domain.value.max, "%.0f"); TT("pm_cpm_airControl");
-
-					ImGui::SliderFloat("Damage Knockback", &Dvars::pm_cpm_damageKnockback->current.value, Dvars::pm_cpm_damageKnockback->domain.value.min, Dvars::pm_cpm_damageKnockback->domain.value.max, "%.0f"); TT("pm_cpm_damageKnockback");
-
-					SPACING(0.0f, 4.0f);
-
-					ImGui::Checkbox("Quake Damage", &Dvars::pm_cpm_useQuakeDamage->current.enabled); TT("pm_cpm_useQuakeDamage");
-					ImGui::SameLine();
-					ImGui::Checkbox("Enable Bouncing", &Dvars::pm_cpm_useBouncing->current.enabled); TT("pm_cpm_useBouncing");
-
-					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-					ImGui::EndTabItem();
-				}
-
-				// *
-				if (ImGui::BeginTabItem("Source"))
-				{
-					ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-					ImGui::SliderFloat("Air Accelerate", &Dvars::pm_cs_airAccelerate->current.value, Dvars::pm_cs_airAccelerate->domain.value.min, Dvars::pm_cs_airAccelerate->domain.value.max, "%.0f"); TT("pm_cs_airAccelerate");
-
-					ImGui::SliderFloat("Airspeed Cap", &Dvars::pm_cs_airspeedCap->current.value, Dvars::pm_cs_airspeedCap->domain.value.min, Dvars::pm_cs_airspeedCap->domain.value.max, "%.0f"); TT("pm_cs_airspeedCap");
-
-					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-					ImGui::EndTabItem();
-				}
-
-				ImGui::EndTabBar();
+				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 			}
 
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+			// *
+			if (ImGui::CollapsingHeader("Movement Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+				const char* movementType_items[] = { "Stock", "Quake", "Source" };
+				ImGui::Combo("Movement Type", &Dvars::pm_movementType->current.integer, movementType_items, IM_ARRAYSIZE(movementType_items)); TT("pm_movementType");
+
+				SPACING(0.0f, 4.0f);
+
+				// *
+				if (ImGui::BeginTabBar("movement_tabs"))
+				{
+					// *
+					if (ImGui::BeginTabItem("General"))
+					{
+						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+						ImGui::Checkbox("Bhop Auto", &Dvars::pm_bhop_auto->current.enabled); TT("pm_bhop_auto");
+						ImGui::SameLine();
+						ImGui::Checkbox("Bhop Slowdown", &Dvars::pm_bhop_slowdown->current.enabled); TT("pm_bhop_slowdown, disable landing induced velocity decreases");
+
+						auto jump_slowdownenable = Game::Dvar_FindVar("jump_slowdownenable");
+						if (jump_slowdownenable)
+						{
+							ImGui::SameLine();
+							ImGui::Checkbox("Jump Slowdown", &jump_slowdownenable->current.enabled); TT("jump_slowdownenable");
+						}
+
+						ImGui::Checkbox("Crashland", &Dvars::pm_crashland->current.enabled); TT("pm_crashland, completely disable the crashland function and its side-effects");
+						ImGui::SameLine();
+						ImGui::Checkbox("Terrain Edge Bounces", &Dvars::pm_terrainEdgeBounces->current.enabled); TT("pm_terrainEdgeBounces, ability to bounce on terrain edges");
+
+						if (Dvars::pm_movementType && Dvars::pm_movementType->current.integer == 1) // Only avail. if quake movement is used
+						{
+							ImGui::SameLine();
+							ImGui::Checkbox("Disable Sprint", &Dvars::pm_disableSprint->current.enabled); TT("pm_disableSprint");
+						}
+
+						SPACING(0.0f, 4.0f);
+
+						ImGui::DragFloat("Rocketjump Knockback", &Dvars::pm_rocketJumpHeight->current.value, 1.0f, Dvars::pm_rocketJumpHeight->domain.value.min, Dvars::pm_rocketJumpHeight->domain.value.max, "%.0f"); TT("pm_rocketJumpHeight");
+						//ImGui::SliderFloat("Rocketjump Knockback", &Dvars::pm_rocketJumpHeight->current.value, Dvars::pm_rocketJumpHeight->domain.value.min, Dvars::pm_rocketJumpHeight->domain.value.max, "%.0f"); TT("pm_rocketJumpHeight");
+
+						SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+						ImGui::EndTabItem();
+					}
+
+					// *
+					if (ImGui::BeginTabItem("Quake"))
+					{
+						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+						ImGui::SliderFloat("Airstop Accelerate", &Dvars::pm_cpm_airstopAccelerate->current.value, Dvars::pm_cpm_airstopAccelerate->domain.value.min, Dvars::pm_cpm_airstopAccelerate->domain.value.max, "%.0f"); TT("pm_cpm_airstopAccelerate");
+
+						ImGui::SliderFloat("Strafe Accelerate", &Dvars::pm_cpm_strafeAccelerate->current.value, Dvars::pm_cpm_strafeAccelerate->domain.value.min, Dvars::pm_cpm_strafeAccelerate->domain.value.max, "%.0f"); TT("pm_cpm_strafeAccelerate");
+
+						ImGui::SliderFloat("Air Accelerate", &Dvars::pm_cpm_airAccelerate->current.value, Dvars::pm_cpm_airAccelerate->domain.value.min, Dvars::pm_cpm_airAccelerate->domain.value.max, "%.0f"); TT("pm_cpm_airAccelerate");
+
+						ImGui::SliderFloat("Air Control", &Dvars::pm_cpm_airControl->current.value, Dvars::pm_cpm_airControl->domain.value.min, Dvars::pm_cpm_airControl->domain.value.max, "%.0f"); TT("pm_cpm_airControl");
+
+						ImGui::SliderFloat("Damage Knockback", &Dvars::pm_cpm_damageKnockback->current.value, Dvars::pm_cpm_damageKnockback->domain.value.min, Dvars::pm_cpm_damageKnockback->domain.value.max, "%.0f"); TT("pm_cpm_damageKnockback");
+
+						SPACING(0.0f, 4.0f);
+
+						ImGui::Checkbox("Quake Damage", &Dvars::pm_cpm_useQuakeDamage->current.enabled); TT("pm_cpm_useQuakeDamage");
+						ImGui::SameLine();
+						ImGui::Checkbox("Enable Bouncing", &Dvars::pm_cpm_useBouncing->current.enabled); TT("pm_cpm_useBouncing");
+
+						SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+						ImGui::EndTabItem();
+					}
+
+					// *
+					if (ImGui::BeginTabItem("Source"))
+					{
+						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+						ImGui::SliderFloat("Air Accelerate", &Dvars::pm_cs_airAccelerate->current.value, Dvars::pm_cs_airAccelerate->domain.value.min, Dvars::pm_cs_airAccelerate->domain.value.max, "%.0f"); TT("pm_cs_airAccelerate");
+
+						ImGui::SliderFloat("Airspeed Cap", &Dvars::pm_cs_airspeedCap->current.value, Dvars::pm_cs_airspeedCap->domain.value.min, Dvars::pm_cs_airspeedCap->domain.value.max, "%.0f"); TT("pm_cs_airspeedCap");
+
+						SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+						ImGui::EndTabItem();
+					}
+
+					ImGui::EndTabBar();
+				}
+
+				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+			}
 		}
 
 		// *
 		if (ImGui::CollapsingHeader("Debug"))
 		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			// --------------- 
-
-			ImGui::Checkbox("Enable Hud", Gui::DvarGetSet<bool*>(Dvars::pm_hud_enable)); TT("pm_hud_enable");
-
-			ImGui::SliderFloat("Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_hud_x), Dvars::pm_hud_x->domain.value.min, Dvars::pm_hud_x->domain.value.max, "%.0f"); TT("pm_hud_x");
-
-			ImGui::SliderFloat("Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_hud_y), Dvars::pm_hud_y->domain.value.min, Dvars::pm_hud_y->domain.value.max, "%.0f"); TT("pm_hud_y");
-
-			ImGui::SliderFloat("Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontScale), Dvars::pm_hud_fontScale->domain.value.min, Dvars::pm_hud_fontScale->domain.value.max, "%.1f"); TT("pm_hud_fontScale");
-
-			ImGui::ColorEdit4("Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_hud_fontColor");
-
 			const char* hudFont_items[] = { "FONT_SMALL_DEV", "FONT_BIG_DEV", "FONT_CONSOLE", "FONT_BIG", "FONT_SMALL", "FONT_BOLD", "FONT_NORMAL", "FONT_EXTRA_BIG", "FONT_OBJECTIVE" };
-			ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_hud_fontStyle");
 
-			// ---------------
-			SEPERATORV(4.0f);
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+			if (Components::active.PM_Movement && Components::active._CG)
+			{
+				// ---------------
 
-			ImGui::Checkbox("Enable Position Hud", Gui::DvarGetSet<bool*>(Dvars::pm_origin_hud)); TT("pm_origin_hud");
+				ImGui::Checkbox("Enable Hud", Gui::DvarGetSet<bool*>(Dvars::pm_hud_enable)); TT("pm_hud_enable");
 
-			ImGui::SliderFloat("Origin Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_x), Dvars::pm_origin_hud_x->domain.value.min, Dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
+				ImGui::SliderFloat("Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_hud_x), Dvars::pm_hud_x->domain.value.min, Dvars::pm_hud_x->domain.value.max, "%.0f"); TT("pm_hud_x");
 
-			ImGui::SliderFloat("Origin Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_y), Dvars::pm_origin_hud_y->domain.value.min, Dvars::pm_origin_hud_y->domain.value.max, "%.0f"); TT("pm_origin_hud_y");
+				ImGui::SliderFloat("Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_hud_y), Dvars::pm_hud_y->domain.value.min, Dvars::pm_hud_y->domain.value.max, "%.0f"); TT("pm_hud_y");
 
-			ImGui::SliderFloat("Origin Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontScale), Dvars::pm_origin_hud_fontScale->domain.value.min, Dvars::pm_origin_hud_fontScale->domain.value.max, "%.1f"); TT("pm_origin_hud_fontScale");
+				ImGui::SliderFloat("Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontScale), Dvars::pm_hud_fontScale->domain.value.min, Dvars::pm_hud_fontScale->domain.value.max, "%.1f"); TT("pm_hud_fontScale");
 
-			ImGui::ColorEdit4("Origin Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_origin_hud_fontColor");
+				ImGui::ColorEdit4("Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_hud_fontColor");
 
-			ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
+				ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_hud_fontStyle");
 
-			// ---------------
-			SEPERATORV(4.0f);
+				// ---------------
+				SEPERATORV(4.0f);
+			}
 
-			ImGui::Checkbox("Enable mDd world compass", Gui::DvarGetSet<bool*>(Dvars::mdd_compass)); TT("mdd_compass");
+			if (Components::active._CG)
+			{
+				ImGui::Checkbox("Enable Position Hud", Gui::DvarGetSet<bool*>(Dvars::pm_origin_hud)); TT("pm_origin_hud");
 
-			ImGui::SliderFloat2("Compass position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_compass_yh), Dvars::mdd_compass_yh->domain.value.min, Dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
+				ImGui::SliderFloat("Origin Hud Position X", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_x), Dvars::pm_origin_hud_x->domain.value.min, Dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
 
-			ImGui::ColorEdit4("Color 0 to 90 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas0), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas0");
+				ImGui::SliderFloat("Origin Hud Position Y", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_y), Dvars::pm_origin_hud_y->domain.value.min, Dvars::pm_origin_hud_y->domain.value.max, "%.0f"); TT("pm_origin_hud_y");
 
-			ImGui::ColorEdit4("Color 90 to 180 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas1), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas1");
+				ImGui::SliderFloat("Origin Hud Font Scale", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontScale), Dvars::pm_origin_hud_fontScale->domain.value.min, Dvars::pm_origin_hud_fontScale->domain.value.max, "%.1f"); TT("pm_origin_hud_fontScale");
 
-			ImGui::ColorEdit4("Color 180 to 270 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas2), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas2");
+				ImGui::ColorEdit4("Origin Hud Font Color", Gui::DvarGetSet<float*>(Dvars::pm_origin_hud_fontColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_origin_hud_fontColor");
 
-			ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
+				ImGui::Combo("Hud Font", Gui::DvarGetSet<int*>(Dvars::pm_origin_hud_fontStyle), hudFont_items, IM_ARRAYSIZE(hudFont_items)); TT("pm_origin_hud_fontStyle");
 
-			ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
+				// ---------------
+				SEPERATORV(4.0f);
+			}
 
-			// ---------------
-			SEPERATORV(4.0f);
+			if (Components::active.Compass)
+			{
+				ImGui::Checkbox("Enable mDd world compass", Gui::DvarGetSet<bool*>(Dvars::mdd_compass)); TT("mdd_compass");
 
-			ImGui::Checkbox("Display mDd CampingGaz HUD", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz)); TT("mdd_cgaz");
+				ImGui::SliderFloat2("Compass position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_compass_yh), Dvars::mdd_compass_yh->domain.value.min, Dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
 
-			ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
+				ImGui::ColorEdit4("Color 0 to 90 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas0), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas0");
 
-			ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
+				ImGui::ColorEdit4("Color 90 to 180 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas1), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas1");
 
-			ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
+				ImGui::ColorEdit4("Color 180 to 270 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas2), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas2");
 
-			ImGui::ColorEdit4("Color for no accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaNoAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaNoAccel");
+				ImGui::ColorEdit4("Color 270 to 360 quadrant", Gui::DvarGetSet<float*>(Dvars::mdd_compass_quadrant_rgbas3), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_quadrant_rgbas3");
 
-			ImGui::ColorEdit4("Color for partial accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaPartialAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaPartialAccel");
+				ImGui::ColorEdit4("Color for ticks", Gui::DvarGetSet<float*>(Dvars::mdd_compass_ticks_rgba), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_compass_ticks_rgba");
 
-			ImGui::ColorEdit4("Color for full accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaFullAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaFullAccel");
+				// ---------------
+				SEPERATORV(4.0f);
+			}
 
-			ImGui::ColorEdit4("Color for turn zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaTurnZone), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaTurnZone");
+			if (Components::active.CGaz)
+			{
+				ImGui::Checkbox("Display mDd CampingGaz HUD", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz)); TT("mdd_cgaz");
 
-			SPACING(0.0f, 4.0f);
+				ImGui::Checkbox("Show true ground zones", Gui::DvarGetSet<bool*>(Dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
 
-			const char* drawAxis_items[] = { "disabled", "axis only", "fps zone circle" };
-			ImGui::Combo("Draw Axis", &Dvars::pm_debug_drawAxis->current.integer, drawAxis_items, IM_ARRAYSIZE(drawAxis_items)); TT("pm_debug_drawAxis");
+				ImGui::SliderInt("Min speed value for draw CGaz", Gui::DvarGetSet<int*>(Dvars::mdd_cgaz_speed), Dvars::mdd_cgaz_speed->domain.integer.min, Dvars::mdd_cgaz_speed->domain.integer.max); TT("mdd_cgaz_speed");
 
-			ImGui::SliderFloat("Radius", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_radius), Dvars::pm_debug_drawAxis_radius->domain.value.min, Dvars::pm_debug_drawAxis_radius->domain.value.max, "%.0f"); TT("pm_debug_drawAxis_radius");
+				ImGui::SliderFloat2("CGaz position and thickness", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_yh), Dvars::mdd_cgaz_yh->domain.value.min, Dvars::mdd_cgaz_yh->domain.value.max, "%.0f"); TT("mdd_cgaz_yh");
 
-			ImGui::SliderFloat("Height", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_height), Dvars::pm_debug_drawAxis_height->domain.value.min, Dvars::pm_debug_drawAxis_height->domain.value.max, "%.0f"); TT("pm_debug_drawAxis_height");
+				ImGui::ColorEdit4("Color for no accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaNoAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaNoAccel");
 
-			SPACING(0.0f, 4.0f);
+				ImGui::ColorEdit4("Color for partial accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaPartialAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaPartialAccel");
 
-			ImGui::ColorEdit4("125 FPS Zone", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_col125), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_drawAxis_col125");
+				ImGui::ColorEdit4("Color for full accel zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaFullAccel), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaFullAccel");
 
-			ImGui::ColorEdit4("250 FPS Zone", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_col250), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_drawAxis_col250");
+				ImGui::ColorEdit4("Color for turn zone", Gui::DvarGetSet<float*>(Dvars::mdd_cgaz_rgbaTurnZone), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("mdd_cgaz_rgbaTurnZone");
 
-			ImGui::ColorEdit4("333 FPS Zone", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_col333), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_drawAxis_col333");
+				// ---------------
+				SEPERATORV(4.0f);
+			}
 
-			// --------------- 
-			SEPERATORV(4.0f);
+			if (Components::active._Pmove)
+			{
+				const char* drawAxis_items[] = { "disabled", "axis only", "fps zone circle" };
+				ImGui::Combo("Draw Axis", &Dvars::pm_debug_drawAxis->current.integer, drawAxis_items, IM_ARRAYSIZE(drawAxis_items)); TT("pm_debug_drawAxis");
 
-			const char* traceOrigin_items[] = { "disabled", "trace and display for duration", "trace and display for duration when not on the ground" };
-			ImGui::Combo("Trace Origin", &Dvars::pm_debug_traceOrigin->current.integer, traceOrigin_items, IM_ARRAYSIZE(traceOrigin_items)); TT("pm_debug_traceOrigin");
+				ImGui::SliderFloat("Radius", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_radius), Dvars::pm_debug_drawAxis_radius->domain.value.min, Dvars::pm_debug_drawAxis_radius->domain.value.max, "%.0f"); TT("pm_debug_drawAxis_radius");
 
-			const char* traceVelocity_items[] = { "disabled", "trace and display for duration", "trace and display for duration when not on the ground", "trace in realtime" };
-			ImGui::Combo("Trace Velocity", &Dvars::pm_debug_traceVelocity->current.integer, traceVelocity_items, IM_ARRAYSIZE(traceVelocity_items)); TT("pm_debug_traceVelocity");
+				ImGui::SliderFloat("Height", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_height), Dvars::pm_debug_drawAxis_height->domain.value.min, Dvars::pm_debug_drawAxis_height->domain.value.max, "%.0f"); TT("pm_debug_drawAxis_height");
 
-			ImGui::SliderInt("Line Width", Gui::DvarGetSet<int*>(Dvars::pm_debug_lineWidth), Dvars::pm_debug_lineWidth->domain.integer.min, Dvars::pm_debug_lineWidth->domain.integer.max, "%.0f"); TT("pm_debug_lineWidth");
+				SPACING(0.0f, 4.0f);
 
-			ImGui::SliderInt("Line Duration", Gui::DvarGetSet<int*>(Dvars::pm_debug_lineDuration), Dvars::pm_debug_lineDuration->domain.integer.min, Dvars::pm_debug_lineDuration->domain.integer.max, "%.0f"); TT("pm_debug_lineDuration");
+				ImGui::ColorEdit4("125 FPS Zone", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_col125), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_drawAxis_col125");
 
-			ImGui::ColorEdit4("Line Color", Gui::DvarGetSet<float*>(Dvars::pm_debug_lineColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_lineColor");
+				ImGui::ColorEdit4("250 FPS Zone", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_col250), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_drawAxis_col250");
 
-			ImGui::Checkbox("Line Depth", Gui::DvarGetSet<bool*>(Dvars::pm_debug_lineDepth)); TT("pm_debug_lineDepth");
+				ImGui::ColorEdit4("333 FPS Zone", Gui::DvarGetSet<float*>(Dvars::pm_debug_drawAxis_col333), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_drawAxis_col333");
 
-			// --------------- 
-			SEPERATORV(4.0f);
+				// ---------------
+				SEPERATORV(4.0f);
 
-			ImGui::Checkbox("Debug Prints", &Dvars::pm_debug_prints->current.enabled); TT("pm_debug_prints");
+				const char* traceOrigin_items[] = { "disabled", "trace and display for duration", "trace and display for duration when not on the ground" };
+				ImGui::Combo("Trace Origin", &Dvars::pm_debug_traceOrigin->current.integer, traceOrigin_items, IM_ARRAYSIZE(traceOrigin_items)); TT("pm_debug_traceOrigin");
+
+				const char* traceVelocity_items[] = { "disabled", "trace and display for duration", "trace and display for duration when not on the ground", "trace in realtime" };
+				ImGui::Combo("Trace Velocity", &Dvars::pm_debug_traceVelocity->current.integer, traceVelocity_items, IM_ARRAYSIZE(traceVelocity_items)); TT("pm_debug_traceVelocity");
+
+				ImGui::SliderInt("Line Width", Gui::DvarGetSet<int*>(Dvars::pm_debug_lineWidth), Dvars::pm_debug_lineWidth->domain.integer.min, Dvars::pm_debug_lineWidth->domain.integer.max, "%.0f"); TT("pm_debug_lineWidth");
+
+				ImGui::SliderInt("Line Duration", Gui::DvarGetSet<int*>(Dvars::pm_debug_lineDuration), Dvars::pm_debug_lineDuration->domain.integer.min, Dvars::pm_debug_lineDuration->domain.integer.max, "%.0f"); TT("pm_debug_lineDuration");
+
+				ImGui::ColorEdit4("Line Color", Gui::DvarGetSet<float*>(Dvars::pm_debug_lineColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("pm_debug_lineColor");
+
+				ImGui::Checkbox("Line Depth", Gui::DvarGetSet<bool*>(Dvars::pm_debug_lineDepth)); TT("pm_debug_lineDepth");
+
+				// ---------------
+				SEPERATORV(4.0f);
+			}
+
+			if (Components::active.PM_Movement)
+			{
+				ImGui::Checkbox("Debug Prints", &Dvars::pm_debug_prints->current.enabled); TT("pm_debug_prints");
+			}
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
@@ -881,7 +902,7 @@ namespace Components
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 
-		if (ImGui::CollapsingHeader("Main Menu", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Components::active._UI && ImGui::CollapsingHeader("Main Menu", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 

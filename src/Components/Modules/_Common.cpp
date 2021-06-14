@@ -8,9 +8,20 @@ namespace Components
 	// register additional dvars in R_Init->R_RegisterDvars
 	void R_RegisterAdditionalDvars()
 	{
-		_UI::main_menu_register_dvars();
-		_Renderer::R_RegisterBufferDvars();
-		RB_ShaderOverlays::Register_StringDvars();
+		if (Components::active._UI)
+		{
+			_UI::main_menu_register_dvars();
+		}
+		
+		if (Components::active._Renderer)
+		{
+			_Renderer::R_RegisterBufferDvars();
+		}
+
+		if (Components::active.RB_ShaderOverlays)
+		{
+			RB_ShaderOverlays::Register_StringDvars();
+		}
 	}
 
 	void ForceDvarsOnInit()

@@ -580,7 +580,10 @@ namespace Components
 			RadiantRemote::RadiantDebugBrush();
 		}
 
-		_Pmove::PM_DrawDebug();
+		if (Components::active._Pmove)
+		{
+			_Pmove::PM_DrawDebug();
+		}
 	}
 
 	// RB_AdditionalDebug :: Hook RB_DrawDebug call to implement additional debug functions
