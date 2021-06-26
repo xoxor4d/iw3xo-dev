@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	void _Client::OnDisconnect()
+	void on_disconnect()
 	{ 
 		if (Components::active.Mvm)
 		{
@@ -38,7 +38,7 @@ namespace Components
             cmp     esi, 5;
 
             pushad;
-            call	_Client::OnDisconnect;
+            call	on_disconnect;
             popad;
 			
 			jmp		rtnPt;
@@ -47,10 +47,42 @@ namespace Components
 
 	// --------
 
+	// actually after time was set
+	void on_set_cgame_time()
+	{
+		if (Components::active.DayNightCycle)
+		{
+			if (Dvars::r_dayAndNight && Dvars::r_dayAndNight->current.enabled)
+			{
+				DayNightCycle::set_world_time();
+			}
+		}
+	}
+
+	__declspec(naked) void on_set_cgame_time_stub()
+	{
+		const static uint32_t CL_SetCGameTime_Func = 0x45C440;
+		const static uint32_t rtnPt = 0x46C9FB;
+		__asm
+		{
+			// stock op's
+			call	CL_SetCGameTime_Func;
+
+			pushad;
+			call	on_set_cgame_time;
+			popad;
+
+			jmp		rtnPt;
+		}
+	}
+
 	_Client::_Client()
 	{ 
 		// CL_Disconnect, random spot (mvm hooks on first op)
 		Utils::Hook(0x4696D0, on_disconnect_stub, HOOK_JUMP).install()->quick();
+
+		// CL_SetCGameTime, called every client frame
+		Utils::Hook(0x46C9F6, on_set_cgame_time_stub, HOOK_JUMP).install()->quick();
 	}
 
 	_Client::~_Client()

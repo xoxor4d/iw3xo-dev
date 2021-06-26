@@ -9,8 +9,6 @@ namespace Components
 		~_Client();
 		const char* getName() override { return "_Client"; };
 
-		static	void OnDisconnect();
-
 	private:
 	};
 }

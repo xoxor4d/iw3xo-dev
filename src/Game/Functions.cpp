@@ -4,6 +4,15 @@ namespace Game
 {
 	//char GfxBackEndData_surfsBuffer[0x60000]; // memes
 
+	//namespace daynight
+	//{
+	//	float _Height		= 0.15f;
+	//	float _Intensity	= 20.0f;
+	//	float _Rayleigh		= 8000.0f;
+	//	float _Mie			= 1200.0f;
+	//	float _Exposure		= 60.0f;
+	//}
+
 #ifdef DEVGUI_OCEAN
 	namespace ocean
 	{
@@ -1325,6 +1334,20 @@ namespace Game
 		_dvar->modified = false;
 	}
 
+	void Dvar_SetValue(dvar_s* _dvar, const float* _dvarValue, int size)
+	{
+		if (!_dvar)
+		{
+			return;
+		}
+
+		for (auto i = 0; i < size && i < 4; i++)
+		{
+			_dvar->current.vector[i] = _dvarValue[i];
+			_dvar->latched.vector[i] = _dvarValue[i];
+		}
+	}
+
 	// Registering StringDvars is a pain, so heres a workaround
 	Game::dvar_s* Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description)
 	{
@@ -1822,6 +1845,58 @@ namespace Game
 			pop		ecx;
 			retn;
 		}
+	}
+
+	void Byte4UnpackRgba(const char* from, float* to)
+	{
+		if (from && to)
+		{
+			to[0] = from[0] * 0.0039215689f;
+			to[1] = from[1] * 0.0039215689f;
+			to[2] = from[2] * 0.0039215689f;
+			to[3] = from[3] * 0.0039215689f;
+		}
+	}
+
+#pragma warning( push )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4309 )
+	char Byte1PackClamp(const float from)
+	{
+		char val;
+
+		if ((255.0 * from + 9.313225746154785e-10) < 255)
+		{
+			val = 255 * from + 9.313225746154785e-10;
+		}
+		else
+		{
+			val = 255;
+		}
+
+		if (val > 0)
+		{
+			return val;
+		}
+
+		return 0;
+	}
+#pragma warning( pop ) 
+
+	void Byte4PackRgba(const float* from, char* to)
+	{
+		to[0] = Byte1PackClamp(from[0]);
+		to[1] = Byte1PackClamp(from[1]);
+		to[2] = Byte1PackClamp(from[2]);
+		to[3] = Byte1PackClamp(from[3]);
+	}
+
+	void Byte4PackPixelColor(const float* from, char* to)
+	{
+		to[2] = Byte1PackClamp(from[0]);
+		to[1] = Byte1PackClamp(from[1]);
+		to[0] = Byte1PackClamp(from[2]);
+		to[3] = Byte1PackClamp(from[3]);
 	}
 
 	// ----

@@ -135,6 +135,14 @@ namespace Components
 					ImGui::EndTabItem();
 				}
 #endif
+				if (Components::active.DayNightCycle)
+				{
+					if (ImGui::BeginTabItem("DayNight"))
+					{
+						DayNightCycle::devgui_tab(menu);
+						ImGui::EndTabItem();
+					}
+				}
 			}
 
 			if (ImGui::BeginTabItem("Radiant"))

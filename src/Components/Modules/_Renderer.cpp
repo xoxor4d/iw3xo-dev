@@ -632,121 +632,207 @@ namespace Components
 
 	/* ---------------------------------------------------------- */
 
-	bool r_disable_prepass_material = false;
+	bool disable_prepass = false;
 
-	// changing MaterialTechType at 0x633282 to 1C -> wireframe (look at enum MaterialTechniqueType)
+	// *
+	// mat->techniqueSet->remappedTechniqueSet->techniques[type]
+	bool _Renderer::is_valid_technique_for_type(const Game::Material* mat, const Game::MaterialTechniqueType type)
+	{
+		if (	mat
+			 && mat->techniqueSet
+			 && mat->techniqueSet->remappedTechniqueSet
+			 && mat->techniqueSet->remappedTechniqueSet->techniques
+			 && mat->techniqueSet->remappedTechniqueSet->techniques[type])
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+
+	// *
+	// return remappedTechnique for technique_type if valid, stock technique otherwise
+	void _Renderer::switch_technique(Game::switch_material_t* swm, Game::Material* material)
+	{
+		if (material)
+		{
+			swm->technique = nullptr;
+
+			if (is_valid_technique_for_type(material, swm->technique_type))
+			{
+				swm->technique = material->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
+			}
+
+			swm->switch_technique = true;
+			return;
+		}
+
+		// return stock technique if the above failed
+		swm->technique = swm->current_technique;
+	}
+
+
+	// *
+	// return remappedTechnique for technique_type if valid, stock technique otherwise
+	void _Renderer::switch_technique(Game::switch_material_t* swm, const char* material_name)
+	{
+		Game::Material* temp_mat = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle(material_name, 3));
+
+		if (temp_mat)
+		{
+			swm->technique = nullptr;
+
+			if (is_valid_technique_for_type(temp_mat, swm->technique_type))
+			{
+				swm->technique = temp_mat->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
+			}
+
+			swm->switch_technique = true;
+			return;
+		}
+
+		// return stock technique if the above failed
+		swm->technique = swm->current_technique;
+	}
+
+
+	//*
+	// return new material if valid, stock material otherwise
+	void _Renderer::switch_material(Game::switch_material_t* swm, const char* material_name)
+	{
+		Game::Material* temp_mat = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle(material_name, 3));
+		
+		if (temp_mat)
+		{
+			swm->material = temp_mat;
+			swm->technique = nullptr;
+
+			if (is_valid_technique_for_type(temp_mat, swm->technique_type))
+			{
+				swm->technique = temp_mat->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
+			}
+
+			swm->switch_material = true;
+			return;
+		}
+
+		// return stock material if the above failed
+		swm->material = swm->current_material;
+	}
+
+
+	// *
+	// :>
 	int R_SetMaterial(Game::MaterialTechniqueType techType, Game::GfxCmdBufSourceState* src, Game::GfxCmdBufState* state, Game::GfxDrawSurf drawSurf)
 	{
-		Game::Material*			 current_material;
-		Game::MaterialTechnique* current_technique;
-
-		Game::MaterialTechniqueType newTechType = techType;
-		Game::Material*				debug_material = nullptr;
-
 		auto& rg = *reinterpret_cast<Game::r_globals_t*>(0xCC9D150);
-		auto rgp = reinterpret_cast<Game::r_global_permanent_t*>(0xCC98280);
+		auto rgp =  reinterpret_cast<Game::r_global_permanent_t*>(0xCC98280);
 
-		current_material  = rgp->sortedMaterials[(drawSurf.packed >> 29) & 0x7FF];
-		current_technique = current_material->techniqueSet->remappedTechniqueSet->techniques[newTechType];
+		Game::switch_material_t mat = { 0 };
 
-		bool any_tweaks			= false;
-		bool change_material	= false;
+		mat.current_material  = rgp->sortedMaterials[(drawSurf.packed >> 29) & 0x7FF];
+		mat.current_technique = mat.current_material->techniqueSet->remappedTechniqueSet->techniques[techType];
 
-		r_disable_prepass_material = false; // always reset
+		mat.material		  = mat.current_material;
+		mat.technique		  = mat.current_technique;
+		mat.technique_type	  = techType;
 
-		if (current_material)
+		disable_prepass		  = false; // always reset
+
+		if (mat.current_material)
 		{
+			if (Components::active.DayNightCycle)
+			{
+				DayNightCycle::overwrite_sky_material(&mat);
+			}
+
 			// wireframe xmodels
 			if (Dvars::r_wireframe_xmodels && Dvars::r_wireframe_xmodels->current.integer)
 			{
-				if (Utils::StartsWith(current_material->info.name, "mc/"))
+				if (Utils::StartsWith(mat.current_material->info.name, "mc/"))
 				{
-					any_tweaks = true;
-
 					switch (Dvars::r_wireframe_xmodels->current.integer)
 					{
 					case 1: // SHADED
-						newTechType = Game::TECHNIQUE_WIREFRAME_SHADED;
+						mat.technique_type = Game::TECHNIQUE_WIREFRAME_SHADED;
+						mat.switch_technique_type = true;
 						break;
 
 					case 2: // SOLID
-						newTechType = Game::TECHNIQUE_WIREFRAME_SOLID;
+						mat.technique_type = Game::TECHNIQUE_WIREFRAME_SOLID;
+						mat.switch_technique_type = true;
 						break;
 
 					case 3: // SHADED_WHITE
-						newTechType		= Game::TECHNIQUE_UNLIT;
-						debug_material	= reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("iw3xo_showcollision_wire", 3));
+						disable_prepass = true;
 
-						r_disable_prepass_material = true;
-						change_material = true;
+						mat.technique_type	= Game::TECHNIQUE_UNLIT;
+						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 
 					case 4: // SOLID_WHITE
-						newTechType		= Game::TECHNIQUE_UNLIT;
-						debug_material	= reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("iw3xo_showcollision_wire", 3));
-						
-						change_material = true;
+						mat.technique_type	= Game::TECHNIQUE_UNLIT;
+						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 					}
 				}
 			}
 
+			// wireframe world
 			if (Dvars::r_wireframe_world && Dvars::r_wireframe_world->current.integer)
 			{
-				if (Utils::StartsWith(current_material->info.name, "wc/") && !Utils::StartsWith(current_material->info.name, "wc/sky"))
+				if (Utils::StartsWith(mat.current_material->info.name, "wc/") && !Utils::StartsWith(mat.current_material->info.name, "wc/sky"))
 				{
-					any_tweaks = true;
-
 					switch (Dvars::r_wireframe_world->current.integer)
 					{
 					case 1: // SHADED
-						newTechType = Game::TECHNIQUE_WIREFRAME_SHADED;
+						mat.technique_type = Game::TECHNIQUE_WIREFRAME_SHADED;
+						mat.switch_technique_type = true;
 						break;
 
 					case 2: // SOLID
-						newTechType = Game::TECHNIQUE_WIREFRAME_SOLID;
+						mat.technique_type = Game::TECHNIQUE_WIREFRAME_SOLID;
+						mat.switch_technique_type = true;
 						break;
 
 					case 3: // SHADED_WHITE
-						newTechType		= Game::TECHNIQUE_UNLIT;
-						debug_material	= reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("iw3xo_showcollision_wire", 3));
+						disable_prepass = true;
 
-						r_disable_prepass_material = true;
-						change_material = true;
+						mat.technique_type	= Game::TECHNIQUE_UNLIT;
+						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 
 					case 4: // SOLID_WHITE
-						newTechType		= Game::TECHNIQUE_UNLIT;
-						debug_material	= reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("iw3xo_showcollision_wire", 3));
-
-						change_material = true;
+						mat.technique_type	= Game::TECHNIQUE_UNLIT;
+						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 					}
 				}
 			}
+
 
 			// texcoord debugshader
 			if (Dvars::r_debugShaderTexcoord && Dvars::r_debugShaderTexcoord->current.enabled)
 			{
-				r_disable_prepass_material = true;
-				any_tweaks = true;
-
-				//	if (Utils::StartsWith(current_material->info.name, "mc/") && !Utils::StartsWith(current_material->info.name, "mc/mtl_weapon")
-				//		&& !Utils::Contains(current_material->info.name, "hands"s) && !Utils::Contains(current_material->info.name, "glove"s))
-				if (Utils::StartsWith(current_material->info.name, "mc/"))
+				if (Utils::StartsWith(mat.current_material->info.name, "mc/"))
 				{
-					debug_material = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("debug_texcoords_dtex", 3));
-				}
-				//	else if (Utils::StartsWith(current_material->info.name, "wc/") && !Utils::StartsWith(current_material->info.name, "wc/sky"))
-				else if (Utils::StartsWith(current_material->info.name, "wc/"))
-				{
-					debug_material = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("debug_texcoords", 3));
-				}
+					disable_prepass = true;
 
-				newTechType = Game::TECHNIQUE_UNLIT;
+					mat.technique_type = Game::TECHNIQUE_UNLIT;
+					_Renderer::switch_technique(&mat, "debug_texcoords_dtex");
+				}
+				else if (Utils::StartsWith(mat.current_material->info.name, "wc/"))
+				{
+					disable_prepass = true;
+
+					mat.technique_type = Game::TECHNIQUE_UNLIT;
+					_Renderer::switch_technique(&mat, "debug_texcoords");
+				}
 			}
 
-			if (!any_tweaks)
+
+			if (!mat.switch_material && !mat.switch_technique && !mat.switch_technique_type)
 			{
 				if (state->origMaterial)
 				{
@@ -759,48 +845,40 @@ namespace Components
 			}
 		}
 
-		// if debug_material was set
-		if (   debug_material 
-			&& debug_material->techniqueSet 
-			&& debug_material->techniqueSet->remappedTechniqueSet 
-			&& debug_material->techniqueSet->remappedTechniqueSet->techniques
-			&& debug_material->techniqueSet->remappedTechniqueSet->techniques[newTechType])
-		{
-			//current_material = debug_material;
-			current_technique = debug_material->techniqueSet->remappedTechniqueSet->techniques[newTechType];
+		// save the original material
+		state->origMaterial = state->material;
 
-			if (change_material)
+		// only switch to a different technique_type
+		if (mat.switch_technique_type)
+		{
+			if (_Renderer::is_valid_technique_for_type(mat.current_material, mat.technique_type))
 			{
-				current_material = debug_material;
+				_Renderer::switch_technique(&mat, mat.current_material);
 			}
 		}
 
-		state->origMaterial = state->material;
-		state->material = current_material;
-		state->technique = current_technique;
+		// set stock or new material & technique
+		state->material = mat.material;
+		state->technique = mat.technique;
 
-		if (!current_technique)
+
+		if (!state->technique || (state->technique->flags & 1) != 0 && !rg.distortion)
 		{
 			return 0;
 		}
 
-		if ((current_technique->flags & 1) != 0 && !rg.distortion)
+		if (!mat.switch_material && !mat.switch_technique && !mat.switch_technique_type)
 		{
-			return 0;
-		}
-
-		if (!any_tweaks)
-		{
-			if ((newTechType == Game::TECHNIQUE_EMISSIVE || newTechType == Game::TECHNIQUE_UNLIT) && (current_technique->flags & 0x10) != 0 && !src->constVersions[4])
+			if ((mat.technique_type == Game::TECHNIQUE_EMISSIVE || mat.technique_type == Game::TECHNIQUE_UNLIT) && (state->technique->flags & 0x10) != 0 && !src->constVersions[4])
 			{
 				return 0;
 			}
 		}
 
 		const auto& r_logFile = Game::Dvar_FindVar("r_logFile");
-		if (r_logFile && r_logFile->current.integer && current_material)
+		if (r_logFile && r_logFile->current.integer && mat.current_material)
 		{
-			auto string = Utils::VA("R_SetMaterial( %s, %s, %i )\n", current_material->info.name, current_technique->name, newTechType);
+			auto string = Utils::VA("R_SetMaterial( %s, %s, %i )\n", state->material->info.name, state->technique->name, mat.technique_type);
 
 			const static uint32_t RB_LogPrint_Funk = 0x63CF40;
 			__asm
@@ -813,10 +891,11 @@ namespace Components
 		}
 
 		state->origTechType = state->techType;
-		state->techType = newTechType;
+		state->techType = mat.technique_type;
 
 		return 1;
 	}
+
 
 	__declspec(naked) void R_SetMaterial_stub()
 	{
@@ -845,7 +924,7 @@ namespace Components
 		__asm
 		{
 			push	eax;
-			mov		al, r_disable_prepass_material;
+			mov		al, disable_prepass;
 			cmp		al, 1;
 			pop		eax;
 
@@ -938,6 +1017,11 @@ namespace Components
 
 				if (arg_def && arg_def->type == 5)
 				{
+					if (Components::active.DayNightCycle)
+					{
+						DayNightCycle::set_pixelshader_constants(state, arg_def);
+					}
+
 #ifdef DEVGUI_XO_BLUR
 					// dev stuff
 					if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "postfx_blur_overlay"))

@@ -149,6 +149,7 @@ namespace Dvars
 	Game::dvar_s* r_drawDynents = nullptr;
 
 	Game::dvar_s* r_debugShaderTexcoord = nullptr;
+	Game::dvar_s* r_dayAndNight = nullptr;
 
 
 	// Debug Collision
