@@ -7,7 +7,10 @@ namespace Components
 {
 	// fog
 	bool		 framefog_tweaks = false;
+	bool		 framefog_tweaks_overwrite = false;
 	Game::vec4_t framefog_color = { 0.0f };
+	float		 framefog_start = 0.0f;
+	float		 framefog_density = 0.0f;
 
 
 	// get shader constants vars
@@ -124,7 +127,12 @@ namespace Components
 
 		/*float sun_light			*/	0.6f,
 		/*float sun_color[3]		*/	{ 0.400f, 0.400f, 0.700f },
-		/*float sun_interpol_spd	*/	0.1f
+		/*float sun_interpol_spd	*/	0.1f,
+
+		/*bool  tweak_fog;			*/	true,
+		/*float fog_start			*/	300.0f,
+		/*float fog_density			*/	0.012f,
+		/*float fog_color[3]		*/	{ 0.000f, 0.000f, 0.000f }
 	};
 
 	DayNightCycle::time_of_day_settings tod_day = {
@@ -137,7 +145,12 @@ namespace Components
 
 		/*float sun_light			*/	1.5f,
 		/*float sun_color[3]		*/	{ 1.000f, 0.840f, 0.750f },
-		/*float sun_interpol_spd	*/	0.05f
+		/*float sun_interpol_spd	*/	0.05f,
+
+		/*bool  tweak_fog;			*/	true,
+		/*float fog_start			*/	500.0f,
+		/*float fog_density			*/	0.026f,
+		/*float fog_color[3]		*/	{ 0.545f, 0.505f, 0.377f }
 	};
 
 	DayNightCycle::time_of_day_settings tod_sunset = {
@@ -150,11 +163,45 @@ namespace Components
 
 		/*float sun_light			*/	1.3f,
 		/*float sun_color[3]		*/	{ 1.000f, 0.800f, 0.900f },
-		/*float sun_interpol_spd	*/	0.1f
+		/*float sun_interpol_spd	*/	0.1f,
+
+		/*bool  tweak_fog;			*/	true,
+		/*float fog_start			*/	840.0f,
+		/*float fog_density			*/	0.040f,
+		/*float fog_color[3]		*/	{ 0.444f, 0.326f, 0.199f }
 	};
 
 	// suncolor lerp variable because steps are so small that they get discarded when packing to color
 	float tod_suncolor_lerp[3] = { 0.0f };
+
+
+	// *
+	// fogtweaks over time
+
+	void DayNightCycle::lerp_fogtweaks(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time)
+	{
+		if (lerp_to)
+		{
+			if (lerp_to->film_interpolation_speed <= 0.0f)
+			{
+				framefog_tweaks		= lerp_to->tweak_fog;
+				framefog_tweaks_overwrite = !lerp_to->tweak_fog;
+
+				framefog_start		= lerp_to->fog_start;
+				framefog_density	= lerp_to->fog_density;
+				Utils::vector::_VectorCopy(lerp_to->fog_color, framefog_color, 3);
+
+				return;
+			}
+
+			framefog_tweaks = lerp_to->tweak_fog;
+
+			framefog_start = finterp_to(framefog_start, lerp_to->fog_start, delta_time, lerp_to->film_interpolation_speed);
+			framefog_density = finterp_to(framefog_density, lerp_to->fog_density, delta_time, lerp_to->film_interpolation_speed);
+			
+			vinterp_to(framefog_color, 3, framefog_color, lerp_to->fog_color, delta_time, lerp_to->film_interpolation_speed);
+		}
+	}
 
 
 	// *
@@ -268,6 +315,17 @@ namespace Components
 
 
 	// *
+	// lerp over time
+
+	void DayNightCycle::lerp_time_of_day(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time)
+	{
+		DayNightCycle::lerp_suntweaks(lerp_to, delta_time);
+		DayNightCycle::lerp_filmtweaks(lerp_to, delta_time);
+		DayNightCycle::lerp_fogtweaks(lerp_to, delta_time);
+	}
+
+
+	// *
 	// called from _Client::on_set_cgame_time()
 
 	void DayNightCycle::set_world_time()
@@ -313,8 +371,7 @@ namespace Components
 					// night time (360 equals 0 so start night transition slightly before 360/0)
 					if (sun_current_rot >= 355.0f || sun_current_rot >= 0.0f && sun_current_rot <= 175.0f)
 					{
-						DayNightCycle::lerp_suntweaks(&tod_night, delta_abs);
-						DayNightCycle::lerp_filmtweaks(&tod_night, delta_abs);
+						DayNightCycle::lerp_time_of_day(&tod_night, delta_abs);
 
 						// shorter night
 						delta *= 1.3f;
@@ -323,20 +380,17 @@ namespace Components
 					// sunrise
 					else if (sun_current_rot <= 200.0f)
 					{
-						DayNightCycle::lerp_suntweaks(&tod_sunset, delta_abs);
-						DayNightCycle::lerp_filmtweaks(&tod_sunset, delta_abs);
+						DayNightCycle::lerp_time_of_day(&tod_sunset, delta_abs);
 					}
 					// day time
 					else if (sun_current_rot <= 340.0f)
 					{
-						DayNightCycle::lerp_suntweaks(&tod_day, delta_abs);
-						DayNightCycle::lerp_filmtweaks(&tod_day, delta_abs);
+						DayNightCycle::lerp_time_of_day(&tod_day, delta_abs);
 					}
 					// sunset
 					else
 					{
-						DayNightCycle::lerp_suntweaks(&tod_sunset, delta_abs);
-						DayNightCycle::lerp_filmtweaks(&tod_sunset, delta_abs);
+						DayNightCycle::lerp_time_of_day(&tod_sunset, delta_abs);
 					}
 
 					// ----------
@@ -551,7 +605,8 @@ namespace Components
 				ImGui::Checkbox("Tweak Framefog", &framefog_tweaks);
 
 				ImGui::ColorEdit4("Fog Color", framefog_color, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel);
-
+				ImGui::DragFloat("Fog Start", &framefog_start, 5.0f, -1000.0f, 30000.0f, "%.4f");
+				ImGui::DragFloat("Fog Density", &framefog_density, 0.0001f, 0.0f, 1.0f, "%.4f");
 			}
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
@@ -659,14 +714,27 @@ namespace Components
 			if (!framefog_tweaks)
 			{
 				Utils::vector::_VectorCopy(input->consts[Game::CONST_SRC_CODE_FOG_COLOR], framefog_color, 4);
+
+				framefog_start = input->data->fogSettings.fogStart;
+				framefog_density = input->data->fogSettings.density * 100.0f;
+
+				if (framefog_tweaks_overwrite)
+				{
+					framefog_tweaks_overwrite = false;
+					goto OVERWRITE;
+				}
 			}
 
 			else
 			{
+				OVERWRITE:
 				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][0] = framefog_color[0];
 				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][1] = framefog_color[1];
 				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][2] = framefog_color[2];
 				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][3] = framefog_color[3];
+
+				input->consts[Game::CONST_SRC_CODE_FOG][2] = -(framefog_density * 0.01f);
+				input->consts[Game::CONST_SRC_CODE_FOG][3] = framefog_start * (framefog_density * 0.01f);
 
 				// set the clear color so that the bottom of the skybox matches the fog
 				auto r_clear = Game::Dvar_FindVar("r_clear");
