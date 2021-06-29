@@ -26,7 +26,7 @@ namespace Components
 			float fog_start;
 			float fog_density;
 			float fog_color[3];
-		};
+		}; const static int TOD_VAR_AMOUNT = 13;
 
 		static void devgui_tab(Game::gui_menus_t& menu);
 		static void set_pixelshader_constants(Game::GfxCmdBufState* state, Game::MaterialShaderArgument* const def);
