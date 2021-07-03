@@ -29,7 +29,7 @@ namespace Components
 		}; const static int TOD_VAR_AMOUNT = 13;
 
 		static void devgui_tab(Game::gui_menus_t& menu);
-		static void set_pixelshader_constants(Game::GfxCmdBufState* state, Game::MaterialShaderArgument* const def);
+		static void set_pixelshader_constants(Game::GfxCmdBufState* state, Game::MaterialShaderArgument* const arg_def);
 		static void overwrite_sky_material(Game::switch_material_t* swm);
 		
 		static void lerp_fogtweaks(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time);
