@@ -634,6 +634,24 @@ namespace Utils
 		}
 	}
 
+	void byte3_pack_rgba(const float* from, char* to)
+	{
+		for (auto i = 0; i < 3; i++)
+		{
+			double pack = (float)(255.0 * from[i]) + 9.313225746154785e-10;
+
+			if ((signed int)pack < 0) {
+				pack = 0.0;
+			}
+
+			if ((signed int)pack > 255) {
+				pack = 255.0;
+			}
+
+			to[i] = (char)pack;
+		}
+	}
+
 	void byte4_pack_rgba(const float* from, char* to)
 	{
 		for (auto i = 0; i < 4; i++)
@@ -650,6 +668,13 @@ namespace Utils
 
 			to[i] = (char)pack;
 		}
+	}
+
+	void byte3_unpack_rgba(const char* from, float* to)
+	{
+		to[0] = (float)*((unsigned __int8*)from + 0) * 0.0039215689f;
+		to[1] = (float)*((unsigned __int8*)from + 1) * 0.0039215689f;
+		to[2] = (float)*((unsigned __int8*)from + 2) * 0.0039215689f;
 	}
 
 	void byte4_unpack_rgba(const char* from, float* to)

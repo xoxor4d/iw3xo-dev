@@ -456,9 +456,14 @@ namespace Components
 				menu.one_time_init = true;
 			}
 		}
+		// disable changelog gui
 		else
 		{
-			// disable changelog gui
+			if (pushed_styles)
+			{
+				ImGui::PopStyleVar(pushed_styles);	pushed_styles = 0;
+			}
+
 			menu.menustate = false;
 			return;
 		}
@@ -479,7 +484,10 @@ namespace Components
 		{
 			// pop scrollbar style
 			ImGui::PopStyleColor(1);
-			
+
+			// pop all styles
+			ImGui::PopStyleVar(pushed_styles);	pushed_styles = 0;
+
 			ImGui::End();
 			return;
 		}

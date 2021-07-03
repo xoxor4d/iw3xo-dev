@@ -156,6 +156,12 @@ namespace Dvars
 	extern Game::dvar_s* r_drawDynents;
 
 	extern Game::dvar_s* r_debugShaderTexcoord;
+	extern Game::dvar_s* r_dayAndNight;
+
+	extern Game::dvar_s* r_fogTweaks;
+	extern Game::dvar_s* r_fogTweaksColor;
+	extern Game::dvar_s* r_fogTweaksStart;
+	extern Game::dvar_s* r_fogTweaksDensity;
 
 	// Debug collision
 	extern Game::dvar_s* r_drawCollision;

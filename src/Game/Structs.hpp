@@ -4882,13 +4882,14 @@ namespace Game
 			int *durations;
 		};
 
-
-		struct __declspec() GfxBackEndData
+#pragma warning( push )
+#pragma warning( disable : 4324 )
+		struct __declspec(align(16)) GfxBackEndData // align by 16
 		{
 			char surfsBuffer[131072];
 			FxCodeMeshData codeMeshes[2048];
 			unsigned int primDrawSurfsBuf[65536];
-			GfxViewParms viewParms[28];
+			GfxViewParmsNoPad viewParms[28]; // GfxViewParms either has pad or zFar
 			char primaryLightTechType[13][256];
 			float codeMeshArgs[256][4];
 			GfxParticleCloud clouds[256];
@@ -4932,6 +4933,7 @@ namespace Game
 			DebugGlobals debugGlobals;
 			unsigned int drawType;
 		};
+#pragma warning( pop )
 
 		struct __declspec() GfxCmdBufInput
 		{
@@ -6964,6 +6966,21 @@ namespace Game
 			bool dvars_initialized;
 			bool any_menus_open;
 			gui_menus_t menus[GGUI_MENU_COUNT];
+		};
+
+		struct switch_material_t
+		{
+			bool switch_material;
+			bool switch_technique;
+			bool switch_technique_type;
+
+			Game::Material* current_material;
+			Game::MaterialTechnique* current_technique;
+
+			Game::Material* material;
+			Game::MaterialTechnique* technique;
+			
+			Game::MaterialTechniqueType technique_type;
 		};
 
 #ifdef __cplusplus

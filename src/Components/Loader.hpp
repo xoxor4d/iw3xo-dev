@@ -32,6 +32,7 @@ namespace Components
 		bool Compass;
 		bool CGaz;
 		bool Mvm;
+		bool DayNightCycle;
 	};
 
 	extern activeModules_s active;
@@ -92,6 +93,7 @@ namespace Components
 #include "Modules/Compass.hpp"
 #include "Modules/CGaz.hpp"
 #include "Modules/Mvm.hpp"
+#include "Modules/DayNightCycle.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

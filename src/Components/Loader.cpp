@@ -42,6 +42,7 @@ namespace Components
 		active.Compass			 = true;
 		active.CGaz				 = true;
 		active.Mvm				 = true;
+		active.DayNightCycle	 = true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_UI);
@@ -72,6 +73,7 @@ namespace Components
 		REGISTER_MODULE(Compass);
 		REGISTER_MODULE(CGaz);
 		REGISTER_MODULE(Mvm);
+		REGISTER_MODULE(DayNightCycle);
 	}
 
 	void Loader::Uninitialize()

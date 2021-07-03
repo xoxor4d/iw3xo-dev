@@ -149,7 +149,12 @@ namespace Dvars
 	Game::dvar_s* r_drawDynents = nullptr;
 
 	Game::dvar_s* r_debugShaderTexcoord = nullptr;
+	Game::dvar_s* r_dayAndNight = nullptr;
 
+	Game::dvar_s* r_fogTweaks = nullptr;
+	Game::dvar_s* r_fogTweaksColor = nullptr;
+	Game::dvar_s* r_fogTweaksStart = nullptr;
+	Game::dvar_s* r_fogTweaksDensity = nullptr;
 
 	// Debug Collision
 	Game::dvar_s* r_drawCollision = nullptr;

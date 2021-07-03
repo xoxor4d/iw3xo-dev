@@ -61,6 +61,8 @@ namespace Utils
 
 	bool MemIsSet(void* mem, char chr, size_t length);
 
+	void byte3_pack_rgba(const float* from, char* to);
+	void byte3_unpack_rgba(const char* from, float* to);
 	void byte4_pack_rgba(const float* from, char* to);
 	void byte4_unpack_rgba(const char* from, float* to);
 

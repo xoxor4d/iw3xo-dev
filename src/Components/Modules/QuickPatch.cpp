@@ -153,25 +153,29 @@ namespace Components
 		// elevator slide along all edges
 		//Utils::Hook::Set<BYTE>(0x4103E2, 0x01);
 
+#if 0
+		// *
+		// patch shadowmap
 
-		Command::Add("patchdvars", [](Command::Params)
-		{
-			Dvars::cg_fovScale = Game::Dvar_RegisterFloat(
-				/* name		*/ "cg_fovScale",
-				/* desc		*/ "Overwritten non-cheat fovscale",
-				/* default	*/ 1.125f,
-				/* minVal	*/ 0.01f,
-				/* maxVal	*/ 10.0f,
-				/* flags	*/ Game::dvar_flags::none);
+		Game::Dvar_RegisterFloat(
+			/* name		*/ "sm_sunShadowScale",
+			/* desc		*/ "Overwritten non-cheat sm_sunShadowScale",
+			/* default	*/ 1.0f,
+			/* minVal	*/ 0.01f,
+			/* maxVal	*/ 8.0f,
+			/* flags	*/ Game::dvar_flags::none);
 
-			Dvars::snaps = Game::Dvar_RegisterInt(
-				/* name		*/ "snaps",
-				/* desc		*/ "re-registered snaps with increased max",
-				/* default	*/ 20,
-				/* minVal	*/ 0,
-				/* maxVal	*/ 333,
-				/* flags	*/ Game::dvar_flags::saved);
-		});
+		Game::Dvar_RegisterFloat(
+			/* name		*/ "sm_sunSampleSizeNear",
+			/* desc		*/ "Overwritten non-cheat sm_sunSampleSizeNear",
+			/* default	*/ 0.25f,
+			/* minVal	*/ 0.0001f,
+			/* maxVal	*/ 64.0f,
+			/* flags	*/ Game::dvar_flags::none);
+
+		// R_InitRenderTargets :: shadowmapSun rendertarget size to 2048
+		//Utils::Hook::Set<BYTE>(0x63082B + 2, 0x08);
+#endif
 	}
 
 	QuickPatch::~QuickPatch()

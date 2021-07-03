@@ -134,6 +134,14 @@ namespace Components
 					ImGui::EndTabItem();
 				}
 #endif
+				if (Components::active.DayNightCycle)
+				{
+					if (ImGui::BeginTabItem("DayNight"))
+					{
+						DayNightCycle::devgui_tab(menu);
+						ImGui::EndTabItem();
+					}
+				}
 			}
 
 			if (Components::active.RadiantRemote && ImGui::BeginTabItem("Radiant"))
@@ -700,7 +708,7 @@ namespace Components
 
 	void Gui_Devgui::menu_tab_visuals(Game::gui_menus_t& menu)
 	{
-		if (ImGui::CollapsingHeader("Filmtweaks", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Film Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			auto r_filmTweakEnable = Game::Dvar_FindVar("r_filmTweakEnable");
 			auto r_filmUseTweaks = Game::Dvar_FindVar("r_filmUseTweaks");
@@ -742,7 +750,7 @@ namespace Components
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 
-		if (ImGui::CollapsingHeader("Lighttweaks", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Light Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			auto r_lightTweakSunColor = Game::Dvar_FindVar("r_lightTweakSunColor");
 			auto r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection");
@@ -771,6 +779,18 @@ namespace Components
 				ImGui::DragFloat3("Sun Direction", Gui::DvarGetSet<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f"); TT("r_lightTweakSunDirection");
 				ImGui::SliderFloat("Sun Light", Gui::DvarGetSet<float*>(r_lightTweakSunLight), r_lightTweakSunLight->domain.value.min, r_lightTweakSunLight->domain.value.max, "%.2f");
 			}
+
+			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Fog Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			ImGui::Checkbox("Tweak Framefog", Gui::DvarGetSet<bool*>(Dvars::r_fogTweaks));
+			ImGui::ColorEdit4("Fog Color", Gui::DvarGetSet<float*>(Dvars::r_fogTweaksColor), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel);
+			ImGui::DragFloat("Fog Start", Gui::DvarGetSet<float*>(Dvars::r_fogTweaksStart), 5.0f, -1000.0f, 30000.0f, "%.4f");
+			ImGui::DragFloat("Fog Density", Gui::DvarGetSet<float*>(Dvars::r_fogTweaksDensity), 0.0001f, 0.0f, 1.0f, "%.4f");
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}

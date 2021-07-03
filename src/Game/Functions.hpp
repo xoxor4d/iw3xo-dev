@@ -5,6 +5,15 @@ namespace Game
 {
 	//extern char GfxBackEndData_surfsBuffer[0x60000]; // memes
 
+	//namespace daynight
+	//{
+	//	extern float _Height;
+	//	extern float _Intensity;
+	//	extern float _Rayleigh;
+	//	extern float _Mie;
+	//	extern float _Exposure;
+	//}
+
 #ifdef DEVGUI_OCEAN
 	namespace ocean
 	{
@@ -508,6 +517,7 @@ namespace Game
 	void Dvar_SetValue(dvar_s* _dvar, int _dvarValue);
 	void Dvar_SetValue(dvar_s* _dvar, bool _dvarValue);
 	void Dvar_SetValue(dvar_s* _dvar, const float _dvarValue);
+	void Dvar_SetValue(dvar_s* _dvar, const float* _dvarValue, int size);
 	void Dvar_SetValue(dvar_s* _dvar, const char *_dvarValue);
 
 	Game::dvar_s*	Dvar_RegisterString_hacky(const char *dvarName, const char *dvarValue, const char *description);
@@ -664,6 +674,11 @@ namespace Game
 
 	Game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
 	void Vec3UnpackUnitVec(Game::PackedUnitVec in, const float *out);
+
+	void Byte4UnpackRgba(const char* from, float* to);
+	char Byte1PackClamp(const float from);
+	void Byte4PackRgba(const float* from, char* to);
+	void Byte4PackPixelColor(const float* from, char* to);
 
 	// ----
 	// Draw
