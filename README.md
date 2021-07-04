@@ -3,16 +3,14 @@ This project is aimed at developers and includes various modifications/additions
 IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
 A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
 
+
+
 Pre-build binaries: https://github.com/xoxor4d/iw3xo-dev/releases  
 Changelog: https://github.com/xoxor4d/iw3xo-dev/wiki/Changelog  
 Project Page: https://xoxor4d.github.io/projects/iw3xo/
 
-___
 
-<p float="left">
-  <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg" width="48%" />
-  <img src="https://xoxor4d.github.io/assets/img/iw3xo/originVelocity.jpg" width="48%" align="right" /> 
-</p>
+<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
 
 ___
 
@@ -55,9 +53,22 @@ https://xoxor4d.github.io/projects/iw3xo/
 Discord:  
 https://discord.gg/t5jRGbj
 
-## Credits
-- The IW4x Team (client base)
+<p float="left">
+  <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg" width="47%" />
+  <img src="https://xoxor4d.github.io/assets/img/iw3xo/originVelocity.jpg" width="47%" align="right" /> 
+</p>
+<br>
+
+## Credits / Dependencies
+- The IW4x Team
 - The Plutonium Project Team
+- Nukem
+- https://github.com/ocornut/imgui
+- https://github.com/g-truc/glm/
+- https://github.com/devKlausS/dxsdk
+- https://github.com/Goblenus/WinHttpClient
+- https://github.com/Jelvan1/cgame_proxymod
+<br>
 
 ## Disclaimer
 This software has been created purely for the purposes of academic research. Project maintainers are not responsible or liable for misuse of the software. Use responsibly.
