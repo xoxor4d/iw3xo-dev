@@ -1389,7 +1389,7 @@ namespace Components
 
 		Dvars::r_wireframe_world = Game::Dvar_RegisterEnum(
 			/* name		*/ "r_wireframe_world",
-			/* desc		*/ "draw world objects using their wireframe technique",
+			/* desc		*/ "Draw world objects using their wireframe technique",
 			/* default	*/ 0,
 			/* enumSize	*/ r_wireframe_enum.size(),
 			/* enumData */ r_wireframe_enum.data(),
@@ -1397,7 +1397,7 @@ namespace Components
 
 		Dvars::r_wireframe_xmodels = Game::Dvar_RegisterEnum(
 			/* name		*/ "r_wireframe_xmodels",
-			/* desc		*/ "draw xmodels using its wireframe technique",
+			/* desc		*/ "Draw xmodels using their wireframe technique",
 			/* default	*/ 0,
 			/* enumSize	*/ r_wireframe_enum.size(),
 			/* enumData */ r_wireframe_enum.data(),

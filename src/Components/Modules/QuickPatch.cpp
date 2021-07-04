@@ -153,6 +153,13 @@ namespace Components
 		// elevator slide along all edges
 		//Utils::Hook::Set<BYTE>(0x4103E2, 0x01);
 
+
+		// *
+		// Fix fps on windows 10 (stuck at 500) :: sleep(1) to sleep(0)
+
+		Utils::Hook::Set<BYTE>(0x500014 + 1, 0x0);
+		Utils::Hook::Set<BYTE>(0x50007F + 1, 0x0); 
+
 #if 0
 		// *
 		// patch shadowmap
