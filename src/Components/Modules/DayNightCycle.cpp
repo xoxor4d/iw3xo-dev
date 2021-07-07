@@ -738,7 +738,7 @@ namespace Components
 	{
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-#ifdef DEBUG
+#if DEBUG
 		if (ImGui::Button("Reload xcommon_iw3xo_addon"))
 		{
 			Game::Cbuf_AddText("loadzone xcommon_iw3xo_addon\n", 0);
@@ -954,7 +954,7 @@ namespace Components
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 
-#ifdef DEBUG
+#if DEBUG
 		if (ImGui::CollapsingHeader("Debug Constants", ImGuiTreeNodeFlags_CollapsingHeader))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
