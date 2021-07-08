@@ -15,7 +15,6 @@ namespace Components
 		static void menu_tab_movement(Game::gui_menus_t& menu);
 		static void menu_tab_collision(Game::gui_menus_t& menu);
 		static void menu_tab_shaders(Game::gui_menus_t& menu);
-		static void menu_tab_radiant(Game::gui_menus_t& menu);
 		static void menu_tab_visuals(Game::gui_menus_t& menu);
 		static void menu_tab_settings(Game::gui_menus_t& menu);
 	};

@@ -127,28 +127,22 @@ namespace Components
 					ImGui::EndTabItem();
 				}
 
-				if (Components::active.Ocean)
+				if (Components::active.Ocean && ImGui::BeginTabItem("Ocean"))
 				{
-					if (ImGui::BeginTabItem("Ocean"))
-					{
-						Ocean::devgui_tab(menu);
-						ImGui::EndTabItem();
-					}
+					Ocean::devgui_tab(menu);
+					ImGui::EndTabItem();
 				}
 
-				if (Components::active.DayNightCycle)
+				if (Components::active.DayNightCycle && ImGui::BeginTabItem("DayNight"))
 				{
-					if (ImGui::BeginTabItem("DayNight"))
-					{
-						DayNightCycle::devgui_tab(menu);
-						ImGui::EndTabItem();
-					}
+					DayNightCycle::devgui_tab(menu);
+					ImGui::EndTabItem();
 				}
 			}
 
 			if (Components::active.RadiantRemote && ImGui::BeginTabItem("Radiant"))
 			{
-				Gui_Devgui::menu_tab_radiant(menu);
+				RadiantRemote::devgui_tab(menu);
 				ImGui::EndTabItem();
 			}
 
@@ -650,62 +644,6 @@ namespace Components
 		ImGui::DragFloat("xo_blur_alpha", &Game::Globals::xo_blur_alpha, 0.25, -50.0f, 50.0f, "%.1f");
 #endif
 		SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-	}
-
-	// *
-	// radiant tab
-	void Gui_Devgui::menu_tab_radiant(Game::gui_menus_t& menu)
-	{
-		// *
-		if (ImGui::CollapsingHeader("General Settings", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			ImGui::Checkbox("Enable Radiant Live-Link", Gui::DvarGetSet<bool*>(Dvars::radiant_live)); TT("radiant_live");
-			ImGui::SameLine();
-			ImGui::Checkbox("Enable Live-Link Debug", Gui::DvarGetSet<bool*>(Dvars::radiant_liveDebug)); TT("radiant_liveDebug");
-
-			SPACING(0.0f, 4.0f);
-
-			ImGui::InputInt("Live-Link Port", Gui::DvarGetSet<int*>(Dvars::radiant_livePort)); TT("radiant_livePort");
-
-			const char* radiant_cam_items[] = { "Disabled", "Radiant To Game", "Game To Radiant", "Both" };
-			ImGui::Combo("Camera Synchronization", Gui::DvarGetSet<int*>(Dvars::radiant_syncCamera), radiant_cam_items, IM_ARRAYSIZE(radiant_cam_items)); TT("radiant_syncCamera");
-
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-		}
-
-		// *
-		if (ImGui::CollapsingHeader("Brush Settings", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			ImGui::Checkbox("Brush Collision", Gui::DvarGetSet<bool*>(Dvars::radiant_brushCollision)); TT("radiant_brushCollision");
-			ImGui::SameLine();
-			ImGui::Checkbox("Brush Fake-Light", Gui::DvarGetSet<bool*>(Dvars::radiant_brushLit)); TT("radiant_brushLit");
-			ImGui::SameLine();
-			ImGui::Checkbox("Brush Wireframe", Gui::DvarGetSet<bool*>(Dvars::radiant_brushWireframe)); TT("radiant_brushWireframe");
-
-			SPACING(0.0f, 4.0f);
-
-			ImGui::ColorEdit4("Brush Color", Gui::DvarGetSet<float*>(Dvars::radiant_brushColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("radiant_brushColor");
-
-			ImGui::ColorEdit4("Wireframe Color", Gui::DvarGetSet<float*>(Dvars::radiant_brushWireframeColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("radiant_brushWireframeColor");
-
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-		}
-
-		// *
-		if (ImGui::CollapsingHeader("Commands", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			if (ImGui::Button("Save Current Selection")) { CMDEXEC("radiant_saveSelection"); } TT("radiant_saveSelection");
-			ImGui::SameLine();
-			if (ImGui::Button("Clear Saved Selection")) { CMDEXEC("radiant_clearSaved"); } TT("radiant_clearSaved");
-
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-		}
 	}
 
 	void Gui_Devgui::menu_tab_visuals(Game::gui_menus_t& menu)

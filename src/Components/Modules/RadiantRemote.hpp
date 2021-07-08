@@ -35,6 +35,8 @@ namespace Components
 		static void		CM_FindDynamicBrushModels();
 		static void		RadiantDebugBrush();
 
+		static void		devgui_tab(Game::gui_menus_t& menu);
+
 	private:
 	};
 }
