@@ -27,7 +27,6 @@
 #define GGUI_ANY_MENUS_OPEN Game::Globals::gui.any_menus_open
 #define GGUI_MENU_COUNT 4
 
-#define DEVGUI_OCEAN // comment to disable tab
 //#define DEVGUI_XO_BLUR // iw4 blur shader test
 
 // *

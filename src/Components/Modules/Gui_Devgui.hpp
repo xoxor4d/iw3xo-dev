@@ -17,9 +17,6 @@ namespace Components
 		static void menu_tab_shaders(Game::gui_menus_t& menu);
 		static void menu_tab_radiant(Game::gui_menus_t& menu);
 		static void menu_tab_visuals(Game::gui_menus_t& menu);
-#ifdef DEVGUI_OCEAN
-		static void menu_tab_ocean(Game::gui_menus_t& menu);
-#endif
 		static void menu_tab_settings(Game::gui_menus_t& menu);
 	};
 }

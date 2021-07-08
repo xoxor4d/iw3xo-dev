@@ -43,6 +43,7 @@ namespace Components
 		active.CGaz				 = true;
 		active.Mvm				 = true;
 		active.DayNightCycle	 = true;
+		active.Ocean			 = true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_UI);
@@ -74,6 +75,7 @@ namespace Components
 		REGISTER_MODULE(CGaz);
 		REGISTER_MODULE(Mvm);
 		REGISTER_MODULE(DayNightCycle);
+		REGISTER_MODULE(Ocean);
 	}
 
 	void Loader::Uninitialize()
