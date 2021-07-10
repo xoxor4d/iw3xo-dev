@@ -1067,7 +1067,7 @@ namespace Components
 		}
 	}
 
-
+	
 	void vertexshader_custom_constants(Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state)
 	{
 		// fixup cod4 code constants
@@ -1084,22 +1084,6 @@ namespace Components
 					{
 						Ocean::set_vertexshader_constants(state, arg_def);
 					}
-					
-					//// matrix if bigger then 58 (matrix fuckery :bad:)
-					//if (arg_def->u.codeConst.index >= 58)
-					//{
-					//	// R_GetCodeMatrix
-					//	float* matrix = Utils::function<float* (Game::GfxCmdBufSourceState* source, int argIndex, char row)>(0x631D90)(source, arg_def->u.codeConst.index, arg_def->u.codeConst.firstRow);
-
-					//	if (matrix)
-					//	{
-					//		matrix[3] += 0.2f;
-					//		matrix[6] += 0.2f;
-					//		matrix[9] += 0.2f;
-					//		matrix[12] += 0.2f;
-					//		(*Game::dx9_device_ptr)->SetVertexShaderConstantF(arg_def->dest, matrix, arg_def->u.codeConst.rowCount);
-					//	}
-					//}
 				}
 
 				// reference
@@ -1146,6 +1130,189 @@ namespace Components
 		}
 	}
 
+	// *
+	// *
+
+#pragma warning(push)
+#pragma warning(disable: 6385)
+#pragma warning(disable: 6386)
+	void MatrixMultiply44(const float(*in1)[4], const float(*in2)[4], float(*out)[4])
+	{
+		(*out)[0]  = ((((*in1)[0]  * (*in2)[0]) + ((*in1)[1]  * (*in2)[4])) + ((*in1)[2]  * (*in2)[8]))  + ((*in1)[3]  * (*in2)[12]);
+		(*out)[1]  = ((((*in1)[0]  * (*in2)[1]) + ((*in1)[1]  * (*in2)[5])) + ((*in1)[2]  * (*in2)[9]))  + ((*in1)[3]  * (*in2)[13]);
+		(*out)[2]  = ((((*in1)[0]  * (*in2)[2]) + ((*in1)[1]  * (*in2)[6])) + ((*in1)[2]  * (*in2)[10])) + ((*in1)[3]  * (*in2)[14]);
+		(*out)[3]  = ((((*in1)[0]  * (*in2)[3]) + ((*in1)[1]  * (*in2)[7])) + ((*in1)[2]  * (*in2)[11])) + ((*in1)[3]  * (*in2)[15]);
+		(*out)[4]  = ((((*in1)[4]  * (*in2)[0]) + ((*in1)[5]  * (*in2)[4])) + ((*in1)[6]  * (*in2)[8]))  + ((*in1)[7]  * (*in2)[12]);
+		(*out)[5]  = ((((*in1)[4]  * (*in2)[1]) + ((*in1)[5]  * (*in2)[5])) + ((*in1)[6]  * (*in2)[9]))  + ((*in1)[7]  * (*in2)[13]);
+		(*out)[6]  = ((((*in1)[4]  * (*in2)[2]) + ((*in1)[5]  * (*in2)[6])) + ((*in1)[6]  * (*in2)[10])) + ((*in1)[7]  * (*in2)[14]);
+		(*out)[7]  = ((((*in1)[4]  * (*in2)[3]) + ((*in1)[5]  * (*in2)[7])) + ((*in1)[6]  * (*in2)[11])) + ((*in1)[7]  * (*in2)[15]);
+		(*out)[8]  = ((((*in1)[8]  * (*in2)[0]) + ((*in1)[9]  * (*in2)[4])) + ((*in1)[10] * (*in2)[8]))  + ((*in1)[11] * (*in2)[12]);
+		(*out)[9]  = ((((*in1)[8]  * (*in2)[1]) + ((*in1)[9]  * (*in2)[5])) + ((*in1)[10] * (*in2)[9]))  + ((*in1)[11] * (*in2)[13]);
+		(*out)[10] = ((((*in1)[8]  * (*in2)[2]) + ((*in1)[9]  * (*in2)[6])) + ((*in1)[10] * (*in2)[10])) + ((*in1)[11] * (*in2)[14]);
+		(*out)[11] = ((((*in1)[8]  * (*in2)[3]) + ((*in1)[9]  * (*in2)[7])) + ((*in1)[10] * (*in2)[11])) + ((*in1)[11] * (*in2)[15]);
+		(*out)[12] = ((((*in1)[12] * (*in2)[0]) + ((*in1)[13] * (*in2)[4])) + ((*in1)[14] * (*in2)[8]))  + ((*in1)[15] * (*in2)[12]);
+		(*out)[13] = ((((*in1)[12] * (*in2)[1]) + ((*in1)[13] * (*in2)[5])) + ((*in1)[14] * (*in2)[9]))  + ((*in1)[15] * (*in2)[13]);
+		(*out)[14] = ((((*in1)[12] * (*in2)[2]) + ((*in1)[13] * (*in2)[6])) + ((*in1)[14] * (*in2)[10])) + ((*in1)[15] * (*in2)[14]);
+		(*out)[15] = ((((*in1)[12] * (*in2)[3]) + ((*in1)[13] * (*in2)[7])) + ((*in1)[14] * (*in2)[11])) + ((*in1)[15] * (*in2)[15]);
+	}
+
+	void InfinitePerspectiveMatrix(const float tanHalfFovX, const float tanHalfFovY, const float zNear, float(*mtx)[4])
+	{
+		(*mtx)[0]  = 0.99951172f / tanHalfFovX;
+		(*mtx)[5]  = 0.99951172f / tanHalfFovY;
+		(*mtx)[10] = 0.99951172f;
+		(*mtx)[11] = 1.0f;
+		(*mtx)[14] = 0.99951171875f * -zNear;
+	}
+
+	void MatrixForViewer(const float* origin, const float(*axis)[3], float(*mtx)[4])
+	{
+		// [0][0] to [3][0]
+		(*mtx)[0]  = -(*axis)[3];
+		(*mtx)[4]  = -(*axis)[4];
+		(*mtx)[8]  = -(*axis)[5];
+		(*mtx)[12] = -((*origin * (*mtx)[0]) + (origin[1] * (*mtx)[4]) + (origin[2] * (*mtx)[8]));
+		
+		// [0][1] to [3][1]
+		(*mtx)[1]  = (*axis)[6];
+		(*mtx)[5]  = (*axis)[7];
+		(*mtx)[9]  = (*axis)[8];
+		(*mtx)[13] = -((*origin * (*mtx)[1]) + (origin[1] * (*mtx)[5]) + (origin[2] * (*mtx)[9]));
+
+		// [0][2] to [3][2]
+		(*mtx)[2]  = (*axis)[0];
+		(*mtx)[6]  = (*axis)[1];
+		(*mtx)[10] = (*axis)[2];
+		(*mtx)[14] = -((*origin * (*mtx)[2]) + (origin[1] * (*mtx)[6]) + (origin[2] * (*mtx)[10]));
+
+		// [0][3] to [3][3]
+		(*mtx)[3]  = 0.0f;
+		(*mtx)[7]  = 0.0f;
+		(*mtx)[11] = 0.0f;
+		(*mtx)[15] = 1.0f;
+	}
+#pragma warning(pop)
+	
+	// rewrite of CG_GetViewFov()
+	float calculate_worldfov_with_zoom(float fov_val)
+	{
+		float calc_fov;
+
+		const auto& cg_fovScale = Game::Dvar_FindVar("cg_fovScale");
+		const auto& cg_fovMin = Game::Dvar_FindVar("cg_fovMin");
+
+		unsigned int offhand_index = Game::cgs->predictedPlayerState.offHandIndex;
+		if ((Game::cgs->predictedPlayerState.weapFlags & 2) == 0)
+		{
+			offhand_index = Game::cgs->predictedPlayerState.weapon;
+		}
+		
+		Game::WeaponDef* weapon = Game::BG_WeaponNames[offhand_index];
+		if (Game::cgs->predictedPlayerState.pm_type == 5)
+		{
+			calc_fov = 90.0f;
+			goto LABEL_16;
+		}
+		
+		calc_fov = fov_val;
+		if (weapon->aimDownSight)
+		{
+			if (Game::cgs->predictedPlayerState.fWeaponPosFrac == 1.0f)
+			{
+				calc_fov = weapon->fAdsZoomFov;
+				goto LABEL_16;
+			}
+			
+			if (0.0f != Game::cgs->predictedPlayerState.fWeaponPosFrac)
+			{
+				float ads_factor;
+				
+				if (Game::cgs->playerEntity.bPositionToADS)
+				{
+					const float w_pos_frac = Game::cgs->predictedPlayerState.fWeaponPosFrac - (1.0f - weapon->fAdsZoomInFrac);
+					if (w_pos_frac <= 0.0f)
+					{
+						goto LABEL_16;
+					}
+					ads_factor = w_pos_frac / weapon->fAdsZoomInFrac;
+				}
+				else
+				{
+					const float w_pos_frac = Game::cgs->predictedPlayerState.fWeaponPosFrac - (1.0f - weapon->fAdsZoomOutFrac);
+					if (w_pos_frac <= 0.0f)
+					{
+						goto LABEL_16;
+					}
+					ads_factor = w_pos_frac / weapon->fAdsZoomOutFrac;
+				}
+				
+				if (ads_factor > 0.0f)
+				{
+					calc_fov = calc_fov - ads_factor * (calc_fov - weapon->fAdsZoomFov);
+				}
+			}
+		}
+		
+	LABEL_16:
+		if ((Game::cgs->predictedPlayerState.eFlags & 0x300) != 0)
+		{
+			calc_fov = 55.0f;
+		}
+
+		float calc_fov_out = cg_fovScale->current.value * calc_fov;
+
+		if (cg_fovMin->current.value - calc_fov_out >= 0.0f)
+		{
+			calc_fov_out = cg_fovMin->current.value;
+		}
+		
+		return calc_fov_out;
+	}
+
+	void set_worldfov(Game::GfxViewParms* viewParms)
+	{
+		if(Dvars::cg_fov_world_tweaks && Dvars::cg_fov_world_tweaks->current.enabled)
+		{
+			// calc world fov + weapon zoom
+			const float world_fov = calculate_worldfov_with_zoom(Dvars::cg_fov_world->current.value);
+			const float w_fov = 0.75f * tanf(world_fov * 0.01745329238474369f * 0.5f);
+
+			const float tanHalfX = ((float)Game::cgs->refdef.width / (float)Game::cgs->refdef.height) * w_fov;
+			const float tanHalfY = w_fov;
+
+			// calc viewmatrix
+			float view_mtx[4][4] = { 0.0f };
+			MatrixForViewer(viewParms->origin, viewParms->axis, view_mtx);
+
+			// calc projection matrix
+			float proj_mtx[4][4] = { 0.0f };
+			InfinitePerspectiveMatrix(tanHalfX, tanHalfY, viewParms->zNear, proj_mtx);
+
+			// calc viewprojection matrix
+			float viewproj_mtx[4][4] = { 0.0f };
+			MatrixMultiply44(view_mtx, proj_mtx, viewproj_mtx);
+
+			// only overwrite the projection matrix ;)
+			memcpy(viewParms->viewProjectionMatrix.m, viewproj_mtx, sizeof(Game::GfxMatrix));
+		}
+	}
+	
+	__declspec(naked) void R_SetViewParmsForScene_stub()
+	{
+		const static uint32_t retn_pt = 0x5FAA0B;
+		__asm
+		{
+			pushad;
+			push	edi; // viewParms
+			call	set_worldfov;
+			add		esp, 4;
+			popad;
+			
+			// stock op's
+			lea     ecx, [edi + 0C0h];
+			jmp		retn_pt;
+		}
+	}
 
 	/* ---------------------------------------------------------- */
 
@@ -1319,9 +1486,27 @@ namespace Components
 		Utils::Hook::Nop(0x64BEDB, 7);
 		Utils::Hook(0x64BEDB, R_SetPassPixelShaderStableArguments_stub, HOOK_JUMP).install()->quick();
 
-		// custom vertexshader code constants / per object
+		// custom vertexshader code constants / per object :: R_SetPassShaderObjectArguments
 		Utils::Hook::Nop(0x64BD22, 7);
 		Utils::Hook(0x64BD22, R_SetVertexShaderConstantFromCode_stub, HOOK_JUMP).install()->quick();
+
+		// seperate world and viewmodel fov
+		Utils::Hook::Nop(0x5FAA05, 6);
+		Utils::Hook(0x5FAA05, R_SetViewParmsForScene_stub, HOOK_JUMP).install()->quick();
+
+		Dvars::cg_fov_world_tweaks = Game::Dvar_RegisterBool(
+			/* name		*/ "cg_fov_world_tweaks",
+			/* desc		*/ "Enable world fov tweaks",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::saved);
+		
+		Dvars::cg_fov_world = Game::Dvar_RegisterFloat(
+			/* name		*/ "cg_fov_world",
+			/* desc		*/ "Adjust world fov separately (wont effect viewmodel fov)",
+			/* default	*/ 65.0f,
+			/* minVal	*/ 20.0f,
+			/* maxVal	*/ 160.0f,
+			/* flags	*/ Game::dvar_flags::saved);
 	}
 
 	_Renderer::~_Renderer()

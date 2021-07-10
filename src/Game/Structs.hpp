@@ -4541,7 +4541,7 @@ namespace Game
 			unsigned int pad[2];
 		};
 
-		struct GfxViewParmsNoPad
+		struct GfxViewParms
 		{
 			GfxMatrix viewMatrix;
 			GfxMatrix projectionMatrix;
@@ -4554,7 +4554,7 @@ namespace Game
 			float zFar;
 		};
 
-		struct GfxViewParms
+		/*struct GfxViewParms
 		{
 			GfxMatrix viewMatrix;
 			GfxMatrix projectionMatrix;
@@ -4566,7 +4566,7 @@ namespace Game
 			float zNear;
 			float zFar;
 			int pad;
-		};
+		};*/
 
 		struct FxCodeMeshData
 		{
@@ -4889,7 +4889,7 @@ namespace Game
 			char surfsBuffer[131072];
 			FxCodeMeshData codeMeshes[2048];
 			unsigned int primDrawSurfsBuf[65536];
-			GfxViewParmsNoPad viewParms[28]; // GfxViewParms either has pad or zFar
+			GfxViewParms viewParms[28]; // GfxViewParms either has pad or zFar
 			char primaryLightTechType[13][256];
 			float codeMeshArgs[256][4];
 			GfxParticleCloud clouds[256];
@@ -4933,9 +4933,9 @@ namespace Game
 			DebugGlobals debugGlobals;
 			unsigned int drawType;
 		};
-#pragma warning( pop )
 
-		struct __declspec() GfxCmdBufInput
+
+		struct __declspec(align(8)) GfxCmdBufInput
 		{
 			float consts[58][4];
 			GfxImage *codeImages[27];
@@ -4945,7 +4945,7 @@ namespace Game
 
 		struct GfxViewInfo
 		{
-			GfxViewParmsNoPad viewParms;
+			GfxViewParms viewParms;
 			GfxSceneDef sceneDef;
 			GfxViewport sceneViewport;
 			GfxViewport displayViewport;
@@ -4980,6 +4980,7 @@ namespace Game
 			__declspec(align(1)) GfxDrawSurfListInfo emissiveInfo;
 			GfxCmdBufInput input;
 		};
+#pragma warning( pop )
 
 		struct GfxCodeMatrices
 		{
@@ -5033,7 +5034,9 @@ namespace Game
 		};
 
 
-		struct __declspec() GfxCmdBufSourceState
+#pragma warning( push )
+#pragma warning( disable : 4324 )
+		struct __declspec(align(16)) GfxCmdBufSourceState
 		{
 			GfxCodeMatrices matrices;
 			GfxCmdBufInput input;
@@ -5058,6 +5061,7 @@ namespace Game
 			bool viewportIsDirty;
 			unsigned int shadowableLightIndex;
 		};
+#pragma warning( pop )
 
 		struct GfxImageFilterPass
 		{
@@ -6824,8 +6828,7 @@ namespace Game
 #pragma warning( disable : 4324 )
 		struct __declspec(align(8)) r_globals_t
 		{
-			//GfxViewParms identityViewParms;
-			GfxViewParmsNoPad identityViewParms;
+			GfxViewParms identityViewParms;
 			bool inFrame;
 			bool registered;
 			bool forbidDelayLoadImages;

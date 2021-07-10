@@ -686,7 +686,7 @@ namespace Components
 					}
 				}
 			}
-
+			
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 
@@ -734,6 +734,22 @@ namespace Components
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
+
+		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+		ImGui::Checkbox("Tweak World FOV", Gui::DvarGetSet<bool*>(Dvars::cg_fov_world_tweaks));
+		ImGui::DragFloat("World FOV", Gui::DvarGetSet<float*>(Dvars::cg_fov_world), 0.05f, 20.0f, 160.0f, "%.2f");
+
+		const auto cg_fov = Game::Dvar_FindVar("cg_fov");
+		const auto cg_fovScale = Game::Dvar_FindVar("cg_fovScale");
+
+		if(cg_fov && cg_fovScale)
+		{
+			ImGui::DragFloat("cg_fov", Gui::DvarGetSet<float*>(cg_fov), 0.05f, 65.0f, 80.0f, "%.2f");
+			ImGui::DragFloat("cg_fovScale", Gui::DvarGetSet<float*>(cg_fovScale), 0.05f, 0.2f, 2.0f, "%.2f");
+		}
+		
+		SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 	}
 
 
