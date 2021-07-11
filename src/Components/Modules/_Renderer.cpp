@@ -721,6 +721,8 @@ namespace Components
 		swm->material = swm->current_material;
 	}
 
+	// memes
+	// bool rendered_scope = false;
 
 	// *
 	// :>
@@ -831,6 +833,20 @@ namespace Components
 				}
 			}
 
+			// memes
+			//{
+			//	if (Utils::Contains(mat.current_material->info.name, "mtl_weapon_acog_reticle"))
+			//	{
+			//		// float* matrix = Utils::function<float* (Game::GfxCmdBufSourceState* source, int argIndex, char row)>(0x631D90)(source, arg_def->u.codeConst.index, arg_def->u.codeConst.firstRow);
+			//		//Utils::function<void(Game::GfxViewInfo* view, float blur)>(0x63BFD0)(Game::_frontEndDataOut->viewInfo, 2.0f);
+
+			//		//mat.technique_type = Game::TECHNIQUE_UNLIT;
+			//		_Renderer::switch_technique(&mat, "reticle_blur");
+
+			//		rendered_scope = true;
+			//	}
+			//}
+
 
 			if (!mat.switch_material && !mat.switch_technique && !mat.switch_technique_type)
 			{
@@ -934,6 +950,19 @@ namespace Components
 
 		disable:
 			jmp		rtnPt;
+		}
+	}
+
+	__declspec(naked) void R_SetMaterial_Emissive_stub()
+	{
+		const static uint32_t rtn_to_rtn = 0x6490BF;
+		__asm
+		{
+			push	esi;		// techType
+			call	R_SetMaterial;
+			pop		esi;
+			add     esp, 10h;
+			jmp		rtn_to_rtn;
 		}
 	}
 
@@ -1314,6 +1343,36 @@ namespace Components
 		}
 	}
 
+
+	// memes
+	//void dosth(Game::GfxViewInfo* view)
+	//{
+	//	if(rendered_scope)
+	//	{
+	//		Utils::function<void(Game::GfxViewInfo*, float)>(0x63BFD0)(view, 16.0f);
+	//		rendered_scope = false;
+	//	}
+	//}
+
+	//__declspec(naked) void do_sth_stub()
+	//{
+	//	const static uint32_t R_DrawEmissive_Func = 0x64AEF0;
+	//	const static uint32_t retn_pt = 0x64B377;
+	//	__asm
+	//	{
+	//		pushad;
+	//		push	edi; // viewParms
+	//		call	dosth;
+	//		add		esp, 4;
+	//		popad;
+	//		
+	//		call	R_DrawEmissive_Func;
+	//		//add     esp, 10h;
+
+	//		jmp		retn_pt;
+	//	}
+	//}
+
 	/* ---------------------------------------------------------- */
 
 #if 0
@@ -1480,6 +1539,7 @@ namespace Components
 		// Hook R_SetMaterial
 		Utils::Hook(0x648F86, R_SetMaterial_stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x648F3C, R_SetPrepassMaterial_stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x6490B7, R_SetMaterial_Emissive_stub, HOOK_JUMP).install()->quick();
 
 
 		// custom pixelshader code constants
@@ -1507,6 +1567,13 @@ namespace Components
 			/* minVal	*/ 20.0f,
 			/* maxVal	*/ 160.0f,
 			/* flags	*/ Game::dvar_flags::saved);
+
+		// memes
+		//Utils::Hook(0x64B372, do_sth_stub, HOOK_JUMP).install()->quick();
+
+		// increase fps cap to 125 for menus and loadscreen
+		Utils::Hook::Set<BYTE>(0x500174 + 2, 8);
+		Utils::Hook::Set<BYTE>(0x500177 + 2, 8);
 	}
 
 	_Renderer::~_Renderer()
