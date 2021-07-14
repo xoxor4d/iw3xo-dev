@@ -156,8 +156,8 @@ namespace Dvars
 	Game::dvar_s* r_fogTweaksStart = nullptr;
 	Game::dvar_s* r_fogTweaksDensity = nullptr;
 
-	Game::dvar_s* cg_fov_world = nullptr;
-	Game::dvar_s* cg_fov_world_tweaks = nullptr;
+	Game::dvar_s* cg_fov_gun = nullptr;
+	Game::dvar_s* cg_fov_tweaks = nullptr;
 	
 	// Debug Collision
 	Game::dvar_s* r_drawCollision = nullptr;

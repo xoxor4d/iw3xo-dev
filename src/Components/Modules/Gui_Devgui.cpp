@@ -737,8 +737,8 @@ namespace Components
 
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-		ImGui::Checkbox("Tweak World FOV", Gui::DvarGetSet<bool*>(Dvars::cg_fov_world_tweaks));
-		ImGui::DragFloat("World FOV", Gui::DvarGetSet<float*>(Dvars::cg_fov_world), 0.05f, 20.0f, 160.0f, "%.2f");
+		ImGui::Checkbox("Tweak Gun FOV", Gui::DvarGetSet<bool*>(Dvars::cg_fov_tweaks));
+		ImGui::DragFloat("Gun FOV", Gui::DvarGetSet<float*>(Dvars::cg_fov_gun), 0.05f, 20.0f, 160.0f, "%.2f");
 
 		const auto cg_fov = Game::Dvar_FindVar("cg_fov");
 		const auto cg_fovScale = Game::Dvar_FindVar("cg_fovScale");

@@ -10,6 +10,7 @@ namespace Components
 	int  streams_currentView = 0;
 	int  client_msec = 0;
 
+
 	void Screenshot(std::string prefix = "recording")
 	{
 		std::string mod_name, demo_name = "";
@@ -54,6 +55,7 @@ namespace Components
 		D3DXSaveSurfaceToFileA(screenshot_path, D3DXIFF_TGA, backbuffer, NULL, NULL);
 		backbuffer->Release();
 	}
+
 
 	void toggle_greenscreen(bool state)
 	{
@@ -108,6 +110,7 @@ namespace Components
 		}
 	}
 
+
 	void toggle_depthmap(bool state)
 	{
 		if (state)
@@ -119,6 +122,7 @@ namespace Components
 			Game::Dvar_SetValue(Dvars::xo_shaderoverlay, 0);
 		}
 	}
+
 
 	// called from D3D9Ex::D3D9Device::BeginScene()
 	void Mvm::avidemo_streams()
@@ -192,9 +196,9 @@ namespace Components
 						case 3:
 							toggle_greenscreen(0);
 
-							if (Dvars::cl_avidemo_streams_viewmodel && !Dvars::cl_avidemo_streams_viewmodel->current.enabled)
+							if (Dvars::cl_avidemo_streams_viewmodel)
 							{
-								Game::Dvar_SetValue(cg_drawGun, false);
+								Game::Dvar_SetValue(cg_drawGun, Dvars::cl_avidemo_streams_viewmodel->current.enabled);
 							}
 
 							streams_prepare = true;
@@ -215,9 +219,9 @@ namespace Components
 								toggle_depthmap(1);
 							}
 
-							if (Dvars::cl_avidemo_streams_viewmodel && Dvars::cl_avidemo_streams_viewmodel->current.enabled)
+							if (Dvars::cl_avidemo_streams_viewmodel)
 							{
-								Game::Dvar_SetValue(cg_drawGun, false);
+								Game::Dvar_SetValue(cg_drawGun, Dvars::cl_avidemo_streams_viewmodel->current.enabled);
 							}
 							
 							streams_prepare = true;
@@ -242,6 +246,7 @@ namespace Components
 							{
 								toggle_greenscreen(1);
 								Game::Dvar_SetValue(cg_draw2D, true);
+								Game::Dvar_SetValue(cg_drawGun, false);
 							}
 							
 							streams_prepare = true;

@@ -163,8 +163,8 @@ namespace Dvars
 	extern Game::dvar_s* r_fogTweaksStart;
 	extern Game::dvar_s* r_fogTweaksDensity;
 
-	extern Game::dvar_s* cg_fov_world;
-	extern Game::dvar_s* cg_fov_world_tweaks;
+	extern Game::dvar_s* cg_fov_gun;
+	extern Game::dvar_s* cg_fov_tweaks;
 
 	// Debug collision
 	extern Game::dvar_s* r_drawCollision;

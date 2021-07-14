@@ -1165,26 +1165,6 @@ namespace Components
 #pragma warning(push)
 #pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
-	void MatrixMultiply44(const float(*in1)[4], const float(*in2)[4], float(*out)[4])
-	{
-		(*out)[0]  = ((((*in1)[0]  * (*in2)[0]) + ((*in1)[1]  * (*in2)[4])) + ((*in1)[2]  * (*in2)[8]))  + ((*in1)[3]  * (*in2)[12]);
-		(*out)[1]  = ((((*in1)[0]  * (*in2)[1]) + ((*in1)[1]  * (*in2)[5])) + ((*in1)[2]  * (*in2)[9]))  + ((*in1)[3]  * (*in2)[13]);
-		(*out)[2]  = ((((*in1)[0]  * (*in2)[2]) + ((*in1)[1]  * (*in2)[6])) + ((*in1)[2]  * (*in2)[10])) + ((*in1)[3]  * (*in2)[14]);
-		(*out)[3]  = ((((*in1)[0]  * (*in2)[3]) + ((*in1)[1]  * (*in2)[7])) + ((*in1)[2]  * (*in2)[11])) + ((*in1)[3]  * (*in2)[15]);
-		(*out)[4]  = ((((*in1)[4]  * (*in2)[0]) + ((*in1)[5]  * (*in2)[4])) + ((*in1)[6]  * (*in2)[8]))  + ((*in1)[7]  * (*in2)[12]);
-		(*out)[5]  = ((((*in1)[4]  * (*in2)[1]) + ((*in1)[5]  * (*in2)[5])) + ((*in1)[6]  * (*in2)[9]))  + ((*in1)[7]  * (*in2)[13]);
-		(*out)[6]  = ((((*in1)[4]  * (*in2)[2]) + ((*in1)[5]  * (*in2)[6])) + ((*in1)[6]  * (*in2)[10])) + ((*in1)[7]  * (*in2)[14]);
-		(*out)[7]  = ((((*in1)[4]  * (*in2)[3]) + ((*in1)[5]  * (*in2)[7])) + ((*in1)[6]  * (*in2)[11])) + ((*in1)[7]  * (*in2)[15]);
-		(*out)[8]  = ((((*in1)[8]  * (*in2)[0]) + ((*in1)[9]  * (*in2)[4])) + ((*in1)[10] * (*in2)[8]))  + ((*in1)[11] * (*in2)[12]);
-		(*out)[9]  = ((((*in1)[8]  * (*in2)[1]) + ((*in1)[9]  * (*in2)[5])) + ((*in1)[10] * (*in2)[9]))  + ((*in1)[11] * (*in2)[13]);
-		(*out)[10] = ((((*in1)[8]  * (*in2)[2]) + ((*in1)[9]  * (*in2)[6])) + ((*in1)[10] * (*in2)[10])) + ((*in1)[11] * (*in2)[14]);
-		(*out)[11] = ((((*in1)[8]  * (*in2)[3]) + ((*in1)[9]  * (*in2)[7])) + ((*in1)[10] * (*in2)[11])) + ((*in1)[11] * (*in2)[15]);
-		(*out)[12] = ((((*in1)[12] * (*in2)[0]) + ((*in1)[13] * (*in2)[4])) + ((*in1)[14] * (*in2)[8]))  + ((*in1)[15] * (*in2)[12]);
-		(*out)[13] = ((((*in1)[12] * (*in2)[1]) + ((*in1)[13] * (*in2)[5])) + ((*in1)[14] * (*in2)[9]))  + ((*in1)[15] * (*in2)[13]);
-		(*out)[14] = ((((*in1)[12] * (*in2)[2]) + ((*in1)[13] * (*in2)[6])) + ((*in1)[14] * (*in2)[10])) + ((*in1)[15] * (*in2)[14]);
-		(*out)[15] = ((((*in1)[12] * (*in2)[3]) + ((*in1)[13] * (*in2)[7])) + ((*in1)[14] * (*in2)[11])) + ((*in1)[15] * (*in2)[15]);
-	}
-
 	void InfinitePerspectiveMatrix(const float tanHalfFovX, const float tanHalfFovY, const float zNear, float(*mtx)[4])
 	{
 		(*mtx)[0]  = 0.99951172f / tanHalfFovX;
@@ -1193,41 +1173,12 @@ namespace Components
 		(*mtx)[11] = 1.0f;
 		(*mtx)[14] = 0.99951171875f * -zNear;
 	}
-
-	void MatrixForViewer(const float* origin, const float(*axis)[3], float(*mtx)[4])
-	{
-		// [0][0] to [3][0]
-		(*mtx)[0]  = -(*axis)[3];
-		(*mtx)[4]  = -(*axis)[4];
-		(*mtx)[8]  = -(*axis)[5];
-		(*mtx)[12] = -((*origin * (*mtx)[0]) + (origin[1] * (*mtx)[4]) + (origin[2] * (*mtx)[8]));
-		
-		// [0][1] to [3][1]
-		(*mtx)[1]  = (*axis)[6];
-		(*mtx)[5]  = (*axis)[7];
-		(*mtx)[9]  = (*axis)[8];
-		(*mtx)[13] = -((*origin * (*mtx)[1]) + (origin[1] * (*mtx)[5]) + (origin[2] * (*mtx)[9]));
-
-		// [0][2] to [3][2]
-		(*mtx)[2]  = (*axis)[0];
-		(*mtx)[6]  = (*axis)[1];
-		(*mtx)[10] = (*axis)[2];
-		(*mtx)[14] = -((*origin * (*mtx)[2]) + (origin[1] * (*mtx)[6]) + (origin[2] * (*mtx)[10]));
-
-		// [0][3] to [3][3]
-		(*mtx)[3]  = 0.0f;
-		(*mtx)[7]  = 0.0f;
-		(*mtx)[11] = 0.0f;
-		(*mtx)[15] = 1.0f;
-	}
 #pragma warning(pop)
 	
 	// rewrite of CG_GetViewFov()
-	float calculate_worldfov_with_zoom(float fov_val)
+	float calculate_gunfov_with_zoom(float fov_val)
 	{
 		float calc_fov;
-
-		const auto& cg_fovScale = Game::Dvar_FindVar("cg_fovScale");
 		const auto& cg_fovMin = Game::Dvar_FindVar("cg_fovMin");
 
 		unsigned int offhand_index = Game::cgs->predictedPlayerState.offHandIndex;
@@ -1288,41 +1239,31 @@ namespace Components
 			calc_fov = 55.0f;
 		}
 
-		float calc_fov_out = cg_fovScale->current.value * calc_fov;
-
-		if (cg_fovMin->current.value - calc_fov_out >= 0.0f)
+		if (cg_fovMin->current.value - calc_fov >= 0.0f)
 		{
-			calc_fov_out = cg_fovMin->current.value;
+			calc_fov = cg_fovMin->current.value;
 		}
 		
-		return calc_fov_out;
+		return calc_fov;
 	}
 
-	void set_worldfov(Game::GfxViewParms* viewParms)
+	void set_gunfov(Game::GfxViewParms* viewParms)
 	{
-		if(Dvars::cg_fov_world_tweaks && Dvars::cg_fov_world_tweaks->current.enabled)
+		if(Dvars::cg_fov_tweaks && Dvars::cg_fov_tweaks->current.enabled)
 		{
-			// calc world fov + weapon zoom
-			const float world_fov = calculate_worldfov_with_zoom(Dvars::cg_fov_world->current.value);
-			const float w_fov = 0.75f * tanf(world_fov * 0.01745329238474369f * 0.5f);
+			// calc gun fov (includes weapon zoom)
+			const float gun_fov = calculate_gunfov_with_zoom(Dvars::cg_fov_gun->current.value);
+			const float w_fov = 0.75f * tanf(gun_fov * 0.01745329238474369f * 0.5f);
 
-			const float tanHalfX = ((float)Game::cgs->refdef.width / (float)Game::cgs->refdef.height) * w_fov;
+			const float tanHalfX = (static_cast<float>(Game::cgs->refdef.width) / static_cast<float>(Game::cgs->refdef.height)) * w_fov;
 			const float tanHalfY = w_fov;
 
-			// calc viewmatrix
-			float view_mtx[4][4] = { 0.0f };
-			MatrixForViewer(viewParms->origin, viewParms->axis, view_mtx);
-
 			// calc projection matrix
-			float proj_mtx[4][4] = { 0.0f };
+			float proj_mtx[4][4] = {};
 			InfinitePerspectiveMatrix(tanHalfX, tanHalfY, viewParms->zNear, proj_mtx);
 
-			// calc viewprojection matrix
-			float viewproj_mtx[4][4] = { 0.0f };
-			MatrixMultiply44(view_mtx, proj_mtx, viewproj_mtx);
-
 			// only overwrite the projection matrix ;)
-			memcpy(viewParms->viewProjectionMatrix.m, viewproj_mtx, sizeof(Game::GfxMatrix));
+			memcpy(viewParms->projectionMatrix.m, proj_mtx, sizeof(Game::GfxMatrix));
 		}
 	}
 	
@@ -1333,7 +1274,7 @@ namespace Components
 		{
 			pushad;
 			push	edi; // viewParms
-			call	set_worldfov;
+			call	set_gunfov;
 			add		esp, 4;
 			popad;
 			
@@ -1554,15 +1495,15 @@ namespace Components
 		Utils::Hook::Nop(0x5FAA05, 6);
 		Utils::Hook(0x5FAA05, R_SetViewParmsForScene_stub, HOOK_JUMP).install()->quick();
 
-		Dvars::cg_fov_world_tweaks = Game::Dvar_RegisterBool(
-			/* name		*/ "cg_fov_world_tweaks",
-			/* desc		*/ "Enable world fov tweaks",
+		Dvars::cg_fov_tweaks = Game::Dvar_RegisterBool(
+			/* name		*/ "cg_fov_tweaks",
+			/* desc		*/ "Enable gun fov tweaks",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 		
-		Dvars::cg_fov_world = Game::Dvar_RegisterFloat(
-			/* name		*/ "cg_fov_world",
-			/* desc		*/ "Adjust world fov separately (wont effect viewmodel fov)",
+		Dvars::cg_fov_gun = Game::Dvar_RegisterFloat(
+			/* name		*/ "cg_fov_gun",
+			/* desc		*/ "Adjust gun fov separately (wont effect world fov)",
 			/* default	*/ 65.0f,
 			/* minVal	*/ 20.0f,
 			/* maxVal	*/ 160.0f,
