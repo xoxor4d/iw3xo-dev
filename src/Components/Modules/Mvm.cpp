@@ -532,6 +532,12 @@ namespace Components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
+		Dvars::cl_avidemo_streams_queueEnable = Game::Dvar_RegisterBool(
+			/* name		*/ "cl_avidemo_streams_queueEnable",
+			/* desc		*/ "enable streams queueing",
+			/* default	*/ false,
+			/* flags	*/ Game::dvar_flags::saved);
+
 
 		// mvm hooks at the next op
 		Utils::Hook(0x46C8EB, CL_RunOncePerClientFrame_stub, HOOK_JUMP).install()->quick();
