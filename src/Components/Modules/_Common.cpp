@@ -22,6 +22,12 @@ namespace Components
 		{
 			RB_ShaderOverlays::Register_StringDvars();
 		}
+
+		Dvars::cl_avidemo_streams_queue = Game::Dvar_RegisterString(
+			/* name		*/ "cl_avidemo_streams_queue",
+			/* desc		*/ "current queue of configs that should be taken into account when using streams",
+			/* default	*/ "",
+			/* flags	*/ Game::dvar_flags::saved);
 	}
 
 	void ForceDvarsOnInit()

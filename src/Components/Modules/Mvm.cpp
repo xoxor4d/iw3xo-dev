@@ -9,7 +9,11 @@ namespace Components
 	int  streams_shotCount = 0;
 	int  streams_currentView = 0;
 	int  client_msec = 0;
+	int  queue_skip = 4;
+	int  queue_remainder = queue_skip - 1;
 
+	std::string  queue_string;
+	std::vector  <std::string> queue_tokens;
 
 	void Screenshot(std::string prefix = "recording")
 	{
@@ -151,7 +155,55 @@ namespace Components
 				auto cg_draw2D = Game::Dvar_FindVar("cg_draw2D");
 				auto cg_drawGun = Game::Dvar_FindVar("cg_drawGun");
 
-				if (Dvars::cl_avidemo_streams->current.integer)
+				if (Dvars::cl_avidemo_streams_queueEnable->current.enabled
+					&& Dvars::cl_avidemo_streams->current.integer
+					&& Dvars::cl_avidemo_streams_queue->current.string != "")
+				{
+					if (queue_string != Dvars::cl_avidemo_streams_queue->current.string)
+					{
+						// add tokens from queue to vector array
+						queue_string = Dvars::cl_avidemo_streams_queue->current.string;
+						queue_tokens.clear();
+						std::stringstream stream_queue(queue_string);
+						std::string queue_current_token;
+						while (getline(stream_queue, queue_current_token, ' '))
+						{
+							queue_tokens.push_back(queue_current_token);
+						}
+					}
+					if (streams_currentView == 0)
+					{
+						//pause demo on first setup
+						if (Dvars::cl_pause_demo)
+						{
+							Game::Dvar_SetValue(Dvars::cl_pause_demo, false);
+						}
+						if (!demo_paused) demo_paused = demo_paused ? 0 : 1;
+					}
+
+					if (streams_currentView % queue_skip == 0)
+					{
+						Game::Cmd_ExecuteSingleCommand(0, 0, ("exec " + queue_tokens[streams_currentView / queue_skip] + "\n").c_str());
+						streams_prepare = true;
+					}
+					else if (streams_currentView % queue_skip == queue_remainder)
+					{
+						Screenshot(queue_tokens[(streams_currentView - queue_remainder) / queue_skip]);
+						streams_prepare = false;
+					}
+
+					if (size_t(streams_currentView) < (queue_tokens.size() * queue_skip) - 1)
+					{
+						streams_currentView++;
+					}
+					else
+					{
+						streams_currentView = 0;
+						streams_shotCount++;
+						if (demo_paused) demo_paused = demo_paused ? 0 : 1;
+					}
+				}
+				else if (Dvars::cl_avidemo_streams->current.integer)
 				{
 					// setup on first run, no screenshot
 					// greenscreen-gun -> world-no-gun -> depth-no-gun -> hud
