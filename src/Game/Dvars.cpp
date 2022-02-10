@@ -200,6 +200,7 @@ namespace Dvars
 	Game::dvar_s* mapexport_writeEntities = nullptr;
 	Game::dvar_s* mapexport_writeModels = nullptr;
 
+	Game::dvar_s* mpsp_require_gsc = nullptr;
 
 	// Shader Overlays
 	Game::dvar_s* xo_shaderoverlay = nullptr;

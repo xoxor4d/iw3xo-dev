@@ -1057,15 +1057,15 @@ namespace Components
 					}
 
 #ifdef DEVGUI_XO_BLUR
-					// dev stuff
-					if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "postfx_blur_overlay"))
-					{
-						float constant[4] = { Game::Globals::xo_blur_directions, Game::Globals::xo_blur_quality, Game::Globals::xo_blur_size, Game::Globals::xo_blur_alpha };
+					//// dev stuff
+					//if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "hud_tiling"))
+					//{
+					//	float constant[4] = { Game::Globals::xo_blur_directions, Game::Globals::xo_blur_quality, Game::Globals::xo_blur_size, Game::Globals::xo_blur_alpha };
 
-						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-					}
+					//	if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR) {
+					//		(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+					//	}
+					//}
 #endif
 				}
 			}
@@ -1284,93 +1284,8 @@ namespace Components
 		}
 	}
 
-
-	// memes
-	//void dosth(Game::GfxViewInfo* view)
-	//{
-	//	if(rendered_scope)
-	//	{
-	//		Utils::function<void(Game::GfxViewInfo*, float)>(0x63BFD0)(view, 16.0f);
-	//		rendered_scope = false;
-	//	}
-	//}
-
-	//__declspec(naked) void do_sth_stub()
-	//{
-	//	const static uint32_t R_DrawEmissive_Func = 0x64AEF0;
-	//	const static uint32_t retn_pt = 0x64B377;
-	//	__asm
-	//	{
-	//		pushad;
-	//		push	edi; // viewParms
-	//		call	dosth;
-	//		add		esp, 4;
-	//		popad;
-	//		
-	//		call	R_DrawEmissive_Func;
-	//		//add     esp, 10h;
-
-	//		jmp		retn_pt;
-	//	}
-	//}
-
-	/* ---------------------------------------------------------- */
-
-#if 0
-	__declspec(naked) void r_xmodel_bones_stub_01()
-	{
-		const static uint32_t rtn_pt = 0x57DB5B;
-		__asm
-		{
-			// we are above 128 bones
-			// we would now call com_error (more then 128 bones ..)
-			mov		[esp + 2Ch], 128; // lower bonecount cap keeps the game alive longer till it eventually crashes
-			jmp		rtn_pt;
-		}
-	}
-
-	void gfxsceneent_test(Game::GfxSceneEntity* s_entity)
-	{
-		if (s_entity->obj && s_entity->obj->numBones > 120)
-		{
-			s_entity->obj->numBones = 120;
-		}
-
-		int x = 1;
-	}
-
-	__declspec(naked) void r_xmodel_bones_stub_02()
-	{
-		const static uint32_t rtn_pt = 0x5F7D0D;
-		__asm
-		{
-			// stock op's
-			mov[ebx + 70h], edi;
-			mov[ebx + 6Eh], cx;
-
-			// ebx = GfxSceneEntity*
-			pushad;
-			push	ebx;
-			call	gfxsceneent_test;
-			add		esp, 4;
-			popad;
-
-			jmp		rtn_pt;
-		}
-	}
-#endif
-
 	_Renderer::_Renderer()
 	{ 
-		// *
-		// error :: dobj for xmodel %s has more then 128 bones
-
-		//Utils::Hook::Nop(0x57DB32, 7); Utils::Hook(0x57DB32, r_xmodel_bones_stub_01, HOOK_JUMP).install()->quick();
-		//Utils::Hook::Nop(0x6292FE, 5); // (R_SkinGfxEntityCmd)
-		//Utils::Hook::Nop(0x5F7D06, 7);  Utils::Hook(0x5F7D06, r_xmodel_bones_stub_02, HOOK_JUMP).install()->quick();
-
-		// -----
-
 		/*
 		* Increase the amount of skinned vertices (bone controlled meshes) per frame.
 		*      (R_MAX_SKINNED_CACHE_VERTICES | TEMP_SKIN_BUF_SIZE) Warnings
@@ -1509,12 +1424,34 @@ namespace Components
 			/* maxVal	*/ 160.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		// memes
-		//Utils::Hook(0x64B372, do_sth_stub, HOOK_JUMP).install()->quick();
 
 		// increase fps cap to 125 for menus and loadscreen
 		Utils::Hook::Set<BYTE>(0x500174 + 2, 8);
 		Utils::Hook::Set<BYTE>(0x500177 + 2, 8);
+
+
+		Command::Add("dumpreflections", "", "", [this](Command::Params)
+		{
+			const auto gfx = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_GFXWORLD, Utils::VA("maps/mp/%s.d3dbsp", Game::Dvar_FindVar("ui_mapname")->current.string)).gfxWorld;
+
+			for (size_t i = 0; i < gfx->reflectionProbeCount; i++)
+			{
+				auto* probe = gfx->reflectionProbes[i].reflectionImage->texture.cubemap;
+				for (auto j = 0; j < 6; j++)
+				{
+					const auto& base_path = Game::Dvar_FindVar("fs_basepath");
+					std::string filePath = base_path->current.string + "\\iw3xo\\reflection_cubes\\"s;
+					std::filesystem::create_directories(filePath);
+
+					IDirect3DSurface9* surface = nullptr;
+					probe->GetCubeMapSurface((D3DCUBEMAP_FACES)j, 0, &surface);
+
+					const char* str = Utils::VA("%s\\probe%d_side%d.png", filePath.c_str(), i, j);
+
+					D3DXSaveSurfaceToFileA(str, D3DXIMAGE_FILEFORMAT::D3DXIFF_PNG, surface, nullptr, nullptr);
+				}
+			}
+		});
 	}
 
 	_Renderer::~_Renderer()

@@ -142,6 +142,9 @@ namespace Components
 		Utils::Hook::Nop(0x4BF05B, 5); // gamename
 		Utils::Hook::Nop(0x4BF06C, 5); // gamedate
 
+		// 7263D4
+		//Utils::Hook::Set<BYTE>(0x7263D4, 0x2);
+		//Utils::Hook::Set<BYTE>(0x7263D8, 0x2);
 
 		// *
 		// bouncepatch stuff

@@ -1019,12 +1019,15 @@ namespace Components
 					std::string base_path = fs_basepath->current.string;
 								base_path += "\\iw3xo\\daynight\\";
 
-					for (const auto& d : std::filesystem::directory_iterator(base_path))
+					if(std::filesystem::exists(base_path))
 					{
-						if (d.path().extension() == ".cfg")
+						for (const auto& d : std::filesystem::directory_iterator(base_path))
 						{
-							auto file = std::filesystem::path(d.path());
-							devgui_configs.push_back(file.filename().string());
+							if (d.path().extension() == ".cfg")
+							{
+								auto file = std::filesystem::path(d.path());
+								devgui_configs.push_back(file.filename().string());
+							}
 						}
 					}
 				}

@@ -212,7 +212,7 @@ namespace Utils
 		Nop(reinterpret_cast<void*>(place), length);
 	}
 
-	void Hook::SetString(void* place, const char* string, size_t length)
+	void Hook::set_string(void* place, const char* string, size_t length)
 	{
 		DWORD oldProtect;
 		VirtualProtect(place, length + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -222,19 +222,35 @@ namespace Utils
 		VirtualProtect(place, length + 1, oldProtect, &oldProtect);
 	}
 
-	void Hook::SetString(DWORD place, const char* string, size_t length)
+	void Hook::set_string(DWORD place, const char* string, size_t length)
 	{
-		Hook::SetString(reinterpret_cast<void*>(place), string, length);
+		Hook::set_string(reinterpret_cast<void*>(place), string, length);
 	}
 
-	void Hook::SetString(void* place, const char* string)
+	void Hook::set_string(void* place, const char* string)
 	{
-		Hook::SetString(place, string, strlen(static_cast<char*>(place)));
+		Hook::set_string(place, string, strlen(static_cast<char*>(place)));
 	}
 
-	void Hook::SetString(DWORD place, const char* string)
+	void Hook::set_string(DWORD place, const char* string)
 	{
-		Hook::SetString(reinterpret_cast<void*>(place), string);
+		Hook::set_string(reinterpret_cast<void*>(place), string);
+	}
+
+	void Hook::write_string(void* place, const std::string& string)
+	{
+		DWORD old_protect;
+		VirtualProtect(place, string.size() + 1, PAGE_EXECUTE_READWRITE, &old_protect);
+
+		memcpy(place, &string[0], string.size() + 1);
+
+		VirtualProtect(place, string.size() + 1, old_protect, &old_protect);
+		FlushInstructionCache(GetCurrentProcess(), place, string.size());
+	}
+
+	void Hook::write_string(const DWORD place, const std::string& string)
+	{
+		write_string(reinterpret_cast<void*>(place), string);
 	}
 
 	void Hook::RedirectJump(void* place, void* stub)

@@ -207,6 +207,8 @@ namespace Dvars
 	extern Game::dvar_s* mapexport_writeModels;
 
 
+	extern Game::dvar_s* mpsp_require_gsc;
+
 	// Shader overlays
 	extern Game::dvar_s* xo_shaderoverlay;
 	extern Game::dvar_s* xo_shaderoverlay_custom;

@@ -81,11 +81,14 @@ namespace Utils
 			return Call<T>(reinterpret_cast<DWORD>(function));
 		}
 
-		static void SetString(void* place, const char* string, size_t length);
-		static void SetString(DWORD place, const char* string, size_t length);
+		static void set_string(void* place, const char* string, size_t length);
+		static void set_string(DWORD place, const char* string, size_t length);
 
-		static void SetString(void* place, const char* string);
-		static void SetString(DWORD place, const char* string);
+		static void set_string(void* place, const char* string);
+		static void set_string(DWORD place, const char* string);
+
+		static void write_string(void* place, const std::string& string);
+		static void write_string(DWORD place, const std::string& string);
 
 		static void Nop(void* place, size_t length);
 		static void Nop(DWORD place, size_t length);

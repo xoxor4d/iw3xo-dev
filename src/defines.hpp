@@ -2,6 +2,8 @@
 // RadiantRemote
 #define RADIANT_MAX_SEL_BRUSHES 16 // max amount of selected brushes (from radiant) to parse (should always match REMOTE_MAX_SEL_BRUSHES in radiant)
 
+#define DEVGUI_XO_BLUR
+
 // *
 // Common
 #define FF_LOAD_ADDON_MENU		true

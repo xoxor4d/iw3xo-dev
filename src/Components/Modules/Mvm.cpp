@@ -435,7 +435,8 @@ namespace Components
 	}
 
 	Mvm::Mvm()
-	{ 
+	{
+#if 0
 		Dvars::load_iw3mvm = Game::Dvar_RegisterBool(
 			/* name		*/ "load_iw3mvm",
 			/* desc		*/ "load iw3mvm on startup",
@@ -479,13 +480,13 @@ namespace Components
 			/* desc		*/ "pause the demo",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
-
+#endif
 
 		// mvm hooks at the next op
-		Utils::Hook(0x46C8EB, CL_RunOncePerClientFrame_stub, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x46C8EB, CL_RunOncePerClientFrame_stub, HOOK_JUMP).install()->quick();
 
 		// disable console drawing when taking screenshots using avidemo_streams
-		Utils::Hook(0x475060, Con_DrawSolidConsole_stub, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x475060, Con_DrawSolidConsole_stub, HOOK_JUMP).install()->quick();
 
 		// fix out of memory error when trying to take screenshots with R_TakeScreenshot when using heavy mods
 		Utils::Hook::Set<BYTE>(0x60E624 + 1, 0x2); // CreateOffscreenPlainSurface D3DPOOL_SCRATCH -> D3DPOOL_SYSTEMMEM
