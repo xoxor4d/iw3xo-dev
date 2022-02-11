@@ -1,0 +1,34 @@
+{
+"reflection_color_correction" "village_daylight"
+"sundiffusecolor" "0.717647 0.776471 1.000000"
+"suncolor" "0.996078 0.921569 0.9"
+"classname" "worldspawn"
+"_color" "0.717647 0.776471 .9"
+"diffusefraction" ".2"
+"ambient" "0.04"
+"northyaw" "90"
+"sundirection" "-40 225 0"
+"sunlight" "1.6"
+"radiosityscale" "1.5"
+"sunradiosity" "2"
+}
+{
+"angles" "0 237 0"
+"origin" "1908 675 261"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 212 0"
+"origin" "459 724 374"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 109 0"
+"origin" "229 -788 163"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "249 -602 453"
+"angles" "0 108 0"
+"classname" "mp_global_intermission"
+}

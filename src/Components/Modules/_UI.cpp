@@ -574,7 +574,7 @@ R"(
 		Dvars::ui_main_title = Game::Dvar_RegisterString(
 			/* name		*/ "ui_changelog_title",
 			/* desc		*/ "menu helper",
-			/* value	*/ Utils::VA(IW3XO_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, __TIMESTAMP__),
+			/* value	*/ Utils::VA(IW3XO_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE),
 			/* flags	*/ Game::dvar_flags::read_only);
 	}
 

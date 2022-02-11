@@ -15,6 +15,7 @@ bool  export_selectionAdd;
 int	  export_currentBrushIndex = 0;
 float export_quadEpsilon = 0.0f;
 std::ofstream	export_mapFile;
+std::ofstream	export_mapFile_addon;
 Utils::Entities	export_mapEntities;
 Game::boundingBox_t export_selectionBox;
 
@@ -1836,7 +1837,15 @@ namespace Components
 			Game::Com_PrintMessage(0, "[Debug Collision] : initializing ...\n", 0);
 
 			// list of all brushmodels within the current map mapped to their respective brushes in cm->brushes
-			Utils::Entities mapEnts(Game::cm->mapEnts->entityString);
+
+			char* mapents_ptr = Game::cm->mapEnts->entityString;
+
+			if(_Map::mpsp_is_sp_map)
+			{
+				mapents_ptr = _Map::mpsp_mapents_original;
+			}
+
+			Utils::Entities mapEnts(mapents_ptr);
 			g_mapBrushModelList = mapEnts.getBrushModels();
 
 			Game::Com_PrintMessage(0, Utils::VA("|-> found %d submodels\n", static_cast<int>(g_mapBrushModelList.size())), 0);
@@ -2614,6 +2623,10 @@ namespace Components
 			// map file name
 			std::string mapName = Game::cm->name;
 			Utils::replaceAll(mapName, std::string("maps/mp/"), std::string(""));
+
+			// if sp map
+			Utils::replaceAll(mapName, std::string("maps/"), std::string(""));
+
 			Utils::replaceAll(mapName, std::string(".d3dbsp"), std::string(".map"));
 
 			// export to root/map_export
@@ -2635,9 +2648,17 @@ namespace Components
 
 			// steam to .map file
 			export_mapFile.open(filePath.c_str());
+			//export_mapFile_addon.open(filePath + ".ents"s);
 
 			// build entity list
-			export_mapEntities = Utils::Entities(Game::cm->mapEnts->entityString);
+			char* mapents_ptr = Game::cm->mapEnts->entityString;
+
+			if (_Map::mpsp_is_sp_map)
+			{
+				mapents_ptr = _Map::mpsp_mapents_original;
+			}
+
+			export_mapEntities = Utils::Entities(mapents_ptr);
 			Game::Com_PrintMessage(0, "|- Writing header and world entity ...\n\n", 0);
 
 			// write header
@@ -3183,6 +3204,8 @@ namespace Components
 					export_mapFile << export_mapEntities.buildAll_FixBrushmodels(g_mapBrushModelList);
 				}
 
+				//export_mapFile_addon << export_mapEntities.buildAll_script_structs();
+
 				// *
 				// reflection probes (always skip the first one (not defined within the map file))
 
@@ -3277,6 +3300,7 @@ namespace Components
 			// Map Export End
 
 			export_mapFile.close();
+			//export_mapFile_addon.close();
 			export_currentBrushIndex = 0;
 
 			Utils::Clock_EndTimerPrintSeconds(export_time_exportStart, ">> DONE! Map export took (%.4f) seconds!\n");

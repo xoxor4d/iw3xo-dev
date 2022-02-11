@@ -1,0 +1,33 @@
+{
+"suncolor" ".75 .9 1"
+"sundiffusecolor" ".5 .6 1"
+"contrastgain" ".25"
+"diffusefraction" ".35"
+"ambient" "0.2"
+"sunlight" "0.6"
+"reflection_color_correction" "hunted"
+"_color" "0.6 0.7 1"
+"sundirection" "-40 49 0"
+"sunradiosity" "1.2"
+"classname" "worldspawn"
+}
+{
+"angles" "0 327 0"
+"origin" "1544 3067 108"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 282 0"
+"origin" "2495 3260 112"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 186 0"
+"origin" "3257 2935 109"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "2721 3170 255"
+"angles" "0 233 0"
+"classname" "mp_global_intermission"
+}

@@ -1,0 +1,32 @@
+{
+"reflection_color_correction" "jeepride"
+"diffusefraction" ".1"
+"ambient" "0.1"
+"sunlight" "1.7"
+"sundirection" "-25 231 0"
+"suncolor" "0.996078 0.96 0.88"
+"sundiffusecolor" "0.717647 0.776471 1.000000"
+"northyaw" "90"
+"_color" "0.717647 0.776471 1.000000"
+"classname" "worldspawn"
+}
+{
+"angles" "0 233 0"
+"origin" "-16032 1298 523"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 141 0"
+"origin" "-14570 911 524"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 92 0"
+"origin" "-15172 -1019 524"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "-16103 273 707"
+"angles" "0 193 0"
+"classname" "mp_global_intermission"
+}

@@ -27,6 +27,39 @@ namespace Utils
 	}
 
 	// build all entities and fix brushmodels
+	std::string Entities::buildAll_script_structs()
+	{
+		std::string entityString;
+
+		for (auto& entity : this->entities)
+		{
+			std::string classname = entity["classname"];
+
+			// if ent is a brushmodel/submodel
+			if (!classname.empty() && Utils::Contains(classname, "script_struct"))
+			{
+				// start entity
+				//entityString.append(Utils::VA("// entity %d\n", entityNum));
+				entityString.append("{\n");
+
+				for (auto& property : entity)
+				{
+					entityString.push_back('"');
+					entityString.append(property.first);
+					entityString.append("\" \"");
+					entityString.append(property.second);
+					entityString.append("\"\n");
+				}
+
+				// close entity
+				entityString.append("}\n");
+			}
+		}
+
+		return entityString;
+	}
+
+	// build all entities and fix brushmodels
 	std::string Entities::buildAll_FixBrushmodels(const std::vector<Game::brushmodelEnt_t> &bModelList)
 	{
 		int entityNum = 1; // worldspawn is 0

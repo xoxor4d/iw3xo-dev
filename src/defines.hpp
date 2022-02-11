@@ -17,9 +17,9 @@
 
 // *
 // Version
-#define IW3XO_BUILDVERSION_DATE __TIMESTAMP__  
-#define IW3XO_BUILDSTRING "IW3xo :: build %.lf :: %s", IW3X_BUILDNUMBER, __TIMESTAMP__
-#define IW3XO_BUILDSTRING_CHANGELOG "IW3xo :: build %.lf :: %s %s", IW3X_BUILDNUMBER, __TIMESTAMP__
+#define IW3XO_BUILDVERSION_DATE __DATE__
+#define IW3XO_BUILDSTRING "IW3xo :: build %.lf :: %s", IW3X_BUILDNUMBER, __DATE__
+#define IW3XO_BUILDSTRING_CHANGELOG "IW3xo :: build %.lf :: %s %s", IW3X_BUILDNUMBER, __DATE__
 
 // *
 // Gui

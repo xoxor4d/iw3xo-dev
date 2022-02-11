@@ -1,0 +1,34 @@
+{
+"ambient" ".03"
+"diffusefraction" "0.01"
+"bouncefraction" "2"
+"sunlight" "1.5"
+"fov_inner" "60"
+"classname" "worldspawn"
+"suncolor" ".9 .9 1"
+"sundiffusecolor" "0.015 0.015 0.013"
+"sundirection" "-18 100 0"
+"_color" ".6 .6 .6"
+"fov_outer" "120"
+"reflection_color_correction" "airplane"
+}
+{
+"angles" "0 264 0"
+"origin" "-758 656 188"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 248 0"
+"origin" "57 606 188"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 270 0"
+"origin" "523 678 188"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "-1166 581 361"
+"angles" "18 334 0"
+"classname" "mp_global_intermission"
+}

@@ -12,6 +12,9 @@ namespace Components
 		static	void OnLoad();
 		static	void OnUnload();
 
+		inline static bool mpsp_is_sp_map = false;
+		inline static char* mpsp_mapents_original = nullptr;
+
 	private:
 	};
 }

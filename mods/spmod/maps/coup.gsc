@@ -10,7 +10,7 @@ main()
 	precachemodel( "com_spray_can01" );
 
 	maps\mp\_load::main();
-	maps\coup_fx::main();0
+	maps\coup_fx::main();
 
 	setExpFog(0, 2610.72, 0.531857, 0.529929, 0.474802, 0);
 	VisionSetNaked( "coup", 0 );

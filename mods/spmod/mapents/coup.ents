@@ -1,0 +1,34 @@
+{
+"reflection_color_correction" "coup"
+"diffusefraction" "0.2"
+"ambient" ".02"
+"radiosity" "1"
+"sunlight" "1.1"
+"sundirection" "-40 72 0"
+"sundiffusecolor" "1 .95 .8"
+"suncolor" "1 1 .85"
+"_color" "0 1 .5"
+"bouncefracion" ".1"
+"sunradiosity" "2.5"
+"classname" "worldspawn"
+}
+{
+"angles" "0 90 0"
+"origin" "67 -549 60"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 0 0"
+"origin" "-305 548 52"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 200 0"
+"origin" "741 671 41"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "67 -549 60"
+"angles" "0 90 0"
+"classname" "mp_global_intermission"
+}

@@ -404,169 +404,6 @@ namespace Components
 		}
 	}
 
-	// *
-	// MP-SP
-
-	bool mpsp_is_sp_map = false;
-	int mpsp_ignore_entities(char* entity, [[maybe_unused]] const char* unused_str, [[maybe_unused]] int unused_int)
-	{
-		if (Utils::StartsWith(entity, "dyn_"))
-		{
-			return false;
-		}
-
-		if (mpsp_is_sp_map)
-		{
-			if (Utils::StartsWith(entity, "info_player_start"))
-			{
-				strcpy(entity, "mp_dm_spawn"); // kek works
-				return true;
-			}
-
-			if (Utils::StartsWith(entity, "worldspawn"))
-			{
-				return true;
-			}
-
-			if (Utils::StartsWith(entity, "script_struct"))
-			{
-				return true;
-			}
-
-			// ignore all other entities
-			return false;
-		}
-
-		return true;
-	}
-
-	void __declspec(naked) mpsp_ignore_entities_stub()
-	{
-		const static uint32_t retn_addr = 0x4DFF25;
-		__asm
-		{
-			// already pushed: entity str
-			call	mpsp_ignore_entities;
-			jmp		retn_addr;
-		}
-	}
-
-	void mpsp_get_bsp_name(char* filename, int size, [[maybe_unused]] const char* original_format, const char* mapname)
-	{
-		mpsp_is_sp_map = !strstr(mapname, "mp_");
-		sprintf_s(filename, size, "maps/%s%s.d3dbsp", strstr(mapname, "mp_") ? "mp/" : "", mapname);
-	}
-
-	void __declspec(naked) mpsp_bsp_name_stub01()
-	{
-		const static uint32_t retn_addr = 0x44AA1C;
-		__asm
-		{
-			// already pushed: mapname
-			// already pushed: "maps/mp/%s.d3dbsp"
-
-			push	esi; // size
-			push	edi; // dest
-			call	mpsp_get_bsp_name;
-			add		esp, 8;
-
-			jmp		retn_addr;
-		}
-	}
-
-	void __declspec(naked) mpsp_bsp_name_stub02()
-	{
-		const static uint32_t retn_addr = 0x45BF91;
-		__asm
-		{
-			// already pushed: mapname
-			// already pushed: "maps/mp/%s.d3dbsp"
-
-			push	esi; // size
-			push	edi; // dest
-			call	mpsp_get_bsp_name;
-			add		esp, 8;
-
-			jmp		retn_addr;
-		}
-	}
-
-	void __declspec(naked) mpsp_bsp_name_stub03()
-	{
-		const static uint32_t retn_addr = 0x52F72C;
-		__asm
-		{
-			// already pushed: mapname 
-			// already pushed: "maps/mp/%s.d3dbsp"
-
-			push	esi; // size
-			push	edi; // dest
-			call	mpsp_get_bsp_name;
-			add		esp, 8;
-
-			jmp		retn_addr;
-		}
-	}
-
-	void mpsp_get_fx_def(char* filename, int size, [[maybe_unused]] const char* original_format, const char* mapname)
-	{
-		if (Dvars::mpsp_require_gsc->current.enabled)
-		{
-			sprintf_s(filename, size, "maps/%s%s_fx.gsc", strstr(mapname, "mp_") ? "mp/" : "", mapname);
-		}
-		else
-		{
-			sprintf_s(filename, size, "maps/mp/%s_fx.gsc", mapname);
-		}
-
-	}
-
-	void __declspec(naked) mpsp_fx_def_stub()
-	{
-		const static uint32_t retn_addr = 0x424C84;
-		__asm
-		{
-			// already pushed: mapname 
-			// already pushed: "maps/mp/%s.d3dbsp"
-
-			push	esi; // size
-			push	edi; // dest
-			call	mpsp_get_fx_def;
-			add		esp, 8;
-
-			jmp		retn_addr;
-		}
-	}
-
-	void mpsp_get_map_gsc(char* filename, int size, [[maybe_unused]] const char* original_format, const char* mapname)
-	{
-		if (Dvars::mpsp_require_gsc->current.enabled)
-		{
-			sprintf_s(filename, size, "maps/%s%s", strstr(mapname, "mp_") ? "mp/" : "", mapname);
-		}
-		else
-		{
-			sprintf_s(filename, size, "maps/mp/%s", mapname);
-		}
-	}
-
-	void __declspec(naked) mpsp_map_gsc_stub()
-	{
-		const static uint32_t retn_addr = 0x4CB01A;
-		__asm
-		{
-			// already pushed: mapname 
-			// already pushed: "maps/mp/%s.d3dbsp"
-
-			push	esi; // size
-			push	edi; // dest
-			call	mpsp_get_map_gsc;
-			add		esp, 8;
-
-			jmp		retn_addr;
-		}
-	}
-
 
 	// *
 	// DB
@@ -643,6 +480,7 @@ namespace Components
 		Utils::Hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x56B339 + 1, 1);
 
+
 		// *
 		// FastFiles
 
@@ -651,6 +489,7 @@ namespace Components
 
 		// ^ Com_StartHunkUsers Mid-hook (realloc files that were unloaded on map load)
 		Utils::Hook::Nop(0x50020F, 6);		Utils::Hook(0x50020F, Com_StartHunkUsers_stub, HOOK_JUMP).install()->quick();
+
 
 		// *
 		// IWDs
@@ -661,21 +500,6 @@ namespace Components
 		// Load "iw_" and "xcommon_" iwds as localized (works in all situations + elements in xcommon files can overwrite prior files)
 		Utils::Hook(0x55DBB4, FS_MakeIWDsLocalized, HOOK_JUMP).install()->quick();
 
-		// *
-		// MP-SP
-
-		Utils::Hook(0x44AA17, mpsp_bsp_name_stub01, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x45BF8C, mpsp_bsp_name_stub02, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x52F727, mpsp_bsp_name_stub03, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x424C7F, mpsp_fx_def_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4CB015, mpsp_map_gsc_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4DFF20, mpsp_ignore_entities_stub, HOOK_JUMP).install()->quick();
-
-		Dvars::mpsp_require_gsc = Game::Dvar_RegisterBool(
-			/* name		*/ "mpsp_require_gsc",
-			/* desc		*/ "enabled: load spmod map gsc's (mostly fx)",
-			/* default	*/ true,
-			/* flags	*/ Game::dvar_flags::saved);
 
 		// *
 		// Commands

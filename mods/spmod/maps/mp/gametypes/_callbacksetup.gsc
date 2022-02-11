@@ -56,7 +56,7 @@ self is the player that took damage.
 CodeCallback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, timeOffset)
 {
 	self endon("disconnect");
-	//[[level.callbackPlayerDamage]](eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, timeOffset);
+	[[level.callbackPlayerDamage]](eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, timeOffset);
 }
 
 /*================
@@ -66,7 +66,7 @@ self is the player that was killed.
 CodeCallback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc, timeOffset, deathAnimDuration)
 {
 	self endon("disconnect");
-	//[[level.callbackPlayerKilled]](eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc, timeOffset, deathAnimDuration);
+	[[level.callbackPlayerKilled]](eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc, timeOffset, deathAnimDuration);
 }
 
 /*================
@@ -117,7 +117,7 @@ Called when a gametype is not supported.
 ================*/
 AbortLevel()
 {
-	/* println("Aborting level - gametype is not supported");
+	println("USE GAMETYPE DM!");
 
 	level.callbackStartGameType = ::callbackVoid;
 	level.callbackPlayerConnect = ::callbackVoid;
@@ -128,7 +128,7 @@ AbortLevel()
 	
 	setdvar("g_gametype", "dm");
 
-	exitLevel(false); */
+	//exitLevel(false); 
 }
 
 /*================

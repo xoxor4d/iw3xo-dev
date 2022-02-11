@@ -1,0 +1,33 @@
+{
+"reflection_color_correction" "cargoship"
+"sunlight" "1"
+"diffusefraction" "0.15"
+"ambient" ".1"
+"radiosityscale" "2"
+"sundiffusecolor" "0.5 0.5 0.7"
+"contrastgain" "0.15"
+"_color" "0.5 0.5 0.7"
+"sundirection" "-25 315 0"
+"suncolor" "0.5 0.6 1.000000"
+"classname" "worldspawn"
+}
+{
+"angles" "0 181 0"
+"origin" "1074 5 236"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 41 0"
+"origin" "-1140 -277 76"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 317 0"
+"origin" "-2133 478 76"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "-2115 468 289"
+"angles" "11 334 0"
+"classname" "mp_global_intermission"
+}

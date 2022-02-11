@@ -1,0 +1,33 @@
+{
+"northyaw" "90"
+"sunradiosity" ".7"
+"ambient" "0.125"
+"diffusefraction" ".4"
+"sunlight" "0.5"
+"sundirection" "-22 247 0"
+"suncolor" ".68 .72 .76"
+"sundiffusecolor" "0.717647 0.776471 1.000000"
+"_color" ".67 .72 .94"
+"radiosityscale" "1.8"
+"classname" "worldspawn"
+}
+{
+"angles" "0 250 0"
+"origin" "7613 2471 109"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 306 0"
+"origin" "6559 2269 109"
+"classname" "mp_dm_spawn"
+}
+{
+"angles" "0 244 0"
+"origin" "7341 1769 109"
+"classname" "mp_dm_spawn"
+}
+{
+"origin" "7328 1154 263"
+"angles" "12 81 0"
+"classname" "mp_global_intermission"
+}
