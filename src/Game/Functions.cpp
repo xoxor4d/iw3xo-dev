@@ -264,6 +264,8 @@ namespace Game
 
 	Game::Material*			floatz_display = reinterpret_cast<Game::Material*>(0xFA5378);
 	GfxCmdBufSourceState*	gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);
+	Game::GfxCmdBufState*	gfxCmdBufState = reinterpret_cast<Game::GfxCmdBufState*>(0xD5404F0);
+
 
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_client = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B054);
 	Game::clientDebugLineInfo_t* clientDebugLineInfo_server = reinterpret_cast<Game::clientDebugLineInfo_t*>(0xC5B074);
@@ -1736,6 +1738,22 @@ namespace Game
 		to[1] = Byte1PackClamp(from[1]);
 		to[0] = Byte1PackClamp(from[2]);
 		to[3] = Byte1PackClamp(from[3]);
+	}
+
+	void AxisToAngles(float* angles /*eax*/, const float(*axis)[3] /*ecx*/)
+	{
+		const static uint32_t func_addr = 0x561B50;
+		__asm
+		{
+			pushad;
+
+			mov     eax, angles;
+			mov     ecx, axis;
+
+			call	func_addr;
+
+			popad;
+		}
 	}
 
 	// ----

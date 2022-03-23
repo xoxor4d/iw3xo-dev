@@ -205,7 +205,7 @@ namespace Dvars
 	extern Game::dvar_s* mapexport_writeQuads;
 	extern Game::dvar_s* mapexport_writeEntities;
 	extern Game::dvar_s* mapexport_writeModels;
-
+	extern Game::dvar_s* mapexport_writeDynModels;
 
 	extern Game::dvar_s* mpsp_require_gsc;
 
@@ -216,8 +216,6 @@ namespace Dvars
 	extern Game::dvar_s* xo_ssao_quality;
 	extern Game::dvar_s* xo_ssao_radius;
 	extern Game::dvar_s* xo_ssao_debugnormal;
-	extern Game::dvar_s* xo_ssao_debugTargets;
-	extern Game::dvar_s* xo_ssao_depthprepass;
 	extern Game::dvar_s* xo_ssao_contrast;
 	extern Game::dvar_s* xo_ssao_attenuation;
 	extern Game::dvar_s* xo_ssao_angleBias;
@@ -226,12 +224,6 @@ namespace Dvars
 	extern Game::dvar_s* xo_outliner_depthThreshold;
 	extern Game::dvar_s* xo_outliner_toonEnable;
 	extern Game::dvar_s* xo_outliner_toonShades;
-
-	extern Game::dvar_s* xo_camDir0;
-	extern Game::dvar_s* xo_camDir1;
-	extern Game::dvar_s* xo_camDir2;
-
-	extern Game::dvar_s* xo_shaderdbg_matrix;
 
 	// Random stock
 	extern Game::dvar_s* snaps;

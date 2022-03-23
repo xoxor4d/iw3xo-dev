@@ -3296,6 +3296,52 @@ namespace Components
 				Utils::Clock_EndTimerPrintSeconds(map_mapModelsStart, "|- Building static models took (%.4f) seconds!\n\n");
 			}
 
+			if(Dvars::mapexport_writeDynModels->current.enabled)
+			{
+				if (Game::cm->dynEntDefList[0] && Game::cm->dynEntCount[0])
+				{
+					for (auto i = 0; i < Game::cm->dynEntCount[0]; i++)
+					{
+						auto next = &Game::cm->dynEntDefList[0][i];
+						if (next)
+						{
+							export_mapFile << Utils::VA("// dyn model %d\n{", i) << std::endl;
+							export_mapFile << "layer \"000_Global/DynModels\"" << std::endl;
+
+							if (next->health)
+							{
+								export_mapFile << Utils::VA("\"health\" \"%d\"", next->health) << std::endl;
+							}
+
+							if (next->destroyFx)
+							{
+								export_mapFile << Utils::VA("\"destroyEfx\" \"%s\"", next->destroyFx->name) << std::endl;
+							}
+
+							export_mapFile << Utils::VA("\"type\" \"%s\"", next->type == 1 ? "clutter" : next->type == 2 ? "destruct" : "invalid") << std::endl;
+							export_mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", next->pose.origin[0], next->pose.origin[1], next->pose.origin[2]) << std::endl;
+
+							// quat to angles
+							{
+								float axis[3][3] = {};
+								float angles[3] = {};
+
+								Utils::vector::UnitQuatToAxis(next->pose.quat, axis);
+								Game::AxisToAngles(angles, axis);
+
+								export_mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", angles[0], angles[1], angles[2]) << std::endl;
+							}
+
+							//export_mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", 0.0f, 0.0f, 0.0f) << std::endl;
+							export_mapFile << Utils::VA("\"model\" \"%s\"", next->xModel->name) << std::endl;
+							export_mapFile << "\"classname\" \"dyn_model\"" << std::endl;
+							export_mapFile << "}" << std::endl;
+						}
+					}
+				}
+			}
+
+
 			// *
 			// Map Export End
 
@@ -3688,6 +3734,13 @@ namespace Components
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export all static models if enabled.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
+
+		Dvars::mapexport_writeDynModels = Game::Dvar_RegisterBool(
+			/* name		*/ "mapexport_writeDynModels",
+			/* desc		*/ "[MAP-EXPORT-OPTION] Export all dynamic models if enabled.",
+			/* default	*/ true,
+			/* flags	*/ Game::dvar_flags::saved);
+
 
 		// --------
 		// Commands

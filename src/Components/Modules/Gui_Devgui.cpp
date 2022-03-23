@@ -545,8 +545,10 @@ namespace Components
 				ImGui::Checkbox("Write Quads", Gui::DvarGetSet<bool*>(Dvars::mapexport_writeQuads)); TT("mapexport_writeQuads");
 				ImGui::SameLine();
 				ImGui::Checkbox("Write Entities", Gui::DvarGetSet<bool*>(Dvars::mapexport_writeEntities)); TT("mapexport_writeEntities");
-				ImGui::SameLine();
+
 				ImGui::Checkbox("Write Static Models", Gui::DvarGetSet<bool*>(Dvars::mapexport_writeModels)); TT("mapexport_writeModels");
+				ImGui::SameLine();
+				ImGui::Checkbox("Write Dynamic Models", Gui::DvarGetSet<bool*>(Dvars::mapexport_writeDynModels)); TT("mapexport_writeDynModels");
 
 				SPACING(0.0f, 4.0f);
 
@@ -595,10 +597,6 @@ namespace Components
 			SPACING(0.0f, 4.0f);
 
 			ImGui::Checkbox("Debug Normals", &Dvars::xo_ssao_debugnormal->current.enabled); TT("xo_ssao_debugnormal");
-			ImGui::SameLine();
-			ImGui::Checkbox("Debug Rendertargets", &Dvars::xo_ssao_debugTargets->current.enabled); TT("xo_ssao_debugTargets");
-			ImGui::SameLine();
-			ImGui::Checkbox("Custom Depth Prepass", &Dvars::xo_ssao_depthprepass->current.enabled); TT("xo_ssao_depthprepass");
 
 			SPACING(0.0f, 4.0f);
 
@@ -638,7 +636,7 @@ namespace Components
 #ifdef DEVGUI_XO_BLUR
 		SPACING(0.0f, 4.0f);
 
-		ImGui::DragFloat("xo_blur_directions", &Game::Globals::xo_blur_directions, 0.25, 0.0001f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_directions", &Game::Globals::xo_blur_directions, 0.25, -2000.0f, 2000.0f, "%.1f");
 		ImGui::DragFloat("xo_blur_quality", &Game::Globals::xo_blur_quality, 0.25, 0.0001f, 50.0f, "%.1f");
 		ImGui::DragFloat("xo_blur_size", &Game::Globals::xo_blur_size, 0.25, 0.0001f, 50.0f, "%.1f");
 		ImGui::DragFloat("xo_blur_alpha", &Game::Globals::xo_blur_alpha, 0.25, -50.0f, 50.0f, "%.1f");
@@ -742,11 +740,13 @@ namespace Components
 
 		const auto cg_fov = Game::Dvar_FindVar("cg_fov");
 		const auto cg_fovScale = Game::Dvar_FindVar("cg_fovScale");
+		const auto cg_gun_x = Game::Dvar_FindVar("cg_gun_x");
 
-		if(cg_fov && cg_fovScale)
+		if(cg_fov && cg_fovScale && cg_gun_x)
 		{
 			ImGui::DragFloat("cg_fov", Gui::DvarGetSet<float*>(cg_fov), 0.05f, 65.0f, 80.0f, "%.2f");
 			ImGui::DragFloat("cg_fovScale", Gui::DvarGetSet<float*>(cg_fovScale), 0.05f, 0.2f, 2.0f, "%.2f");
+			ImGui::DragFloat("cg_gun_x", Gui::DvarGetSet<float*>(cg_gun_x), 0.05f, -30.0f, 30.0f, "%.2f");
 		}
 		
 		SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);

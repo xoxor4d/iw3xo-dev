@@ -183,6 +183,7 @@ namespace Game
 
 	extern Game::Material*				floatz_display;
 	extern GfxCmdBufSourceState*		gfxCmdBufSourceState;
+	extern Game::GfxCmdBufState*		gfxCmdBufState;
 
 	extern Game::clientDebugLineInfo_t* clientDebugLineInfo_client;
 	extern Game::clientDebugLineInfo_t* clientDebugLineInfo_server;
@@ -606,6 +607,8 @@ namespace Game
 	char Byte1PackClamp(const float from);
 	void Byte4PackRgba(const float* from, char* to);
 	void Byte4PackPixelColor(const float* from, char* to);
+
+	void AxisToAngles(float* angles /*eax*/, const float(*axis)[3] /*ecx*/);
 
 	// ----
 	// Draw

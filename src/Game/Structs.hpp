@@ -1139,9 +1139,9 @@ namespace Game
 
         union GfxTexture
         {
-          /*IDirect3DBaseTexture9 *basemap;
+          IDirect3DBaseTexture9 *basemap;
           IDirect3DTexture9 *map;
-          IDirect3DVolumeTexture9 *volmap;*/
+          IDirect3DVolumeTexture9 *volmap;
           IDirect3DCubeTexture9 *cubemap;
           GfxImageLoadDef *loadDef;
           void* data;
@@ -5119,7 +5119,7 @@ namespace Game
 
 		struct GfxCmdBufPrimState
 		{
-			int *device; // IDirect3DDevice9
+			IDirect3DDevice9 *device; // IDirect3DDevice9
 			int *indexBuffer; // IDirect3DIndexBuffer9
 			MaterialVertexDeclType vertDeclType;
 			gfxVertexSteamsUnk streams[2];

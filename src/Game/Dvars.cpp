@@ -199,6 +199,7 @@ namespace Dvars
 	Game::dvar_s* mapexport_writeQuads = nullptr;
 	Game::dvar_s* mapexport_writeEntities = nullptr;
 	Game::dvar_s* mapexport_writeModels = nullptr;
+	Game::dvar_s* mapexport_writeDynModels = nullptr;
 
 	Game::dvar_s* mpsp_require_gsc = nullptr;
 
@@ -209,8 +210,6 @@ namespace Dvars
 	Game::dvar_s* xo_ssao_quality = nullptr;
 	Game::dvar_s* xo_ssao_radius = nullptr;
 	Game::dvar_s* xo_ssao_debugnormal = nullptr;
-	Game::dvar_s* xo_ssao_debugTargets = nullptr;
-	Game::dvar_s* xo_ssao_depthprepass = nullptr;
 	Game::dvar_s* xo_ssao_contrast = nullptr;
 	Game::dvar_s* xo_ssao_attenuation = nullptr;
 	Game::dvar_s* xo_ssao_angleBias = nullptr;
@@ -219,13 +218,6 @@ namespace Dvars
 	Game::dvar_s* xo_outliner_depthThreshold = nullptr;
 	Game::dvar_s* xo_outliner_toonEnable = nullptr;
 	Game::dvar_s* xo_outliner_toonShades = nullptr;
-
-	Game::dvar_s* xo_camDir0 = nullptr;
-	Game::dvar_s* xo_camDir1 = nullptr;
-	Game::dvar_s* xo_camDir2 = nullptr;
-
-	Game::dvar_s* xo_shaderdbg_matrix = nullptr;
-
 
 	// Random stock
 	Game::dvar_s* snaps = nullptr;

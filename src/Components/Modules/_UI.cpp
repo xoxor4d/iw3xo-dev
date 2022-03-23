@@ -1163,7 +1163,7 @@ R"(
 		}
 	}
 
-	_UI::_UI()
+	DWORD WINAPI get_changelog(LPVOID)
 	{
 		// *
 		// get changelog (raw markdown)
@@ -1177,6 +1177,12 @@ R"(
 			return (char)c;
 		});
 
+		return TRUE;
+	}
+
+	_UI::_UI()
+	{
+		CreateThread(nullptr, 0, get_changelog, nullptr, 0, nullptr);
 
 		// *
 		// Main Menu Hooks

@@ -89,5 +89,6 @@ namespace Utils
 
 		void	_CreateRotationMatrix(const vec3_t angles, vec3_t matrix[3]);
 		void	_RotatePoint(vec3_t point, /*const*/ vec3_t matrix[3]);
+		void	UnitQuatToAxis(const float* quat, float(*axis)[3]);
 	}
 }
