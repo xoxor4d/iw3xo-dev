@@ -4,7 +4,7 @@ namespace Components
 {
 	void on_disconnect()
 	{ 
-		if (Components::active.Mvm)
+		/*if (Components::active.Mvm)
 		{
 			const auto& cl_avidemo = Game::Dvar_FindVar("cl_avidemo");
 
@@ -13,16 +13,16 @@ namespace Components
 				Game::Dvar_SetValue(cl_avidemo, 0);
 			}
 
-			if (Dvars::cl_avidemo_streams && Dvars::cl_avidemo_streams->current.integer)
+			if (dvars::cl_avidemo_streams && dvars::cl_avidemo_streams->current.integer)
 			{
-				Game::Dvar_SetValue(Dvars::cl_avidemo_streams, 0);
+				Game::Dvar_SetValue(dvars::cl_avidemo_streams, 0);
 			}
-		}
+		}*/
 
-		Game::Globals::mainmenu_fadeDone = false;
-		Game::Globals::loaded_MainMenu = false;
+		Game::Globals::mainmenu_fade_done = false;
+		Game::Globals::loaded_main_menu = false;
 
-		if (Components::active.Gui)
+		if (Components::active.gui)
 		{
 			GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG].menustate = false;
 		}
@@ -30,7 +30,7 @@ namespace Components
 
 	__declspec(naked) void on_disconnect_stub()
 	{
-		const static uint32_t rtnPt = 0x4696D5;
+		const static uint32_t retn_addr = 0x4696D5;
 		__asm
 		{
             // stock op's
@@ -41,7 +41,7 @@ namespace Components
             call	on_disconnect;
             popad;
 			
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
@@ -50,41 +50,38 @@ namespace Components
 	// actually after time was set
 	void on_set_cgame_time()
 	{
-		if (Components::active.DayNightCycle)
+		if (Components::active.daynight_cycle)
 		{
-			if (Dvars::r_dayAndNight && Dvars::r_dayAndNight->current.enabled)
+			if (dvars::r_dayAndNight && dvars::r_dayAndNight->current.enabled)
 			{
-				DayNightCycle::set_world_time();
+				daynight_cycle::set_world_time();
 			}
 		}
 	}
 
 	__declspec(naked) void on_set_cgame_time_stub()
 	{
-		const static uint32_t CL_SetCGameTime_Func = 0x45C440;
-		const static uint32_t rtnPt = 0x46C9FB;
+		const static uint32_t CL_SetCGameTime_func = 0x45C440;
+		const static uint32_t retn_addr = 0x46C9FB;
 		__asm
 		{
 			// stock op's
-			call	CL_SetCGameTime_Func;
+			call	CL_SetCGameTime_func;
 
 			pushad;
 			call	on_set_cgame_time;
 			popad;
 
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
-	_Client::_Client()
+	_client::_client()
 	{ 
 		// CL_Disconnect, random spot (mvm hooks on first op)
-		Utils::Hook(0x4696D0, on_disconnect_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x4696D0, on_disconnect_stub, HOOK_JUMP).install()->quick();
 
 		// CL_SetCGameTime, called every client frame
-		Utils::Hook(0x46C9F6, on_set_cgame_time_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x46C9F6, on_set_cgame_time_stub, HOOK_JUMP).install()->quick();
 	}
-
-	_Client::~_Client()
-	{ }
 }

@@ -2,15 +2,12 @@
 
 namespace Components
 {
-	class Mvm : public Component
+	class mvm final : public Component
 	{
 	public:
-		Mvm();
-		~Mvm();
-		const char* getName() override { return "Mvm"; };
+		mvm();
+		const char* getName() override { return "mvm"; };
         
 		static void avidemo_streams();
-
-	private:
 	};
 }

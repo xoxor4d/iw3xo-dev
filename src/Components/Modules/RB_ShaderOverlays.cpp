@@ -59,19 +59,19 @@ namespace Components
 		const float fullscreenY = Game::scrPlace->realViewableMax[1];
 		
 		// POSTFX_OUTLINER
-		if (Dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_POSTFX_OUTLINER)
+		if (dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_POSTFX_OUTLINER)
 		{
 			// Depth prepass
 			DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FLOAT_Z, "floatz_display", 0.0f, 0.0f, fullscreenX, fullscreenY);
 
 			// FilterTap 0
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = Dvars::xo_outliner_scale->current.value;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = Dvars::xo_outliner_depthDiffScale->current.value;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = Dvars::xo_outliner_depthThreshold->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = dvars::xo_outliner_scale->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = dvars::xo_outliner_depthDiffScale->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = dvars::xo_outliner_depthThreshold->current.value;
 
 			// FilterTap 2
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][0] = Dvars::xo_outliner_toonEnable->current.enabled ? 1.0f : 0.0f;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = Dvars::xo_outliner_toonShades->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][0] = dvars::xo_outliner_toonEnable->current.enabled ? 1.0f : 0.0f;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = dvars::xo_outliner_toonShades->current.value;
 
 			// Draw Outliner
 			DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_outliner", 0.0f, 0.0f, fullscreenX, fullscreenY);
@@ -79,7 +79,7 @@ namespace Components
 
 		else 
 		{
-			if(Dvars::xo_shaderoverlay->current.integer != Game::XO_SHADEROVERLAY::Z_SHADER_SSAO)
+			if(dvars::xo_shaderoverlay->current.integer != Game::XO_SHADEROVERLAY::Z_SHADER_SSAO)
 			{
 				// If using other overlay shaders
 				DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, shader, 0.0f, 0.0f, fullscreenX, fullscreenY);
@@ -113,7 +113,7 @@ namespace Components
 			Game::RB_ShowShadowsDebug();
 		}
 
-		else if (Dvars::xo_shaderoverlay && Dvars::xo_ssao_debugnormal && (Dvars::xo_shaderoverlay->current.integer != 0 || Dvars::xo_ssao_debugnormal->current.enabled))
+		else if (dvars::xo_shaderoverlay && dvars::xo_ssao_debugnormal && (dvars::xo_shaderoverlay->current.integer != 0 || dvars::xo_ssao_debugnormal->current.enabled))
 		{
 			const auto r_zFeather = Game::Dvar_FindVar("r_zFeather");
 			const auto r_distortion	= Game::Dvar_FindVar("r_distortion");
@@ -138,15 +138,15 @@ namespace Components
 			}
 
 			// use a custom material
-			if (Dvars::xo_shaderoverlay_custom && Dvars::xo_shaderoverlay->current.integer == 5)
+			if (dvars::xo_shaderoverlay_custom && dvars::xo_shaderoverlay->current.integer == 5)
 			{
-				RB_DrawCustomShaders(Dvars::xo_shaderoverlay_custom->current.string);
+				RB_DrawCustomShaders(dvars::xo_shaderoverlay_custom->current.string);
 			}
 
 			// use pre-defined materials
 			else
 			{
-				RB_DrawCustomShaders(Game::Dvar_EnumToString(Dvars::xo_shaderoverlay));
+				RB_DrawCustomShaders(Game::Dvar_EnumToString(dvars::xo_shaderoverlay));
 			}
 		}
 
@@ -184,29 +184,29 @@ namespace Components
 
 	void ao_draw()
 	{
-		if (Dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_SSAO)
+		if (dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_SSAO)
 		{
 			Game::R_Set2D();
 
 			const float fullscreenX = Game::scrPlace->realViewableMax[0];
 			const float fullscreenY = Game::scrPlace->realViewableMax[1];
 
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = Dvars::xo_ssao_noisescale->current.value;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = Dvars::xo_ssao_quality->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = dvars::xo_ssao_noisescale->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = dvars::xo_ssao_quality->current.value;
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
 
 			// FilterTap 1
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1][0] = Dvars::xo_ssao_radius->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1][0] = dvars::xo_ssao_radius->current.value;
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1][2] = Game::Dvar_FindVar("cg_fov")->current.value / Game::Dvar_FindVar("cg_fovScale")->current.value;
 
 			// FilterTap 2
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][0] = Dvars::xo_ssao_contrast->current.value;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = Dvars::xo_ssao_attenuation->current.value;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][2] = Dvars::xo_ssao_angleBias->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][0] = dvars::xo_ssao_contrast->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = dvars::xo_ssao_attenuation->current.value;
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][2] = dvars::xo_ssao_angleBias->current.value;
 
 			// DEBUG :: fullscreen normals
-			if (Dvars::xo_ssao_debugnormal->current.enabled)
+			if (dvars::xo_ssao_debugnormal->current.enabled)
 			{
 				DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_ssao_normal", 0.0f, 0.0f, fullscreenX, fullscreenY);
 				return;
@@ -215,7 +215,7 @@ namespace Components
 			Game::R_SetRenderTarget(Game::GfxRenderTargetId::R_RENDERTARGET_RESOLVED_SCENE);
 
 			auto material = Game::Material_RegisterHandle("z_shader_ssao", 3);
-			Utils::Hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
+			utils::hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
 
 			Game::GfxRenderTarget& resolved_scene = *reinterpret_cast<Game::GfxRenderTarget*>(0xD573F00);
 
@@ -227,12 +227,12 @@ namespace Components
 			Game::gfxCmdBufSourceState->input.codeImages[11] = resolved_scene.image;
 
 			material = Game::Material_RegisterHandle("z_shader_ssao_blur", 3);
-			Utils::Hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
+			utils::hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
 
 			Game::R_SetRenderTarget(Game::GfxRenderTargetId::R_RENDERTARGET_SCENE);
 
 			material = Game::Material_RegisterHandle("z_shader_ssao_apply", 3);
-			Utils::Hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
+			utils::hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
 		}
 	}
 
@@ -251,9 +251,9 @@ namespace Components
 		}
 	}
 
-	void RB_ShaderOverlays::Register_StringDvars()
+	void RB_ShaderOverlays::register_dvars()
 	{
-		Dvars::xo_shaderoverlay_custom = Game::Dvar_RegisterString(
+		dvars::xo_shaderoverlay_custom = Game::Dvar_RegisterString(
 			/* name		*/ "xo_shaderoverlay_custom",
 			/* desc		*/ "<postfx material name>",
 			/* default	*/ "default",
@@ -263,9 +263,9 @@ namespace Components
 	RB_ShaderOverlays::RB_ShaderOverlays()
 	{
 		// -----
-		// Dvars
+		// dvars
 
-		 Dvars::r_dumpShaders = Game::Dvar_RegisterBool(
+		 dvars::r_dumpShaders = Game::Dvar_RegisterBool(
 			/* name		*/ "r_dumpShaders",
 			/* desc		*/ "dump loaded shaders at runtime",
 			/* default	*/ false,
@@ -281,7 +281,7 @@ namespace Components
 			"CUSTOM",
 		};
 
-		Dvars::xo_shaderoverlay = Game::Dvar_RegisterEnum(
+		dvars::xo_shaderoverlay = Game::Dvar_RegisterEnum(
 			/* name		*/ "xo_shaderoverlay",
 			/* desc		*/ "fullscreen shaderoverlays. <CUSTOM> uses the material defined with \"xo_shaderoverlay_custom\"",
 			/* default	*/ 0,
@@ -289,44 +289,44 @@ namespace Components
 			/* enumData */ xo_shaderoverlayEnum.data(),
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::xo_ssao_debugnormal = Game::Dvar_RegisterBool(
+		dvars::xo_ssao_debugnormal = Game::Dvar_RegisterBool(
 			/* name		*/ "xo_ssao_debugnormal",
 			/* desc		*/ "draw reconstructed normals from depth",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
 		// SSAO FilterTap 0
-		Dvars::xo_ssao_noisescale	= Game::Dvar_RegisterFloat("xo_ssao_noisescale", "hlsl constant filtertap[0][0] :: _NOISESCALE :: scale of noisemap", 0.0f, 0.0f, 100.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_quality		= Game::Dvar_RegisterFloat("xo_ssao_quality", "hlsl constant filtertap[0][1] :: _QUALITY :: 0 = Low, 1 = High", 1.0f, 0.0f, 1.0f, Game::dvar_flags::none);
+		dvars::xo_ssao_noisescale	= Game::Dvar_RegisterFloat("xo_ssao_noisescale", "hlsl constant filtertap[0][0] :: _NOISESCALE :: scale of noisemap", 0.0f, 0.0f, 100.0f, Game::dvar_flags::none);
+		dvars::xo_ssao_quality		= Game::Dvar_RegisterFloat("xo_ssao_quality", "hlsl constant filtertap[0][1] :: _QUALITY :: 0 = Low, 1 = High", 1.0f, 0.0f, 1.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 1
-		Dvars::xo_ssao_radius		= Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.3f, 0.0f, 20.0f, Game::dvar_flags::none);
+		dvars::xo_ssao_radius		= Game::Dvar_RegisterFloat("xo_ssao_radius", "hlsl constant filtertap[1][0] :: _RADIUS :: sample radius", 0.3f, 0.0f, 20.0f, Game::dvar_flags::none);
 
 		// SSAO FilterTap 2
-		Dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.65f, 0.0f, 20.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_attenuation	= Game::Dvar_RegisterFloat("xo_ssao_attenuation", "hlsl constant filtertap[2][1] :: _ATTENUATION :: ao attenuation", 30.0f, -200.0f, 200.0f, Game::dvar_flags::none);
-		Dvars::xo_ssao_angleBias	= Game::Dvar_RegisterFloat("xo_ssao_angleBias", "hlsl constant filtertap[2][2] :: _ANGLEBIAS :: in degrees", 16.0f, 0.0f, 90.0f, Game::dvar_flags::none);
+		dvars::xo_ssao_contrast		= Game::Dvar_RegisterFloat("xo_ssao_contrast", "hlsl constant filtertap[2][0] :: _CONTRAST :: ao contrast", 0.65f, 0.0f, 20.0f, Game::dvar_flags::none);
+		dvars::xo_ssao_attenuation	= Game::Dvar_RegisterFloat("xo_ssao_attenuation", "hlsl constant filtertap[2][1] :: _ATTENUATION :: ao attenuation", 30.0f, -200.0f, 200.0f, Game::dvar_flags::none);
+		dvars::xo_ssao_angleBias	= Game::Dvar_RegisterFloat("xo_ssao_angleBias", "hlsl constant filtertap[2][2] :: _ANGLEBIAS :: in degrees", 16.0f, 0.0f, 90.0f, Game::dvar_flags::none);
 
 		// Outliner FilterTap 0
-		Dvars::xo_outliner_scale			= Game::Dvar_RegisterFloat("xo_outliner_scale", "hlsl constant filtertap[0][0] :: edge sample radius / scale", 2.0f, 0.0f, 50.0f, Game::dvar_flags::none);
-		Dvars::xo_outliner_depthDiffScale	= Game::Dvar_RegisterFloat("xo_outliner_depthDiffScale", "hlsl constant filtertap[0][1] :: scale when edges with x depth difference get detected", 45.0f, 0.0f, 200.0f, Game::dvar_flags::none);
-		Dvars::xo_outliner_depthThreshold	= Game::Dvar_RegisterFloat("xo_outliner_depthThreshold", "hlsl constant filtertap[0][2] :: Edges are drawn between areas where the sampled depth is greater than depthThreshold", 6.0f, -10.0f, 60.0f, Game::dvar_flags::none);
+		dvars::xo_outliner_scale			= Game::Dvar_RegisterFloat("xo_outliner_scale", "hlsl constant filtertap[0][0] :: edge sample radius / scale", 2.0f, 0.0f, 50.0f, Game::dvar_flags::none);
+		dvars::xo_outliner_depthDiffScale	= Game::Dvar_RegisterFloat("xo_outliner_depthDiffScale", "hlsl constant filtertap[0][1] :: scale when edges with x depth difference get detected", 45.0f, 0.0f, 200.0f, Game::dvar_flags::none);
+		dvars::xo_outliner_depthThreshold	= Game::Dvar_RegisterFloat("xo_outliner_depthThreshold", "hlsl constant filtertap[0][2] :: Edges are drawn between areas where the sampled depth is greater than depthThreshold", 6.0f, -10.0f, 60.0f, Game::dvar_flags::none);
 
 		// Outliner FilterTap 2
-		Dvars::xo_outliner_toonEnable = Game::Dvar_RegisterBool("xo_outliner_toonEnable", "hlsl constant filtertap[2][0] :: toggle use of a simple toon shader", false, Game::dvar_flags::none);
-		Dvars::xo_outliner_toonShades = Game::Dvar_RegisterFloat("xo_outliner_toonShades", "hlsl constant filtertap[2][1] :: Max amount of shades / colors used by the toon shader", 6.0f, 0.0f, 64.0f, Game::dvar_flags::none);
+		dvars::xo_outliner_toonEnable = Game::Dvar_RegisterBool("xo_outliner_toonEnable", "hlsl constant filtertap[2][0] :: toggle use of a simple toon shader", false, Game::dvar_flags::none);
+		dvars::xo_outliner_toonShades = Game::Dvar_RegisterFloat("xo_outliner_toonShades", "hlsl constant filtertap[2][1] :: Max amount of shades / colors used by the toon shader", 6.0f, 0.0f, 64.0f, Game::dvar_flags::none);
 
 
 		// -----
 		// Hooks
 
 		// Disable Change from FLOATZ to SHADOWCOOKIE, to prevent AO lag or freezing
-		Utils::Hook::Nop(0x658FB2, 2);
+		utils::hook::nop(0x658FB2, 2);
 
 		// Rewrite RB_DrawDebugPostEffects (Entry for custom post-effects)
-		Utils::Hook(0x64AD70, RB_DrawDebugPostEffects_Pre, HOOK_JUMP).install()->quick();
+		utils::hook(0x64AD70, RB_DrawDebugPostEffects_Pre, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x64B2E6, ao_draw_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x64B2E6, ao_draw_stub, HOOK_JUMP).install()->quick();
 	}
 
 	RB_ShaderOverlays::~RB_ShaderOverlays()

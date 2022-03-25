@@ -100,7 +100,7 @@ namespace Components
 
 		float d_vel;
 
-		Utils::vector::vec2_t wishvel;
+		utils::vector::vec2_t wishvel;
 
 		Game::pmove_t		pm;
 		Game::pml_t         pml;
@@ -108,20 +108,20 @@ namespace Components
 
 	static cgaz_t s;
 
-	void CGaz::CG_DrawCGaz()
+	void cgaz::draw_cgaz()
 	{
 		float const yaw = atan2f(s.wishvel[1], s.wishvel[0]) - s.d_vel;
 
-		Game::CG_FillAngleYaw(-s.d_min, +s.d_min, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaNoAccel->current.vector);
+		Game::CG_FillAngleYaw(-s.d_min, +s.d_min, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaNoAccel->current.vector);
 
-		Game::CG_FillAngleYaw(+s.d_min, +s.d_opt, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaPartialAccel->current.vector);
-		Game::CG_FillAngleYaw(-s.d_opt, -s.d_min, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaPartialAccel->current.vector);
+		Game::CG_FillAngleYaw(+s.d_min, +s.d_opt, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaPartialAccel->current.vector);
+		Game::CG_FillAngleYaw(-s.d_opt, -s.d_min, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaPartialAccel->current.vector);
 
-		Game::CG_FillAngleYaw(+s.d_opt, +s.d_max_cos, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaFullAccel->current.vector);
-		Game::CG_FillAngleYaw(-s.d_max_cos, -s.d_opt, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaFullAccel->current.vector);
+		Game::CG_FillAngleYaw(+s.d_opt, +s.d_max_cos, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaFullAccel->current.vector);
+		Game::CG_FillAngleYaw(-s.d_max_cos, -s.d_opt, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaFullAccel->current.vector);
 
-		Game::CG_FillAngleYaw(+s.d_max_cos, +s.d_max, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaTurnZone->current.vector);
-		Game::CG_FillAngleYaw(-s.d_max, -s.d_max_cos, yaw, Dvars::mdd_cgaz_yh->current.vector[0], Dvars::mdd_cgaz_yh->current.vector[1], Dvars::mdd_cgaz_rgbaTurnZone->current.vector);
+		Game::CG_FillAngleYaw(+s.d_max_cos, +s.d_max, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaTurnZone->current.vector);
+		Game::CG_FillAngleYaw(-s.d_max, -s.d_max_cos, yaw, dvars::mdd_cgaz_yh->current.vector[0], dvars::mdd_cgaz_yh->current.vector[1], dvars::mdd_cgaz_rgbaTurnZone->current.vector);
 	}
 
 	static float update_d_min(state_t const* state)
@@ -161,7 +161,8 @@ namespace Components
 		{
 			return 0;
 		}
-		else if (-num >= den)
+
+		if (-num >= den)
 		{
 			return M_PI;
 		}
@@ -180,13 +181,13 @@ namespace Components
 	{
 		state_t state;
 		state.g_squared = slickGravity * slickGravity;
-		state.v_squared = Utils::vector::_VectorLengthSquared2(s.pml.previous_velocity);
-		state.vf_squared = Utils::vector::_VectorLengthSquared2(s.pm.ps->velocity);
+		state.v_squared = utils::vector::_VectorLengthSquared2(s.pml.previous_velocity);
+		state.vf_squared = utils::vector::_VectorLengthSquared2(s.pm.ps->velocity);
 		state.wishspeed = wishspeed;
 		state.a = accel * state.wishspeed * s.pml.frametime;
 		state.a_squared = state.a * state.a;
 		
-		if ((Dvars::mdd_cgaz_ground && !Dvars::mdd_cgaz_ground->current.enabled) || state.v_squared - state.vf_squared >= 2 * state.a * state.wishspeed - state.a_squared)
+		if ((dvars::mdd_cgaz_ground && !dvars::mdd_cgaz_ground->current.enabled) || state.v_squared - state.vf_squared >= 2 * state.a * state.wishspeed - state.a_squared)
 		{
 			state.v_squared = state.vf_squared;
 		}
@@ -209,14 +210,14 @@ namespace Components
 	Handles user intended acceleration
 	==============
 	*/
-	void CGaz::PM_Accelerate(float wishspeed, float accel)
+	void cgaz::PM_Accelerate(float wishspeed, float accel)
 	{
 		update_d(wishspeed, accel, 0);
 	}
 
-	void CGaz::PM_SlickAccelerate(float wishspeed, float accel)
+	void cgaz::PM_SlickAccelerate(float wishspeed, float accel)
 	{
-		update_d(wishspeed, accel, s.pm.ps->gravity * s.pml.frametime);
+		update_d(wishspeed, accel, static_cast<float>(s.pm.ps->gravity) * s.pml.frametime);
 	}
 
 	/*
@@ -228,7 +229,7 @@ namespace Components
 	without getting a sqrt(2) distortion in speed.
 	==============
 	*/
-	float CGaz::PM_CmdScale(Game::playerState_s *ps, Game::usercmd_s *cmd)
+	float cgaz::PM_CmdScale(Game::playerState_s *ps, Game::usercmd_s *cmd)
 	{
 		signed int max;
 		float total, scale;
@@ -278,18 +279,18 @@ namespace Components
 
 	===================
 	*/
-	void CGaz::PM_AirMove(Game::pmove_t *pm, Game::pml_t *pml)
+	void cgaz::PM_AirMove(Game::pmove_t *pm, Game::pml_t *pml)
 	{
 		Game::PM_Friction(pm->ps, pml);
 
-		const float scale = CGaz::PM_CmdScale(pm->ps, &pm->cmd);
+		const float scale = cgaz::PM_CmdScale(pm->ps, &pm->cmd);
 
 		// project moves down to flat plane
 		pml->forward[2] = 0;
 		pml->right[2] = 0;
 
-		Utils::vector::_VectorNormalize(pml->forward);
-		Utils::vector::_VectorNormalize(pml->right);
+		utils::vector::_VectorNormalize(pml->forward);
+		utils::vector::_VectorNormalize(pml->right);
 
 		for (uint8_t i = 0; i < 2; ++i)
 		{
@@ -298,10 +299,10 @@ namespace Components
 
 		float const wishspeed = scale * VectorLength2(s.wishvel);
 
-		CGaz::PM_Accelerate(wishspeed, pm_airaccelerate);
+		cgaz::PM_Accelerate(wishspeed, pm_airaccelerate);
 	}
 
-	float CGaz::PM_DamageScale_Walk(int damage_timer)
+	float cgaz::PM_DamageScale_Walk(int damage_timer)
 	{
 		const auto player_dmgtimer_maxTime = Game::Dvar_FindVar("player_dmgtimer_maxTime")->current.value;
 		const auto player_dmgtimer_minScale = Game::Dvar_FindVar("player_dmgtimer_minScale")->current.value;
@@ -314,7 +315,7 @@ namespace Components
 		return ((-player_dmgtimer_minScale / player_dmgtimer_maxTime) * damage_timer + 1.0f);
 	}
 
-	float CGaz::PM_GetViewHeightLerpTime(int iTarget, int bDown)
+	float cgaz::PM_GetViewHeightLerpTime(int iTarget, int bDown)
 	{
 		if (iTarget == 11)
 		{
@@ -334,51 +335,47 @@ namespace Components
 		return 400.0f;
 	}
 
-	float CGaz::PM_GetViewHeightLerp(Game::pmove_t* pm, int iFromHeight, int iToHeight)
+	float cgaz::PM_GetViewHeightLerp(Game::pmove_t* pm, int from_height, int to_height)
 	{
-		float fLerpFrac;
-
 		if (!pm->ps->viewHeightLerpTime)
 		{
 			return 0.0f;
 		}
 
-		if (iFromHeight != -1 && iToHeight != -1
-			&& (iToHeight != pm->ps->viewHeightLerpTarget || iToHeight == 40 
-				&& (iFromHeight != 11 || pm->ps->viewHeightLerpDown) 
-				&& (iFromHeight != 60 || !pm->ps->viewHeightLerpDown)))
+		if (from_height != -1 && to_height != -1
+			&& (to_height != pm->ps->viewHeightLerpTarget || to_height == 40 
+			&& (from_height != 11 || pm->ps->viewHeightLerpDown) 
+			&& (from_height != 60 || !pm->ps->viewHeightLerpDown)))
 		{
 			return 0.0f;
 		}
 
-		fLerpFrac = (float)(pm->cmd.serverTime - pm->ps->viewHeightLerpTime) / CGaz::PM_GetViewHeightLerpTime(pm->ps->viewHeightLerpTarget, pm->ps->viewHeightLerpDown);
-		if (fLerpFrac >= 0.0f)
+		float flerp_frac = static_cast<float>((pm->cmd.serverTime - pm->ps->viewHeightLerpTime)) / cgaz::PM_GetViewHeightLerpTime(pm->ps->viewHeightLerpTarget, pm->ps->viewHeightLerpDown);
+		if (flerp_frac >= 0.0f)
 		{
-			if (fLerpFrac > 1.0f)
+			if (flerp_frac > 1.0f)
 			{
-				fLerpFrac = 1.0f;
+				flerp_frac = 1.0f;
 			}
 		}
 		else
 		{
-			fLerpFrac = 0.0f;
+			flerp_frac = 0.0f;
 		}
 
-		return fLerpFrac;
+		return flerp_frac;
 	}
 
-	float CGaz::PM_CmdScaleForStance(Game::pmove_t* pm)
+	float cgaz::PM_CmdScaleForStance(Game::pmove_t* pm)
 	{
-		float lerpFrac;
-
-		lerpFrac = CGaz::PM_GetViewHeightLerp(pm, 40, 11);
+		float lerpFrac = cgaz::PM_GetViewHeightLerp(pm, 40, 11);
 
 		if (lerpFrac != 0.0f)
 		{
 			return 0.15000001f * lerpFrac + (1.0f - lerpFrac) * 0.64999998f;
 		}
 			
-		lerpFrac = CGaz::PM_GetViewHeightLerp(pm, 11, 40);
+		lerpFrac = cgaz::PM_GetViewHeightLerp(pm, 11, 40);
 
 		if (lerpFrac != 0.0f)
 		{
@@ -398,11 +395,11 @@ namespace Components
 		return 1.0f;
 	}
 
-	float CGaz::PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd)
+	float cgaz::PM_CmdScale_Walk(Game::pmove_t* pm, Game::usercmd_s* cmd)
 	{
 		float total, speed, scale;
 
-		bool isProne = pm->ps->pm_flags & PMF_PRONE && pm->ps->fWeaponPosFrac > 0.0f;
+		const bool isProne = pm->ps->pm_flags & PMF_PRONE && pm->ps->fWeaponPosFrac > 0.0f;
 
 		total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
 
@@ -412,12 +409,12 @@ namespace Components
 		}
 		else
 		{
-			speed = fabs((float)cmd->forwardmove * Game::Dvar_FindVar("player_backSpeedScale")->current.value);
+			speed = fabs(static_cast<float>(cmd->forwardmove) * Game::Dvar_FindVar("player_backSpeedScale")->current.value);
 		}
 
-		if (speed - fabs((float)cmd->rightmove * Game::Dvar_FindVar("player_strafeSpeedScale")->current.value) < 0.0f)
+		if (speed - fabs(static_cast<float>(cmd->rightmove) * Game::Dvar_FindVar("player_strafeSpeedScale")->current.value) < 0.0f)
 		{
-			speed = fabs((float)cmd->rightmove * Game::Dvar_FindVar("player_strafeSpeedScale")->current.value);
+			speed = fabs(static_cast<float>(cmd->rightmove) * Game::Dvar_FindVar("player_strafeSpeedScale")->current.value);
 		}
 
 		if (speed == 0.0f)
@@ -425,9 +422,9 @@ namespace Components
 			return 0.0f;
 		}
 
-		scale = ((float)pm->ps->speed * speed) / (127.0f * total);
+		scale = (static_cast<float>(pm->ps->speed) * speed) / (127.0f * total);
 
-		if (pm->ps->pm_flags & PMF_LEAN || pm->ps->leanf != 0.0 || isProne)
+		if (pm->ps->pm_flags & PMF_LEAN || pm->ps->leanf != 0.0f || isProne)
 		{
 			scale *= 0.40000001f;
 		}
@@ -447,14 +444,15 @@ namespace Components
 		}
 		else
 		{
-			scale *= CGaz::PM_CmdScaleForStance(pm);
+			scale *= cgaz::PM_CmdScaleForStance(pm);
 		}
 
-		auto weapon = Game::BG_WeaponNames[pm->ps->weapon];
+		const auto weapon = Game::BG_WeaponNames[pm->ps->weapon];
 
 		if (!pm->ps->weapon || weapon->moveSpeedScale <= 0.0f || pm->ps->pm_flags & PMF_LEAN || isProne)
 		{
-			if (pm->ps->weapon && weapon->adsMoveSpeedScale > 0.0f) {
+			if (pm->ps->weapon && weapon->adsMoveSpeedScale > 0.0f) 
+			{
 				scale = scale * weapon->adsMoveSpeedScale;
 			}
 		}
@@ -464,7 +462,6 @@ namespace Components
 		}
 
 		// skip shellshock stuff
-
 		return scale * pm->ps->moveSpeedScaleMultiplier;
 	}
 
@@ -474,44 +471,42 @@ namespace Components
 
 	===================
 	*/
-	void CGaz::PM_WalkMove(Game::pmove_t *pm, Game::pml_t *pml)
+	void cgaz::PM_WalkMove(Game::pmove_t *pm, Game::pml_t *pml)
 	{
-		float accelerate;
-
 		if (Game::Jump_Check(pm, pml))
 		{
 			// jumped away
-			CGaz::PM_AirMove(pm, pml);
+			cgaz::PM_AirMove(pm, pml);
 			return;
 		}
 
 		Game::PM_Friction(pm->ps, pml);
 
-		float scale = CGaz::PM_CmdScale_Walk(pm, &pm->cmd);
-		float dmg_scale = CGaz::PM_DamageScale_Walk(pm->ps->damageTimer) * scale;
-
 		// project moves down to flat plane
 		pml->forward[2] = 0;
 		pml->right[2] = 0;
 
-		Utils::vector::_VectorNormalize(pml->forward);
-		Utils::vector::_VectorNormalize(pml->right);
+		utils::vector::_VectorNormalize(pml->forward);
+		utils::vector::_VectorNormalize(pml->right);
 
 		for (uint8_t i = 0; i < 2; ++i)
 		{
-			s.wishvel[i] = pm->cmd.forwardmove * pml->forward[i] + pm->cmd.rightmove * pml->right[i];
+			s.wishvel[i] = static_cast<float>(pm->cmd.forwardmove) * pml->forward[i] + static_cast<float>(pm->cmd.rightmove) * pml->right[i];
 		}
 
-		float wishspeed = dmg_scale * VectorLength2(s.wishvel);
+		const float dmg_scale = cgaz::PM_DamageScale_Walk(pm->ps->damageTimer) * cgaz::PM_CmdScale_Walk(pm, &pm->cmd);
+		const float wishspeed = dmg_scale * VectorLength2(s.wishvel);
 
 		// when a player gets hit, they temporarily lose
 		// full control, which allows them to be moved a bit
 		if (pml->groundTrace.surfaceFlags & SURF_SLICK || pm->ps->pm_flags & PMF_TIME_KNOCKBACK)
 		{
-			CGaz::PM_SlickAccelerate(wishspeed, pm_airaccelerate);
+			cgaz::PM_SlickAccelerate(wishspeed, pm_airaccelerate);
 		}
 		else
 		{
+			float accelerate;
+
 			if (pm->ps->viewHeightTarget == 11)
 			{
 				accelerate = pm_prone_accelerate;
@@ -525,11 +520,11 @@ namespace Components
 				accelerate = pm_accelerate;
 			}
 
-			CGaz::PM_Accelerate(wishspeed, accelerate);
+			cgaz::PM_Accelerate(wishspeed, accelerate);
 		}
 	}
 
-	void CGaz::PmoveSingle(Game::pmove_t* pm, Game::pml_t* pml)
+	void cgaz::PmoveSingle(Game::pmove_t* pm, Game::pml_t* pml)
 	{
 		// clear all pmove local vars
 		memset(pml, 0, sizeof(pml));
@@ -537,9 +532,9 @@ namespace Components
 		// save old velocity for crashlanding
 		VectorCopy(pm->ps->velocity, pml->previous_velocity);
 
-		Utils::vector::_AngleVectors(pm->ps->viewangles, pml->forward, pml->right, pml->up);
+		utils::vector::_AngleVectors(pm->ps->viewangles, pml->forward, pml->right, pml->up);
 
-		pml->frametime = Game::cgs->frametime / 1000.f;
+		pml->frametime = static_cast<float>(Game::cgs->frametime) / 1000.f;
 
 		// Use default key combination when no user input
 		if (!pm->cmd.forwardmove && !pm->cmd.rightmove)
@@ -553,47 +548,48 @@ namespace Components
 		if (pml->walking)
 		{
 			// walking on ground
-			CGaz::PM_WalkMove(pm, pml);
+			cgaz::PM_WalkMove(pm, pml);
 		}
 		else
 		{
 			// airborne
-			CGaz::PM_AirMove(pm, pml);
+			cgaz::PM_AirMove(pm, pml);
 		}
 
-		CGaz::CG_DrawCGaz();
+		cgaz::draw_cgaz();
 	}
 
-	void CGaz::main()
+	void cgaz::main()
 	{
-		if ((Dvars::mdd_cgaz && !Dvars::mdd_cgaz->current.enabled) || (Game::cgs && Game::cgs->demoType))
+		if ((dvars::mdd_cgaz && !dvars::mdd_cgaz->current.enabled) || (Game::cgs && Game::cgs->demoType))
 		{
 			return;
 		}
 
 		memcpy(&s.pm, &*Game::pmove, sizeof(Game::pmove_t));
 
-		if (!(s.pm.ps->otherFlags & PMF_FOLLOW) && (Utils::vector::_VectorLengthSquared2(s.pm.ps->velocity) >= Dvars::mdd_cgaz_min_speed->current.integer * Dvars::mdd_cgaz_min_speed->current.integer))
+		if (!(s.pm.ps->otherFlags & PMF_FOLLOW) 
+			&& (utils::vector::_VectorLengthSquared2(s.pm.ps->velocity) >= static_cast<float>(dvars::mdd_cgaz_min_speed->current.integer * dvars::mdd_cgaz_min_speed->current.integer)))
 		{
-			CGaz::PmoveSingle(&s.pm, &s.pml);
+			cgaz::PmoveSingle(&s.pm, &s.pml);
 		}
 	}
 
-	CGaz::CGaz()
+	cgaz::cgaz()
 	{
-		Dvars::mdd_cgaz = Game::Dvar_RegisterBool(
+		dvars::mdd_cgaz = Game::Dvar_RegisterBool(
 			/* name		*/ "mdd_cgaz",
 			/* desc		*/ "Display mDd CampingGaz HUD",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_ground = Game::Dvar_RegisterBool(
+		dvars::mdd_cgaz_ground = Game::Dvar_RegisterBool(
 			/* name		*/ "mdd_cgaz_ground",
 			/* desc		*/ "show true ground zones",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_min_speed = Game::Dvar_RegisterInt(
+		dvars::mdd_cgaz_min_speed = Game::Dvar_RegisterInt(
 			/* name		*/ "mdd_cgaz_min_speed",
 			/* desc		*/ "min speed value for draw CGaz",
 			/* default	*/ 1,
@@ -601,7 +597,7 @@ namespace Components
 			/* maxVal	*/ 1000,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_yh = Game::Dvar_RegisterVec2(
+		dvars::mdd_cgaz_yh = Game::Dvar_RegisterVec2(
 			/* name		*/ "mdd_cgaz_yh",
 			/* desc		*/ "mdd_cgaz position on screen 'Y' and cgaz thickness 'H'",
 			/* y		*/ 180.0f,
@@ -610,7 +606,7 @@ namespace Components
 			/* maxValue	*/ 640.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_rgbaNoAccel = Game::Dvar_RegisterVec4(
+		dvars::mdd_cgaz_rgbaNoAccel = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_cgaz_rgbaNoAccel",
 			/* desc		*/ "color for no accel zone",
 			/* x		*/ 0.25f,
@@ -621,7 +617,7 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_rgbaPartialAccel = Game::Dvar_RegisterVec4(
+		dvars::mdd_cgaz_rgbaPartialAccel = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_cgaz_rgbaPartialAccel",
 			/* desc		*/ "color for partial accel zone",
 			/* x		*/ 0.0f,
@@ -632,7 +628,7 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_rgbaFullAccel = Game::Dvar_RegisterVec4(
+		dvars::mdd_cgaz_rgbaFullAccel = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_cgaz_rgbaFullAccel",
 			/* desc		*/ "color for full accel zone",
 			/* x		*/ 0.0f,
@@ -643,7 +639,7 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_cgaz_rgbaTurnZone = Game::Dvar_RegisterVec4(
+		dvars::mdd_cgaz_rgbaTurnZone = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_cgaz_rgbaTurnZone",
 			/* desc		*/ "color for turn zone",
 			/* x		*/ 1.0f,
@@ -654,7 +650,4 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 	}
-
-	CGaz::~CGaz()
-	{ }
 }

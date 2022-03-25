@@ -3,7 +3,7 @@
 #define MAX_MAP_BOUNDS	65535
 #define	ON_EPSILON	0.1f
 
-namespace Utils
+namespace utils
 {
 	namespace polylib 
 	{
@@ -38,8 +38,8 @@ namespace Utils
 			VectorSubtract(w->p[1], w->p[0], v1);
 			VectorSubtract(w->p[2], w->p[0], v2);
 
-			Utils::vector::_CrossProduct(v2, v1, normal);
-			Utils::vector::_VectorNormalize2(normal, normal);
+			utils::vector::_CrossProduct(v2, v1, normal);
+			utils::vector::_VectorNormalize2(normal, normal);
 
 			*dist = DotProduct(w->p[0], normal);
 		}
@@ -55,7 +55,7 @@ namespace Utils
 				VectorSubtract(w->p[i - 1], w->p[0], d1);
 				VectorSubtract(w->p[i], w->p[0], d2);
 
-				Utils::vector::_CrossProduct(d1, d2, cross);
+				utils::vector::_CrossProduct(d1, d2, cross);
 				total += 0.5f * VectorLength(cross);
 			}
 
@@ -119,8 +119,8 @@ namespace Utils
 				}
 					
 
-				Utils::vector::_CrossProduct(facenormal, dir, edgenormal);
-				Utils::vector::_VectorNormalize2(edgenormal, edgenormal);
+				utils::vector::_CrossProduct(facenormal, dir, edgenormal);
+				utils::vector::_VectorNormalize2(edgenormal, edgenormal);
 				edgedist = DotProduct(p1, edgenormal);
 				edgedist += ON_EPSILON;
 

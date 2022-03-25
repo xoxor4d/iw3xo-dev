@@ -2,37 +2,37 @@
 
 namespace Components
 {
-	std::vector<Game::cmd_function_s*> Command::Functions;
-	std::map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMap;
+	std::vector<Game::cmd_function_s*> command::functions;
+	std::map<std::string, utils::Slot<command::callback>> command::function_map;
 
-	const char* Command::Params::operator[](size_t index)
+	const char* command::params::operator[](size_t index)
 	{
-		if (index >= this->Length()) 
+		if (index >= this->length()) 
 		{
 			return "";
 		}
 
-		return Game::cmd_argv[this->CommandId][index];
+		return Game::cmd_argv[this->command_id][index];
 	}
 
-	size_t Command::Params::Length()
+	size_t command::params::length()
 	{
-		return Game::cmd_argc[this->CommandId];
+		return Game::cmd_argc[this->command_id];
 	}
 
-	void Command::Add(const char* name, Utils::Slot<Command::Callback> callback)
+	void command::add(const char* name, utils::Slot<command::callback> callback)
 	{
-		Command::FunctionMap[Utils::StrToLower(name)] = callback;
-		Game::Cmd_AddCommand(name, Command::MainCallback, Command::Allocate(), 0);
+		command::function_map[utils::str_to_lower(name)] = callback;
+		Game::Cmd_AddCommand(name, command::main_callback, command::allocate(), 0);
 	}
 
-	void Command::Add(const char* name, const char* args, const char* description, Utils::Slot<Command::Callback> callback)
+	void command::add(const char* name, const char* args, const char* description, utils::Slot<command::callback> callback)
 	{
-		Command::FunctionMap[Utils::StrToLower(name)] = callback;
-		Game::Cmd_AddCommand(name, args, description, Command::MainCallback, Command::Allocate(), 0);
+		command::function_map[utils::str_to_lower(name)] = callback;
+		Game::Cmd_AddCommand(name, args, description, command::main_callback, command::allocate(), 0);
 	}
 
-	void Command::Execute(std::string command, bool sync)
+	void command::execute(std::string command, bool sync)
 	{
 		command.append("\n"); // Make sure it's terminated
 
@@ -46,38 +46,32 @@ namespace Components
 		}
 	}
 
-	Game::cmd_function_s* Command::Allocate()
+	Game::cmd_function_s* command::allocate()
 	{
-		Game::cmd_function_s* cmd = new Game::cmd_function_s;
-		Command::Functions.push_back(cmd);
+		const auto cmd = new Game::cmd_function_s;
+		command::functions.push_back(cmd);
 
 		return cmd;
 	}
 
-	void Command::MainCallback()
+	void command::main_callback()
 	{
-		Command::Params params(*Game::cmd_id);
+		command::params params(*Game::cmd_id);
+		const std::string command = utils::str_to_lower(params[0]);
 
-		std::string command = Utils::StrToLower(params[0]);
-
-		if (Command::FunctionMap.find(command) != Command::FunctionMap.end())
+		if (command::function_map.contains(command))
 		{
-			Command::FunctionMap[command](params);
+			command::function_map[command](params);
 		}
 	}
 
-	Command::Command()
+	command::~command()
 	{
-		// TODO: Add commands here?
-	}
-
-	Command::~Command()
-	{
-		for (auto command : Command::Functions)
+		for (const auto command : command::functions)
 		{
 			delete command;
 		}
 
-		Command::Functions.clear();
+		command::functions.clear();
 	}
 }

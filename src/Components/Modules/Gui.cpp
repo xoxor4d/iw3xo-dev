@@ -7,9 +7,9 @@
 	}												\
 	else if(menu.was_open) {						\
 		if (!GET_GGUI.any_menus_open) {				\
-			Gui::reset_mouse();						\
+			gui::reset_mouse();						\
 		}											\
-		Gui::save_settings();						\
+		gui::save_settings();						\
 		menu.was_open = false;						\
 	}
 
@@ -32,7 +32,7 @@
 
 namespace Components
 {
-	struct my_markdown : public imgui_md
+	struct my_markdown : imgui_md
 	{
 		// fade-in fix
 		void line(ImColor c, bool under) override
@@ -47,7 +47,7 @@ namespace Components
 
 			mi.y = ma.y;
 
-			if (!Game::Globals::mainmenu_fadeDone)
+			if (!Game::Globals::mainmenu_fade_done)
 			{
 				const ImGuiStyle& s = ImGui::GetStyle();
 
@@ -90,23 +90,23 @@ namespace Components
 
 		void open_url() const override
 		{
-			ShellExecuteA(NULL, "open", m_href.c_str(), NULL, NULL, SW_SHOW);
+			ShellExecuteA(0, "open", m_href.c_str(), 0, 0, SW_SHOW);
 		}
 
 
 		bool get_image(image_info& nfo) const override
 		{
-			nfo.texture_id = 0;
+			nfo.texture_id = nullptr;
 			nfo.size = { 40,20 };
 			nfo.uv0 = { 0,0 };
 			nfo.uv1 = { 1,1 };
 			nfo.col_tint = { 1,1,1,1 };
 			nfo.col_border = { 0,0,0,0 };
 
-			if (Game::Globals::loaded_MainMenu && m_href != ""s)
+			if (Game::Globals::loaded_main_menu && m_href != ""s)
 			{
-				Game::Material* material = Game::Material_RegisterHandle(m_href.c_str(), 3);
-				if (material)
+				if (const auto	material = Game::Material_RegisterHandle(m_href.c_str(), 3); 
+								material)
 				{
 					nfo.texture_id = material->textureTable->u.image->texture.data;
 					nfo.size = ImVec2(material->textureTable->u.image->width, material->textureTable->u.image->height);
@@ -136,68 +136,48 @@ namespace Components
 	};
 
 	//call this function to render your markdown
-	void Gui::markdown(const char* str, const char* str_end)
+	void gui::markdown(const char* str, const char* str_end)
 	{
 		static my_markdown s_printer;
 		s_printer.print(str, str_end);
 	}
 
-	void Gui::redraw_cursor()
+	void gui::redraw_cursor()
 	{
-		ImGuiIO& io = ImGui::GetIO();
-
 		float cur_w = (32.0f * Game::scrPlace->scaleVirtualToReal[0]) / Game::scrPlace->scaleVirtualToFull[0];
 		float cur_h = (32.0f * Game::scrPlace->scaleVirtualToReal[1]) / Game::scrPlace->scaleVirtualToFull[1];
-		float cur_x = Game::_uiContext->cursor.x - 0.5f * cur_w;
-		float cur_y = Game::_uiContext->cursor.y - 0.5f * cur_h;
+		float cur_x = Game::ui_context->cursor.x - 0.5f * cur_w;
+		float cur_y = Game::ui_context->cursor.y - 0.5f * cur_h;
 
-		// set up texcoords
-		float s0, s1;
-		float t0, t1;
-
-		if (cur_w >= 0.0f)
-		{
-			s0 = 0.0f;
-			s1 = 1.0f;
-		}
-		else
+		if (cur_w < 0.0f)
 		{
 			cur_w = -cur_w;
-			s0 = 1.0f;
-			s1 = 0.0f;
 		}
 
-		if (cur_h >= 0.0f)
-		{
-			t0 = 0.0f;
-			t1 = 1.0f;
-		}
-		else
+		if (cur_h < 0.0f)
 		{
 			cur_h = -cur_h;
-			t0 = 1.0f;
-			t1 = 0.0f;
 		}
 
-		_UI::ScrPlace_ApplyRect(&cur_x, &cur_w, &cur_y, &cur_h, HORIZONTAL_ALIGN_FULLSCREEN, VERTICAL_ALIGN_FULLSCREEN);
+		_ui::scrplace_apply_rect(&cur_x, &cur_w, &cur_y, &cur_h, HORIZONTAL_ALIGN_FULLSCREEN, VERTICAL_ALIGN_FULLSCREEN);
 
-		if (Game::Globals::loaded_MainMenu)
+		if (Game::Globals::loaded_main_menu)
 		{
-			Game::Material* material = Game::Material_RegisterHandle("ui_cursor", 3);
-			if (material)
+			if (const auto	material = Game::Material_RegisterHandle("ui_cursor", 3); 
+							material)
 			{
-				float cur_size	= 54.0f;
-				float ofs_x		= 0.0f;
-				float ofs_y		= cur_size;
+				const float cur_size = 54.0f;
+				const float offs_x = 0.0f;
+				const float offs_y = cur_size;
 
-				ImTextureID image = material->textureTable->u.image->texture.data;
+				const ImTextureID image = material->textureTable->u.image->texture.data;
 				
 				ImGui::GetWindowDrawList()->AddImageQuad(
 					image,
-					ImVec2(cur_x +	ofs_x,				cur_y + ofs_y),
-					ImVec2(cur_x + cur_size + ofs_x,	cur_y + ofs_y),
-					ImVec2(cur_x + cur_size + ofs_x,	cur_y - cur_size + ofs_y),
-					ImVec2(cur_x + ofs_x,				cur_y - cur_size + ofs_y),
+					ImVec2(cur_x + offs_x,			cur_y + offs_y),
+					ImVec2(cur_x + cur_size + offs_x,	cur_y + offs_y),
+					ImVec2(cur_x + cur_size + offs_x,	cur_y - cur_size + offs_y),
+					ImVec2(cur_x + offs_x,			cur_y - cur_size + offs_y),
 					ImVec2(0.0f, 1.0f),
 					ImVec2(1.0f, 1.0f),
 					ImVec2(1.0f, 0.0f),
@@ -210,19 +190,14 @@ namespace Components
 
 	// *
 	// initialize imgui
-	void Gui::imgui_init()
+	void gui::imgui_init()
 	{
-		IDirect3DDevice9* device;
+		IDirect3DDevice9* device = *Game::dx9_device_ptr;
 
-		if (Components::active.D3D9Ex)
+		if (Components::active.d3d9ex)
 		{
 			// get the device from D3D9Ex::_D3D9/Ex::CreateDevice
 			device = Game::Globals::d3d9_device;
-		}
-		else
-		{
-			// get the device from the game
-			device = *Game::dx9_device_ptr;
 		}
 
 		ImGui::CreateContext();
@@ -253,42 +228,44 @@ namespace Components
 
 	// *
 	// main rendering loop (D3D9Ex::D3D9Device::EndScene())
-	void Gui::render_loop()
+	void gui::render_loop()
 	{
-		auto& gui = GET_GGUI;
+		auto& ggui = GET_GGUI;
 
-		if (!gui.dvars_initialized) {
+		if (!ggui.dvars_initialized) 
+		{
 			return;
 		}
 
-		if (!gui.imgui_initialized) {
-			Gui::imgui_init();
+		if (!ggui.imgui_initialized) 
+		{
+			gui::imgui_init();
 		}
 
-		Gui::begin_frame();
-		Gui::any_open_menus();
+		gui::begin_frame();
+		gui::any_open_menus();
 
 		// ------------
 
-		IMGUI_REGISTERMENU(gui.menus[Game::GUI_MENUS::DEMO], ImGui::ShowDemoWindow(&gui.menus[Game::GUI_MENUS::DEMO].menustate));
-		IMGUI_REGISTERMENU(gui.menus[Game::GUI_MENUS::DEVGUI], Gui_Devgui::create_devgui(gui.menus[Game::GUI_MENUS::DEVGUI]));
-		IMGUI_REGISTERMENU(gui.menus[Game::GUI_MENUS::CHANGELOG], _UI::create_changelog(gui.menus[Game::GUI_MENUS::CHANGELOG]));
+		IMGUI_REGISTERMENU(ggui.menus[Game::GUI_MENUS::DEMO], ImGui::ShowDemoWindow(&ggui.menus[Game::GUI_MENUS::DEMO].menustate));
+		IMGUI_REGISTERMENU(ggui.menus[Game::GUI_MENUS::DEVGUI], gui_devgui::create_devgui(ggui.menus[Game::GUI_MENUS::DEVGUI]));
+		IMGUI_REGISTERMENU(ggui.menus[Game::GUI_MENUS::CHANGELOG], _ui::create_changelog(ggui.menus[Game::GUI_MENUS::CHANGELOG]));
 
 		// ------------
 
-		Gui::end_frame();
+		gui::end_frame();
 	}
 
 	// *
-	// shutdown imgui when game window resets (Window::CreateMainWindow())
-	void Gui::reset()
+	// shutdown imgui when game window resets (window::create_main_window())
+	void gui::reset()
 	{
 		if (GGUI_READY)
 		{
 			ImGui_ImplDX9_Shutdown();
 			ImGui_ImplWin32_Shutdown();
 
-			Gui::reset_mouse();
+			gui::reset_mouse();
 			memset(&Game::Globals::gui, 0, sizeof(Game::gui_t));
 			GGUI_READY_DVARS = true;
 		}
@@ -296,24 +273,31 @@ namespace Components
 
 	// *
 	// toggle a imgui menu by command (or key (scheduler))
-	void Gui::toggle(Game::gui_menus_t &menu, int keycatcher, bool onCommand = false)
+	void gui::toggle(Game::gui_menus_t &menu, int keycatcher, bool on_command = false)
 	{
-		if (!GGUI_READY) {
+		if (!GGUI_READY) 
+		{
 			return;
 		}
 
-		if (Game::playerKeys->keys[keycatcher].down) {
-			menu.hk_is_clicked = false; menu.hk_is_down = true;
+		if (Game::playerKeys->keys[keycatcher].down) 
+		{
+			menu.hk_is_clicked = false;
+			menu.hk_is_down = true;
 		}
-		else if (!Game::playerKeys->keys[keycatcher].down && menu.hk_is_down) {
-			menu.hk_is_clicked = true; menu.hk_is_down = false;
+		else if (!Game::playerKeys->keys[keycatcher].down && menu.hk_is_down) 
+		{
+			menu.hk_is_clicked = true;
+			menu.hk_is_down = false;
 		}
-		else {
-			menu.hk_is_clicked = false; menu.hk_is_down = false;
+		else 
+		{
+			menu.hk_is_clicked = false;
+			menu.hk_is_down = false;
 		}
 
 		// toggle menu by key or command
-		if (menu.hk_is_clicked || onCommand)
+		if (menu.hk_is_clicked || on_command)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			std::fill_n(io.KeysDown, 512, 0); // fix keys getting stuck on close / vid_restart
@@ -332,32 +316,30 @@ namespace Components
 			}
 
 			// toggle the mouse
-			Gui::toggle_mouse(menu.menustate);
+			gui::toggle_mouse(menu.menustate);
 		}
 	}
 
 	// *
 	// toggle the mouse
-	void Gui::toggle_mouse(bool state)
+	void gui::toggle_mouse(bool state)
 	{
-		static auto in_mouse = Game::Dvar_FindVar("in_mouse");
-
-		if (in_mouse)
+		if (const auto& in_mouse = Game::Dvar_FindVar("in_mouse"); 
+						in_mouse)
 		{
 			Game::Dvar_SetValue(in_mouse, state ? 0 : 1);
 
-			Utils::function<void()>(0x575E90)(); // In_Shutdown
+			utils::function<void()>(0x575E90)(); // In_Shutdown
 			*Game::mouse_enabled = in_mouse->current.enabled;
 		}
 	}
 
 	// *
 	// reset the mouse
-	void Gui::reset_mouse()
+	void gui::reset_mouse()
 	{
-		static auto in_mouse = Game::Dvar_FindVar("in_mouse");
-
-		if (in_mouse)
+		if (const auto& in_mouse = Game::Dvar_FindVar("in_mouse");
+						in_mouse)
 		{
 			Game::Dvar_SetValue(in_mouse, true);
 			*Game::mouse_enabled = in_mouse->current.enabled;
@@ -366,7 +348,7 @@ namespace Components
 
 	// *
 	// set menu layout (origin / size / anker)
-	void Gui::set_menu_layout(Game::gui_menus_t& menu, const float x, const float y, const float width, const float height, const int horzAlign = VERTICAL_APPLY_NONE, const int vertAlign = HORIZONTAL_APPLY_NONE)
+	void gui::set_menu_layout(Game::gui_menus_t& menu, const float x, const float y, const float width, const float height, const int horz_align = VERTICAL_APPLY_NONE, const int vert_align = HORIZONTAL_APPLY_NONE)
 	{
 		menu.position[0] = x;
 		menu.position[1] = y;
@@ -374,12 +356,12 @@ namespace Components
 		menu.size[0] = width;
 		menu.size[1] = height;
 
-		menu.horzAlign = horzAlign;
-		menu.vertAlign = vertAlign;
+		menu.horzAlign = horz_align;
+		menu.vertAlign = vert_align;
 	}
 
 	// *
-	void Gui::begin_frame()
+	void gui::begin_frame()
 	{
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -387,25 +369,15 @@ namespace Components
 	}
 
 	// *
-	void Gui::end_frame()
+	void gui::end_frame()
 	{
 		ImGui::Render();
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	// *
-	// unused
-	void Gui::update_hWnd(void* hwnd)
-	{
-		if (GGUI_READY)
-		{
-			ImGui_SethWnd(hwnd);
-		}
-	}
-
-	// *
-	// called on init from Commands::ForceDvarsOnInit()
-	void Gui::load_settings()
+	// called on init from commands::force_dvars_on_init()
+	void gui::load_settings()
 	{
 		// pretty useless but might be needed later
 		GGUI_READY_DVARS = true;
@@ -413,45 +385,43 @@ namespace Components
 
 	// *
 	// save dvars to disk (only modified dvars are saved)
-	void Gui::save_settings()
+	void gui::save_settings()
 	{
 		// trigger config writing
-		Game::Cmd_ExecuteSingleCommand(0, 0, Utils::VA("set _imgui_saving %d", !Dvars::_imgui_saving->current.enabled));
+		Game::Cmd_ExecuteSingleCommand(0, 0, utils::va("set _imgui_saving %d", !dvars::_imgui_saving->current.enabled));
 	}
 
 	// *
 	// check if there are any open menus
-	bool Gui::any_open_menus()
+	bool gui::any_open_menus()
 	{
-		auto& gui = GET_GGUI;
-		const auto cl_ingame = Game::Dvar_FindVar("cl_ingame");
+		auto& ggui = GET_GGUI;
+		const auto& cl_ingame = Game::Dvar_FindVar("cl_ingame");
 
 		for (int m = 0; m < GGUI_MENU_COUNT; m++)
 		{
-			if (gui.menus[m].menustate)
+			if (ggui.menus[m].menustate)
 			{
 				// positive flag and ingame
-				if (!gui.any_menus_open && cl_ingame && cl_ingame->current.enabled)
+				if (!ggui.any_menus_open && cl_ingame && cl_ingame->current.enabled)
 				{
 					// activate a dummy menu to block game input
 					CMDEXEC("menu_open_ingame pregame_loaderror_mp");
 				}
 
-				if (gui.menus[m].mouse_ignores_menustate)
+				if (ggui.menus[m].mouse_ignores_menustate)
 				{
-					gui.any_menus_open = false;
+					ggui.any_menus_open = false;
 					return false;
 				}
-				else
-				{
-					gui.any_menus_open = true;
-					return true;
-				}
+
+				ggui.any_menus_open = true;
+				return true;
 			}
 		}
 
 		// negative flag
-		if (gui.any_menus_open)
+		if (ggui.any_menus_open)
 		{
 			// close the dummy menu
 			if (cl_ingame && cl_ingame->current.enabled)
@@ -459,7 +429,7 @@ namespace Components
 				CMDEXEC("menu_closebyname pregame_loaderror_mp");
 			}
 
-			gui.any_menus_open = false;
+			ggui.any_menus_open = false;
 		}
 
 		
@@ -468,22 +438,22 @@ namespace Components
 
 	// *
 	// not using a macro so one can see the structure while debugging
-	Game::gui_menus_t& Gui::GetMenu(Game::GUI_MENUS id)
+	Game::gui_menus_t& gui::get_menu(Game::GUI_MENUS id)
 	{
 		return Game::Globals::gui.menus[id];
 	}
 
 	// *
 	// 
-	Gui::Gui()
+	gui::gui()
 	{
 #if DEBUG
 		// check hotkeys every frame
 		Scheduler::on_frame([this]()
 		{
-			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
-			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
-			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG], KEYCATCHER_INS);
+			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
+			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
+			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG], KEYCATCHER_INS);
 
 		}, Scheduler::thread::main);
 #endif
@@ -491,38 +461,26 @@ namespace Components
 		// *
 		// Commands
 
-		Command::Add("devgui_demo", "", "opens the imgui demo menu", [this](Command::Params)
+		command::add("devgui_demo", "", "opens the imgui demo menu", [this](command::params)
 		{
-			//if (!Dvars::r_d3d9ex->current.enabled)
-			//{
-			//	Game::Com_PrintMessage(0, "Please enable <r_d3d9ex> first!", 0);
-			//	return;
-			//}
-
-			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], 0, true);
+			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], 0, true);
 		});
 
-		Command::Add("devgui", "", "opens the devgui", [this](Command::Params)
+		command::add("devgui", "", "opens the devgui", [this](command::params)
 		{
-			//if (!Dvars::r_d3d9ex->current.enabled)
-			//{
-			//	Game::Com_PrintMessage(0, "Please enable <r_d3d9ex> first!", 0);
-			//	return;
-			//}
-
-			Gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], 0, true);
+			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], 0, true);
 		});
 
 		// *
-		// Dvars
+		// dvars
 
-		Dvars::_imgui_saving = Game::Dvar_RegisterBool(
+		dvars::_imgui_saving = Game::Dvar_RegisterBool(
 			/* name		*/ "_imgui_saving",
 			/* desc		*/ "saving flag",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::_imgui_window_alpha = Game::Dvar_RegisterFloat(
+		dvars::_imgui_window_alpha = Game::Dvar_RegisterFloat(
 			/* name		*/ "_imgui_window_alpha",
 			/* desc		*/ "imgui window alpha",
 			/* default	*/ 0.8f,
@@ -530,7 +488,4 @@ namespace Components
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 	}
-
-	Gui::~Gui()
-	{ }
 }

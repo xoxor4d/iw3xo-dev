@@ -32,9 +32,9 @@ namespace Components
 	private:
 		static std::mutex mutex_;
 		static std::queue<std::pair<std::string, int>> errors_;
-		static Utils::concurrent_list<std::pair<std::function<void()>, thread>> callbacks_;
-		static Utils::concurrent_list<std::pair<std::function<void()>, thread>> single_callbacks_;
-		static Utils::concurrent_list<std::pair<std::function<Scheduler::evaluation()>, thread>> condition_callbacks_;
+		static utils::concurrent_list<std::pair<std::function<void()>, thread>> callbacks_;
+		static utils::concurrent_list<std::pair<std::function<void()>, thread>> single_callbacks_;
+		static utils::concurrent_list<std::pair<std::function<Scheduler::evaluation()>, thread>> condition_callbacks_;
 
 		static void main_frame_stub();
 		static void renderer_frame_stub_stock();

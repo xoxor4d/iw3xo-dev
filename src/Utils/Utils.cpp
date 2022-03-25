@@ -3,9 +3,9 @@
 #define VA_BUFFER_COUNT		64
 #define VA_BUFFER_SIZE		65536
 
-namespace Utils
+namespace utils
 {
-	int try_stoi(const std::string str, bool quite)
+	int try_stoi(const std::string& str, bool quite)
 	{
 		int ret = 0;
 
@@ -17,14 +17,14 @@ namespace Utils
 		{
 			if (!quite)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("[!] (%s) is not a valid argument! Defaulting to integer 0!\n", str.c_str()), 0);
+				Game::Com_PrintMessage(0, utils::va("[!] (%s) is not a valid argument! Defaulting to integer 0!\n", str.c_str()), 0);
 			}
 		}
 
 		return ret;
 	}
 
-	float try_stof(const std::string str, bool quite)
+	float try_stof(const std::string& str, bool quite)
 	{
 		float ret = 0.0f;
 
@@ -36,51 +36,55 @@ namespace Utils
 		{
 			if (!quite)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("[!] (%s) is not a valid argument! Defaulting to float 0.0f!\n", str.c_str()), 0);
+				Game::Com_PrintMessage(0, utils::va("[!] (%s) is not a valid argument! Defaulting to float 0.0f!\n", str.c_str()), 0);
 			}
 		}
 
 		return ret;
 	}
 
-	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimer()
+	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer()
 	{
 		return std::chrono::high_resolution_clock::now();
 	}
 
-	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrint(const char *string /*no fmt*/)
+	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer_print(const char *string /*no fmt*/)
 	{
 		Game::Com_PrintMessage(0, string, 0);
 		return std::chrono::high_resolution_clock::now();
 	}
 
-	std::chrono::time_point<std::chrono::steady_clock> Clock_StartTimerPrintToFile(std::ofstream &file, const char* string /*no fmt*/)
+	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer_print_to_file(std::ofstream &file, const char* string /*no fmt*/)
 	{
 		if(string)
+		{
 			file << string;
+		}
 
 		return std::chrono::high_resolution_clock::now();
 	}
 
-	void Clock_EndTimerPrintSeconds(std::chrono::time_point<std::chrono::steady_clock> clockStart, const char *string /*%.4f fmt for seconds*/)
+	void clock_end_timer_print_seconds(std::chrono::time_point<std::chrono::steady_clock> clockStart, const char *string /*%.4f fmt for seconds*/)
 	{
-		auto clockEnd = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> elapsed = clockEnd - clockStart;
-		Game::Com_PrintMessage(0, Utils::VA(string, elapsed.count()), 0);
+		const auto clockEnd = std::chrono::high_resolution_clock::now();
+		const std::chrono::duration<double> elapsed = clockEnd - clockStart;
+		Game::Com_PrintMessage(0, utils::va(string, elapsed.count()), 0);
 	}
 
-	void Clock_EndTimerPrintSecondsToFile(std::ofstream& file, std::chrono::time_point<std::chrono::steady_clock> clockStart, const char* string /*%.4f fmt for seconds*/)
+	void clock_end_timer_print_seconds_to_file(std::ofstream& file, std::chrono::time_point<std::chrono::steady_clock> clockStart, const char* string /*%.4f fmt for seconds*/)
 	{
-		auto clockEnd = std::chrono::high_resolution_clock::now();
+		const auto clockEnd = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed = clockEnd - clockStart;
 
 		if(string)
-			file << Utils::VA(string, elapsed.count()) << std::endl;
+		{
+			file << utils::va(string, elapsed.count()) << std::endl;
+		}
 	}
 
-	int Q_strncasecmp(char *s1, char *s2, int n)
+	int q_strncasecmp(char *s1, char *s2, int n)
 	{
-		int		c1, c2;
+		int	c1, c2;
 
 		do
 		{
@@ -88,97 +92,155 @@ namespace Utils
 			c2 = *s2++;
 
 			if (!n--)
-				return 0;		// strings are equal until end point
+			{
+				return 0; // strings are equal until end point
+			}
 
 			if (c1 != c2)
 			{
 				if (c1 >= 'a' && c1 <= 'z')
+				{
 					c1 -= ('a' - 'A');
+				}
+
 				if (c2 >= 'a' && c2 <= 'z')
+				{
 					c2 -= ('a' - 'A');
+				}
+
 				if (c1 != c2)
-					return -1;		// strings not equal
+				{
+					return -1; // strings not equal
+				}
 			}
+
 		} while (c1);
 
-		return 0;		// strings are equal
+		return 0; // strings are equal
 	}
 
-	int Q_stricmp(char *s1, char *s2)
+	int q_stricmp(char *s1, char *s2)
 	{
-		return Q_strncasecmp(s1, s2, 99999);
+		return q_strncasecmp(s1, s2, 99999);
 	}
 
-	void Q_strncpyz(char *dest, const char *src, int destsize) 
+	void q_strncpyz(char *dest, const char *src, int destsize) 
 	{
 		strncpy(dest, src, destsize - 1);
 		dest[destsize - 1] = 0;
 	}
 
-	int Q_stricmpn(const char *s1, const char *s2, int n)
+	int q_stricmpn(const char *s1, const char *s2, int n)
 	{
-		int		c1, c2;
+		int	c1, c2;
 
-		if (s1 == NULL) {
-			if (s2 == NULL)
+		if (s1 == nullptr) 
+		{
+			if (s2 == nullptr)
+			{
 				return 0;
-			else
-				return -1;
+			}
+
+			return -1;
+			
 		}
-		else if (s2 == NULL)
+
+		if (s2 == nullptr)
+		{
 			return 1;
+		}
 
-
-
-		do {
+		do 
+		{
 			c1 = *s1++;
 			c2 = *s2++;
 
-			if (!n--) {
-				return 0;		// strings are equal until end point
+			if (!n--) 
+			{
+				return 0; // strings are equal until end point
 			}
 
-			if (c1 != c2) {
-				if (c1 >= 'a' && c1 <= 'z') {
+			if (c1 != c2) 
+			{
+				if (c1 >= 'a' && c1 <= 'z') 
+				{
 					c1 -= ('a' - 'A');
 				}
-				if (c2 >= 'a' && c2 <= 'z') {
+
+				if (c2 >= 'a' && c2 <= 'z') 
+				{
 					c2 -= ('a' - 'A');
 				}
-				if (c1 != c2) {
+
+				if (c1 != c2) 
+				{
 					return c1 < c2 ? -1 : 1;
 				}
 			}
+
 		} while (c1);
 
-		return 0;		// strings are equal
+		return 0; // strings are equal
 	}
 
-	int Q_stricmp(const char *s1, const char *s2)
+	int q_stricmp(const char *s1, const char *s2)
 	{
-		return (s1 && s2) ? Q_stricmpn(s1, s2, 99999) : -1;
+		return (s1 && s2) ? q_stricmpn(s1, s2, 99999) : -1;
 	}
 
-	// ---------------------------------------------------
+	const char* va(const char* fmt, ...)
+	{
+		static char g_vaBuffer[VA_BUFFER_COUNT][VA_BUFFER_SIZE];
+		static int g_vaNextBufferIndex = 0;
 
-	std::string convertToString(char* a, int size)
+		va_list ap;
+		va_start(ap, fmt);
+		char* dest = g_vaBuffer[g_vaNextBufferIndex];
+		vsnprintf(g_vaBuffer[g_vaNextBufferIndex], VA_BUFFER_SIZE, fmt, ap);
+		g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
+		va_end(ap);
+		return dest;
+	}
+
+	std::string convert_to_string(char* a, int size)
 	{
 		int i;
-		std::string s = "";
-		for (i = 0; i < size; i++) {
-			s = s + a[i];
+		std::string s;
+
+		for (i = 0; i < size; i++) 
+		{
+			s += a[i];
 		}
+
 		return s;
 	}
 
-	std::string convertToString(const char* a, int size)
+	std::string convert_to_string(const char* a, int size)
 	{
 		int i;
-		std::string s = "";
-		for (i = 0; i < size; i++) {
-			s = s + a[i];
+		std::string s;
+
+		for (i = 0; i < size; i++)
+		{
+			s += a[i];
 		}
+
 		return s;
+	}
+
+	bool string_equals(const char* s1, const char* s2)
+	{
+		return !q_stricmp(s1, s2);
+	}
+
+	bool contains(std::string haystack, std::string needle)
+	{
+		if (haystack.find(needle) != std::string::npos)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	bool has_suffix(const std::string &str, const std::string &suffix)
@@ -187,9 +249,19 @@ namespace Utils
 			str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 	}
 
+	bool starts_with(std::string haystack, std::string needle)
+	{
+		return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
+	}
+
+	bool ends_with(std::string haystack, std::string needle)
+	{
+		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
+	}
+
 	bool replace(std::string& str, const std::string& from, const std::string& to)
 	{
-		size_t start_pos = str.find(from);
+		const size_t start_pos = str.find(from);
 
 		if (start_pos == std::string::npos)
 		{
@@ -200,7 +272,7 @@ namespace Utils
 		return true;
 	}
 
-	void replaceAll(std::string& source, const std::string& from, const std::string& to)
+	void replace_all(std::string& source, const std::string& from, const std::string& to)
 	{
 		std::string newString;
 		newString.reserve(source.length());  // avoids a few memory allocations
@@ -221,8 +293,83 @@ namespace Utils
 		source.swap(newString);
 	}
 
+	void erase_substring(std::string& base, std::string replace)
+	{
+		if (const auto	it = base.find(replace);
+			it != std::string::npos)
+		{
+			base.erase(it, replace.size());
+		}
+	}
+
+	int is_space(int c)
+	{
+		if (c < -1)
+		{
+			return 0;
+		}
+
+		return _isspace_l(c, nullptr);
+	}
+
+	// trim from start
+	std::string& ltrim(std::string& s)
+	{
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int val)
+			{
+				return !is_space(val);
+			}));
+
+		return s;
+	}
+
+	// trim from end
+	std::string& rtrim(std::string& s)
+	{
+		s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
+			{
+				return !is_space(val);
+
+			}).base(), s.end());
+
+		return s;
+	}
+
+	// trim from both ends
+	std::string& trim(std::string& s)
+	{
+		return ltrim(rtrim(s));
+	}
+
+	std::string str_to_lower(std::string input)
+	{
+		std::transform(input.begin(), input.end(), input.begin(), ::tolower);
+		return input;
+	}
+
+	std::vector<std::string> explode(const std::string& str, char delim)
+	{
+		std::vector<std::string> result;
+		std::istringstream iss(str);
+
+		for (std::string token; std::getline(iss, token, delim);)
+		{
+			std::string _entry = std::move(token);
+
+			// Remove trailing 0x0 bytes
+			while (_entry.size() && !_entry[_entry.size() - 1])
+			{
+				_entry = _entry.substr(0, _entry.size() - 1);
+			}
+
+			result.push_back(_entry);
+		}
+
+		return result;
+	}
+
 	// used to extract Integers from dvar strings
-	void extractIntegerWords(std::string str, std::vector<int> &Integers, bool checkForDuplicates)
+	void extract_integer_words(std::string str, std::vector<int> &Integers, bool checkForDuplicates)
 	{
 		std::stringstream ss;
 
@@ -264,7 +411,7 @@ namespace Utils
 	}
 
 	// used to extract Integers from dvar strings
-	int extractFirstIntegerFromString(std::string str)
+	int extract_first_integer_from_string(std::string str)
 	{
 		std::stringstream ss;
 
@@ -294,80 +441,61 @@ namespace Utils
 	}
 
 	//------------------------------ original range ------------------- desired range ----- value to convert
-	float floatToRange(	float originalStart, float originalEnd, float newStart, float newEnd, float value)                            
+	float float_to_range(float original_start, float original_end, float new_start, float new_end, float value)                            
 	{
-		if (value == originalStart)
-			return newStart;
-		if (value == originalEnd)
-			return newEnd;
+		if (value == original_start)
+		{
+			return new_start;
+		}
 
-		float orgDiff	= originalEnd - originalStart;
-		float newDiff	= newEnd - newStart;
+		if (value == original_end)
+		{
+			return new_end;
+		}
 
-		return			((newDiff / orgDiff) * value) + newStart;
+		const float org_diff = original_end - original_start;
+		const float new_diff = new_end - new_start;
+
+		return (new_diff / org_diff) * value + new_start;
 	}
 
 	//------------ original range -------------------- desired range ----------- value to convert
-	int intToRange(int originalStart, int originalEnd, int newStart, int newEnd, int value)
+	int int_to_range(int original_start, int original_end, int new_start, int new_end, int value)
 	{
-		float orgDiff		= (float)(originalEnd - originalStart);
-		float newDiff		= (float)(newEnd - newStart);
+		const int org_diff = original_end - original_start;
+		const int new_diff = new_end - new_start;
 
-		return	(int)(((newDiff / orgDiff) * value) + newStart);
+		return ((new_diff / org_diff) * value + new_start);
 	}
 
-	float fmaxOf3(float input, float arg1, float arg2)
+	float fmaxf3(float input, float arg1, float arg2)
 	{
 		float x, output = arg1;
 
-		if (input - arg2 < 0.0f) {
+		if (input - arg2 < 0.0f) 
+		{
 			x = input;
 		}
-
-		else {
+		else 
+		{
 			x = arg2;
 		}
 
-		if (0.0f > arg1 - input) {
+		if (0.0f > arg1 - input) 
+		{
 			output = x;
 		}
 
 		return output;
 	}
 
-	const char *VA(const char *fmt, ...)
+	// complementary function for memset, which checks if memory is set
+	bool mem_is_set(void* mem, char chr, size_t length)
 	{
-		static char g_vaBuffer[VA_BUFFER_COUNT][VA_BUFFER_SIZE];
-		static int g_vaNextBufferIndex = 0;
-
-		va_list ap;
-		va_start(ap, fmt);
-		char* dest = g_vaBuffer[g_vaNextBufferIndex];
-		vsnprintf(g_vaBuffer[g_vaNextBufferIndex], VA_BUFFER_SIZE, fmt, ap);
-		g_vaNextBufferIndex = (g_vaNextBufferIndex + 1) % VA_BUFFER_COUNT;
-		va_end(ap);
-		return dest;
-	}
-
-	std::string StrToLower(std::string input)
-	{
-		std::transform(input.begin(), input.end(), input.begin(), ::tolower);
-		return input;
-	}
-
-	bool EndsWith(std::string haystack, std::string needle)
-	{
-		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
-	}
-
-	// Complementary function for memset, which checks if a memory is set
-	bool MemIsSet(void* mem, char chr, size_t length)
-	{
-		char* memArr = reinterpret_cast<char*>(mem);
-
+		const char* mem_arr = static_cast<char*>(mem);
 		for (size_t i = 0; i < length; ++i)
 		{
-			if (memArr[i] != chr)
+			if (mem_arr[i] != chr)
 			{
 				return false;
 			}
@@ -376,62 +504,7 @@ namespace Utils
 		return true;
 	}
 
-	std::vector<std::string> Explode(const std::string& str, char delim)
-	{
-		std::vector<std::string> result;
-		std::istringstream iss(str);
-
-		for (std::string token; std::getline(iss, token, delim);)
-		{
-			std::string _entry = std::move(token);
-
-			// Remove trailing 0x0 bytes
-			while (_entry.size() && !_entry[_entry.size() - 1])
-			{
-				_entry = _entry.substr(0, _entry.size() - 1);
-			}
-
-			result.push_back(_entry);
-		}
-
-		return result;
-	}
-
-	void Replace(std::string &string, std::string find, std::string replace)
-	{
-		size_t nPos = 0;
-
-		while ((nPos = string.find(find, nPos)) != std::string::npos)
-		{
-			string = string.replace(nPos, find.length(), replace);
-			nPos += replace.length();
-		}
-	}
-
-	bool Contains(std::string haystack, std::string needle)
-	{
-		if (haystack.find(needle) != std::string::npos) {
-			return true;
-		}
-
-		return false;
-	}
-
-	bool StartsWith(std::string haystack, std::string needle)
-	{
-		return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
-	}
-
-	void EraseSubstring(std::string &base, std::string replace)
-	{
-		auto it = base.find(replace.c_str());
-		if (it != std::string::npos)
-		{
-			base.erase(it, replace.size());
-		}
-	}
-
-	unsigned int OneAtATime(const char *key, size_t len)
+	unsigned int one_at_a_time(const char *key, size_t len)
 	{
 		unsigned int hash, i;
 		for (hash = i = 0; i < len; ++i)
@@ -440,198 +513,23 @@ namespace Utils
 			hash += (hash << 10);
 			hash ^= (hash >> 6);
 		}
+
 		hash += (hash << 3);
 		hash ^= (hash >> 11);
 		hash += (hash << 15);
 		return hash;
 	}
 
-	int IsSpace(int c)
-	{
-		if (c < -1) return 0;
-		return _isspace_l(c, nullptr);
-	}
-
-	// trim from start
-	std::string &LTrim(std::string &s)
-	{
-		s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int val)
-		{
-			return !IsSpace(val);
-		}));
-		return s;
-	}
-
-	// trim from end
-	std::string &RTrim(std::string &s)
-	{
-		s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
-		{
-			return !IsSpace(val);
-		}).base(), s.end());
-		return s;
-	}
-
-	// trim from both ends
-	std::string &Trim(std::string &s)
-	{
-		return LTrim(RTrim(s));
-	}
-
-	std::string FormatTimeSpan(int milliseconds)
-	{
-		int secondsTotal = milliseconds / 1000;
-		int seconds = secondsTotal % 60;
-		int minutesTotal = secondsTotal / 60;
-		int minutes = minutesTotal % 60;
-		int hoursTotal = minutesTotal / 60;
-
-		return Utils::VA("%02d:%02d:%02d", hoursTotal, minutes, seconds);
-	}
-
-	std::string ParseChallenge(std::string data)
-	{
-		auto pos = data.find_first_of("\n ");
-		if (pos == std::string::npos) return data;
-		return data.substr(0, pos).data();
-	}
-
-	void CreateDir(std::string dir)
-	{
-		// Win32 compatibility
-		for (unsigned int i = 0; i < dir.size(); ++i)
-		{
-			if (dir[i] == '/')
-			{
-				dir[i] = '\\';
-			}
-		}
-
-		// Terminate the path.
-		for (auto i = dir.begin(); i != dir.end(); ++i)
-		{
-			if(*i == '\\')
-			{
-				CreateDirectoryW(std::wstring(dir.begin(), i).data(), nullptr);
-			}
-		}
-
-		CreateDirectoryW(std::wstring(dir.begin(), dir.end()).data(), nullptr);
-	}
-
-	bool FileExists(std::string file)
+	bool file_exists(std::string file)
 	{
 		std::ifstream f(file);
 		return f.good();
 	}
 
-	bool FileExists(const char* file)
+	bool file_exists(const char* file)
 	{
 		std::ifstream f(file);
 		return f.good();
-	}
-
-	void WriteFile(std::string file, std::string data)
-	{
-		auto pos = file.find_last_of("/\\");
-		if (pos != std::string::npos)
-		{
-			CreateDir(file.substr(0, pos));
-		}
-
-		std::ofstream stream(file, std::ios::binary);
-
-		if (stream.is_open())
-		{
-			stream.write(data.data(), data.size());
-			stream.close();
-		}
-	}
-
-	std::string ReadFile(std::string file)
-	{
-		std::string buffer;
-
-		if (FileExists(file))
-		{
-			std::streamsize size;
-			std::ifstream stream(file, std::ios::binary);
-			if (!stream.is_open()) return buffer;
-
-			stream.seekg(0, std::ios::end);
-			size = stream.tellg();
-			stream.seekg(0, std::ios::beg);
-
-			if (size > -1)
-			{
-				buffer.clear();
-				buffer.resize(static_cast<uint32_t>(size));
-
-				stream.read(const_cast<char*>(buffer.data()), size);
-			}
-
-			stream.close();
-		}
-
-		return buffer;
-	}
-
-	// Infostring class
-	void InfoString::Set(std::string key, std::string value)
-	{
-		this->KeyValuePairs[key] = value;
-	}
-
-	std::string InfoString::Get(std::string key)
-	{
-		if (this->KeyValuePairs.find(key) != this->KeyValuePairs.end())
-		{
-			return this->KeyValuePairs[key];
-		}
-
-		return "";
-	}
-
-	std::string InfoString::Build()
-	{
-		std::string infoString;
-
-		bool first = true;
-
-		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); ++i)
-		{
-			if (first) first = false;
-			else infoString.append("\\");
-
-			infoString.append(i->first); // Key
-			infoString.append("\\");
-			infoString.append(i->second); // Value
-		}
-
-		return infoString;
-	}
-
-	void InfoString::Dump()
-	{
-		for (auto i = this->KeyValuePairs.begin(); i != this->KeyValuePairs.end(); ++i)
-		{
-			OutputDebugStringA(Utils::VA("%s: %s", i->first.data(), i->second.data()));
-		}
-	}
-
-	void InfoString::Parse(std::string buffer)
-	{
-		if (buffer[0] == '\\')
-		{
-			buffer = buffer.substr(1);
-		}
-
-		std::vector<std::string> KeyValues = Utils::Explode(buffer, '\\');
-
-		for (unsigned int i = 0; i < (KeyValues.size() - 1); i+=2)
-		{
-			this->KeyValuePairs[KeyValues[i]] = KeyValues[i + 1];
-		}
 	}
 
 	void byte3_pack_rgba(const float* from, char* to)
@@ -688,12 +586,12 @@ namespace Utils
 
 	bool get_html(const std::string& url, std::wstring& header, std::wstring& hmtl)
 	{
-		std::wstring wurl = std::wstring(url.begin(), url.end());
+		const auto wurl = std::wstring(url.begin(), url.end());
 		bool ret = false;
 
 		try
 		{
-			WinHttpClient client(wurl.c_str());
+			WinHttpClient client(wurl);
 			std::string url_protocol = url.substr(0, 5);
 
 			std::transform(url_protocol.begin(), url_protocol.end(), url_protocol.begin(), (int (*)(int))std::toupper);

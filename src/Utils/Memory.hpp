@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Utils
+namespace utils
 {
 	class Memory
 	{
@@ -155,9 +155,9 @@ namespace Utils
 		static bool IsBadReadPtr(const void* ptr);
 		static bool IsBadCodePtr(const void* ptr);
 
-		static Utils::Memory::Allocator* GetAllocator();
+		static utils::Memory::Allocator* GetAllocator();
 
 	private:
-		static Utils::Memory::Allocator MemAllocator;
+		static utils::Memory::Allocator MemAllocator;
 	};
 }

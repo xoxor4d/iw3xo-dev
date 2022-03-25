@@ -16,7 +16,7 @@ int	  export_currentBrushIndex = 0;
 float export_quadEpsilon = 0.0f;
 std::ofstream	export_mapFile;
 std::ofstream	export_mapFile_addon;
-Utils::Entities	export_mapEntities;
+utils::Entities	export_mapEntities;
 Game::boundingBox_t export_selectionBox;
 
 int collisionFlickerCounter;
@@ -62,7 +62,7 @@ namespace Components
 	{
 		glm::vec3 delta = glm::vec3(origin.x, origin.y, origin.z) - glm::vec3(viewParms->origin[0], viewParms->origin[1], viewParms->origin[2]);
 		
-		float scale = Utils::vector::_GLM_VectorNormalize(delta);
+		float scale = utils::vector::_GLM_VectorNormalize(delta);
 		float dot = glm::dot(delta, glm::vec3(viewParms->axis[0][0], viewParms->axis[0][1], viewParms->axis[0][2]));
 
 		scale = (dot - 0.995f) * scale;
@@ -88,15 +88,15 @@ namespace Components
 		scale = StringScaleDot(viewParms, origin);
 		color = glm::vec4(1.0f);
 
-		const char *brushIndexStr = Utils::VA("Index: %d", brushIndex);
+		const char *brushIndexStr = utils::va("Index: %d", brushIndex);
 
 		//char color_packed[4];
 		//float color_test[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 		//Game::R_ConvertColorToBytes(color_test, color_packed);
 
 		//float pixel_x[3], pixel_y[3], org[3];
-		//Utils::vector::_VectorScale(viewParms->axis[1], -scale, pixel_x);
-		//Utils::vector::_VectorScale(viewParms->axis[2], -scale, pixel_y);
+		//utils::vector::_VectorScale(viewParms->axis[1], -scale, pixel_x);
+		//utils::vector::_VectorScale(viewParms->axis[2], -scale, pixel_y);
 
 		////auto font = Game::R_RegisterFont(FONT_NORMAL, sizeof(FONT_NORMAL));
 		//Game::Font_s* font = (Game::Font_s*) *(DWORD*)(0xD070C74);
@@ -105,7 +105,7 @@ namespace Components
 
 		//Game::RB_DrawTextInSpace(pixel_x, pixel_y, brushIndexStr, font, org, color_packed); // no idea why thats not working
 
-		_Debug::AddDebugStringClient(origin, color, scale, brushIndexStr, 2); // not propper but will do for now
+		_debug::add_debug_string_client(origin, color, scale, brushIndexStr, 2); // not propper but will do for now
 	}
 
 	// some kind of wizardry
@@ -152,11 +152,11 @@ namespace Components
 														 + ((*sidePlanes)[4 * planeIndex + 3] * viewProjMtx->m[term][3]);
 			}
 
-			length = Utils::vector::_VectorLength(frustumPlanes[planeIndex].coeffs);
+			length = utils::vector::_VectorLength(frustumPlanes[planeIndex].coeffs);
 
 			if (length <= 0.0f) 
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1R_FrustumClipPlanes L#%d ^7:: length <= 0 \n", __LINE__), 0);
+				Game::Com_PrintMessage(0, utils::va("^1R_FrustumClipPlanes L#%d ^7:: length <= 0 \n", __LINE__), 0);
 			}
 
 			plane = &frustumPlanes[planeIndex];
@@ -182,13 +182,13 @@ namespace Components
 
 		if (!viewParms) 
 		{
-			Game::Com_Error(0, Utils::VA("BuildFrustumPlanes L#%d :: viewparams \n", __LINE__));
+			Game::Com_Error(0, utils::va("BuildFrustumPlanes L#%d :: viewparams \n", __LINE__));
 			return;
 		}
 
 		if (!frustumPlanes) 
 		{
-			Game::Com_Error(0, Utils::VA("BuildFrustumPlanes L#%d :: frustumPlanes \n", __LINE__));
+			Game::Com_Error(0, utils::va("BuildFrustumPlanes L#%d :: frustumPlanes \n", __LINE__));
 			return;
 		}
 
@@ -241,7 +241,7 @@ namespace Components
 		{
 			if (!sides ) 
 			{
-				Game::Com_Error(0, Utils::VA("CM_GetPlaneVec4Form L#%d :: sides \n", __LINE__));
+				Game::Com_Error(0, utils::va("CM_GetPlaneVec4Form L#%d :: sides \n", __LINE__));
 				return;
 			}
 
@@ -257,7 +257,7 @@ namespace Components
 			expandedPlane[2] = axialPlanes[index][2];
 			expandedPlane[3] = axialPlanes[index][3];*/
 
-			glm::setFloat3(expandedPlane, axialPlanes[index].plane);
+			glm::set_float3(expandedPlane, axialPlanes[index].plane);
 			expandedPlane[3] = axialPlanes[index].dist;
 		}
 	}
@@ -370,13 +370,13 @@ namespace Components
 
 		if (!brush)
 		{
-			Game::Com_Error(0, Utils::VA("CM_AddSimpleBrushPoint L#%d :: brush \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_AddSimpleBrushPoint L#%d :: brush \n", __LINE__));
 			return 0;
 		}
 
 		if (!brushPts)
 		{
-			Game::Com_Error(0, Utils::VA("CM_AddSimpleBrushPoint L#%d :: brushPts \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_AddSimpleBrushPoint L#%d :: brushPts \n", __LINE__));
 			return 0;
 		}
 
@@ -404,7 +404,7 @@ namespace Components
 
 		if (ptCount > CM_MAX_BRUSHPOINTS_FROM_INTERSECTIONS - 2) // T5: 1024 ...
 		{
-			Game::Com_PrintMessage(0, Utils::VA("CM_AddSimpleBrushPoint :: More than %i points from plane intersections on %i-sided brush\n", ptCount, brush->numsides), 0);
+			Game::Com_PrintMessage(0, utils::va("CM_AddSimpleBrushPoint :: More than %i points from plane intersections on %i-sided brush\n", ptCount, brush->numsides), 0);
 			return ptCount;
 		}
 
@@ -432,13 +432,13 @@ namespace Components
 
 		if (!brush) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_ForEachBrushPlaneIntersection L#%d :: brush \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_ForEachBrushPlaneIntersection L#%d :: brush \n", __LINE__));
 			return 0;
 		}
 
 		if (!brushPts) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_ForEachBrushPlaneIntersection L#%d :: brushPts \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_ForEachBrushPlaneIntersection L#%d :: brushPts \n", __LINE__));
 			return 0;
 		}
 
@@ -530,7 +530,7 @@ namespace Components
 
 		if (!pts) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_GetXyzList L#%d :: pts\n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_GetXyzList L#%d :: pts\n", __LINE__));
 			return 0;
 		}
 
@@ -541,13 +541,13 @@ namespace Components
 			{
 				if (xyzCount == xyzLimit) 
 				{
-					Game::Com_PrintMessage(0, Utils::VA("^1CM_GetXyzList L#%d ^7:: Winding point limit (%i) exceeded on brush face \n", __LINE__, xyzLimit), 0);
+					Game::Com_PrintMessage(0, utils::va("^1CM_GetXyzList L#%d ^7:: Winding point limit (%i) exceeded on brush face \n", __LINE__, xyzLimit), 0);
 					return 0;
 				}
 #if DEBUG
-				if (Dvars::r_drawCollision_brushDebug->current.enabled)
+				if (dvars::r_drawCollision_brushDebug->current.enabled)
 				{
-					Game::Com_PrintMessage(0, Utils::VA("^4CM_GetXyzList L#%d ^7:: Adding X:^2 %.2lf ^7Y:^2 %.2lf ^7Z:^2 %.2lf ^7 \n", __LINE__, xyzList[xyzCount][0], xyzList[xyzCount][1], xyzList[xyzCount][2]), 0);
+					Game::Com_PrintMessage(0, utils::va("^4CM_GetXyzList L#%d ^7:: Adding X:^2 %.2lf ^7Y:^2 %.2lf ^7Z:^2 %.2lf ^7 \n", __LINE__, xyzList[xyzCount][0], xyzList[xyzCount][1], xyzList[xyzCount][2]), 0);
 				}
 #endif
 				xyzList[xyzCount] = glm::toVec3(pts[ptIndex].xyz);
@@ -556,9 +556,9 @@ namespace Components
 		}
 
 #if DEBUG
-		if (Dvars::r_drawCollision_brushDebug->current.enabled)
+		if (dvars::r_drawCollision_brushDebug->current.enabled)
 		{
-			Game::Com_PrintMessage(0, Utils::VA("^1CM_GetXyzList L#%d ^7:: Total XYZCOUNT: %d \n", __LINE__, xyzCount), 0);
+			Game::Com_PrintMessage(0, utils::va("^1CM_GetXyzList L#%d ^7:: Total XYZCOUNT: %d \n", __LINE__, xyzCount), 0);
 		}
 #endif
 
@@ -598,7 +598,7 @@ namespace Components
 #if DEBUG
 		if (w->p[index0][i] == w->p[index1][i] && w->p[index0][j] == w->p[index1][j])
 		{
-			Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf == w->p[%d][%d] %.2lf && w->p[%d][%d] %.2lf == w->p[%d][%d] %.2lf \n", 
+			Game::Com_PrintMessage(0, utils::va("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf == w->p[%d][%d] %.2lf && w->p[%d][%d] %.2lf == w->p[%d][%d] %.2lf \n", 
 												__LINE__, index0, i, w->p[index0][i], index1, i, w->p[index1][i], index0, j, w->p[index0][j], index1, j, w->p[index1][j]), 0);
 		}
 #endif
@@ -620,7 +620,7 @@ namespace Components
 #if DEBUG
 			if (w->p[index0][axis] <= w->p[index1][axis])
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf <= w->p[%d][%d] %.2lf \n", 
+				Game::Com_PrintMessage(0, utils::va("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf <= w->p[%d][%d] %.2lf \n", 
 													__LINE__, index0, axis, w->p[index0][axis], index1, axis, w->p[index1][axis]), 0);
 			}
 #endif
@@ -629,12 +629,12 @@ namespace Components
 			{
 				if (w->p[index1][axis] > pt[axis])
 				{
-					glm::setFloat3(w->p[index1], pt);
+					glm::set_float3(w->p[index1], pt);
 				}
 			}
 			else
 			{
-				glm::setFloat3(w->p[index0], pt);
+				glm::set_float3(w->p[index0], pt);
 			}
 		}
 
@@ -644,7 +644,7 @@ namespace Components
 #if DEBUG
 			if (w->p[index1][axis] <= w->p[index0][axis])
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf < w->p[%d][%d] %.2lf \n", 
+				Game::Com_PrintMessage(0, utils::va("^1CM_AddColinearExteriorPointToWindingProjected L#%d ^7:: w->p[%d][%d] %.2lf < w->p[%d][%d] %.2lf \n", 
 													__LINE__, index1, axis, w->p[index1][axis], index0, axis, w->p[index0][axis]), 0);
 			}
 #endif
@@ -653,12 +653,12 @@ namespace Components
 			{
 				if (pt[axis] > w->p[index1][axis])
 				{
-					glm::setFloat3(w->p[index1], pt);
+					glm::set_float3(w->p[index1], pt);
 				}
 			}
 			else
 			{
-				glm::setFloat3(w->p[index0], pt);
+				glm::set_float3(w->p[index0], pt);
 			}
 		}
 	}
@@ -687,7 +687,7 @@ namespace Components
 #if DEBUG
 		if (bestIndex < 0)
 		{
-			Game::Com_PrintMessage(0, Utils::VA("^1CM_AddExteriorPointToWindingProjected L#%d ^7:: bestIndex < 0 \n", __LINE__), 0);
+			Game::Com_PrintMessage(0, utils::va("^1CM_AddExteriorPointToWindingProjected L#%d ^7:: bestIndex < 0 \n", __LINE__), 0);
 		}
 #endif
 
@@ -695,7 +695,7 @@ namespace Components
 		{
 			memmove((char *)w->p[bestIndex + 1], (char *)w->p[bestIndex], 12 * (w->numpoints - bestIndex));
 			
-			glm::setFloat3(w->p[bestIndex], pt);
+			glm::set_float3(w->p[bestIndex], pt);
 			++w->numpoints;
 		}
 
@@ -727,7 +727,7 @@ namespace Components
 					va[1] = w->p[i][1] - w->p[j][1];	
 					va[2] = w->p[i][2] - w->p[j][2];
 
-					Utils::vector::_Vec3Cross(va, vb, vc);
+					utils::vector::_Vec3Cross(va, vb, vc);
 					testAgainst = fabs(((vc[0] * normal[0]) + (vc[1] * normal[1])) + (vc[2] * normal[2]));
 
 					if(testAgainst > 0.0f)
@@ -757,7 +757,7 @@ namespace Components
 		v2_v0[1] = v2[1] - v0[1];
 		v2_v0[2] = v2[2] - v0[2];
 
-		Utils::vector::_Vec3Cross(v2_v0, v1_v0, plane);
+		utils::vector::_Vec3Cross(v2_v0, v1_v0, plane);
 
 		lengthSq = ((plane[0] * plane[0]) + (plane[1] * plane[1])) + (plane[2] * plane[2]);
 		
@@ -777,7 +777,7 @@ namespace Components
 			v2_v0[1] = v0[1] - v1[1];
 			v2_v0[2] = v0[2] - v1[2];
 
-			Utils::vector::_Vec3Cross(v2_v0, v1_v0, plane);
+			utils::vector::_Vec3Cross(v2_v0, v1_v0, plane);
 
 			if ((((((v2_v0[0] * v2_v0[0]) + (v2_v0[1] * v2_v0[1])) + (v2_v0[2] * v2_v0[2]))
 				* (((v1_v0[0] * v1_v0[0]) + (v1_v0[1] * v1_v0[1])) + (v1_v0[2] * v1_v0[2]))) * 0.0000010000001) >= lengthSq) 
@@ -823,23 +823,23 @@ namespace Components
 		int xyzCount, i, i0, i1, i2, j, k;
 		Game::vec4_t plane;
 
-		Utils::vector::_VectorZero4(plane);
+		utils::vector::_VectorZero4(plane);
 
 		if (!winding)
 		{
-			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: winding \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BuildBrushWindingForSide L#%d :: winding \n", __LINE__));
 			return false;
 		}
 
 		if (!planeNormal)
 		{
-			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: planeNormal \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BuildBrushWindingForSide L#%d :: planeNormal \n", __LINE__));
 			return false;
 		}
 
 		if (!pts)
 		{
-			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: pts \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BuildBrushWindingForSide L#%d :: pts \n", __LINE__));
 			return false;
 		}
 
@@ -853,8 +853,8 @@ namespace Components
 
 		CM_PickProjectionAxes(planeNormal, &i, &j);
 
-		glm::setFloat3(winding->p[0], _xyzList[0]);
-		glm::setFloat3(winding->p[1], _xyzList[1]);
+		glm::set_float3(winding->p[0], _xyzList[0]);
+		glm::set_float3(winding->p[1], _xyzList[1]);
 
 		winding->numpoints = 2;
 
@@ -881,11 +881,11 @@ namespace Components
 		for (auto _i = 0; _i < 3; _i++)
 		{ for (auto _j = 0; _j < 3; _j++)
 		  { 
-			if (fabs(w->p[_i][_j]) < Dvars::mapexport_brushEpsilon1->current.value)
+			if (fabs(w->p[_i][_j]) < dvars::mapexport_brushEpsilon1->current.value)
 			{
 				w->p[_i][_j] = 0;
 			}
-			else if (fabs((int)w->p[_i][_j] - w->p[_i][_j]) < Dvars::mapexport_brushEpsilon2->current.value)
+			else if (fabs((int)w->p[_i][_j] - w->p[_i][_j]) < dvars::mapexport_brushEpsilon2->current.value)
 			{
 				w->p[_i][_j] = (float)(int)w->p[_i][_j];
 			}
@@ -920,7 +920,7 @@ namespace Components
 			bSide->brushPlane[2].point[idx] = w->p[2][idx];
 		}
 
-		/*if (!Utils::polylib::CheckWinding(w))
+		/*if (!utils::polylib::CheckWinding(w))
 		{
 			Game::Com_PrintMessage(0, "removed degenerate brushside.\n", 0);
 			return false;
@@ -933,23 +933,23 @@ namespace Components
 	bool CM_BuildBrushWindingForSide(Game::winding_t* winding, const float* planeNormal, const int sideIndex, Game::ShowCollisionBrushPt* pts, int ptCount)
 	{
 		int xyzCount, i, i0, i1, i2, j, k;
-		Game::vec4_t plane; Utils::vector::_VectorZero4(plane);
+		Game::vec4_t plane; utils::vector::_VectorZero4(plane);
 
 		if (!winding) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: winding \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BuildBrushWindingForSide L#%d :: winding \n", __LINE__));
 			return false;
 		}
 
 		if (!planeNormal) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: planeNormal \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BuildBrushWindingForSide L#%d :: planeNormal \n", __LINE__));
 			return false;
 		}
 
 		if (!pts) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_BuildBrushWindingForSide L#%d :: pts \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BuildBrushWindingForSide L#%d :: pts \n", __LINE__));
 			return false;
 		}
 
@@ -965,11 +965,11 @@ namespace Components
 		}
 
 		// direction of camera plane
-		glm::vec3 cameraDirectionToPlane = _xyzList[0] - Game::Globals::locPmove_cameraOrigin;
+		glm::vec3 cameraDirectionToPlane = _xyzList[0] - Game::Globals::lpmove_camera_origin;
 
 		// dot product between line from camera to the plane and the normal
 		// if dot > 0 then the plane is facing away from the camera (dot = 1 = plane is facing the same way as the camera; dot = -1 = plane looking directly towards the camera)
-		if (glm::dot( glm::vec3(planeNormal[0], planeNormal[1], planeNormal[2]), cameraDirectionToPlane ) > 0.0f && !Dvars::r_drawCollision_polyFace->current.enabled) 
+		if (glm::dot( glm::vec3(planeNormal[0], planeNormal[1], planeNormal[2]), cameraDirectionToPlane ) > 0.0f && !dvars::r_drawCollision_polyFace->current.enabled) 
 		{
 			return false;
 		}
@@ -977,8 +977,8 @@ namespace Components
 		// find the major axis
 		CM_PickProjectionAxes(planeNormal, &i, &j);
 
-		glm::setFloat3(winding->p[0], _xyzList[0]);
-		glm::setFloat3(winding->p[1], _xyzList[1]);
+		glm::set_float3(winding->p[0], _xyzList[0]);
+		glm::set_float3(winding->p[1], _xyzList[1]);
 
 		winding->numpoints = 2;
 
@@ -1034,7 +1034,7 @@ namespace Components
 
 		for (auto plane = 0; plane < 3; plane++)
 		{
-			if (!Utils::polylib::PointWithinBounds(glm::toVec3(bSide->brushPlane[plane].point), mins, maxs, 0.25f))
+			if (!utils::polylib::PointWithinBounds(glm::toVec3(bSide->brushPlane[plane].point), mins, maxs, 0.25f))
 			{
 				return false;
 			}
@@ -1047,16 +1047,16 @@ namespace Components
 	void CM_ShowSingleBrushCollision(Game::cbrush_t *brush, const float *color, int brushIndex, bool enableExport = true)
 	{
 		// skip all brush calculations when flicker mode is on and not exporting a map file
-		if (Dvars::r_drawCollision_flickerBrushes->current.enabled && !export_inProgress)
+		if (dvars::r_drawCollision_flickerBrushes->current.enabled && !export_inProgress)
 		{
 			// on-time :: if amount of passed frames > flickerOn + flickerOff
-			if (collisionFlickerCounter > Dvars::r_drawCollision_flickerOnTime->current.integer + Dvars::r_drawCollision_flickerOffTime->current.integer)
+			if (collisionFlickerCounter > dvars::r_drawCollision_flickerOnTime->current.integer + dvars::r_drawCollision_flickerOffTime->current.integer)
 			{
 				collisionFlickerCounter = 0;
 			}
 
 			// off-time :: skip collision drawing if amount of "on-frames" are larger then our "on-frames-dvar"
-			else if (collisionFlickerCounter > Dvars::r_drawCollision_flickerOnTime->current.integer)
+			else if (collisionFlickerCounter > dvars::r_drawCollision_flickerOnTime->current.integer)
 			{
 				return;
 			}
@@ -1067,13 +1067,13 @@ namespace Components
 
 		if (!brush) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_ShowSingleBrushCollision L#%d :: brush \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_ShowSingleBrushCollision L#%d :: brush \n", __LINE__));
 			return;
 		}
 
 		if (!color) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_ShowSingleBrushCollision L#%d :: color\n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_ShowSingleBrushCollision L#%d :: color\n", __LINE__));
 			return;
 		}
 
@@ -1108,29 +1108,29 @@ namespace Components
 
 			float planeNormal[3];
 
-			auto poly_lit		= Dvars::r_drawCollision_polyLit->current.enabled;
-			auto poly_outlines	= Dvars::r_drawCollision->current.integer == 3 ? true : false;
-			auto poly_linecolor = Dvars::r_drawCollision_lineColor->current.vector;
-			auto poly_depth		= Dvars::r_drawCollision_polyDepth->current.enabled;
-			auto poly_face		= Dvars::r_drawCollision_polyFace->current.enabled;
+			auto poly_lit		= dvars::r_drawCollision_polyLit->current.enabled;
+			auto poly_outlines	= dvars::r_drawCollision->current.integer == 3 ? true : false;
+			auto poly_linecolor = dvars::r_drawCollision_lineColor->current.vector;
+			auto poly_depth		= dvars::r_drawCollision_polyDepth->current.enabled;
+			auto poly_face		= dvars::r_drawCollision_polyFace->current.enabled;
 
 			// -------------------------------
 			// brushside [0]-[5] (axialPlanes)
 
 			for (sideIndex = 0; (unsigned int)sideIndex < 6; ++sideIndex)
 			{
-				glm::setFloat3(planeNormal, _axialPlanes[sideIndex].plane);
+				glm::set_float3(planeNormal, _axialPlanes[sideIndex].plane);
 
 				// build winding for the current brushside and check if it is visible (culling)
 				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, planeNormal, sideIndex, brushPts, ptCount))
 				{
-					if (Dvars::r_drawCollision->current.integer == 1)
+					if (dvars::r_drawCollision->current.integer == 1)
 					{
-						_Debug::RB_AddAndDrawDebugLines(*(DWORD*)windingPool, (float(*)[3])& windingPool[4], Dvars::r_drawCollision_lineColor->current.vector);
+						_debug::add_and_draw_debug_lines(*(DWORD*)windingPool, (float(*)[3])& windingPool[4], dvars::r_drawCollision_lineColor->current.vector);
 					}
 					else
 					{
-						_Debug::RB_DrawPoly(
+						_debug::draw_poly(
 							/* numPts	*/ *(DWORD*)windingPool, 
 							/* points	*/ (float(*)[3])& windingPool[4], 
 							/* pColor	*/ color, 
@@ -1172,13 +1172,13 @@ namespace Components
 			{
 				if (CM_BuildBrushWindingForSide((Game::winding_t *)windingPool, brush->sides[sideIndex - 6].plane->normal, sideIndex, brushPts, ptCount)) 
 				{
-					if (Dvars::r_drawCollision->current.integer == 1)
+					if (dvars::r_drawCollision->current.integer == 1)
 					{
-						_Debug::RB_AddAndDrawDebugLines(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], Dvars::r_drawCollision_lineColor->current.vector);
+						_debug::add_and_draw_debug_lines(*(DWORD*)windingPool, (float(*)[3]) & windingPool[4], dvars::r_drawCollision_lineColor->current.vector);
 					}
 					else
 					{
-						_Debug::RB_DrawPoly(
+						_debug::draw_poly(
 							/* numPts	*/ *(DWORD*)windingPool,
 							/* points	*/ (float(*)[3]) & windingPool[4],
 							/* pColor	*/ color,
@@ -1224,7 +1224,7 @@ namespace Components
 				// we need atleast 6 valid brushsides
 				if (mapBrush.size() < 6)
 				{
-					if (mapBrush.size() == 5 && Dvars::mapexport_brush5Sides && Dvars::mapexport_brush5Sides->current.enabled)
+					if (mapBrush.size() == 5 && dvars::mapexport_brush5Sides && dvars::mapexport_brush5Sides->current.enabled)
 					{
 						dirty_hack_5_sides = true;
 					}
@@ -1237,7 +1237,7 @@ namespace Components
 				// check brushes defined by more then their axialplanes
 				if(mapBrush.size() > 6)
 				{
-					if (glm::distance(bMins, bMaxs) < Dvars::mapexport_brushMinSize->current.value)
+					if (glm::distance(bMins, bMaxs) < dvars::mapexport_brushMinSize->current.value)
 					{
 						return;
 					}
@@ -1273,7 +1273,7 @@ namespace Components
 				else
 				{
 					// start brush
-					export_mapFile << Utils::VA("// brush %d\n{", export_currentBrushIndex) << std::endl;
+					export_mapFile << utils::va("// brush %d\n{", export_currentBrushIndex) << std::endl;
 					export_mapFile << "layer \"000_Global/Brushes\"" << std::endl;
 
 					// global brush exporting index count
@@ -1293,7 +1293,7 @@ namespace Components
 				// print brush sides and material info
 				for (auto bs = 0; bs < (int)mapBrush.size(); bs++)
 				{
-					std::string currBrushSide = Utils::VA(" ( %d %d %d ) ( %d %d %d ) ( %d %d %d ) ",
+					std::string currBrushSide = utils::va(" ( %d %d %d ) ( %d %d %d ) ( %d %d %d ) ",
 						(int)mapBrush[bs]->brushPlane[0].point[0], (int)mapBrush[bs]->brushPlane[0].point[1], (int)mapBrush[bs]->brushPlane[0].point[2],
 						(int)mapBrush[bs]->brushPlane[1].point[0], (int)mapBrush[bs]->brushPlane[1].point[1], (int)mapBrush[bs]->brushPlane[1].point[2],
 						(int)mapBrush[bs]->brushPlane[2].point[0], (int)mapBrush[bs]->brushPlane[2].point[1], (int)mapBrush[bs]->brushPlane[2].point[2]);
@@ -1412,7 +1412,7 @@ namespace Components
 					//		{
 					//			// current texture name
 					//			//std::string currTexName = Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->name;
-					//			// .... //if (Utils::has_suffix(currTexName, std::string("_col")) || Utils::has_suffix(currTexName, std::string("_c")))
+					//			// .... //if (utils::has_suffix(currTexName, std::string("_col")) || utils::has_suffix(currTexName, std::string("_c")))
 
 					//			// 0x2 = color, 0x5 = normal, 0x8 = spec
 					//			if (Game::_gfxWorld->materialMemory[matMem].material->textureTable[texture].u.image->semantic == 0x2)
@@ -1432,11 +1432,11 @@ namespace Components
 					if (!brush->isSubmodel)
 					{
 						// materialname, width, height, xpos, ypos, rotation, ?, lightmapMat, lmap_sampleSizeX, lmap_sampleSizeY, lmap_xpos, lmap_ypos, lmap_rotation, ?
-						export_mapFile << Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", material_name_for_brushside.c_str(), texWidth, texHeight);
+						export_mapFile << utils::va("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", material_name_for_brushside.c_str(), texWidth, texHeight);
 					}
 					else
 					{
-						g_mapBrushModelList[brush->cmSubmodelIndex].brushSides.push_back(currBrushSide + Utils::VA("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", material_name_for_brushside.c_str(), texWidth, texHeight));
+						g_mapBrushModelList[brush->cmSubmodelIndex].brushSides.push_back(currBrushSide + utils::va("%s %d %d 0 0 0 0 lightmap_gray 16384 16384 0 0 0 0\n", material_name_for_brushside.c_str(), texWidth, texHeight));
 					}
 					
 				}
@@ -1471,7 +1471,7 @@ namespace Components
 
 				//		RadiantRemote::RemoteNet_SendPacket(&cmd);
 
-				//		Game::Com_PrintMessage(0, Utils::VA("< ( %.2f %.2f %.2f ) ( %.2f %.2f %.2f ) ( %.2f %.2f %.2f ) >\n",
+				//		Game::Com_PrintMessage(0, utils::va("< ( %.2f %.2f %.2f ) ( %.2f %.2f %.2f ) ( %.2f %.2f %.2f ) >\n",
 				//			mapBrush[bs]->brushPlane[0].point[0], mapBrush[bs]->brushPlane[0].point[1], mapBrush[bs]->brushPlane[0].point[2],
 				//			mapBrush[bs]->brushPlane[1].point[0], mapBrush[bs]->brushPlane[1].point[1], mapBrush[bs]->brushPlane[1].point[2],
 				//			mapBrush[bs]->brushPlane[2].point[0], mapBrush[bs]->brushPlane[2].point[1], mapBrush[bs]->brushPlane[2].point[2]), 0);
@@ -1564,7 +1564,7 @@ namespace Components
 
 		if (!frustumPlanes) 
 		{ 
-			Game::Com_Error(0, Utils::VA("CM_BrushInView L#%d :: frustumPlanes\n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_BrushInView L#%d :: frustumPlanes\n", __LINE__));
 			return false;
 		}
 
@@ -1586,7 +1586,7 @@ namespace Components
 		std::string includeString = "";
 
 		// workaround till we get dvar strings to register - actually, cba. to implement that now
-		switch (Dvars::r_drawCollision_materialInclude->current.integer)
+		switch (dvars::r_drawCollision_materialInclude->current.integer)
 		{
 		case 1:
 			includeString = "clip";
@@ -1726,7 +1726,7 @@ namespace Components
 					}
 
 					// if we have a filter set
-					if (Dvars::r_drawCollision_materialInclude->current.integer != 0)
+					if (dvars::r_drawCollision_materialInclude->current.integer != 0)
 					{
 						// if one of the sides matches our substring
 						if (g_mapMaterialListDuplicates[(int)brush->axialMaterialNum[currentMatArray][matIndex]].find(includeString) != std::string::npos) 
@@ -1794,7 +1794,7 @@ namespace Components
 	{
 		if (brush && selectionBox->isBoxValid)
 		{
-			return Utils::polylib::PointWithinBounds(CM_GetBrushMidpoint(brush, true), selectionBox->mins, selectionBox->maxs, 0.25f);
+			return utils::polylib::PointWithinBounds(CM_GetBrushMidpoint(brush, true), selectionBox->mins, selectionBox->maxs, 0.25f);
 		}
 		
 		return false;
@@ -1805,7 +1805,7 @@ namespace Components
 	{
 		for (auto triCoord = 0; triCoord < 3; triCoord++)
 		{
-			if(!Utils::polylib::PointWithinBounds(glm::toVec3(tris->coords[triCoord].xyz), selectionBox->mins, selectionBox->maxs, 0.25f))
+			if(!utils::polylib::PointWithinBounds(glm::toVec3(tris->coords[triCoord].xyz), selectionBox->mins, selectionBox->maxs, 0.25f))
 			{
 				return false;
 			}
@@ -1832,7 +1832,7 @@ namespace Components
 
 		// only once per map
 		//if (g_mapNameCm != Game::cm->name)
-		if(!Game::Globals::dbgColl_initialized || Utils::Q_stricmp(g_mapNameCm, Game::cm->name))
+		if(!Game::Globals::dbgColl_initialized || utils::q_stricmp(g_mapNameCm, Game::cm->name))
 		{
 			Game::Com_PrintMessage(0, "[Debug Collision] : initializing ...\n", 0);
 
@@ -1840,32 +1840,32 @@ namespace Components
 
 			char* mapents_ptr = Game::cm->mapEnts->entityString;
 
-			if(_Map::mpsp_is_sp_map)
+			if(_map::mpsp_is_sp_map)
 			{
-				mapents_ptr = _Map::mpsp_mapents_original;
+				mapents_ptr = _map::mpsp_mapents_original;
 			}
 
-			Utils::Entities mapEnts(mapents_ptr);
+			utils::Entities mapEnts(mapents_ptr);
 			g_mapBrushModelList = mapEnts.getBrushModels();
 
-			Game::Com_PrintMessage(0, Utils::VA("|-> found %d submodels\n", static_cast<int>(g_mapBrushModelList.size())), 0);
+			Game::Com_PrintMessage(0, utils::va("|-> found %d submodels\n", static_cast<int>(g_mapBrushModelList.size())), 0);
 
 			// hacky string dvar
 			auto dvarName = "r_drawCollision_brushIndexFilter";
 			Game::Dvar_RegisterString_hacky(dvarName, "null", "Specifies which brushes to draw. Ignores all other filters and will disable brush sorting.\nInput example: \"101 99 2\" :: \"^1null^7\" disables this filter");
 
 			// assign hacky dvar to the global dvar
-			Dvars::r_drawCollision_brushIndexFilter = Game::Dvar_FindVar(dvarName);
+			dvars::r_drawCollision_brushIndexFilter = Game::Dvar_FindVar(dvarName);
 
 #if DEBUG
 			// change dvar to only draw 1 brush when using a debug build (debug build has really bad performance)
-			Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, 1);
+			Game::Dvar_SetValue(dvars::r_drawCollision_brushAmount, 1);
 #endif
 			// cap brushAmount
-			Dvars::r_drawCollision_brushAmount->domain.integer.max = Game::cm->numBrushes - 1;
+			dvars::r_drawCollision_brushAmount->domain.integer.max = Game::cm->numBrushes - 1;
 
 			// reset brush distance filter
-			Game::Dvar_SetValue(Dvars::r_drawCollision_brushDist, 800.0f);
+			Game::Dvar_SetValue(dvars::r_drawCollision_brushDist, 800.0f);
 
 			// clear global vectors
 			g_mapBrushList.clear();
@@ -1910,7 +1910,7 @@ namespace Components
 			// create a string vector of all material (contains duplicates)
 			for (std::uint32_t num = 0; num < g_mapMaterialList.size(); num++)
 			{
-				std::string materialName = Utils::convertToString(g_mapMaterialList[num]->material, sizeof(g_mapMaterialList[num]->material));
+				std::string materialName = utils::convert_to_string(g_mapMaterialList[num]->material, sizeof(g_mapMaterialList[num]->material));
 				materialName.erase(std::remove(materialName.begin(), materialName.end(), '\0'), materialName.end());
 
 				g_mapMaterialListDuplicates.push_back(materialName);
@@ -1934,27 +1934,27 @@ namespace Components
 			for (std::uint32_t num = 0; num < singleMaterialCount; num++) 
 			{
 				// do not print "empty" materials
-				if (!Utils::StartsWith(g_mapMaterialListSingle[num], "*"))
+				if (!utils::starts_with(g_mapMaterialListSingle[num], "*"))
 				{
 					/*g_dvarMaterialList_str*/ 
 					Game::Globals::r_drawCollision_materialList_string += std::to_string(num) + ": " + g_mapMaterialListSingle[num] + "\n";
 				}
 			}
 
-			Game::Com_PrintMessage(0, Utils::VA("|-> found %d materials\n", static_cast<int>(singleMaterialCount)), 0);
+			Game::Com_PrintMessage(0, utils::va("|-> found %d materials\n", static_cast<int>(singleMaterialCount)), 0);
 
 			// Set material dvar back to 0, update description and max value
-			Game::Dvar_SetValue(Dvars::r_drawCollision_material, 0);
-			Dvars::r_drawCollision_material->domain.integer.max = singleMaterialCount - 1;
+			Game::Dvar_SetValue(dvars::r_drawCollision_material, 0);
+			dvars::r_drawCollision_material->domain.integer.max = singleMaterialCount - 1;
 
 			//print the material list to the large console if the list has more then 20 materials
 			if (singleMaterialCount > 20)
 			{
-				Dvars::r_drawCollision_material->description = "Too many materials to show here! Use ^1\"r_drawCollision_materialList\" ^7to print a list of all materials.\nOnly works with ^1\"r_drawCollision\" ^7enabled!";
+				dvars::r_drawCollision_material->description = "Too many materials to show here! Use ^1\"r_drawCollision_materialList\" ^7to print a list of all materials.\nOnly works with ^1\"r_drawCollision\" ^7enabled!";
 			}
 			else
 			{
-				Dvars::r_drawCollision_material->description = Game::Globals::r_drawCollision_materialList_string.c_str(); //g_dvarMaterialList_str.c_str();
+				dvars::r_drawCollision_material->description = Game::Globals::r_drawCollision_materialList_string.c_str(); //g_dvarMaterialList_str.c_str();
 			}
 
 			Game::Com_PrintMessage(0, "|-> done\n", 0);
@@ -1967,7 +1967,7 @@ namespace Components
 		if (!useCurrentBrushesDrawnList)
 		{
 			// sort brushes by distance from brush midpoint(xy) to camera origin :: only sort if the players origin has changed
-			if (g_oldSortingOrigin[0] != Game::Globals::locPmove_playerOrigin[0] || g_oldSortingOrigin[1] != Game::Globals::locPmove_playerOrigin[1] || updateAlways)
+			if (g_oldSortingOrigin[0] != Game::Globals::lpmove_origin[0] || g_oldSortingOrigin[1] != Game::Globals::lpmove_origin[1] || updateAlways)
 			{
 				// sort from far to near (used for rendering)
 				if (farToNear)
@@ -1980,8 +1980,8 @@ namespace Components
 						glm::vec3 b2_mid = (glm::vec3(brush2->mins[0], brush2->mins[1], 0.0f)
 							+ glm::vec3(brush2->maxs[0], brush2->maxs[1], 0.0f)) * 0.5f;
 
-						float dist1 = glm::distance(b1_mid, Game::Globals::locPmove_playerOrigin);
-						float dist2 = glm::distance(b2_mid, Game::Globals::locPmove_playerOrigin);
+						float dist1 = glm::distance(b1_mid, Game::Globals::lpmove_origin);
+						float dist2 = glm::distance(b2_mid, Game::Globals::lpmove_origin);
 
 						return dist1 > dist2;
 					});
@@ -1998,15 +1998,15 @@ namespace Components
 						glm::vec3 b2_mid = (glm::vec3(brush2->mins[0], brush2->mins[1], brush2->mins[2])
 							+ glm::vec3(brush2->maxs[0], brush2->maxs[1], brush2->maxs[2])) * 0.5f;
 
-						float dist1 = glm::distance(b1_mid, Game::Globals::locPmove_playerOrigin);
-						float dist2 = glm::distance(b2_mid, Game::Globals::locPmove_playerOrigin);
+						float dist1 = glm::distance(b1_mid, Game::Globals::lpmove_origin);
+						float dist2 = glm::distance(b2_mid, Game::Globals::lpmove_origin);
 
 						return dist1 < dist2;
 					});
 				}
 
 				//memcpy(prev_Origin, Game::Globals::locPmove_playerOrigin, sizeof(prev_Origin));
-				g_oldSortingOrigin = Game::Globals::locPmove_playerOrigin;
+				g_oldSortingOrigin = Game::Globals::lpmove_origin;
 			}
 		}
 
@@ -2014,7 +2014,7 @@ namespace Components
 		else if(!g_mapBrushListForIndexFiltering.empty())
 		{
 			// sort brushes by distance from brush midpoint(xy) to camera origin :: only sort if the players origin has changed
-			if (g_oldSortingOrigin[0] != Game::Globals::locPmove_playerOrigin[0] || g_oldSortingOrigin[1] != Game::Globals::locPmove_playerOrigin[1] || updateAlways)
+			if (g_oldSortingOrigin[0] != Game::Globals::lpmove_origin[0] || g_oldSortingOrigin[1] != Game::Globals::lpmove_origin[1] || updateAlways)
 			{
 				// sort from far to near (used for rendering)
 				if (farToNear)
@@ -2027,8 +2027,8 @@ namespace Components
 						glm::vec3 b2_mid = (glm::vec3(brush2->mins[0], brush2->mins[1], 0.0f)
 							+ glm::vec3(brush2->maxs[0], brush2->maxs[1], 0.0f)) * 0.5f;
 
-						float dist1 = glm::distance(b1_mid, Game::Globals::locPmove_playerOrigin);
-						float dist2 = glm::distance(b2_mid, Game::Globals::locPmove_playerOrigin);
+						float dist1 = glm::distance(b1_mid, Game::Globals::lpmove_origin);
+						float dist2 = glm::distance(b2_mid, Game::Globals::lpmove_origin);
 
 						return dist1 > dist2;
 					});
@@ -2045,14 +2045,14 @@ namespace Components
 						glm::vec3 b2_mid = (glm::vec3(brush2->mins[0], brush2->mins[1], 0.0f)
 							+ glm::vec3(brush2->maxs[0], brush2->maxs[1], 0.0f)) * 0.5f;
 
-						float dist1 = glm::distance(b1_mid, Game::Globals::locPmove_playerOrigin);
-						float dist2 = glm::distance(b2_mid, Game::Globals::locPmove_playerOrigin);
+						float dist1 = glm::distance(b1_mid, Game::Globals::lpmove_origin);
+						float dist2 = glm::distance(b2_mid, Game::Globals::lpmove_origin);
 
 						return dist1 < dist2;
 					});
 				}
 
-				g_oldSortingOrigin = Game::Globals::locPmove_playerOrigin;
+				g_oldSortingOrigin = Game::Globals::lpmove_origin;
 			}
 		}
 	}
@@ -2062,7 +2062,7 @@ namespace Components
 	{
 		if (!colorFloat) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_GetShowCollisionColor L#%d :: colorFloat\n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_GetShowCollisionColor L#%d :: colorFloat\n", __LINE__));
 			return;
 		}
 
@@ -2081,7 +2081,7 @@ namespace Components
 		else 
 		{ colorFloat[2] = 0.0f; }
 
-		colorFloat[3] = Dvars::r_drawCollision_polyAlpha->current.value;
+		colorFloat[3] = dvars::r_drawCollision_polyAlpha->current.value;
 	}
 	
 	// check if 2 triangles share an edge
@@ -2095,7 +2095,7 @@ namespace Components
 			// for each edge of triangle 2
 			for (auto edgeTri2 = 0; edgeTri2 < 3; edgeTri2++)
 			{
-				matchedPoints += Utils::vector::_VectorCompare(pTri1->coords[edgeTri1].xyz, pTri2->coords[edgeTri2].xyz);
+				matchedPoints += utils::vector::_VectorCompare(pTri1->coords[edgeTri1].xyz, pTri2->coords[edgeTri2].xyz);
 			}
 
 			// shouldnt happen
@@ -2129,7 +2129,7 @@ namespace Components
 		for (auto gfxVert = 0; gfxVert < static_cast<int>(Game::_gfxWorld->vertexCount); gfxVert++)
 		{
 			// try to match our first clipmap vertex to a gfxworld vertex
-			if (!foundFirst && Utils::vector::_VectorCompare(Game::cm->verts[incides[0]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))
+			if (!foundFirst && utils::vector::_VectorCompare(Game::cm->verts[incides[0]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))
 			{
 				// found the first corrosponding gfx vertex :: copy gfx vertex data to our temp vertex
 				memcpy(&pTris->coords[0], &Game::_gfxWorld->vd.vertices[gfxVert], sizeof(Game::GfxWorldVertex));
@@ -2151,7 +2151,7 @@ namespace Components
 			}
 
 			// try to match our second clipmap vertex to a gfxworld vertex
-			if (!foundSecond && Utils::vector::_VectorCompare(Game::cm->verts[incides[1]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))
+			if (!foundSecond && utils::vector::_VectorCompare(Game::cm->verts[incides[1]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))
 			{
 				// found the second corrosponding gfx vertex :: copy gfx vertex data to our temp vertex
 				memcpy(&pTris->coords[1], &Game::_gfxWorld->vd.vertices[gfxVert], sizeof(Game::GfxWorldVertex));
@@ -2173,7 +2173,7 @@ namespace Components
 			}
 
 			// try to match our third clipmap vertex to a gfxworld vertex
-			if (!foundThird && Utils::vector::_VectorCompare(Game::cm->verts[incides[2]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))
+			if (!foundThird && utils::vector::_VectorCompare(Game::cm->verts[incides[2]], Game::_gfxWorld->vd.vertices[gfxVert].xyz))
 			{
 				// found the third corrosponding gfx vertex :: copy gfx vertex data to our temp vertex
 				memcpy(&pTris->coords[2], &Game::_gfxWorld->vd.vertices[gfxVert], sizeof(Game::GfxWorldVertex));
@@ -2306,7 +2306,7 @@ namespace Components
 			for (auto crdTri2 = 0; crdTri2 < 3; crdTri2++)
 			{
 				// check if the current coord from tri 1 is unique and not part of tri 2
-				if (Utils::vector::_VectorCompare(pTri1->coords[crdTri1].xyz, pTri2->coords[crdTri2].xyz))
+				if (utils::vector::_VectorCompare(pTri1->coords[crdTri1].xyz, pTri2->coords[crdTri2].xyz))
 				{
 					// found shared point
 					sharedPtCount++;
@@ -2347,7 +2347,7 @@ namespace Components
 
 			// unpack the normal .. might be needed for texture info later down the line
 			Game::vec3_t normal; 
-			Utils::vector::_Vec3UnpackUnitVec(pTri2->coords[1].normal, normal);
+			utils::vector::_Vec3UnpackUnitVec(pTri2->coords[1].normal, normal);
 
 			// sort x accending
 			std::sort(t_quadPts.begin(), t_quadPts.end());
@@ -2376,15 +2376,15 @@ namespace Components
 			if (checkSkewness)
 			{
 				/*Game::vec3_t dirVec1, dirVec2; 
-				Utils::vector::_VectorZero(dirVec1); Utils::vector::_VectorZero(dirVec2);
+				utils::vector::_VectorZero(dirVec1); utils::vector::_VectorZero(dirVec2);
 				
-				Utils::vector::_VectorSubtract(pt0, pt1, dirVec1);
-				Utils::vector::_VectorSubtract(pt2, pt1, dirVec2);
+				utils::vector::_VectorSubtract(pt0, pt1, dirVec1);
+				utils::vector::_VectorSubtract(pt2, pt1, dirVec2);
 
-				Utils::vector::_VectorNormalize(dirVec1);
-				Utils::vector::_VectorNormalize(dirVec2);
+				utils::vector::_VectorNormalize(dirVec1);
+				utils::vector::_VectorNormalize(dirVec2);
 
-				float dot = Utils::vector::_DotProduct(dirVec1, dirVec2);
+				float dot = utils::vector::_DotProduct(dirVec1, dirVec2);
 				float angle = acosf(dot) * 180.0f / 3.141592f;*/
 
 				//if(angle > 70.0f || angle < 10.0f )
@@ -2451,16 +2451,16 @@ namespace Components
 		int cmTotalBrushAmount = static_cast<int>(Game::cm->numBrushes);
 
 		// brush bounding box filter
-		if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
+		if (dvars::mapexport_selectionMode && dvars::mapexport_selectionMode->current.integer != 0)
 		{
-			if(Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
+			if(dvars::r_drawCollision_brushAmount && dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
 
-			if (Dvars::r_drawCollision_brushSorting && Dvars::r_drawCollision_brushSorting->current.integer != 0)
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
+			if (dvars::r_drawCollision_brushSorting && dvars::r_drawCollision_brushSorting->current.integer != 0)
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushSorting, 0);
 
-			if (Dvars::r_drawCollision_brushIndexFilter && (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null")
-				Game::Dvar_SetString("null", Dvars::r_drawCollision_brushIndexFilter);
+			if (dvars::r_drawCollision_brushIndexFilter && (std::string)dvars::r_drawCollision_brushIndexFilter->current.string != "null")
+				Game::Dvar_SetString("null", dvars::r_drawCollision_brushIndexFilter);
 
 			filter_BrushAmount = cmTotalBrushAmount;
 			filter_BrushSelection = true;
@@ -2469,13 +2469,13 @@ namespace Components
 		}
 
 		// brush index filter & none of the above
-		else if(Dvars::r_drawCollision_brushIndexFilter && (std::string)Dvars::r_drawCollision_brushIndexFilter->current.string != "null")
+		else if(dvars::r_drawCollision_brushIndexFilter && (std::string)dvars::r_drawCollision_brushIndexFilter->current.string != "null")
 		{
-			if (Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
+			if (dvars::r_drawCollision_brushAmount && dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
 
-			if (Dvars::r_drawCollision_brushSorting && Dvars::r_drawCollision_brushSorting->current.integer != 0)
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
+			if (dvars::r_drawCollision_brushSorting && dvars::r_drawCollision_brushSorting->current.integer != 0)
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushSorting, 0);
 
 			filter_BrushAmount = cmTotalBrushAmount;
 			filter_BrushIndex = true;
@@ -2484,21 +2484,21 @@ namespace Components
 		}
 
 		// brush sorting & none of the above
-		else if(Dvars::r_drawCollision_brushSorting && Dvars::r_drawCollision_brushSorting->current.integer != 0)
+		else if(dvars::r_drawCollision_brushSorting && dvars::r_drawCollision_brushSorting->current.integer != 0)
 		{
 			filter_BrushSorting = true;
 		}
 
 		// brush amount filter & none of the above
-		if (Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != 0 && Dvars::r_drawCollision_brushAmount->current.integer <= cmTotalBrushAmount)
+		if (dvars::r_drawCollision_brushAmount && dvars::r_drawCollision_brushAmount->current.integer != 0 && dvars::r_drawCollision_brushAmount->current.integer <= cmTotalBrushAmount)
 		{
-			filter_BrushAmount = Dvars::r_drawCollision_brushAmount->current.integer;
+			filter_BrushAmount = dvars::r_drawCollision_brushAmount->current.integer;
 			return;
 		}
 		else
 		{
-			if (Dvars::r_drawCollision_brushAmount && Dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
+			if (dvars::r_drawCollision_brushAmount && dvars::r_drawCollision_brushAmount->current.integer != cmTotalBrushAmount)
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushAmount, cmTotalBrushAmount);
 
 			filter_BrushAmount = cmTotalBrushAmount;
 		}
@@ -2508,16 +2508,16 @@ namespace Components
 	void CM_BrushCommands()
 	{
 		// cmd :: print material list to console
-		if (Dvars::r_drawCollision_materialList && Dvars::r_drawCollision_materialList->current.enabled)
+		if (dvars::r_drawCollision_materialList && dvars::r_drawCollision_materialList->current.enabled)
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, "clear\n");
 
 			// add spaces to the console so we can scroll the mini console
-			Game::Com_PrintMessage(0, Utils::VA(" \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n"), 0);
+			Game::Com_PrintMessage(0, utils::va(" \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n"), 0);
 
 			// reset the dvar and print our material list
-			Game::Dvar_SetValue(Dvars::r_drawCollision_materialList, false);
-			Game::Com_PrintMessage(0, Utils::VA("%s\n", /*g_dvarMaterialList_str.c_str()*/ Game::Globals::r_drawCollision_materialList_string.c_str()), 0);
+			Game::Dvar_SetValue(dvars::r_drawCollision_materialList, false);
+			Game::Com_PrintMessage(0, utils::va("%s\n", /*g_dvarMaterialList_str.c_str()*/ Game::Globals::r_drawCollision_materialList_string.c_str()), 0);
 		}
 	}
 
@@ -2536,7 +2536,7 @@ namespace Components
 				{
 					if(export_selectionAdd)
 					{
-						export_selectionBox.points[export_selectionBox.numPoints] = Game::Globals::locPmove_playerOrigin;
+						export_selectionBox.points[export_selectionBox.numPoints] = Game::Globals::lpmove_origin;
 						export_selectionBox.numPoints++;
 
 						export_selectionAdd = false;
@@ -2545,11 +2545,11 @@ namespace Components
 					// use the players origin as a temporary second point till a second point was defined
 					if (export_selectionBox.numPoints == 1)
 					{
-						export_selectionBox.points[1] = Game::Globals::locPmove_playerOrigin;
+						export_selectionBox.points[1] = Game::Globals::lpmove_origin;
 
 						CM_BoundsFromPoints(2, export_selectionBox.points, export_selectionBox.mins, export_selectionBox.maxs);
-						glm::setFloat3(export_selectionBox.box.mins, export_selectionBox.mins);
-						glm::setFloat3(export_selectionBox.box.maxs, export_selectionBox.maxs);
+						glm::set_float3(export_selectionBox.box.mins, export_selectionBox.mins);
+						glm::set_float3(export_selectionBox.box.maxs, export_selectionBox.maxs);
 
 						CM_ShowSingleBrushCollision(&export_selectionBox.box, selectionBoxColor, 0, false);
 					}
@@ -2560,8 +2560,8 @@ namespace Components
 					if (export_selectionBox.numPoints == 2 && !export_selectionBox.isBoxValid)
 					{
 						CM_BoundsFromPoints(export_selectionBox.numPoints, export_selectionBox.points, export_selectionBox.mins, export_selectionBox.maxs);
-						glm::setFloat3(export_selectionBox.box.mins, export_selectionBox.mins);
-						glm::setFloat3(export_selectionBox.box.maxs, export_selectionBox.maxs);
+						glm::set_float3(export_selectionBox.box.mins, export_selectionBox.mins);
+						glm::set_float3(export_selectionBox.box.maxs, export_selectionBox.maxs);
 
 						export_selectionBox.isBoxValid = true;
 					}
@@ -2592,7 +2592,7 @@ namespace Components
 		
 		if (!frustumPlanes) 
 		{
-			Game::Com_Error(0, Utils::VA("CM_ShowBrushCollision L#%d :: frustumPlanes \n", __LINE__));
+			Game::Com_Error(0, utils::va("CM_ShowBrushCollision L#%d :: frustumPlanes \n", __LINE__));
 			return;
 		}
 
@@ -2622,12 +2622,12 @@ namespace Components
 
 			// map file name
 			std::string mapName = Game::cm->name;
-			Utils::replaceAll(mapName, std::string("maps/mp/"), std::string(""));
+			utils::replace_all(mapName, std::string("maps/mp/"), std::string(""));
 
 			// if sp map
-			Utils::replaceAll(mapName, std::string("maps/"), std::string(""));
+			utils::replace_all(mapName, std::string("maps/"), std::string(""));
 
-			Utils::replaceAll(mapName, std::string(".d3dbsp"), std::string(".map"));
+			utils::replace_all(mapName, std::string(".d3dbsp"), std::string(".map"));
 
 			// export to root/map_export
 			std::string basePath = Game::Dvar_FindVar("fs_basepath")->current.string;
@@ -2636,7 +2636,7 @@ namespace Components
 			std::string filePath = basePath + mapName;
 
 			Game::Com_PrintMessage(0, "\n------------------------------------------------------\n", 0);
-			export_time_exportStart = Utils::Clock_StartTimerPrint(Utils::VA("[MAP-EXPORT]: Starting to export %s to %s ...\n", Game::cm->name, filePath.c_str()));
+			export_time_exportStart = utils::clock_start_timer_print(utils::va("[MAP-EXPORT]: Starting to export %s to %s ...\n", Game::cm->name, filePath.c_str()));
 
 			// create directory root/map_export if it doesnt exist
 			// client is only able to export to a sub-directory of "menu_export"
@@ -2653,12 +2653,12 @@ namespace Components
 			// build entity list
 			char* mapents_ptr = Game::cm->mapEnts->entityString;
 
-			if (_Map::mpsp_is_sp_map)
+			if (_map::mpsp_is_sp_map)
 			{
-				mapents_ptr = _Map::mpsp_mapents_original;
+				mapents_ptr = _map::mpsp_mapents_original;
 			}
 
-			export_mapEntities = Utils::Entities(mapents_ptr);
+			export_mapEntities = utils::Entities(mapents_ptr);
 			Game::Com_PrintMessage(0, "|- Writing header and world entity ...\n\n", 0);
 
 			// write header
@@ -2676,7 +2676,7 @@ namespace Components
 								+ export_mapEntities.buildWorldspawnKeys();
 
 			// Use debug collision methods to create our brushes ...
-			export_time_brushGenerationStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Creating brushes ...\n");
+			export_time_brushGenerationStart = utils::clock_start_timer_print("[MAP-EXPORT]: Creating brushes ...\n");
 		}
 
 		// Handle box selection
@@ -2690,12 +2690,12 @@ namespace Components
 
 		// --------
 
-		bool brushIndexVisible = Dvars::r_drawCollision_brushIndexVisible && Dvars::r_drawCollision_brushIndexVisible->current.enabled;
+		bool brushIndexVisible = dvars::r_drawCollision_brushIndexVisible && dvars::r_drawCollision_brushIndexVisible->current.enabled;
 
 		if (filter_BrushSorting)
 		{
 			// sort brushes far to near
-			if (Dvars::r_drawCollision_brushSorting->current.integer == 1)
+			if (dvars::r_drawCollision_brushSorting->current.integer == 1)
 			{
 				CM_SortBrushListOnDistanceCamera();
 			}
@@ -2708,7 +2708,7 @@ namespace Components
 			// disable sorting if sorted brushList is empty .. should not happen
 			if (g_mapBrushList.empty())
 			{
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushSorting, 0);
 				filter_BrushSorting = false;
 			}
 		}
@@ -2725,7 +2725,7 @@ namespace Components
 		// brush index filtering
 		if (filter_BrushIndex)
 		{
-			Utils::extractIntegerWords(Dvars::r_drawCollision_brushIndexFilter->current.string, Integers, true);
+			utils::extract_integer_words(dvars::r_drawCollision_brushIndexFilter->current.string, Integers, true);
 			BRUSH_COUNT = static_cast<int>(Integers.size());
 		}
 
@@ -2763,8 +2763,8 @@ namespace Components
 						vecToString += std::to_string(Integers[num]) + " ";
 					}
 
-					Game::Dvar_SetString(vecToString.c_str(), Dvars::r_drawCollision_brushIndexFilter);
-					Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision_brushIndexFilter ^7:: found and removed <out of bounds> index: %d \n", brushIndex), 0);
+					Game::Dvar_SetString(vecToString.c_str(), dvars::r_drawCollision_brushIndexFilter);
+					Game::Com_PrintMessage(0, utils::va("^1-> r_drawCollision_brushIndexFilter ^7:: found and removed <out of bounds> index: %d \n", brushIndex), 0);
 
 					return;
 				}
@@ -2791,8 +2791,8 @@ namespace Components
 				Game::cbrush_t dupe = Game::cbrush_t();
 				memcpy(&dupe, brush, sizeof(Game::cbrush_t));
 
-				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
-				Utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
+				utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.mins, dupe.mins);
+				utils::vector::_VectorAdd(g_mapBrushModelList[dupe.cmSubmodelIndex].cmSubmodelOrigin, dupe.maxs, dupe.maxs);
 
 				brush = &dupe;
 			}
@@ -2809,7 +2809,7 @@ namespace Components
 				if (!filter_BrushIndex)
 				{
 					// check if its a material we selected otherwise
-					if (!CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer)) {
+					if (!CM_ValidBrushMaterialSelection(brush, dvars::r_drawCollision_material->current.integer)) {
 						continue;
 					}
 				}
@@ -2827,7 +2827,7 @@ namespace Components
 				if (!filter_BrushIndex && !filter_ExportSelection)
 				{
 					// check if its a material we selected otherwise
-					if (!CM_ValidBrushMaterialSelection(brush, Dvars::r_drawCollision_material->current.integer)) {
+					if (!CM_ValidBrushMaterialSelection(brush, dvars::r_drawCollision_material->current.integer)) {
 						continue;
 					}
 				}
@@ -2876,8 +2876,8 @@ namespace Components
 				// should not happen
 				if (g_mapBrushListForIndexFiltering.empty())
 				{
-					Game::Dvar_SetValue(Dvars::r_drawCollision_brushIndexVisible, false);
-					Game::Com_PrintMessage(0, Utils::VA("^1CM_ShowBrushCollision L#%d ^7:: GlobalBrushList was empty. Disabled r_drawCollision_brushIndexVisible! \n", __LINE__), 0);
+					Game::Dvar_SetValue(dvars::r_drawCollision_brushIndexVisible, false);
+					Game::Com_PrintMessage(0, utils::va("^1CM_ShowBrushCollision L#%d ^7:: GlobalBrushList was empty. Disabled r_drawCollision_brushIndexVisible! \n", __LINE__), 0);
 				}
 
 				// maximum amount of brush indices to draw
@@ -2914,11 +2914,11 @@ namespace Components
 
 		if (export_inProgress)
 		{
-			const char* brush_str = Utils::VA("|- Building (%d) brushes took", export_currentBrushIndex);
+			const char* brush_str = utils::va("|- Building (%d) brushes took", export_currentBrushIndex);
 			std::string timefmt = " took (%.4f)\n\n";
 			timefmt = brush_str + timefmt;
 
-			Utils::Clock_EndTimerPrintSeconds(export_time_brushGenerationStart, timefmt.c_str());
+			utils::clock_end_timer_print_seconds(export_time_brushGenerationStart, timefmt.c_str());
 
 			// *
 			// Create Tris
@@ -2927,11 +2927,11 @@ namespace Components
 			bool export_needsTriangles = false;
 
 			// only generate triangles if exporting triangles/quads or both
-			if (Dvars::mapexport_writeQuads->current.enabled || Dvars::mapexport_writeTriangles->current.enabled)
+			if (dvars::mapexport_writeQuads->current.enabled || dvars::mapexport_writeTriangles->current.enabled)
 			{
 				export_needsTriangles = true;
 
-				auto export_time_createTrisStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Building triangles ...\n");
+				auto export_time_createTrisStart = utils::clock_start_timer_print("[MAP-EXPORT]: Building triangles ...\n");
 
 				for (auto triNum = 0; triNum < static_cast<int>(Game::cm->triCount); triNum++)
 				{
@@ -2961,8 +2961,8 @@ namespace Components
 					}
 				}
 
-				Utils::Clock_EndTimerPrintSeconds(export_time_createTrisStart, "|- Building triangles took (%.4f) seconds!\n");
-				Game::Com_PrintMessage(0, Utils::VA("|- Initial amount of triangles = (%d)\n\n", static_cast<int>(singleTriangles.size())), 0);
+				utils::clock_end_timer_print_seconds(export_time_createTrisStart, "|- Building triangles took (%.4f) seconds!\n");
+				Game::Com_PrintMessage(0, utils::va("|- Initial amount of triangles = (%d)\n\n", static_cast<int>(singleTriangles.size())), 0);
 			}
 
 			// *
@@ -2970,9 +2970,9 @@ namespace Components
 
 			// fix me daddy
 
-			if (Dvars::mapexport_writeQuads->current.enabled)
+			if (dvars::mapexport_writeQuads->current.enabled)
 			{
-				auto export_time_createQuadsStart = Utils::Clock_StartTimerPrint("[MAP-EXPORT]: Merging triangles to quads ...\n");
+				auto export_time_createQuadsStart = utils::clock_start_timer_print("[MAP-EXPORT]: Merging triangles to quads ...\n");
 
 				// create a list of merged patch triangles (quads)
 				std::vector<Game::map_patchQuads_t*> singleQuads;
@@ -3083,9 +3083,9 @@ namespace Components
 					}
 				}
 
-				Utils::Clock_EndTimerPrintSeconds(export_time_createQuadsStart, "|- Merging triangles to quads took (%.4f) seconds!\n");
-				Game::Com_PrintMessage(0, Utils::VA("|- (%d) triangles couldn't be be merged.\n", (int)singleTriangles.size()), 0);
-				Game::Com_PrintMessage(0, Utils::VA("|- (%d) quads after (%d) iterations.\n", (int)singleQuads.size(), quadFromTrisLoopCount), 0);
+				utils::clock_end_timer_print_seconds(export_time_createQuadsStart, "|- Merging triangles to quads took (%.4f) seconds!\n");
+				Game::Com_PrintMessage(0, utils::va("|- (%d) triangles couldn't be be merged.\n", (int)singleTriangles.size()), 0);
+				Game::Com_PrintMessage(0, utils::va("|- (%d) quads after (%d) iterations.\n", (int)singleQuads.size(), quadFromTrisLoopCount), 0);
 
 				// *
 				// Write Quad Patches
@@ -3096,7 +3096,7 @@ namespace Components
 				for (auto quadNum = 0; quadNum < (int)singleQuads.size(); quadNum++)
 				{
 					// start patch
-					export_mapFile << Utils::VA("// brush %d", export_currentBrushIndex) << std::endl;
+					export_mapFile << utils::va("// brush %d", export_currentBrushIndex) << std::endl;
 
 					// global brush exporting index count
 					export_currentBrushIndex++;
@@ -3111,12 +3111,12 @@ namespace Components
 					export_mapFile << "   2 2 16 8" << std::endl;
 
 					export_mapFile << "   (" << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[0][0], singleQuads[quadNum]->coords[0][1], singleQuads[quadNum]->coords[0][2]) << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[1][0], singleQuads[quadNum]->coords[1][1], singleQuads[quadNum]->coords[1][2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[0][0], singleQuads[quadNum]->coords[0][1], singleQuads[quadNum]->coords[0][2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[1][0], singleQuads[quadNum]->coords[1][1], singleQuads[quadNum]->coords[1][2]) << std::endl;
 					export_mapFile << "   )" << std::endl;
 					export_mapFile << "   (" << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[2][0], singleQuads[quadNum]->coords[2][1], singleQuads[quadNum]->coords[2][2]) << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[3][0], singleQuads[quadNum]->coords[3][1], singleQuads[quadNum]->coords[3][2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[2][0], singleQuads[quadNum]->coords[2][1], singleQuads[quadNum]->coords[2][2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleQuads[quadNum]->coords[3][0], singleQuads[quadNum]->coords[3][1], singleQuads[quadNum]->coords[3][2]) << std::endl;
 					export_mapFile << "   )" << std::endl;
 					export_mapFile << "  }" << std::endl;
 					export_mapFile << " }" << std::endl;
@@ -3134,12 +3134,12 @@ namespace Components
 			// *
 			// Write Single Triangles
 
-			if (Dvars::mapexport_writeTriangles->current.enabled)
+			if (dvars::mapexport_writeTriangles->current.enabled)
 			{
 				for (auto tri = 0; tri < (int)singleTriangles.size(); tri++)
 				{
 					// start patch
-					export_mapFile << Utils::VA("// brush %d", export_currentBrushIndex) << std::endl;
+					export_mapFile << utils::va("// brush %d", export_currentBrushIndex) << std::endl;
 
 					// global brush exporting index count
 					export_currentBrushIndex++;
@@ -3155,12 +3155,12 @@ namespace Components
 					export_mapFile << "   2 2 16 8" << std::endl;
 
 					export_mapFile << "   (" << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[2].xyz[0], singleTriangles[tri]->coords[2].xyz[1], singleTriangles[tri]->coords[2].xyz[2]) << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[0].xyz[0], singleTriangles[tri]->coords[0].xyz[1], singleTriangles[tri]->coords[0].xyz[2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[2].xyz[0], singleTriangles[tri]->coords[2].xyz[1], singleTriangles[tri]->coords[2].xyz[2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[0].xyz[0], singleTriangles[tri]->coords[0].xyz[1], singleTriangles[tri]->coords[0].xyz[2]) << std::endl;
 					export_mapFile << "   )" << std::endl;
 					export_mapFile << "   (" << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[1].xyz[0], singleTriangles[tri]->coords[1].xyz[1], singleTriangles[tri]->coords[1].xyz[2]) << std::endl;
-					export_mapFile << Utils::VA("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[1].xyz[0], singleTriangles[tri]->coords[1].xyz[1], singleTriangles[tri]->coords[1].xyz[2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[1].xyz[0], singleTriangles[tri]->coords[1].xyz[1], singleTriangles[tri]->coords[1].xyz[2]) << std::endl;
+					export_mapFile << utils::va("    v %.1f %.1f %.1f t 0 0 0", singleTriangles[tri]->coords[1].xyz[0], singleTriangles[tri]->coords[1].xyz[1], singleTriangles[tri]->coords[1].xyz[2]) << std::endl;
 					export_mapFile << "   )" << std::endl;
 					export_mapFile << "  }" << std::endl;
 					export_mapFile << " }" << std::endl;
@@ -3185,7 +3185,7 @@ namespace Components
 			// *
 			// Map Entities + Submodels/Brushmodels + Reflection Probes
 
-			if (Dvars::mapexport_writeEntities->current.enabled)
+			if (dvars::mapexport_writeEntities->current.enabled)
 			{
 				Game::Com_PrintMessage(0, "[MAP-EXPORT]: Building entities ...\n", 0);
 
@@ -3214,7 +3214,7 @@ namespace Components
 				for (auto probe = 1; probe < (int)Game::_gfxWorld->reflectionProbeCount; probe++)
 				{
 					if (filter_ExportSelection && 
-						!Utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->reflectionProbes[probe].origin[0],
+						!utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->reflectionProbes[probe].origin[0],
 																	 Game::_gfxWorld->reflectionProbes[probe].origin[1],
 																	 Game::_gfxWorld->reflectionProbes[probe].origin[2]),
 																	 export_selectionBox.mins, export_selectionBox.maxs, 0.25f))
@@ -3224,10 +3224,10 @@ namespace Components
 					}
 					else
 					{
-						export_mapFile << Utils::VA("// reflection probe %d", exportedProbes) << std::endl;
+						export_mapFile << utils::va("// reflection probe %d", exportedProbes) << std::endl;
 						export_mapFile << "{" << std::endl;
 						export_mapFile << "\"angles\" \"0 0 0\"" << std::endl;
-						export_mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->reflectionProbes[probe].origin[0], Game::_gfxWorld->reflectionProbes[probe].origin[1], Game::_gfxWorld->reflectionProbes[probe].origin[2]) << std::endl;
+						export_mapFile << utils::va("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->reflectionProbes[probe].origin[0], Game::_gfxWorld->reflectionProbes[probe].origin[1], Game::_gfxWorld->reflectionProbes[probe].origin[2]) << std::endl;
 						export_mapFile << "\"classname\" \"reflection_probe\"" << std::endl;
 						export_mapFile << "}" << std::endl;
 
@@ -3235,22 +3235,22 @@ namespace Components
 					}
 				}
 
-				Game::Com_PrintMessage(0, Utils::VA("|- (%d) reflection probes.\n", exportedProbes), 0);
+				Game::Com_PrintMessage(0, utils::va("|- (%d) reflection probes.\n", exportedProbes), 0);
 			}
 
 			// *
 			// Static Models
 
-			if (Dvars::mapexport_writeModels->current.enabled)
+			if (dvars::mapexport_writeModels->current.enabled)
 			{
-				auto map_mapModelsStart = Utils::Clock_StartTimer();
+				auto map_mapModelsStart = utils::clock_start_timer();
 				int exportedSModels = 0;
 
 				for (auto sModel = 0u; sModel < Game::_gfxWorld->dpvs.smodelCount; sModel++)
 				{
 					// only export static models within the selection box
 					if (filter_ExportSelection &&
-						!Utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0],
+						!utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0],
 																	 Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[1],
 																	 Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[2]),
 																	 export_selectionBox.mins, export_selectionBox.maxs, 0.25f)) 
@@ -3280,23 +3280,23 @@ namespace Components
 
 						// calculate model angles
 						Game::vec3_t angles;
-						Utils::vector::_ToEulerAnglesDegrees(matrix, angles);
+						utils::vector::_ToEulerAnglesDegrees(matrix, angles);
 
-						export_mapFile << Utils::VA("// static model %d\n{", exportedSModels) << std::endl;
+						export_mapFile << utils::va("// static model %d\n{", exportedSModels) << std::endl;
 						export_mapFile << "layer \"000_Global/Models\"" << std::endl;
-						export_mapFile << Utils::VA("\"modelscale\" \"%.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.scale) << std::endl;
-						export_mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[1], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[2]) << std::endl;
-						export_mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", angles[1], angles[2], angles[0]) << std::endl;
-						export_mapFile << Utils::VA("\"model\" \"%s\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].model->name) << std::endl;
+						export_mapFile << utils::va("\"modelscale\" \"%.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.scale) << std::endl;
+						export_mapFile << utils::va("\"origin\" \"%.1f %.1f %.1f\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[0], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[1], Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].placement.origin[2]) << std::endl;
+						export_mapFile << utils::va("\"angles\" \"%.1f %.1f %.1f\"", angles[1], angles[2], angles[0]) << std::endl;
+						export_mapFile << utils::va("\"model\" \"%s\"", Game::_gfxWorld->dpvs.smodelDrawInsts[sModel].model->name) << std::endl;
 						export_mapFile << "\"classname\" \"misc_model\"" << std::endl;
 						export_mapFile << "}" << std::endl;
 					}
 				}
 
-				Utils::Clock_EndTimerPrintSeconds(map_mapModelsStart, "|- Building static models took (%.4f) seconds!\n\n");
+				utils::clock_end_timer_print_seconds(map_mapModelsStart, "|- Building static models took (%.4f) seconds!\n\n");
 			}
 
-			if(Dvars::mapexport_writeDynModels->current.enabled)
+			if(dvars::mapexport_writeDynModels->current.enabled)
 			{
 				if (Game::cm->dynEntDefList[0] && Game::cm->dynEntCount[0])
 				{
@@ -3305,35 +3305,35 @@ namespace Components
 						auto next = &Game::cm->dynEntDefList[0][i];
 						if (next)
 						{
-							export_mapFile << Utils::VA("// dyn model %d\n{", i) << std::endl;
+							export_mapFile << utils::va("// dyn model %d\n{", i) << std::endl;
 							export_mapFile << "layer \"000_Global/DynModels\"" << std::endl;
 
 							if (next->health)
 							{
-								export_mapFile << Utils::VA("\"health\" \"%d\"", next->health) << std::endl;
+								export_mapFile << utils::va("\"health\" \"%d\"", next->health) << std::endl;
 							}
 
 							if (next->destroyFx)
 							{
-								export_mapFile << Utils::VA("\"destroyEfx\" \"%s\"", next->destroyFx->name) << std::endl;
+								export_mapFile << utils::va("\"destroyEfx\" \"%s\"", next->destroyFx->name) << std::endl;
 							}
 
-							export_mapFile << Utils::VA("\"type\" \"%s\"", next->type == 1 ? "clutter" : next->type == 2 ? "destruct" : "invalid") << std::endl;
-							export_mapFile << Utils::VA("\"origin\" \"%.1f %.1f %.1f\"", next->pose.origin[0], next->pose.origin[1], next->pose.origin[2]) << std::endl;
+							export_mapFile << utils::va("\"type\" \"%s\"", next->type == 1 ? "clutter" : next->type == 2 ? "destruct" : "invalid") << std::endl;
+							export_mapFile << utils::va("\"origin\" \"%.1f %.1f %.1f\"", next->pose.origin[0], next->pose.origin[1], next->pose.origin[2]) << std::endl;
 
 							// quat to angles
 							{
 								float axis[3][3] = {};
 								float angles[3] = {};
 
-								Utils::vector::UnitQuatToAxis(next->pose.quat, axis);
+								utils::vector::UnitQuatToAxis(next->pose.quat, axis);
 								Game::AxisToAngles(angles, axis);
 
-								export_mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", angles[0], angles[1], angles[2]) << std::endl;
+								export_mapFile << utils::va("\"angles\" \"%.1f %.1f %.1f\"", angles[0], angles[1], angles[2]) << std::endl;
 							}
 
-							//export_mapFile << Utils::VA("\"angles\" \"%.1f %.1f %.1f\"", 0.0f, 0.0f, 0.0f) << std::endl;
-							export_mapFile << Utils::VA("\"model\" \"%s\"", next->xModel->name) << std::endl;
+							//export_mapFile << utils::va("\"angles\" \"%.1f %.1f %.1f\"", 0.0f, 0.0f, 0.0f) << std::endl;
+							export_mapFile << utils::va("\"model\" \"%s\"", next->xModel->name) << std::endl;
 							export_mapFile << "\"classname\" \"dyn_model\"" << std::endl;
 							export_mapFile << "}" << std::endl;
 						}
@@ -3349,7 +3349,7 @@ namespace Components
 			//export_mapFile_addon.close();
 			export_currentBrushIndex = 0;
 
-			Utils::Clock_EndTimerPrintSeconds(export_time_exportStart, ">> DONE! Map export took (%.4f) seconds!\n");
+			utils::clock_end_timer_print_seconds(export_time_exportStart, ">> DONE! Map export took (%.4f) seconds!\n");
 			Game::Com_PrintMessage(0, "------------------------------------------------------\n\n", 0);
 		}
 
@@ -3376,30 +3376,30 @@ namespace Components
 
 		if (!viewParms) 
 		{
-			Game::Com_Error(0, Utils::VA("RB_ShowCollision L#%d :: viewparams\n", __LINE__));
+			Game::Com_Error(0, utils::va("RB_ShowCollision L#%d :: viewparams\n", __LINE__));
 			return;
 		}
 
 		// enable drawcollision on mapexport_selectionMode
-		if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0 && Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer == 0)
+		if (dvars::mapexport_selectionMode && dvars::mapexport_selectionMode->current.integer != 0 && dvars::r_drawCollision && dvars::r_drawCollision->current.integer == 0)
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, "r_drawcollision 3\n");
 		}
 
-		if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer > 0)
+		if (dvars::r_drawCollision && dvars::r_drawCollision->current.integer > 0)
 		{
 			// turn off brush sorting if displaying brushIndices
-			if (Dvars::r_drawCollision_brushIndexVisible->current.enabled && Dvars::r_drawCollision_brushSorting->current.integer != 0)
+			if (dvars::r_drawCollision_brushIndexVisible->current.enabled && dvars::r_drawCollision_brushSorting->current.integer != 0)
 			{
-				Game::Dvar_SetValue(Dvars::r_drawCollision_brushSorting, 0);
-				Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision_brushSorting ^7:: disabled due to r_drawCollision_brushIndexVisible \n"), 0);
+				Game::Dvar_SetValue(dvars::r_drawCollision_brushSorting, 0);
+				Game::Com_PrintMessage(0, utils::va("^1-> r_drawCollision_brushSorting ^7:: disabled due to r_drawCollision_brushIndexVisible \n"), 0);
 			}
 
 			// Disable r_drawCollision when using r_fullbright
 			if (Game::Dvar_FindVar("r_fullbright")->current.enabled) 
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision ^7:: disabled due to r_fullbright \n"), 0);
-				Game::Dvar_SetValue(Dvars::r_drawCollision, 0);
+				Game::Com_PrintMessage(0, utils::va("^1-> r_drawCollision ^7:: disabled due to r_fullbright \n"), 0);
+				Game::Dvar_SetValue(dvars::r_drawCollision, 0);
 				
 				return;
 			}
@@ -3407,14 +3407,14 @@ namespace Components
 			// Disable r_drawCollision when using r_debugShader
 			if (Game::Dvar_FindVar("r_debugShader")->current.integer > 0)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1-> r_drawCollision ^7:: disabled due to r_debugShader \n"), 0);
-				Game::Dvar_SetValue(Dvars::r_drawCollision, 0);
+				Game::Com_PrintMessage(0, utils::va("^1-> r_drawCollision ^7:: disabled due to r_debugShader \n"), 0);
+				Game::Dvar_SetValue(dvars::r_drawCollision, 0);
 				
 				return;
 			}
 
 			// increment our frame counter if we use brush flickering mode
-			if (Dvars::r_drawCollision_flickerBrushes->current.enabled)
+			if (dvars::r_drawCollision_flickerBrushes->current.enabled)
 			{
 				collisionFlickerCounter++;
 			}
@@ -3429,7 +3429,7 @@ namespace Components
 			frustumPlanes[5].normal[2] = -frustumPlanes[4].normal[2];
 
 			// max draw distance when brushDist is set to 0
-			drawDistance = Dvars::r_drawCollision_brushDist->current.value;
+			drawDistance = dvars::r_drawCollision_brushDist->current.value;
 
 			if (drawDistance == 0) 
 			{
@@ -3479,9 +3479,9 @@ namespace Components
 	RB_DrawCollision::RB_DrawCollision()
 	{
 		// -----
-		// Dvars
+		// dvars
 
-		Dvars::r_drawCollision = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision",
 			/* desc		*/ "Enable collision drawing.\n0: Off\n1: Outlines\n2: Polys\n3: Both",
 			/* default	*/ 0,
@@ -3489,7 +3489,7 @@ namespace Components
 			/* maxVal	*/ 3,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_brushAmount = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_brushAmount = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_brushAmount",
 			/* desc		*/ "Draw x amount of brushes, starting at brush index 0 and will limit itself to the total amount of brushes within the clipMap.\n0: disables this filter.",
 			/* default	*/ 0,
@@ -3497,7 +3497,7 @@ namespace Components
 			/* maxVal	*/ INT_MAX / 2 - 1,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_brushDist = Game::Dvar_RegisterFloat(
+		dvars::r_drawCollision_brushDist = Game::Dvar_RegisterFloat(
 			/* name		*/ "r_drawCollision_brushDist",
 			/* desc		*/ "Max distance to draw collision.\n0: disables this filter.\nWill reset itself on map load.",
 			/* default	*/ 800.0f,
@@ -3507,13 +3507,13 @@ namespace Components
 
 		// r_drawCollision_brushIndexFilter @ (CM_BuildMaterialListForMapOnce)
 
-		Dvars::r_drawCollision_brushIndexVisible = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_brushIndexVisible = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_brushIndexVisible",
 			/* desc		*/ "Draw brush index numbers for use with ^1r_drawCollision_brushFilter^7. Unstable fps will cause flickering.",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_brushSorting = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_brushSorting = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_brushSorting",
 			/* desc		*/ "Sort brushes based on distance from the camera.\n0: Off\n1: Far to near\n2: Near to far",
 			/* default	*/ 0,
@@ -3522,14 +3522,14 @@ namespace Components
 			/* flags	*/ Game::dvar_flags::saved);
 
 #if DEBUG
-		Dvars::r_drawCollision_brushDebug = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_brushDebug = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_brushDebug",
 			/* desc		*/ "Draw debug prints. Only enabled when r_drawCollision_brushAmount = 1",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 #endif
 
-		Dvars::r_drawCollision_lineWidth = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_lineWidth = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_lineWidth",
 			/* desc		*/ "Width of debug lines. (Only if using r_drawCollision 1)",
 			/* default	*/ 1,
@@ -3537,7 +3537,7 @@ namespace Components
 			/* maxVal	*/ 12,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_lineColor = Game::Dvar_RegisterVec4(
+		dvars::r_drawCollision_lineColor = Game::Dvar_RegisterVec4(
 			/* name		*/ "r_drawCollision_lineColor",
 			/* desc		*/ "Color of debug lines.",
 			/* x		*/ 0.2f,
@@ -3548,7 +3548,7 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_polyAlpha = Game::Dvar_RegisterFloat(
+		dvars::r_drawCollision_polyAlpha = Game::Dvar_RegisterFloat(
 			/* name		*/ "r_drawCollision_polyAlpha",
 			/* desc		*/ "Transparency of polygons.",
 			/* default	*/ 0.8f,
@@ -3556,25 +3556,25 @@ namespace Components
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_polyDepth = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_polyDepth = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_polyDepth",
 			/* desc		*/ "Enable depth test for polygons.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_polyFace = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_polyFace = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_polyFace",
 			/* desc		*/ "0: Back(only draw the front facing side)\n1: None(draw both sides)",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_polyLit = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_polyLit = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_polyLit",
 			/* desc		*/ "Enable fake lighting for polygons.",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_material = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_material = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_material",
 			/* desc		*/ "Will be populated when a map is loaded and r_drawCollision is enabled.",
 			/* default	*/ 0,
@@ -3593,7 +3593,7 @@ namespace Components
 			"all-no-tools-clip", 
 		};
 
-		Dvars::r_drawCollision_materialInclude = Game::Dvar_RegisterEnum(
+		dvars::r_drawCollision_materialInclude = Game::Dvar_RegisterEnum(
 			/* name		*/ "r_drawCollision_materialInclude",
 			/* desc		*/ "Filter by type. \nExample: <clip> will show \"clip_player\" / \"clip_metal\" etc. \n<all-no-tools> draws everything but portal, trigger, hint, mantle, sky and volumes materials.\n<all-no-tools-clip> draws everything but clip and previous mentioned materials.",
 			/* default	*/ 0,
@@ -3601,19 +3601,19 @@ namespace Components
 			/* enumData */ r_drawCollisionMatFilter.data(),
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_materialList = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_materialList = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_materialList",
 			/* desc		*/ "CMD: Prints a list of materials in use by the current map (to the console).\nOnly works when a map is loaded and r_drawCollision is enabled!",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_flickerBrushes = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_flickerBrushes = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_flickerBrushes",
 			/* desc		*/ "[VIS] Enable debug collision flicker mode. Remove me.",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_flickerOnTime = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_flickerOnTime = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_flickerOnTime",
 			/* desc		*/ "[VIS] Amount of frames to show brush collision.",
 			/* default	*/ 60,
@@ -3621,7 +3621,7 @@ namespace Components
 			/* maxVal	*/ INT_MAX / 2 - 1,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_flickerOffTime = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_flickerOffTime = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_flickerOffTime",
 			/* desc		*/ "[VIS] Amount of frames to hide brush collision.",
 			/* default	*/ 500,
@@ -3629,13 +3629,13 @@ namespace Components
 			/* maxVal	*/ INT_MAX/2 - 1,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_hud = Game::Dvar_RegisterBool(
+		dvars::r_drawCollision_hud = Game::Dvar_RegisterBool(
 			/* name		*/ "r_drawCollision_hud",
 			/* desc		*/ "Display debug hud.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_hud_position = Game::Dvar_RegisterVec2(
+		dvars::r_drawCollision_hud_position = Game::Dvar_RegisterVec2(
 			/* name		*/ "r_drawCollision_hud_position",
 			/* desc		*/ "hud position offset",
 			/* def x	*/ 10.0f,
@@ -3644,7 +3644,7 @@ namespace Components
 			/* maxVal	*/ 1000.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_hud_fontScale = Game::Dvar_RegisterFloat(
+		dvars::r_drawCollision_hud_fontScale = Game::Dvar_RegisterFloat(
 			/* name		*/ "r_drawCollision_hud_fontScale",
 			/* desc		*/ "font scale",
 			/* default	*/ 0.75f,
@@ -3652,7 +3652,7 @@ namespace Components
 			/* maxVal	*/ 100.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::r_drawCollision_hud_fontStyle = Game::Dvar_RegisterInt(
+		dvars::r_drawCollision_hud_fontStyle = Game::Dvar_RegisterInt(
 			/* name		*/ "r_drawCollision_hud_fontStyle",
 			/* desc		*/ "font style",
 			/* default	*/ 1,
@@ -3660,7 +3660,7 @@ namespace Components
 			/* maxVal	*/ 8,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_drawCollision_hud_fontColor = Game::Dvar_RegisterVec4(
+		dvars::r_drawCollision_hud_fontColor = Game::Dvar_RegisterVec4(
 			/* name		*/ "r_drawCollision_hud_fontColor",
 			/* desc		*/ "font color",
 			/* x		*/ 1.0f,
@@ -3673,7 +3673,7 @@ namespace Components
 
 		// ---------------
 
-		Dvars::mapexport_brushEpsilon1 = Game::Dvar_RegisterFloat(
+		dvars::mapexport_brushEpsilon1 = Game::Dvar_RegisterFloat(
 			/* name		*/ "mapexport_brushEpsilon1",
 			/* desc		*/ "brushside epsilon 1 (debug)",
 			/* default	*/ 0.4f,
@@ -3681,7 +3681,7 @@ namespace Components
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_brushEpsilon2 = Game::Dvar_RegisterFloat(
+		dvars::mapexport_brushEpsilon2 = Game::Dvar_RegisterFloat(
 			/* name		*/ "mapexport_brushEpsilon2",
 			/* desc		*/ "brushside epsilon 2 (debug)",
 			/* default	*/ 1.0f,
@@ -3689,7 +3689,7 @@ namespace Components
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_brushMinSize = Game::Dvar_RegisterFloat(
+		dvars::mapexport_brushMinSize = Game::Dvar_RegisterFloat(
 			/* name		*/ "mapexport_brushMinSize",
 			/* desc		*/ "only export brushes (with more then 6 sides) if their diagonal length is greater then <this>",
 			/* default	*/ 64.0f,
@@ -3697,13 +3697,13 @@ namespace Components
 			/* maxVal	*/ 1000.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_brush5Sides = Game::Dvar_RegisterBool(
+		dvars::mapexport_brush5Sides = Game::Dvar_RegisterBool(
 			/* name		*/ "mapexport_brush5Sides",
 			/* desc		*/ "enable exp. export of brushes with only 5 sides",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_selectionMode = Game::Dvar_RegisterInt(
+		dvars::mapexport_selectionMode = Game::Dvar_RegisterInt(
 			/* name		*/ "mapexport_selectionMode",
 			/* desc		*/ "Only export selected things. Use \"mapexport_selectionAdd\" and \"mapexport_selectionClear\" \n0: Off\n1: Bounding box (needs 2 defined points)",
 			/* default	*/ 0,
@@ -3711,31 +3711,31 @@ namespace Components
 			/* maxVal	*/ 1,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::mapexport_writeTriangles = Game::Dvar_RegisterBool(
+		dvars::mapexport_writeTriangles = Game::Dvar_RegisterBool(
 			/* name		*/ "mapexport_writeTriangles",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export leftover unmerged triangles if enabled.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_writeQuads = Game::Dvar_RegisterBool(
+		dvars::mapexport_writeQuads = Game::Dvar_RegisterBool(
 			/* name		*/ "mapexport_writeQuads",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export resulting quads after triangle merging if enabled.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_writeEntities = Game::Dvar_RegisterBool(
+		dvars::mapexport_writeEntities = Game::Dvar_RegisterBool(
 			/* name		*/ "mapexport_writeEntities",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export map entities if enabled (no brushmodel support).",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_writeModels = Game::Dvar_RegisterBool(
+		dvars::mapexport_writeModels = Game::Dvar_RegisterBool(
 			/* name		*/ "mapexport_writeModels",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export all static models if enabled.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mapexport_writeDynModels = Game::Dvar_RegisterBool(
+		dvars::mapexport_writeDynModels = Game::Dvar_RegisterBool(
 			/* name		*/ "mapexport_writeDynModels",
 			/* desc		*/ "[MAP-EXPORT-OPTION] Export all dynamic models if enabled.",
 			/* default	*/ true,
@@ -3745,9 +3745,9 @@ namespace Components
 		// --------
 		// Commands
 
-		Command::Add("mapexport", [](Command::Params)
+		command::add("mapexport", [](command::params)
 		{
-			if (Dvars::r_drawCollision && Dvars::r_drawCollision->current.integer == 0)
+			if (dvars::r_drawCollision && dvars::r_drawCollision->current.integer == 0)
 			{
 				Game::Com_PrintMessage(0, "Please enable \"r_drawCollision\" and re-run your command.\n", 0);
 				return;
@@ -3759,9 +3759,9 @@ namespace Components
 			Game::Cmd_ExecuteSingleCommand(0, 0, "say \"Export Done!\"\n");
 		});
 
-		Command::Add("mapexport_selectionAdd", [](Command::Params)
+		command::add("mapexport_selectionAdd", [](command::params)
 		{
-			if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
+			if (dvars::mapexport_selectionMode && dvars::mapexport_selectionMode->current.integer != 0)
 			{
 				export_selectionAdd = true;
 			}
@@ -3771,9 +3771,9 @@ namespace Components
 			}
 		});
 
-		Command::Add("mapexport_selectionClear", [](Command::Params)
+		command::add("mapexport_selectionClear", [](command::params)
 		{
-			if (Dvars::mapexport_selectionMode && Dvars::mapexport_selectionMode->current.integer != 0)
+			if (dvars::mapexport_selectionMode && dvars::mapexport_selectionMode->current.integer != 0)
 			{
 				CM_ResetSelectionBox(&export_selectionBox);
 			}

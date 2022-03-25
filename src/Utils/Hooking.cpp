@@ -1,108 +1,8 @@
 #include "STDInclude.hpp"
 
-namespace Utils
+namespace utils
 {
-	std::map<void*, void*> Hook::Interceptor::IReturn;
-	std::map<void*, void(*)()> Hook::Interceptor::ICallbacks;
-
-	void Hook::Signature::process()
-	{
-		if (this->signatures.empty()) return;
-
-		char* _start = reinterpret_cast<char*>(this->start);
-
-		unsigned int sigCount = this->signatures.size();
-		Hook::Signature::Container* containers = this->signatures.data();
-
-		for (size_t i = 0; i < this->length; ++i)
-		{
-			char* address = _start + i;
-
-			for (unsigned int k = 0; k < sigCount; ++k)
-			{
-				Hook::Signature::Container* container = &containers[k];
-
-				unsigned int j;
-				for (j = 0; j < strlen(container->mask); ++j)
-				{
-					if (container->mask[j] != '?' &&container->signature[j] != address[j])
-					{
-						break;
-					}
-				}
-
-				if (j == strlen(container->mask))
-				{
-					container->callback(address);
-				}
-			}
-		}
-	}
-
-	void Hook::Signature::add(Hook::Signature::Container& container)
-	{
-		Hook::Signature::signatures.push_back(container);
-	}
-
-	void Hook::Interceptor::Install(void* place, void(*stub)())
-	{
-		return Hook::Interceptor::Install(reinterpret_cast<void**>(place), stub);
-	}
-
-	void Hook::Interceptor::Install(void** place, void(*stub)())
-	{
-		Hook::Interceptor::IReturn[place] = *place;
-		Hook::Interceptor::ICallbacks[place] = stub;
-		*place = Hook::Interceptor::InterceptionStub;
-	}
-
-	__declspec(naked) void Hook::Interceptor::InterceptionStub()
-	{
-		__asm
-		{
-			sub esp, 4h                             // Reserve space on the stack for the return address
-			pushad                                  // Store registers
-
-			lea eax, [esp + 20h]                    // Load initial stack pointer
-			push eax                                // Push it onto the stack
-
-			call Hook::Interceptor::RunCallback     // Run the callback based on the given stack pointer
-			call Hook::Interceptor::PopReturn       // Get the initial return address according to the stack pointer
-
-			add esp, 4h                             // Clear the stack
-
-			mov [esp + 20h], eax                    // Store the return address at the reserved space
-			popad                                   // Restore the registers
-
-			retn                                    // Return (jump to our return address)
-		}
-	}
-
-	void Hook::Interceptor::RunCallback(void* place)
-	{
-		auto iCallback = Hook::Interceptor::ICallbacks.find(place);
-		if (iCallback != Hook::Interceptor::ICallbacks.end())
-		{
-			iCallback->second();
-			Hook::Interceptor::ICallbacks.erase(iCallback);
-		}
-	}
-
-	void* Hook::Interceptor::PopReturn(void* _place)
-	{
-		void* retVal = nullptr;
-
-		auto iReturn = Hook::Interceptor::IReturn.find(_place);
-		if (iReturn != Hook::Interceptor::IReturn.end())
-		{
-			retVal = iReturn->second;
-			Hook::Interceptor::IReturn.erase(iReturn);
-		}
-
-		return retVal;
-	}
-
-	Hook::~Hook()
+	hook::~hook()
 	{
 		if (this->initialized)
 		{
@@ -110,17 +10,17 @@ namespace Utils
 		}
 	}
 
-	Hook* Hook::initialize(DWORD _place, void(*_stub)(), bool _useJump)
+	hook* hook::initialize(DWORD _place, void(*_stub)(), bool _useJump)
 	{
 		return this->initialize(_place, reinterpret_cast<void*>(_stub), _useJump);
 	}
 
-	Hook* Hook::initialize(DWORD _place, void* _stub, bool _useJump)
+	hook* hook::initialize(DWORD _place, void* _stub, bool _useJump)
 	{
 		return this->initialize(reinterpret_cast<void*>(_place), _stub, _useJump);
 	}
 
-	Hook* Hook::initialize(void* _place, void* _stub, bool _useJump)
+	hook* hook::initialize(void* _place, void* _stub, bool _useJump)
 	{
 		if (this->initialized) return this;
 		this->initialized = true;
@@ -134,7 +34,7 @@ namespace Utils
 		return this;
 	}
 
-	Hook* Hook::install(bool unprotect, bool keepUnportected)
+	hook* hook::install(bool unprotect, bool keepUnportected)
 	{
 		std::lock_guard<std::mutex> _(this->stateMutex);
 
@@ -161,15 +61,15 @@ namespace Utils
 		return this;
 	}
 
-	void Hook::quick()
+	void hook::quick()
 	{
-		if (Hook::installed)
+		if (hook::installed)
 		{
-			Hook::installed = false;
+			hook::installed = false;
 		}
 	}
 
-	Hook* Hook::uninstall(bool unprotect)
+	hook* hook::uninstall(bool unprotect)
 	{
 		std::lock_guard<std::mutex> _(this->stateMutex);
 
@@ -191,12 +91,12 @@ namespace Utils
 		return this;
 	}
 
-	void* Hook::getAddress()
+	void* hook::getAddress()
 	{
 		return this->place;
 	}
 
-	void Hook::Nop(void* place, size_t length)
+	void hook::nop(void* place, size_t length)
 	{
 		DWORD oldProtect;
 		VirtualProtect(place, length, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -207,12 +107,12 @@ namespace Utils
 		FlushInstructionCache(GetCurrentProcess(), place, length);
 	}
 
-	void Hook::Nop(DWORD place, size_t length)
+	void hook::nop(DWORD place, size_t length)
 	{
-		Nop(reinterpret_cast<void*>(place), length);
+		nop(reinterpret_cast<void*>(place), length);
 	}
 
-	void Hook::set_string(void* place, const char* string, size_t length)
+	void hook::set_string(void* place, const char* string, size_t length)
 	{
 		DWORD oldProtect;
 		VirtualProtect(place, length + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -222,22 +122,22 @@ namespace Utils
 		VirtualProtect(place, length + 1, oldProtect, &oldProtect);
 	}
 
-	void Hook::set_string(DWORD place, const char* string, size_t length)
+	void hook::set_string(DWORD place, const char* string, size_t length)
 	{
-		Hook::set_string(reinterpret_cast<void*>(place), string, length);
+		hook::set_string(reinterpret_cast<void*>(place), string, length);
 	}
 
-	void Hook::set_string(void* place, const char* string)
+	void hook::set_string(void* place, const char* string)
 	{
-		Hook::set_string(place, string, strlen(static_cast<char*>(place)));
+		hook::set_string(place, string, strlen(static_cast<char*>(place)));
 	}
 
-	void Hook::set_string(DWORD place, const char* string)
+	void hook::set_string(DWORD place, const char* string)
 	{
-		Hook::set_string(reinterpret_cast<void*>(place), string);
+		hook::set_string(reinterpret_cast<void*>(place), string);
 	}
 
-	void Hook::write_string(void* place, const std::string& string)
+	void hook::write_string(void* place, const std::string& string)
 	{
 		DWORD old_protect;
 		VirtualProtect(place, string.size() + 1, PAGE_EXECUTE_READWRITE, &old_protect);
@@ -248,20 +148,20 @@ namespace Utils
 		FlushInstructionCache(GetCurrentProcess(), place, string.size());
 	}
 
-	void Hook::write_string(const DWORD place, const std::string& string)
+	void hook::write_string(const DWORD place, const std::string& string)
 	{
 		write_string(reinterpret_cast<void*>(place), string);
 	}
 
-	void Hook::RedirectJump(void* place, void* stub)
+	void hook::redirect_jump(void* place, void* stub)
 	{
 		char* operandPtr = static_cast<char*>(place) + 2;
 		int newOperand = reinterpret_cast<int>(stub) - (reinterpret_cast<int>(place) + 6);
-		Utils::Hook::Set<int>(operandPtr, newOperand);
+		utils::hook::set<int>(operandPtr, newOperand);
 	}
 
-	void Hook::RedirectJump(DWORD place, void* stub)
+	void hook::redirect_jump(DWORD place, void* stub)
 	{
-		Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
+		hook::redirect_jump(reinterpret_cast<void*>(place), stub);
 	}
 }

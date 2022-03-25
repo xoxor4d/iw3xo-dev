@@ -2,28 +2,25 @@
 
 namespace Components
 {
-	class Gui : public Component
+	class gui final : public Component
 	{
 	public:
-		Gui();
-		~Gui();
-
-		const char* getName() override { return "Gui"; };
+		gui();
+		const char* getName() override { return "gui"; };
 
 		static void imgui_init();
 		static void reset();
-		static void update_hWnd(void* hwnd);
 		static void begin_frame();
 		static void end_frame(); 
 
 		static void render_loop();
-		static void toggle(Game::gui_menus_t& menu, int keycatcher, bool onCommand);
+		static void toggle(Game::gui_menus_t& menu, int keycatcher, bool on_command);
 
 		static void toggle_mouse(bool state);
 		static void reset_mouse();
 		static void redraw_cursor();
 
-		static void set_menu_layout(Game::gui_menus_t& menu, const float x, const float y, const float width, const float height, const int horzAlign, const int vertAlign);
+		static void set_menu_layout(Game::gui_menus_t& menu, const float x, const float y, const float width, const float height, const int horz_align, const int vert_align);
 
 		static void load_settings();
 		static void save_settings();
@@ -32,12 +29,12 @@ namespace Components
 		//static void Markdown(const std::string& markdown_);
 		static void markdown(const char* str, const char* str_end);
 
-		static Game::gui_menus_t&	GetMenu(Game::GUI_MENUS id);
+		static Game::gui_menus_t& get_menu(Game::GUI_MENUS id);
 
 		// *
 		// set latched values + modified flag and return value pointer 
 		template <typename T>
-		static T DvarGetSet(Game::dvar_s* dvar, T swap_value = nullptr)
+		static T dvar_get_set(Game::dvar_s* dvar, T swap_value = nullptr)
 		{
 			if (dvar)
 			{
@@ -83,7 +80,7 @@ namespace Components
 				}
 
 				// vectors here
-				Utils::vector::_VectorCopy(dvar->current.vector, dvar->latched.vector, vecSize);
+				utils::vector::_VectorCopy(dvar->current.vector, dvar->latched.vector, vecSize);
 				dvar->modified = true;
 				return reinterpret_cast<T>(dvar->current.vector);
 			}

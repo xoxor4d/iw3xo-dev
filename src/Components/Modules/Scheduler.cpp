@@ -4,9 +4,9 @@ namespace Components
 {
 	std::mutex Scheduler::mutex_;
 	std::queue<std::pair<std::string, int>> Scheduler::errors_;
-	Utils::concurrent_list<std::pair<std::function<void()>, Scheduler::thread>> Scheduler::callbacks_;
-	Utils::concurrent_list<std::pair<std::function<void()>, Scheduler::thread>> Scheduler::single_callbacks_;
-	Utils::concurrent_list<std::pair<std::function<Scheduler::evaluation()>, Scheduler::thread>> Scheduler::condition_callbacks_;
+	utils::concurrent_list<std::pair<std::function<void()>, Scheduler::thread>> Scheduler::callbacks_;
+	utils::concurrent_list<std::pair<std::function<void()>, Scheduler::thread>> Scheduler::single_callbacks_;
+	utils::concurrent_list<std::pair<std::function<Scheduler::evaluation()>, Scheduler::thread>> Scheduler::condition_callbacks_;
 
 	void Scheduler::on_frame(const std::function<void()>& callback, const thread thread)
 	{
@@ -169,22 +169,22 @@ namespace Components
 		errors_.pop();
 
 		*error_level = error.second;
-		*error_message = Utils::VA("%s", error.first.data());
+		*error_message = utils::va("%s", error.first.data());
 
 		return true;
 	}
 
 	Scheduler::Scheduler()
 	{
-		Utils::Hook(0x500328, main_frame_stub, HOOK_CALL).install()->quick();
+		utils::hook(0x500328, main_frame_stub, HOOK_CALL).install()->quick();
 		
 		if (Components::active.XO_Console)
 		{
-			Utils::Hook(0x475052, renderer_frame_stub_con_addon, HOOK_CALL).install()->quick(); // call xo_con_CheckResize if console addon is loaded
+			utils::hook(0x475052, renderer_frame_stub_con_addon, HOOK_CALL).install()->quick(); // call xo_con_CheckResize if console addon is loaded
 		}
 		else
 		{
-			Utils::Hook(0x475052, renderer_frame_stub_stock, HOOK_CALL).install()->quick(); // call stock Con_CheckResize otherwise
+			utils::hook(0x475052, renderer_frame_stub_stock, HOOK_CALL).install()->quick(); // call stock Con_CheckResize otherwise
 		}
 	}
 

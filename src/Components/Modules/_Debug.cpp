@@ -6,18 +6,16 @@ namespace Components
 	// Lines
 
 	// *
-	// Adds a debugline no matter what thread calls it
-	void _Debug::AddDebugLineClient(float *start, float *end, float *color, int depthTest, int duration)
+	// adds a debugline no matter what thread calls it
+	void _debug::add_debug_line_client(float *start, float *end, float *color, int depthTest, int duration)
 	{
 		// renderer needs to be running and debug lines allocated
 		if (Game::cls->rendererStarted && Game::CreateDebugLinesIfNeeded())
 		{
 			Game::clientDebugLineInfo_t *info = Game::clientDebugLineInfo_client;
-			Game::trDebugLine_t *line;
-
 			if (info->num + 1 <= info->max)
 			{
-				line = &info->lines[info->num];
+				Game::trDebugLine_t* line = &info->lines[info->num];
 				line->start[0] = start[0];
 				line->start[1] = start[1];
 				line->start[2] = start[2];
@@ -35,18 +33,16 @@ namespace Components
 	}
 
 	// *
-	// Adds a debugline no matter what thread calls it (using glm vectors)
-	void _Debug::AddDebugLineClient(const glm::vec3 start, const glm::vec3 end, const glm::vec4 color, int depthTest, int duration)
+	// adds a debugline no matter what thread calls it (using glm vectors)
+	void _debug::add_debug_line_client(const glm::vec3 start, const glm::vec3 end, const glm::vec4 color, int depthTest, int duration)
 	{
 		// renderer needs to be running and debug lines allocated
 		if (Game::cls->rendererStarted && Game::CreateDebugLinesIfNeeded())
 		{
 			Game::clientDebugLineInfo_t *info = Game::clientDebugLineInfo_client;
-			Game::trDebugLine_t *line;
-
 			if (info->num + 1 <= info->max)
 			{
-				line = &info->lines[info->num];
+				Game::trDebugLine_t* line = &info->lines[info->num];
 				line->start[0] = start.x;
 				line->start[1] = start.y;
 				line->start[2] = start.z;
@@ -64,18 +60,16 @@ namespace Components
 	}
 
 	// *
-	// Adds a debugline no matter what thread calls it
-	void _Debug::AddDebugLineServer(const float* start, const float* end, const float* color, const int depthTest, const int duration)
+	// adds a debugline no matter what thread calls it
+	void _debug::add_debug_line_server(const float* start, const float* end, const float* color, const int depthTest, const int duration)
 	{
 		// renderer needs to be running and debug lines allocated
 		if (Game::cls->rendererStarted && Game::CreateDebugLinesIfNeeded())
 		{
 			Game::clientDebugLineInfo_t* info = Game::clientDebugLineInfo_server;
-			Game::trDebugLine_t* line;
-
 			if (info->num + 1 <= info->max)
 			{
-				line = &info->lines[info->num];
+				Game::trDebugLine_t* line = &info->lines[info->num];
 				line->start[0] = start[0];
 				line->start[1] = start[1];
 				line->start[2] = start[2];
@@ -94,29 +88,29 @@ namespace Components
 
 	// *
 	// init and create 1 timer for all debug lines
-	void _Debug::DebugLines_InitSync(Game::dbgLinesDelaySync_t *sync)
+	void _debug::debug_lines_init_sync(Game::dbgLinesDelaySync_t *sync)
 	{
 		if (!sync->initialized)
 		{
-			sync->delayInFrames = 10;
+			sync->delay_in_frames = 10;
 			sync->initialized = true;
 		}
 
-		if (sync->delayCounter < sync->delayInFrames)
+		if (sync->delay_counter < sync->delay_in_frames)
 		{
 			sync->sync = false;
-			sync->delayCounter++;
+			sync->delay_counter++;
 			return;
 		}
 
-		sync->delayCounter = 0;
+		sync->delay_counter = 0;
 		// sync is true for 1 frame 
 		sync->sync = true;
 	}
 
 	// *
 	// true if in sync
-	bool _Debug::DebugLines_Sync(Game::dbgLinesDelaySync_t *sync)
+	bool _debug::debug_lines_sync(Game::dbgLinesDelaySync_t *sync)
 	{
 		if (sync->sync)
 		{
@@ -128,145 +122,142 @@ namespace Components
 
 	// *
 	// directly draw 3D lines
-	Game::GfxPointVertex debugLineVerts[2725];
+	Game::GfxPointVertex debug_line_verts[2725];
 
-	bool rb_addingDebugLines = false;
-	bool rb_lastDepthTest = false;
+	bool rb_adding_debug_lines = false;
+	bool rb_last_depth_test = false;
 
 	// add debugLines
-	int _Debug::RB_AddDebugLine(const float* start, const float* end, const float* color, bool depthTest, int vertCount, int vertLimit, Game::GfxPointVertex* verts)
+	int _debug::add_debug_line(const float* start, const float* end, const float* color, bool depth_test, int vert_count, int vert_limit, Game::GfxPointVertex* verts)
 	{
-		if (vertCount + 2 > vertLimit || rb_addingDebugLines && rb_lastDepthTest != depthTest)
+		if (vert_count + 2 > vert_limit || rb_adding_debug_lines && rb_last_depth_test != depth_test)
 		{
-			Game::RB_DrawLines3D(vertCount / 2, Dvars::r_drawCollision_lineWidth->current.integer, verts, rb_lastDepthTest);
-			vertCount = 0;
+			Game::RB_DrawLines3D(vert_count / 2, dvars::r_drawCollision_lineWidth->current.integer, verts, rb_last_depth_test);
+			vert_count = 0;
 		}
 
-		rb_lastDepthTest = depthTest;
-		rb_addingDebugLines = true;
+		rb_last_depth_test = depth_test;
+		rb_adding_debug_lines = true;
 
-		Game::R_ConvertColorToBytes(color, verts[vertCount].color);
+		Game::R_ConvertColorToBytes(color, verts[vert_count].color);
 
-		*(DWORD*)verts[vertCount + 1].color = *(DWORD*)verts[vertCount].color;
+		*(DWORD*)verts[vert_count + 1].color = *(DWORD*)verts[vert_count].color;
 
-		verts[vertCount].xyz[0] = start[0];
-		verts[vertCount].xyz[1] = start[1];
-		verts[vertCount].xyz[2] = start[2];
+		verts[vert_count].xyz[0] = start[0];
+		verts[vert_count].xyz[1] = start[1];
+		verts[vert_count].xyz[2] = start[2];
 
-		verts[vertCount + 1].xyz[0] = end[0];
-		verts[vertCount + 1].xyz[1] = end[1];
-		verts[vertCount + 1].xyz[2] = end[2];
+		verts[vert_count + 1].xyz[0] = end[0];
+		verts[vert_count + 1].xyz[1] = end[1];
+		verts[vert_count + 1].xyz[2] = end[2];
 
-		return vertCount + 2;
+		return vert_count + 2;
 	}
 
 	// add debugLines
-	int _Debug::RB_AddDebugLine(const glm::vec3& start, const glm::vec3& end, const float* color, bool depthTest, int lineWidth, int vertCount, int vertLimit, Game::GfxPointVertex* verts)
+	int _debug::add_debug_line(const glm::vec3& start, const glm::vec3& end, const float* color, bool depth_test, int line_width, int vert_count, int vert_limit, Game::GfxPointVertex* verts)
 	{
-		if (vertCount + 2 > vertLimit || rb_addingDebugLines && rb_lastDepthTest != depthTest)
+		if (vert_count + 2 > vert_limit || rb_adding_debug_lines && rb_last_depth_test != depth_test)
 		{
-			Game::RB_DrawLines3D(vertCount / 2, lineWidth, verts, rb_lastDepthTest);
-			vertCount = 0;
+			Game::RB_DrawLines3D(vert_count / 2, line_width, verts, rb_last_depth_test);
+			vert_count = 0;
 		}
 
-		rb_lastDepthTest = depthTest;
-		rb_addingDebugLines = true;
+		rb_last_depth_test = depth_test;
+		rb_adding_debug_lines = true;
 
-		Game::R_ConvertColorToBytes(color, verts[vertCount].color);
-		*(DWORD*)verts[vertCount + 1].color = *(DWORD*)verts[vertCount].color;
+		Game::R_ConvertColorToBytes(color, verts[vert_count].color);
+		*(DWORD*)verts[vert_count + 1].color = *(DWORD*)verts[vert_count].color;
 
-		glm::setFloat3(verts[vertCount].xyz, start);
-		glm::setFloat3(verts[vertCount + 1].xyz, end);
+		glm::set_float3(verts[vert_count].xyz, start);
+		glm::set_float3(verts[vert_count + 1].xyz, end);
 
-		return vertCount + 2;
+		return vert_count + 2;
 	}
 
 	// draw all created debugLines 
-	void _Debug::RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts)
+	void _debug::end_debug_lines(int vert_count, Game::GfxPointVertex* verts)
 	{
-		if (vertCount >= 2)
+		if (vert_count >= 2)
 		{
-			Game::RB_DrawLines3D(vertCount, Dvars::r_drawCollision_lineWidth->current.integer, verts, rb_lastDepthTest);
-			rb_addingDebugLines = false;
+			Game::RB_DrawLines3D(vert_count, dvars::r_drawCollision_lineWidth->current.integer, verts, rb_last_depth_test);
+			rb_adding_debug_lines = false;
 		}
 	}
 
 	// add and draw debuglines
-	void _Debug::RB_AddAndDrawDebugLines(const int numPoints, float(*points)[3], const float* colorFloat)
+	void _debug::add_and_draw_debug_lines(const int num_points, float(*points)[3], const float* color_float)
 	{
-		if (numPoints < 2)
+		if (num_points < 2)
 		{
 			return;
 		}
 
-		int vertCount = 0;
-		int vertIndexPrev = numPoints - 1;
+		int vert_count = 0;
+		int vert_index_prev = num_points - 1;
 
-		for (auto vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+		for (auto vert_index = 0; vert_index < num_points; ++vert_index)
 		{
-			vertCount = _Debug::RB_AddDebugLine(&(*points)[3 * vertIndexPrev],
-				&(*points)[3 * vertIndex],
-				colorFloat,
-				Dvars::r_drawCollision_polyDepth->current.enabled,
-				vertCount,
+			vert_count = _debug::add_debug_line(&(*points)[3 * vert_index_prev],
+				&(*points)[3 * vert_index],
+				color_float,
+				dvars::r_drawCollision_polyDepth->current.enabled,
+				vert_count,
 				2725,
-				debugLineVerts);
+				debug_line_verts);
 
-			vertIndexPrev = vertIndex;
+			vert_index_prev = vert_index;
 		}
 
-		// Draw all added debuglines
-		_Debug::RB_EndDebugLines(vertCount / 2, debugLineVerts);
+		// draw all added debuglines
+		_debug::end_debug_lines(vert_count / 2, debug_line_verts);
 	}
 
-	void _Debug::RB_EndDebugLines(int vertCount, Game::GfxPointVertex* verts, int lineWidth)
+	void _debug::end_debug_lines(int vert_count, Game::GfxPointVertex* verts, int line_width)
 	{
-		if (vertCount >= 2)
+		if (vert_count >= 2)
 		{
-			Game::RB_DrawLines3D(vertCount, lineWidth, verts, rb_lastDepthTest);
-			rb_addingDebugLines = false;
+			Game::RB_DrawLines3D(vert_count, line_width, verts, rb_last_depth_test);
+			rb_adding_debug_lines = false;
 		}
 	}
 
 	// add and draw debuglines (only call from renderer thread)
-	void _Debug::RB_AddAndDrawDebugLines(const int numLines, const Game::dbgLines_t* lines, const float* colorFloat, bool depthTest, int lineWidth)
+	void _debug::add_and_draw_debug_lines(const int num_lines, const Game::dbgLines_t* lines, const float* color_float, bool depth_test, int line_width)
 	{
-		int vertCount = 0;
+		int vert_count = 0;
 
-		for (auto line = 0; line < numLines; ++line)
+		for (auto line = 0; line < num_lines; ++line)
 		{
-			vertCount = _Debug::RB_AddDebugLine(
+			vert_count = _debug::add_debug_line(
 				/* start	 */ lines[line].ptFrom,
 				/* end		 */ lines[line].ptTo,
-				/* color	 */ colorFloat,
-				/* depth	 */ depthTest,
-				/* linewidth */ lineWidth,
-				/* vertcount */ vertCount,
+				/* color	 */ color_float,
+				/* depth	 */ depth_test,
+				/* linewidth */ line_width,
+				/* vertcount */ vert_count,
 				/* maxverts	 */ 2725,
-				/* buffer	 */ debugLineVerts);
+				/* buffer	 */ debug_line_verts);
 		}
 
-		// Draw all added debuglines
-		_Debug::RB_EndDebugLines(vertCount / 2, debugLineVerts, lineWidth);
+		// draw all added debuglines
+		_debug::end_debug_lines(vert_count / 2, debug_line_verts, line_width);
 	}
 
 	// -------------------------------------------------------------------------
 	// Strings
 
 	// *
-	// Add debugStrings
-	void _Debug::AddDebugStringClient(const glm::vec3 xyz, const glm::vec4 color, float scale, const char *text, int duration)
+	// add debugStrings
+	void _debug::add_debug_string_client(const glm::vec3 xyz, const glm::vec4 color, float scale, const char *text, int duration)
 	{
 		// renderer needs to be running and debug strings allocated
 		if (Game::ifRendererStarted && Game::CreateDebugStringsIfNeeded())
 		{
-			//Game::clientDebugStringInfo_t *info = Game::clsDebugSV_Strings; 
 			Game::clientDebugStringInfo_t* info = Game::clsDebugCL_Strings;
-			Game::trDebugString_t *string;
-
 			if (info->num + 1 <= info->max)
 			{
-				string = &info->strings[info->num];
+				Game::trDebugString_t* string = &info->strings[info->num];
 				string->xyz[0] = xyz.x;
 				string->xyz[1] = xyz.y;
 				string->xyz[2] = xyz.z;
@@ -275,9 +266,10 @@ namespace Components
 				string->color[2] = color.b;
 				string->color[3] = color.a;
 				string->scale = scale;
+				info->durations[info->num++] = duration;
+
 				strncpy(string->text, text, 0x5Fu);
 				string->text[95] = 0;
-				info->durations[info->num++] = duration;
 			}
 		}
 	}
@@ -288,9 +280,9 @@ namespace Components
 
 	// *
 	// overflow check for render-surf
-	void _Debug::RB_CheckTessOverflow(int vertexCount)
+	void _debug::check_tess_overflow(int vertex_count)
 	{
-		if (vertexCount + *Game::vertexCount > 5450 || (Game::tess->indexCount + 6) > 0x100000)
+		if (vertex_count + *Game::vertexCount > 5450 || (Game::tess->indexCount + 6) > 0x100000)
 		{
 			Game::RB_EndTessSurface();
 			Game::RB_BeginSurface(*Game::OverflowTessTech, *Game::OverflowTessSurf);
@@ -299,61 +291,52 @@ namespace Components
 
 	// *
 	// set vertices for current render-surface
-	void _Debug::RB_SetPolyVertWithNormal(const float* xyz, const float *normal, Game::GfxColor color, int vertCount, int vertNum)
+	void _debug::set_poly_vert_with_normal(const float* xyz, const float *normal, Game::GfxColor color, int vert_count, int vertNum)
 	{
-		Game::tess->verts[vertCount].xyzw[0] = xyz[0];
-		Game::tess->verts[vertCount].xyzw[1] = xyz[1];
-		Game::tess->verts[vertCount].xyzw[2] = xyz[2];
-		Game::tess->verts[vertCount].xyzw[3] = 1.0f; // 0.0 to make it a sky
-
-		Game::tess->verts[vertCount].color.packed = color.packed;
-		//Game::tess->verts[vertCount].texCoord[0] = 0.0f;
-		//Game::tess->verts[vertCount].texCoord[1] = 0.0f;
+		Game::tess->verts[vert_count].xyzw[0] = xyz[0];
+		Game::tess->verts[vert_count].xyzw[1] = xyz[1];
+		Game::tess->verts[vert_count].xyzw[2] = xyz[2];
+		Game::tess->verts[vert_count].xyzw[3] = 1.0f; // 0.0 to make it a sky
+		Game::tess->verts[vert_count].color.packed = color.packed;
 
 		switch (vertNum)
 		{
 		case 0:
-			Game::tess->verts[vertCount].texCoord[0] = 0.0f;
-			Game::tess->verts[vertCount].texCoord[1] = 0.0f;
+			Game::tess->verts[vert_count].texCoord[0] = 0.0f;
+			Game::tess->verts[vert_count].texCoord[1] = 0.0f;
 			break;
 
 		case 1:
-			Game::tess->verts[vertCount].texCoord[0] = 0.0f;
-			Game::tess->verts[vertCount].texCoord[1] = 1.0f;
+			Game::tess->verts[vert_count].texCoord[0] = 0.0f;
+			Game::tess->verts[vert_count].texCoord[1] = 1.0f;
 			break;
 		case 2:
-			Game::tess->verts[vertCount].texCoord[0] = 1.0f;
-			Game::tess->verts[vertCount].texCoord[1] = 1.0f;
+			Game::tess->verts[vert_count].texCoord[0] = 1.0f;
+			Game::tess->verts[vert_count].texCoord[1] = 1.0f;
 			break;
 		case 3:
-			Game::tess->verts[vertCount].texCoord[0] = 1.0f;
-			Game::tess->verts[vertCount].texCoord[1] = 0.0f;
+			Game::tess->verts[vert_count].texCoord[0] = 1.0f;
+			Game::tess->verts[vert_count].texCoord[1] = 0.0f;
 			break;
 
 		default:
-			Game::tess->verts[vertCount].texCoord[0] = 0.0f;
-			Game::tess->verts[vertCount].texCoord[1] = 0.0f;
+			Game::tess->verts[vert_count].texCoord[0] = 0.0f;
+			Game::tess->verts[vert_count].texCoord[1] = 0.0f;
 			break;
 		}
 
-		auto packedNormal = Game::Vec3PackUnitVec(normal);
-		Game::tess->verts[vertCount].normal = packedNormal;
-
-		//Game::tess->verts[vertCount].normal.packed = 1073643391;
+		Game::tess->verts[vert_count].normal = Game::Vec3PackUnitVec(normal);
 	}
 
 	// *
 	// set vertices for current render-surface
-	void _Debug::RB_SetPolyVert(const float *xyz, Game::GfxColor color, int vertCount, int vertNum)
+	void _debug::set_poly_vert(const float *xyz, Game::GfxColor color, int vertCount, int vertNum)
 	{
 		Game::tess->verts[vertCount].xyzw[0] = xyz[0];
 		Game::tess->verts[vertCount].xyzw[1] = xyz[1];
 		Game::tess->verts[vertCount].xyzw[2] = xyz[2];
 		Game::tess->verts[vertCount].xyzw[3] = 1.0f; // 0.0 to make it a sky
-
 		Game::tess->verts[vertCount].color.packed = color.packed;
-		//Game::tess->verts[vertCount].texCoord[0] = 0.0f;
-		//Game::tess->verts[vertCount].texCoord[1] = 0.0f;
 
 		switch (vertNum)
 		{
@@ -386,20 +369,17 @@ namespace Components
 
 	// *
 	// draws a debug polygon :: needs atleast 3 valid points
-	void _Debug::RB_DrawPoly(const int numPoints, float(*points)[3], const float *brushColor, bool brushLit, bool outlines, const float *outlineColor, bool depthCheck, bool twoSidesPoly)
+	void _debug::draw_poly(const int num_points, float(*points)[3], const float *brush_color, bool brush_lit, bool outlines, const float *outline_color, bool depth_check, bool two_sides_poly)
 	{
-		int vertIndex;
-		Game::GfxColor color;
-
-		if (numPoints < 3)
+		if (num_points < 3)
 		{
 			return;
 		}
 
-		// ----------
-		// Draw Polys
+		int vert_index;
 
-		Game::R_ConvertColorToBytes(brushColor, (char *)&color);
+		Game::GfxColor color = {};
+		Game::R_ConvertColorToBytes(brush_color, (char *)&color);
 
 		// check render-surface overflow
 		if (Game::OverflowTessSurf != Game::builtIn_material_unlit_depth || *Game::OverflowTessTech != Game::MaterialTechniqueType::TECHNIQUE_UNLIT)
@@ -410,14 +390,14 @@ namespace Components
 				Game::RB_EndTessSurface();
 			}
 
-			if (brushLit)
+			if (brush_lit)
 			{
 				// use a custom material for polygons
-				Game::Material* unlit_material = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("iw3xo_showcollision_fakelight", 3));
+				Game::Material* unlit_material = Game::Material_RegisterHandle("iw3xo_showcollision_fakelight", 3);
 			
 				if (!unlit_material)
 				{
-					Game::Com_Error(0, Utils::VA("^1_Debug::RB_DrawPoly L#%d ^7:: unlit_material was null\n", __LINE__));
+					Game::Com_Error(0, utils::va("^1_debug::draw_poly L#%d ^7:: unlit_material was null\n", __LINE__));
 				}
 
 				// dirty shader constants for our fakelight shader
@@ -431,10 +411,10 @@ namespace Components
 			else
 			{
 				// patch default line material so that it uses Blend and PolyOffset
-				Game::Material* unlit_material = reinterpret_cast<Game::Material*>(*(DWORD32*)(Game::builtIn_material_unlit_depth));
+				const auto unlit_material = reinterpret_cast<Game::Material*>(*(DWORD32*)(Game::builtIn_material_unlit_depth));
 
 				// fill poly on both sides
-				if (twoSidesPoly)
+				if (two_sides_poly)
 				{
 					// blendFunc Blend + cullFace "None"
 					unlit_material->stateBitsTable->loadBits[0] = 422072677;
@@ -449,53 +429,45 @@ namespace Components
 				unlit_material->stateBitsTable->loadBits[1] = 44;
 
 				// start poly
-				Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, depthCheck ? *Game::builtIn_material_unlit_depth : *Game::builtIn_material_unlit);
+				Game::RB_BeginSurface(Game::MaterialTechniqueType::TECHNIQUE_UNLIT, depth_check ? *Game::builtIn_material_unlit_depth : *Game::builtIn_material_unlit);
 			}
 		}
 
-		// Check if we would overflow our Surface and if we would, render all added polys
-		_Debug::RB_CheckTessOverflow(numPoints);
+		// render all added polys if we would overflow the surface by adding new ones
+		_debug::check_tess_overflow(num_points);
 
-		if (brushLit)
+		if (brush_lit)
 		{
-			// Calculate face normals
-			glm::vec3 u, v, glNormal;
+			Game::vec3_t pt1, pt2, normal;
 
-			// Cross
-			u = glm::toVec3(points[1]) - glm::toVec3(points[0]);
-			v = glm::toVec3(points[2]) - glm::toVec3(points[0]);
+			utils::vector::_VectorSubtract(points[1], points[0], pt1);
+			utils::vector::_VectorSubtract(points[2], points[0], pt2);
+			utils::vector::_Vec3Cross(pt1, pt2, normal);
 
-			glNormal.x = (u.y * v.z) - (u.z * v.y);
-			glNormal.y = (u.z * v.x) - (u.x * v.z);
-			glNormal.z = (u.x * v.y) - (u.y * v.x);
-
-			float normal[3];
-			glm::setFloat3(normal, glNormal);
-
-			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+			for (vert_index = 0; vert_index < num_points; ++vert_index)
 			{
-				_Debug::RB_SetPolyVertWithNormal(&(*points)[3 * vertIndex], normal, color, *Game::vertexCount + vertIndex, vertIndex);
+				_debug::set_poly_vert_with_normal(&(*points)[3 * vert_index], normal, color, *Game::vertexCount + vert_index, vert_index);
 			}
 		}
 		else
 		{
-			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+			for (vert_index = 0; vert_index < num_points; ++vert_index)
 			{
-				_Debug::RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex, vertIndex);
+				_debug::set_poly_vert(&(*points)[3 * vert_index], color, *Game::vertexCount + vert_index, vert_index);
 			}
 		}
 
-		for (vertIndex = 0; vertIndex < numPoints - 2; ++vertIndex)
+		for (vert_index = 0; vert_index < num_points - 2; ++vert_index)
 		{
 			Game::tess->indices[Game::tess->indexCount + 0] = (unsigned short int)(0);
-			Game::tess->indices[Game::tess->indexCount + 1] = (unsigned short int)(vertIndex + 2);
-			Game::tess->indices[Game::tess->indexCount + 2] = (unsigned short int)(vertIndex + 1);
+			Game::tess->indices[Game::tess->indexCount + 1] = (unsigned short int)(vert_index + 2);
+			Game::tess->indices[Game::tess->indexCount + 2] = (unsigned short int)(vert_index + 1);
 			Game::tess->indexCount += 3;
 		}
 
-		Game::tess->vertexCount += numPoints;
+		Game::tess->vertexCount += num_points;
 
-		// Draw all added polys
+		// draw all added polys
 		Game::RB_EndTessSurface();
 
 
@@ -514,11 +486,11 @@ namespace Components
 				}
 
 				// use a custom material for outlines
-				Game::Material* unlit_material = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle("iw3xo_showcollision_wire", 3));
+				const auto unlit_material = Game::Material_RegisterHandle("iw3xo_showcollision_wire", 3);
 
 				if (!unlit_material)
 				{
-					Game::Com_Error(0, Utils::VA("^1_Debug::RB_DrawPoly L#%d ^7:: unlit_material was null\n", __LINE__));
+					Game::Com_Error(0, utils::va("^1_debug::draw_poly L#%d ^7:: unlit_material was null\n", __LINE__));
 					return;
 				}
 
@@ -526,35 +498,35 @@ namespace Components
 			}
 
 			// Check if we would overflow our Surface and if we would, render all added polys
-			_Debug::RB_CheckTessOverflow(numPoints);
+			_debug::check_tess_overflow(num_points);
 
-			if (outlineColor == nullptr)
+			if (outline_color == nullptr)
 			{
 				float tempColor[3] = { 1.0f, 0.0f, 0.0f };
 				Game::R_ConvertColorToBytes(tempColor, (char*)&color);
 			}
 			else
 			{
-				Game::R_ConvertColorToBytes(outlineColor, (char*)&color);
+				Game::R_ConvertColorToBytes(outline_color, (char*)&color);
 			}
 			
 			// set our surface verts (tess->verts)
-			for (vertIndex = 0; vertIndex < numPoints; ++vertIndex)
+			for (vert_index = 0; vert_index < num_points; ++vert_index)
 			{
-				_Debug::RB_SetPolyVert(&(*points)[3 * vertIndex], color, *Game::vertexCount + vertIndex);
+				_debug::set_poly_vert(&(*points)[3 * vert_index], color, *Game::vertexCount + vert_index);
 			}
 
 			// counter-clockwise polys?
-			for (vertIndex = 0; vertIndex < numPoints - 2; ++vertIndex)
+			for (vert_index = 0; vert_index < num_points - 2; ++vert_index)
 			{
 				Game::tess->indices[Game::tess->indexCount + 0] = (unsigned short int)(0);
-				Game::tess->indices[Game::tess->indexCount + 1] = (unsigned short int)(vertIndex + 2);
-				Game::tess->indices[Game::tess->indexCount + 2] = (unsigned short int)(vertIndex + 1);
+				Game::tess->indices[Game::tess->indexCount + 1] = (unsigned short int)(vert_index + 2);
+				Game::tess->indices[Game::tess->indexCount + 2] = (unsigned short int)(vert_index + 1);
 
 				Game::tess->indexCount += 3;
 			}
 
-			Game::tess->vertexCount += numPoints;
+			Game::tess->vertexCount += num_points;
 
 			// Draw all added polys
 			Game::RB_EndTessSurface();
@@ -566,52 +538,49 @@ namespace Components
 	// Main
 
 	// pre RB_DrawDebug :: additional debug functions here
-	void RB_AdditionalDebug(Game::GfxViewParms *viewParms)
+	void additional_debug(Game::GfxViewParms *view_parms)
 	{
 		if (Components::active.RB_DrawCollision)
 		{
 			// Draw Debug Collision
-			RB_DrawCollision::RB_ShowCollision(viewParms);
+			RB_DrawCollision::RB_ShowCollision(view_parms);
 		}
 		
-		if (Components::active.RadiantRemote)
+		if (Components::active.radiant_livelink)
 		{
 			// Radiant Live-Link
-			RadiantRemote::RadiantDebugBrush();
+			radiant_livelink::draw_debug_brush();
 		}
 
-		if (Components::active._Pmove)
+		if (Components::active._pmove)
 		{
-			_Pmove::PM_DrawDebug();
+			_pmove::draw_debug();
 		}
 	}
 
-	// RB_AdditionalDebug :: Hook RB_DrawDebug call to implement additional debug functions
+	// additional_debug :: hook RB_DrawDebug call to implement additional debug functions
 	__declspec(naked) void RB_EndSceneRendering_stub()
 	{
-		const static uint32_t RB_DrawDebug = 0x658860;
+		const static uint32_t RB_DrawDebug_func = 0x658860;
 		__asm
 		{
 			pushad;
 			push	[0xD540220];
-			call	RB_AdditionalDebug;
+			call	additional_debug;
 			add		esp, 4h;
 			popad;
 
-			call	RB_DrawDebug;
+			call	RB_DrawDebug_func;
 			retn;
 		}
 	}
 
-	_Debug::_Debug()
+	_debug::_debug()
 	{ 
-		// Disable the need for developer 1 to display collisions / debug lines / strings w/e (nop check if dvar is set in RB_EndSceneRendering)
-		Utils::Hook::Nop(0x6496D8, 3);
+		// disable the need for developer 1 to display collisions / debug lines / strings w/e (nop check if dvar is set in RB_EndSceneRendering)
+		utils::hook::nop(0x6496D8, 3);
 
-		// Hook RB_DrawDebug call in RB_EndSceneRendering to implement additional debug functions
-		Utils::Hook(0x6496EC, RB_EndSceneRendering_stub, HOOK_CALL).install()->quick();
+		// hook RB_DrawDebug call in RB_EndSceneRendering to implement additional debug functions
+		utils::hook(0x6496EC, RB_EndSceneRendering_stub, HOOK_CALL).install()->quick();
 	}
-
-	_Debug::~_Debug()
-	{ }
 }

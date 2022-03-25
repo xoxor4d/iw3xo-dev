@@ -27,7 +27,7 @@ namespace glm
 		dest[1] = src.y;
 	}
 
-	void setFloat3(float *dest, const glm::vec3 &src) {
+	void set_float3(float *dest, const glm::vec3 &src) {
 		dest[0] = src.x;
 		dest[1] = src.y;
 		dest[2] = src.z;
@@ -41,7 +41,7 @@ namespace glm
 	}
 }
 
-namespace Utils
+namespace utils
 {
 	namespace vector // https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_math.c
 	{

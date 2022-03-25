@@ -3,40 +3,52 @@
 namespace Components
 {
 	// *
-	// Dvars
+	// dvars
 
-	// register additional dvars in R_Init->R_RegisterDvars
-	void R_RegisterAdditionalDvars()
+	// register additional dvars in R_Init > R_RegisterDvars
+	void register_additional_dvars()
 	{
-		if (Components::active._UI)
+		if (Components::active._ui)
 		{
-			_UI::main_menu_register_dvars();
+			_ui::register_dvars();
 		}
 		
-		if (Components::active._Renderer)
+		if (Components::active._renderer)
 		{
-			_Renderer::R_RegisterBufferDvars();
+			_renderer::register_dvars();
 		}
 
 		if (Components::active.RB_ShaderOverlays)
 		{
-			RB_ShaderOverlays::Register_StringDvars();
+			RB_ShaderOverlays::register_dvars();
 		}
 	}
 
-	void ForceDvarsOnInit()
+	__declspec(naked) void register_additional_dvars_stub()
 	{
-		const auto dedicated = Game::Dvar_FindVar("dedicated");
-		//auto fs_usedevdir = Game::Dvar_FindVar("fs_usedevdir");
-		auto in_mouse = Game::Dvar_FindVar("in_mouse");
-
-		if (dedicated && !dedicated->current.integer)
+		const static uint32_t R_RegisterSunDvars_func = 0x636FC0;
+		const static uint32_t retn_addr = 0x629D7F;
+		__asm
 		{
-			auto sv_pure		= Game::Dvar_FindVar("sv_pure");
-			auto sv_punkbuster	= Game::Dvar_FindVar("sv_punkbuster");
-			auto r_zFeather		= Game::Dvar_FindVar("r_zFeather");
-			auto r_distortion	= Game::Dvar_FindVar("r_distortion");
-			auto r_fastSkin		= Game::Dvar_FindVar("r_fastSkin");
+			pushad;
+			call	register_additional_dvars;
+			popad;
+
+			call	R_RegisterSunDvars_func;
+			jmp		retn_addr;
+		}
+	}
+
+	void force_dvars_on_init()
+	{
+		if (const auto	dedicated = Game::Dvar_FindVar("dedicated"); 
+						dedicated && !dedicated->current.integer)
+		{
+			const auto sv_pure = Game::Dvar_FindVar("sv_pure");
+			const auto sv_punkbuster	 = Game::Dvar_FindVar("sv_punkbuster");
+			const auto r_zFeather = Game::Dvar_FindVar("r_zFeather");
+			const auto r_distortion = Game::Dvar_FindVar("r_distortion");
+			const auto r_fastSkin = Game::Dvar_FindVar("r_fastSkin");
 
 			if (sv_pure && sv_pure->current.enabled)
 			{
@@ -69,62 +81,41 @@ namespace Components
 			}
 		}
 
-		// Do not force fs_usedevdir, some mods do not like that.
-		//if (fs_usedevdir && !fs_usedevdir->current.enabled)
-		//{
-		//	Game::Dvar_SetValue(fs_usedevdir, true); // quick set the value
-		//	Game::Cmd_ExecuteSingleCommand(0, 0, "fs_usedevdir 1\n");
-		//}
-
-		if (in_mouse && !in_mouse->current.enabled)
+		if (const auto	in_mouse = Game::Dvar_FindVar("in_mouse"); 
+						in_mouse && !in_mouse->current.enabled)
 		{
 			Game::Dvar_SetValue(in_mouse, true); // quick set the value
 			Game::Cmd_ExecuteSingleCommand(0, 0, "in_mouse 1\n");
 		}
 
-		if (Components::active.Gui)
+		if (Components::active.gui)
 		{
-			Gui::load_settings();
-		}
-	}
-
-	__declspec(naked) void R_RegisterAdditionalDvars_stub()
-	{
-		const static uint32_t R_RegisterSunDvars_Func = 0x636FC0;
-		const static uint32_t retnPt = 0x629D7F;
-		__asm
-		{
-			pushad;
-			call	R_RegisterAdditionalDvars;
-			popad;
-
-			call	R_RegisterSunDvars_Func;
-			jmp		retnPt;
+			gui::load_settings();
 		}
 	}
 
 	__declspec(naked) void R_BeginRegistration_stub()
 	{
-		const static uint32_t rtnPt = 0x46CB0E;
+		const static uint32_t retn_addr = 0x46CB0E;
 		__asm
 		{
 			pushad;
-			call	ForceDvarsOnInit;
+			call	force_dvars_on_init;
 			popad;
 
 			mov     ecx, 0Ch;	// overwritten op
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
 	// disable cheat / write check
 	__declspec(naked) void disable_dvar_cheats_stub()
 	{
-		const static uint32_t overjumpTo = 0x56B3A1;
+		const static uint32_t retn_addr = 0x56B3A1;
 		__asm
 		{
 			movzx   eax, word ptr[edi + 8];	// overwritten op
-			jmp		overjumpTo;
+			jmp		retn_addr;
 		}
 	}
 
@@ -132,7 +123,7 @@ namespace Components
 	// FastFiles
 
 	// load common + addon fastfiles (only on init or when changing CGame)
-	void DB_LoadCommonFastFiles()
+	void load_common_fast_files()
 	{
 		/*
 		only unload zones with a set flag
@@ -142,22 +133,22 @@ namespace Components
 		*/
 
 		int i = 0;
-		Game::XZoneInfo XZoneInfoStack[8];
+		Game::XZoneInfo xzone_info_stack[8];
 
 		// ------------------------------------
 
-		XZoneInfoStack[i].name = *Game::zone_code_post_gfx_mp;
-		XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_POST_GFX;
-		XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_POST_GFX_FREE;
+		xzone_info_stack[i].name = *Game::zone_code_post_gfx_mp;
+		xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_POST_GFX;
+		xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_POST_GFX_FREE;
 		++i;
 
 		// ------------------------------------
 
 		if (*Game::zone_localized_code_post_gfx_mp)
 		{
-			XZoneInfoStack[i].name = *Game::zone_localized_code_post_gfx_mp;
-			XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_LOC_POST_GFX;
-			XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_LOC_POST_GFX_FREE;
+			xzone_info_stack[i].name = *Game::zone_localized_code_post_gfx_mp;
+			xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_LOC_POST_GFX;
+			xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_LOC_POST_GFX_FREE;
 			++i;
 		}
 
@@ -173,13 +164,13 @@ namespace Components
 				if (!*Game::zone_mod)
 				{
 					// only load the menu when no mod is loaded -- unload on mod | map load
-					XZoneInfoStack[i].name = FF_ADDON_MENU_NAME;
+					xzone_info_stack[i].name = FF_ADDON_MENU_NAME;
 
-					XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD | Game::XZONE_FLAGS::XZONE_DEBUG;
+					xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD | Game::XZONE_FLAGS::XZONE_DEBUG;
 					++i;
 
 					// we have to sync assets or we run into issues when the game is trying to access unloaded assets
-					Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
+					Game::DB_LoadXAssets(&xzone_info_stack[0], i, 0);
 
 					Game::R_BeginRemoteScreenUpdate();
 					WaitForSingleObject(Game::dbHandle, 0xFFFFFFFF);
@@ -194,19 +185,19 @@ namespace Components
 			// if addon_menu loading is enabled and file not found
 			else if (FF_LOAD_ADDON_MENU)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
+				Game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
 			}
 		}
 
 		// mod loading -- maybe sync assets for addon menu too?
 		if (*Game::zone_mod)
 		{
-			XZoneInfoStack[i].name = *Game::zone_mod;
-			XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD;
-			XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_MOD_FREE;
+			xzone_info_stack[i].name = *Game::zone_mod;
+			xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_MOD;
+			xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_MOD_FREE;
 			++i;
 
-			Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
+			Game::DB_LoadXAssets(&xzone_info_stack[0], i, 0);
 
 			Game::R_BeginRemoteScreenUpdate();
 			WaitForSingleObject(Game::dbHandle, 0xFFFFFFFF);
@@ -222,26 +213,26 @@ namespace Components
 
 		if (*Game::zone_ui_mp) // not loaded when starting dedicated servers
 		{
-			XZoneInfoStack[i].name = *Game::zone_ui_mp;
-			XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_UI;
-			XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_UI_FREE;
+			xzone_info_stack[i].name = *Game::zone_ui_mp;
+			xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_UI;
+			xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_UI_FREE;
 			++i;
 		}
 
 		// ------------------------------------
 
-		XZoneInfoStack[i].name = *Game::zone_common_mp;
-		XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON;
-		XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_COMMON_FREE;
+		xzone_info_stack[i].name = *Game::zone_common_mp;
+		xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON;
+		xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_COMMON_FREE;
 		++i;
 
 		// ------------------------------------
 
 		if (*Game::zone_localized_common_mp) // not loaded on when starting dedicated servers
 		{
-			XZoneInfoStack[i].name = *Game::zone_localized_common_mp;
-			XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_LOC_COMMON;
-			XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_LOC_COMMON_FREE;
+			xzone_info_stack[i].name = *Game::zone_localized_common_mp;
+			xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_LOC_COMMON;
+			xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_LOC_COMMON_FREE;
 			++i;
 		}
 
@@ -253,14 +244,14 @@ namespace Components
 			// custom addon file
 			if (Game::DB_FileExists(FF_ADDON_OPT_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
 			{
-				XZoneInfoStack[i].name = FF_ADDON_OPT_NAME;
-				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
-				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
+				xzone_info_stack[i].name = FF_ADDON_OPT_NAME;
+				xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
 				++i;
 			}
 			else
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found (optional user addon)\n", FF_ADDON_OPT_NAME), 0);
+				Game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found (optional user addon)\n", FF_ADDON_OPT_NAME), 0);
 			}
 		}
 
@@ -270,30 +261,29 @@ namespace Components
 			// if the fastfile exists
 			if (FF_ADDON_REQ_NAME && Game::DB_FileExists(FF_ADDON_REQ_NAME, Game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
 			{
-				XZoneInfoStack[i].name = FF_ADDON_REQ_NAME;
-				XZoneInfoStack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
-				XZoneInfoStack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
+				xzone_info_stack[i].name = FF_ADDON_REQ_NAME;
+				xzone_info_stack[i].allocFlags = Game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				xzone_info_stack[i].freeFlags = Game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
 				++i;
 			}
 
 			// if addon_required loading is enabled and file not found
 			else if (FF_LOAD_ADDON_REQ)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_REQ_NAME), 0);
+				Game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_REQ_NAME), 0);
 			}
 		}
 
 		// ------------------------------------
 
-		Game::DB_LoadXAssets(&XZoneInfoStack[0], i, 0);
+		Game::DB_LoadXAssets(&xzone_info_stack[0], i, 0);
 	}
 
 	// realloc zones that get unloaded on map load (eg. ui_mp)
-	void Com_StartHunkUsers()
+	void com_start_hunk_users()
 	{
-		auto useFastFile = Game::Dvar_FindVar("useFastFile");
-
-		if (useFastFile && useFastFile->current.enabled)
+		if (const auto	useFastFile = Game::Dvar_FindVar("useFastFile"); 
+						useFastFile && useFastFile->current.enabled)
 		{
 			int i = 0;
 			Game::XZoneInfo XZoneInfoStack[2];
@@ -319,7 +309,7 @@ namespace Components
 				// if addon menu loading is enabled and file not found
 				else if (FF_LOAD_ADDON_MENU)
 				{
-					Game::Com_PrintMessage(0, Utils::VA("^1Com_StartHunkUsers^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
+					Game::Com_PrintMessage(0, utils::va("^1Com_StartHunkUsers^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
 				}
 			}
 
@@ -337,16 +327,16 @@ namespace Components
 	}
 
 	// :: Com_StartHunkUsers
-	__declspec(naked) void Com_StartHunkUsers_stub()
+	__declspec(naked) void com_start_hunk_users_stub()
 	{
-		const static uint32_t retnPt = 0x500238;
+		const static uint32_t retn_addr = 0x500238;
 		__asm
 		{
 			pushad;
-			call	Com_StartHunkUsers;
+			call	com_start_hunk_users;
 			popad;
 
-			jmp		retnPt;			// continue exec
+			jmp		retn_addr;
 		}
 	}
 
@@ -355,29 +345,29 @@ namespace Components
 
 	bool iwd_match_xcommon(const char* s0)
 	{
-		if (!Utils::Q_stricmpn(s0, "xcommon_", 8))
+		if (!utils::q_stricmpn(s0, "xcommon_", 8))
 		{
-			return 0;
+			return false;
 		}
 
-		return 1;
+		return true;
 	}
 
 	bool iwd_match_iw(const char* s0)
 	{
-		if (!Utils::Q_stricmpn(s0, "iw_", 3))
+		if (!utils::q_stricmpn(s0, "iw_", 3))
 		{
-			return 0;
+			return false;
 		}
 
-		return 1;
+		return true;
 	}
 
-	//load "iw_" iwds and "xcommon_" iwds as localized ones ;)
+	// load "iw_" iwds and "xcommon_" iwds as localized ones ;)
 	__declspec(naked) void FS_MakeIWDsLocalized()
 	{
-		const static uint32_t errMsg = 0x55DBCA;
-		const static uint32_t retn_pt = 0x55DBE8;
+		const static uint32_t err_msg = 0x55DBCA;
+		const static uint32_t retn_addr = 0x55DBE8;
 		__asm
 		{
 			push	edi;				// current iwd string + ext
@@ -393,14 +383,14 @@ namespace Components
 			test    eax, eax;
 
 			je		MATCH;				// jump if iwd matched xcommon_
-			jmp		errMsg;				// yeet
+			jmp		err_msg;			// yeet
 
 
 		MATCH:
 			mov     ebx, [ebp - 4];		// whatever df that is
 			mov		[ebp - 8], 1;		// set qLocalized to true ;)
 			mov		[ebp - 0Ch], esi;	// whatever df that is
-			jmp		retn_pt;
+			jmp		retn_addr;
 		}
 	}
 
@@ -408,15 +398,15 @@ namespace Components
 	// *
 	// DB
 
-	void _Common::db_realloc_entry_pool()
+	void _common::db_realloc_entry_pool()
 	{
 		AssertSize(Game::XAssetEntry, 16);
 
 		size_t size = 789312;
-		Game::XAssetEntry* entry_pool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
+		Game::XAssetEntry* entry_pool = utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
 
 		// Apply new size
-		Utils::Hook::Set<DWORD>(0x488F50, size);
+		utils::hook::set<DWORD>(0x488F50, size);
 
 		// Apply new pool
 		DWORD asset_entry_pool_patches[] =
@@ -428,15 +418,16 @@ namespace Components
 			0x48B4A4, 0x48B4F8
 		};
 
-		for (int i = 0; i < ARRAYSIZE(asset_entry_pool_patches); ++i) {
-			Utils::Hook::Set<Game::XAssetEntry*>(asset_entry_pool_patches[i], entry_pool);
+		for (int i = 0; i < ARRAYSIZE(asset_entry_pool_patches); ++i) 
+		{
+			utils::hook::set<Game::XAssetEntry*>(asset_entry_pool_patches[i], entry_pool);
 		}
 
-		Utils::Hook::Set<Game::XAssetEntry*>(0x488F31, entry_pool + 1);
-		Utils::Hook::Set<Game::XAssetEntry*>(0x488F42, entry_pool + 1);
+		utils::hook::set<Game::XAssetEntry*>(0x488F31, entry_pool + 1);
+		utils::hook::set<Game::XAssetEntry*>(0x488F42, entry_pool + 1);
 	}
 
-	_Common::_Common()
+	_common::_common()
 	{
 		// *
 		// DB
@@ -459,55 +450,55 @@ namespace Components
 
 
 		// increase hunkTotal from 10mb to 15mb
-		Utils::Hook::Set<BYTE>(0x563A21 + 8, 0xF0);
+		utils::hook::set<BYTE>(0x563A21 + 8, 0xF0);
 
 		// gmem from 128 to 512
-		Utils::Hook::Set<BYTE>(0x4FF23B + 4, 0x20);
+		utils::hook::set<BYTE>(0x4FF23B + 4, 0x20);
 		//gmem prim pos ^
-		Utils::Hook::Set<BYTE>(0x4FF26B + 9, 0x20);
+		utils::hook::set<BYTE>(0x4FF26B + 9, 0x20);
 
 
 		// *
-		// Dvars
+		// dvars
 
 		// Stub after renderer was initialized
-		Utils::Hook(0x46CB09, R_BeginRegistration_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x46CB09, R_BeginRegistration_stub, HOOK_JUMP).install()->quick();
 
-		// Register String Dvars (doing so on module load crashes the game (SL_GetStringOfSize))
-		Utils::Hook(0x629D7A, R_RegisterAdditionalDvars_stub, HOOK_JUMP).install()->quick();
+		// Register String dvars (doing so on module load crashes the game (SL_GetStringOfSize))
+		utils::hook(0x629D7A, register_additional_dvars_stub, HOOK_JUMP).install()->quick();
 
 		// Disable dvar cheat / write protection
-		Utils::Hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook::Nop(0x56B339 + 1, 1);
+		utils::hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x56B339 + 1, 1);
 
 
 		// *
 		// FastFiles
 
 		// rewritten the whole function
-		Utils::Hook(0x5F4810, DB_LoadCommonFastFiles, HOOK_CALL).install()->quick();
+		utils::hook(0x5F4810, load_common_fast_files, HOOK_CALL).install()->quick();
 
 		// ^ Com_StartHunkUsers Mid-hook (realloc files that were unloaded on map load)
-		Utils::Hook::Nop(0x50020F, 6);		Utils::Hook(0x50020F, Com_StartHunkUsers_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x50020F, 6);		utils::hook(0x50020F, com_start_hunk_users_stub, HOOK_JUMP).install()->quick();
 
 
 		// *
 		// IWDs
 
 		// Remove Impure client (iwd) check 
-		Utils::Hook::Nop(0x55BFB3, 30);
+		utils::hook::nop(0x55BFB3, 30);
 
 		// Load "iw_" and "xcommon_" iwds as localized (works in all situations + elements in xcommon files can overwrite prior files)
-		Utils::Hook(0x55DBB4, FS_MakeIWDsLocalized, HOOK_JUMP).install()->quick();
+		utils::hook(0x55DBB4, FS_MakeIWDsLocalized, HOOK_JUMP).install()->quick();
 
 
 		// *
-		// Commands
+		// commands
 
 		// load / reload a zonefile
-		Command::Add("loadzone", [](Command::Params params) // unload zone and load zone again
+		command::add("loadzone", [](command::params params) // unload zone and load zone again
 		{
-			if (params.Length() < 2)
+			if (params.length() < 2)
 			{
 				Game::Com_PrintMessage(0, "Usage :: loadzone <zoneName>\n", 0);
 				return;
@@ -528,7 +519,4 @@ namespace Components
 			Game::DB_LoadXAssets(info, 2, 1);
 		});
 	}
-
-	_Common::~_Common()
-	{ }
 }

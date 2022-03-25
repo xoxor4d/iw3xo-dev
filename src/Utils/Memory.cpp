@@ -1,8 +1,8 @@
 #include "STDInclude.hpp"
 
-namespace Utils
+namespace utils
 {
-	Utils::Memory::Allocator Memory::MemAllocator;
+	utils::Memory::Allocator Memory::MemAllocator;
 
 	void* Memory::AllocateAlign(size_t length, size_t alignment)
 	{
@@ -98,7 +98,7 @@ namespace Utils
 		return true;
 	}
 
-	Utils::Memory::Allocator* Memory::GetAllocator()
+	utils::Memory::Allocator* Memory::GetAllocator()
 	{
 		return &Memory::MemAllocator;
 	}

@@ -2,16 +2,16 @@
 
 namespace Components
 {
-	void _Map::OnLoad()
+	void _map::on_load()
 	{
-		memset(&Game::Globals::cgsAddons, 0, sizeof(Game::cgsAddon));
+		memset(&Game::Globals::cgs_addons, 0, sizeof(Game::cgsAddon));
 
-		if (Components::active.RadiantRemote)
+		if (Components::active.radiant_livelink)
 		{
-			memset(&Game::Globals::dynBrushModels, 0, sizeof(Game::dynBrushModelsArray_t));
-			memset(&Game::Globals::rad_savedBrushes, 0, sizeof(Game::savedRadiantBrushes));
+			memset(&Game::Globals::dynamic_brush_models, 0, sizeof(Game::dynBrushModelsArray_t));
+			memset(&Game::Globals::radiant_saved_brushes, 0, sizeof(Game::savedRadiantBrushes));
 
-			RadiantRemote::CM_FindDynamicBrushModels();
+			radiant_livelink::find_dynamic_bmodels();
 		}
 
 		if (Components::active.RB_DrawCollision)
@@ -20,11 +20,11 @@ namespace Components
 		}
 	}
 
-	void _Map::OnUnload()
+	void _map::on_unload()
 	{
-		if (Components::active.RadiantRemote)
+		if (Components::active.radiant_livelink)
 		{
-			RadiantRemote::SV_Shutdown();
+			radiant_livelink::SV_Shutdown();
 		}
 	}
 
@@ -32,25 +32,25 @@ namespace Components
 
 	__declspec(naked) void sv_spawnserver_stub()
 	{
-		const static uint32_t retnPt = 0x52F8A7;
+		const static uint32_t retn_addr = 0x52F8A7;
 		__asm
 		{
 			// overwritten op's
 			add     esp, 8;
 			and		esi, 0FFFFFFF0h;
 
-			call	_Map::OnLoad;
-			jmp		retnPt;
+			call	_map::on_load;
+			jmp		retn_addr;
 		}
 	}
 
 	__declspec(naked) void com_shutdowninternal_stub()
 	{
-		const static uint32_t Com_Restart_Jmp = 0x5004C0;
+		const static uint32_t retn_addr = 0x5004C0;
 		__asm
 		{
-			call	_Map::OnUnload;
-			jmp		Com_Restart_Jmp;
+			call	_map::on_unload;
+			jmp		retn_addr;
 		}
 	}
 
@@ -58,59 +58,12 @@ namespace Components
 	// *
 	// MP-SP
 
-	std::string mpsp_map_name = "";
+	std::string mpsp_map_name;
 	char* mpsp_mapents_buffer = nullptr;
-
-#if 0
-	int mpsp_ignore_entities(char* entity, [[maybe_unused]] const char* unused_str, [[maybe_unused]] int unused_int)
-	{
-		if (Utils::StartsWith(entity, "dyn_"))
-		{
-			return false;
-		}
-
-		//if (mpsp_is_sp_map)
-		//{
-		//	//strcpy(Game::cm->mapEnts->entityString, test);
-
-		//	if (Utils::StartsWith(entity, "info_player_start"))
-		//	{
-		//		strcpy(entity, "mp_dm_spawn"); // kek works
-		//		return true;
-		//	}
-
-		//	if (Utils::StartsWith(entity, "worldspawn"))
-		//	{
-		//		return true;
-		//	}
-
-		//	if (Utils::StartsWith(entity, "script_struct"))
-		//	{
-		//		return true;
-		//	}
-
-		//	// ignore all other entities
-		//	return false;
-		//}
-
-		return true;
-	}
-
-	void __declspec(naked) mpsp_ignore_entities_stub()
-	{
-		const static uint32_t retn_addr = 0x4DFF25;
-		__asm
-		{
-			// already pushed: entity str
-			call	mpsp_ignore_entities;
-			jmp		retn_addr;
-		}
-	}
-#endif
 
 	void mpsp_replace_mapents(Game::clipMap_t* cm)
 	{
-		if (_Map::mpsp_is_sp_map)
+		if (_map::mpsp_is_sp_map)
 		{
 			const auto& fs_basepath = Game::Dvar_FindVar("fs_basepath");
 			const auto& fs_game = Game::Dvar_FindVar("fs_game");
@@ -118,7 +71,7 @@ namespace Components
 			if (fs_basepath && fs_game)
 			{
 				std::string mod = fs_game->current.string;
-				Utils::Replace(mod, "/", "\\"s);
+				utils::replace(mod, "/", "\\"s);
 
 				std::string base_path;
 				base_path += fs_basepath->current.string + "\\"s;
@@ -131,11 +84,12 @@ namespace Components
 
 					if (!mapents.is_open())
 					{
-						Game::Com_PrintMessage(0, Utils::VA("[!] Failed to open mapents file [%s]", (mpsp_map_name + ".ents"s).c_str()), 0);
+						Game::Com_PrintMessage(0, utils::va("[!] Failed to open mapents file [%s]", (mpsp_map_name + ".ents"s).c_str()), 0);
 					}
 
 					mapents.ignore(std::numeric_limits<std::streamsize>::max());
-					const size_t length = static_cast<size_t>(mapents.gcount());
+					const auto length = static_cast<size_t>(mapents.gcount());
+
 					mapents.clear();   //  Since ignore will have set eof.
 					mapents.seekg(0, std::ios_base::beg);
 
@@ -145,7 +99,7 @@ namespace Components
 					}
 					else
 					{
-						mpsp_mapents_buffer = (char*)malloc(length + 1); //new char[length];
+						mpsp_mapents_buffer = (char*)malloc(length + 1);
 					}
 
 					mapents.read(mpsp_mapents_buffer, length);
@@ -154,7 +108,7 @@ namespace Components
 					mpsp_mapents_buffer[length] = 0;
 
 					// save original ptr
-					_Map::mpsp_mapents_original = cm->mapEnts->entityString;
+					_map::mpsp_mapents_original = cm->mapEnts->entityString;
 
 					// replace ptr
 					cm->mapEnts->entityString = mpsp_mapents_buffer;
@@ -184,7 +138,7 @@ namespace Components
 
 	bool skip_visible_from_point_check()
 	{
-		return _Map::mpsp_is_sp_map;
+		return _map::mpsp_is_sp_map;
 	}
 
 	void __declspec(naked) mpsp_add_entities_visible_from_point_stub()
@@ -211,7 +165,7 @@ namespace Components
 
 	void mpsp_get_bsp_name(char* filename, int size, [[maybe_unused]] const char* original_format, const char* mapname)
 	{
-		_Map::mpsp_is_sp_map = !strstr(mapname, "mp_");
+		_map::mpsp_is_sp_map = !strstr(mapname, "mp_");
 		mpsp_map_name = mapname;
 
 		sprintf_s(filename, size, "maps/%s%s.d3dbsp", strstr(mapname, "mp_") ? "mp/" : "", mapname);
@@ -270,7 +224,7 @@ namespace Components
 
 	void mpsp_get_fx_def(char* filename, int size, [[maybe_unused]] const char* original_format, const char* mapname)
 	{
-		if (Dvars::mpsp_require_gsc->current.enabled)
+		if (dvars::mpsp_require_gsc->current.enabled)
 		{
 			sprintf_s(filename, size, "maps/%s%s_fx.gsc", strstr(mapname, "mp_") ? "mp/" : "", mapname);
 		}
@@ -300,7 +254,7 @@ namespace Components
 
 	void mpsp_get_map_gsc(char* filename, int size, [[maybe_unused]] const char* original_format, const char* mapname)
 	{
-		if (Dvars::mpsp_require_gsc->current.enabled)
+		if (dvars::mpsp_require_gsc->current.enabled)
 		{
 			sprintf_s(filename, size, "maps/%s%s", strstr(mapname, "mp_") ? "mp/" : "", mapname);
 		}
@@ -330,43 +284,43 @@ namespace Components
 
 	// --------
 
-	_Map::_Map()
+	_map::_map()
 	{ 
 		// On map load
-		Utils::Hook::Nop(0x52F8A1, 6);  Utils::Hook(0x52F8A1, sv_spawnserver_stub, HOOK_JUMP).install()->quick(); // after SV_InitGameProgs before G_RunFrame
+		utils::hook::nop(0x52F8A1, 6);  utils::hook(0x52F8A1, sv_spawnserver_stub, HOOK_JUMP).install()->quick(); // after SV_InitGameProgs before G_RunFrame
 
 		// On map unload
-		Utils::Hook(0x4FCDF8, com_shutdowninternal_stub, HOOK_JUMP).install()->quick(); // before Com_Restart
+		utils::hook(0x4FCDF8, com_shutdowninternal_stub, HOOK_JUMP).install()->quick(); // before Com_Restart
 
 		// *
 		// MP-SP
 
 		// fix bsp path
-		Utils::Hook(0x44AA17, mpsp_bsp_name_stub01, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x45BF8C, mpsp_bsp_name_stub02, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x52F727, mpsp_bsp_name_stub03, HOOK_JUMP).install()->quick();
+		utils::hook(0x44AA17, mpsp_bsp_name_stub01, HOOK_JUMP).install()->quick();
+		utils::hook(0x45BF8C, mpsp_bsp_name_stub02, HOOK_JUMP).install()->quick();
+		utils::hook(0x52F727, mpsp_bsp_name_stub03, HOOK_JUMP).install()->quick();
 
 		// fix gsc path
-		Utils::Hook(0x424C7F, mpsp_fx_def_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4CB015, mpsp_map_gsc_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x424C7F, mpsp_fx_def_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x4CB015, mpsp_map_gsc_stub, HOOK_JUMP).install()->quick();
 
 		// custom mapents
-		Utils::Hook(0x480893, mpsp_replace_mapents_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x480893, mpsp_replace_mapents_stub, HOOK_JUMP).install()->quick();
 
 		// skip sv_ent visibility check on sp maps
-		Utils::Hook(0x5346D6, mpsp_add_entities_visible_from_point_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x5346D6, mpsp_add_entities_visible_from_point_stub, HOOK_JUMP).install()->quick();
 
 		// no longer needed because of custom mapents
-		//Utils::Hook(0x4DFF20, mpsp_ignore_entities_stub, HOOK_JUMP).install()->quick();
+		//utils::hook(0x4DFF20, mpsp_ignore_entities_stub, HOOK_JUMP).install()->quick();
 
-		Dvars::mpsp_require_gsc = Game::Dvar_RegisterBool(
+		dvars::mpsp_require_gsc = Game::Dvar_RegisterBool(
 			/* name		*/ "mpsp_require_gsc",
 			/* desc		*/ "enabled: load spmod map gsc's (mostly fx)",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 	}
 
-	_Map::~_Map()
+	_map::~_map()
 	{
 		free(mpsp_mapents_buffer);
 	}

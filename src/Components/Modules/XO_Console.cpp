@@ -52,7 +52,7 @@ namespace Components
 	{
 		void *material;
 
-		if (depth && Dvars::xo_con_useDepth->current.enabled) 
+		if (depth && dvars::xo_con_useDepth->current.enabled) 
 		{ 
 			// depth input
 			material = Game::Material_RegisterHandle("floatz_display", 3); 
@@ -322,23 +322,23 @@ namespace Components
 	void xo_con_CheckResize_On_Init()
 	{
 		// left HORIZONTAL_APPLY_LEFT
-		Game::con->screenMin[0] = floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_LEFT, Dvars::xo_con_padding->current.value, 0.0f));
+		Game::con->screenMin[0] = floorf(_ui::scrplace_apply_x(HORIZONTAL_APPLY_LEFT, dvars::xo_con_padding->current.value, 0.0f));
 		
 		// top
-		Game::con->screenMin[1] = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_TOP, Dvars::xo_con_padding->current.value, 0.0f));
+		Game::con->screenMin[1] = floorf(_ui::scrplace_apply_y(VERTICAL_APPLY_TOP, dvars::xo_con_padding->current.value, 0.0f));
 
 		// right
-		Game::con->screenMax[0] = floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, -Dvars::xo_con_padding->current.value, 0.0f));
+		Game::con->screenMax[0] = floorf(_ui::scrplace_apply_x(HORIZONTAL_APPLY_RIGHT, -dvars::xo_con_padding->current.value, 0.0f));
 
 		// bottom
-		Game::con->screenMax[1] = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, -Dvars::xo_con_padding->current.value, 0.0f));
+		Game::con->screenMax[1] = floorf(_ui::scrplace_apply_y(VERTICAL_APPLY_BOTTOM, -dvars::xo_con_padding->current.value, 0.0f));
 
 		// reinit floating console on vid_restart / cgame changes or w/e
 		conAddon.fltCon.flt_initialized = false;
 
 		// still needed as we do that in DrawInput? ... cba to test
-		conAddon.viewportRes.width = floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));
-		conAddon.viewportRes.height = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
+		conAddon.viewportRes.width = floorf(_ui::scrplace_apply_x(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));
+		conAddon.viewportRes.height = floorf(_ui::scrplace_apply_y(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
 
 		// mouse unrelated stuff ---------------------------------------
 		auto consoleFont = GET_CONSOLEFONT;
@@ -346,10 +346,10 @@ namespace Components
 		{
 			if (consoleFont->pixelHeight != 16)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("Console :: consoleFont was %d", consoleFont->pixelHeight), 0);
+				Game::Com_PrintMessage(0, utils::va("Console :: consoleFont was %d", consoleFont->pixelHeight), 0);
 			}
 
-			Game::con->fontHeight			= (std::int32_t)(consoleFont->pixelHeight * Dvars::xo_con_fontSpacing->current.value);
+			Game::con->fontHeight			= (std::int32_t)(consoleFont->pixelHeight * dvars::xo_con_fontSpacing->current.value);
 			Game::con->visibleLineCount		= (std::int32_t)(Game::con->screenMax[1] - Game::con->screenMin[1] - (2 * Game::con->fontHeight)) / Game::con->fontHeight; //  - xo_con_fontPaddingBottom->current.value) / Game::con->fontHeight;
 			Game::con->visiblePixelWidth	= (std::int32_t)(Game::con->screenMax[0] - Game::con->screenMin[0] - -28.0f);
 		}
@@ -381,15 +381,15 @@ namespace Components
 		if (Game::clientUI->keyCatchers & 1) 
 		{ 
 			// if F1 and not showing cursor -> activate
-			if (Game::playerKeys->keys[CON_KEY_TOGGLE_CURSOR].down && !Dvars::xo_con_cursorState->current.enabled && conAddon.cursorToggleTimeout >= cursorToggleDelay)
+			if (Game::playerKeys->keys[CON_KEY_TOGGLE_CURSOR].down && !dvars::xo_con_cursorState->current.enabled && conAddon.cursorToggleTimeout >= cursorToggleDelay)
 			{
 				conAddon.cursorToggleTimeout = 0;
-				Game::Dvar_SetValue(Dvars::xo_con_cursorState, true);
+				Game::Dvar_SetValue(dvars::xo_con_cursorState, true);
 				Game::UI_SetActiveMenu(0, 5);
 			}
 
 			// if F1 and showing cursor -> deactivate
-			else if (Game::playerKeys->keys[CON_KEY_TOGGLE_CURSOR].down && Dvars::xo_con_cursorState->current.enabled && conAddon.cursorToggleTimeout >= cursorToggleDelay) 
+			else if (Game::playerKeys->keys[CON_KEY_TOGGLE_CURSOR].down && dvars::xo_con_cursorState->current.enabled && conAddon.cursorToggleTimeout >= cursorToggleDelay) 
 			{
 				goto DISABLE_CURSOR;
 			}
@@ -397,13 +397,13 @@ namespace Components
 		else
 		{
 			// if console is not open but we still have the cursor menu open, close it
-			if (Dvars::xo_con_cursorState->current.enabled)
+			if (dvars::xo_con_cursorState->current.enabled)
 			{
 				DISABLE_CURSOR:
 				conAddon.cursorToggleTimeout = 0;
-				Game::Dvar_SetValue(Dvars::xo_con_cursorState, false);
+				Game::Dvar_SetValue(dvars::xo_con_cursorState, false);
 
-				Game::UiContext *ui = &Game::_uiContext[0];
+				Game::UiContext *ui = &Game::ui_context[0];
 				Game::Menus_CloseByName("pregame_loaderror_mp", ui);
 			}
 		}
@@ -413,8 +413,8 @@ namespace Components
 		// one time init on start / vid_restart / cgame changes or w/e
 		if (!conAddon.fltCon.flt_initialized)
 		{
-			conAddon.viewportRes.width = floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));
-			conAddon.viewportRes.height = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
+			conAddon.viewportRes.width = floorf(_ui::scrplace_apply_x(HORIZONTAL_APPLY_RIGHT, 0.0f, 0.0f));
+			conAddon.viewportRes.height = floorf(_ui::scrplace_apply_y(VERTICAL_APPLY_BOTTOM, 0.0f, 0.0f));
 
 			// min width / height of the floating console
 			conAddon.fltCon.fltMinDimensions.width = 840.0f;
@@ -422,13 +422,13 @@ namespace Components
 		}
 
 		// get scaled mouse cursor (640/480 <-> Game Resolution)
-		conAddon.cursorPos.x = Utils::floatToRange(0.0f, 640.0f, 0.0f, (float) Game::_uiContext->screenWidth,  Game::_uiContext->cursor.x);
-		conAddon.cursorPos.y = Utils::floatToRange(0.0f, 480.0f, 0.0f, (float) Game::_uiContext->screenHeight, Game::_uiContext->cursor.y);
+		conAddon.cursorPos.x = utils::float_to_range(0.0f, 640.0f, 0.0f, (float) Game::ui_context->screenWidth,  Game::ui_context->cursor.x);
+		conAddon.cursorPos.y = utils::float_to_range(0.0f, 480.0f, 0.0f, (float) Game::ui_context->screenHeight, Game::ui_context->cursor.y);
 
 		// enter if floating console state was saved to the config
 		// otherwise skip the first frame to fully init the console
 		// or skip if the fullscreen console is active
-		if ((conAddon.fltCon.flt_initialized && !Game::con->outputVisible) || (Dvars::xo_con_fltCon->current.enabled && !Game::con->outputVisible))
+		if ((conAddon.fltCon.flt_initialized && !Game::con->outputVisible) || (dvars::xo_con_fltCon->current.enabled && !Game::con->outputVisible))
 		{
 			// if mouse down && console is actually open -- else use the last floating position
 			if (Game::playerKeys->keys[KEYCATCHER_MOUSE1].down && Game::clientUI->keyCatchers & 1)
@@ -470,9 +470,9 @@ namespace Components
 					{
 						conAddon.cursorPosSavedOnClick.y = conAddon.cursorPos.y;
 
-						if (Dvars::xo_con_outputHeight->current.integer + 1 <= Dvars::xo_con_outputHeight->domain.integer.max) 
+						if (dvars::xo_con_outputHeight->current.integer + 1 <= dvars::xo_con_outputHeight->domain.integer.max) 
 						{
-							Game::Dvar_SetValue(Dvars::xo_con_outputHeight, Dvars::xo_con_outputHeight->current.integer + 1);
+							Game::Dvar_SetValue(dvars::xo_con_outputHeight, dvars::xo_con_outputHeight->current.integer + 1);
 						}
 					}
 					
@@ -481,9 +481,9 @@ namespace Components
 					{
 						conAddon.cursorPosSavedOnClick.y = conAddon.cursorPos.y;
 
-						if (Dvars::xo_con_outputHeight->current.integer - 1 >= Dvars::xo_con_outputHeight->domain.integer.min) 
+						if (dvars::xo_con_outputHeight->current.integer - 1 >= dvars::xo_con_outputHeight->domain.integer.min) 
 						{
-							Game::Dvar_SetValue(Dvars::xo_con_outputHeight, Dvars::xo_con_outputHeight->current.integer - 1);
+							Game::Dvar_SetValue(dvars::xo_con_outputHeight, dvars::xo_con_outputHeight->current.integer - 1);
 						}
 					}
 
@@ -582,10 +582,10 @@ namespace Components
 				conAddon.fltCon.flt_isResizing = false;
 
 				// set value doesnt really work here
-				Game::Dvar_SetFloat(Dvars::xo_con_fltConLeft, conAddon.fltCon.fltAnker.left, 0);
-				Game::Dvar_SetFloat(Dvars::xo_con_fltConTop, conAddon.fltCon.fltAnker.top, 0);
-				Game::Dvar_SetFloat(Dvars::xo_con_fltConRight, conAddon.fltCon.fltAnker.right, 0);
-				Game::Dvar_SetFloat(Dvars::xo_con_fltConBottom, conAddon.fltCon.fltAnker.bottom, 0);
+				Game::Dvar_SetFloat(dvars::xo_con_fltConLeft, conAddon.fltCon.fltAnker.left, 0);
+				Game::Dvar_SetFloat(dvars::xo_con_fltConTop, conAddon.fltCon.fltAnker.top, 0);
+				Game::Dvar_SetFloat(dvars::xo_con_fltConRight, conAddon.fltCon.fltAnker.right, 0);
+				Game::Dvar_SetFloat(dvars::xo_con_fltConBottom, conAddon.fltCon.fltAnker.bottom, 0);
 
 				Game::Cmd_ExecuteSingleCommand(0, 0, "xo_con_fltCon 1\n");
 			}
@@ -603,12 +603,12 @@ namespace Components
 			}
 
 			// if there is a saved state in the config file -- only on init
-			if(Dvars::xo_con_fltCon->current.enabled && !conAddon.fltCon.flt_initialized)
+			if(dvars::xo_con_fltCon->current.enabled && !conAddon.fltCon.flt_initialized)
 			{
-				conAddon.fltCon.fltAnker.left	= Dvars::xo_con_fltConLeft->current.value;
-				conAddon.fltCon.fltAnker.top	= Dvars::xo_con_fltConTop->current.value;
-				conAddon.fltCon.fltAnker.right	= Dvars::xo_con_fltConRight->current.value;
-				conAddon.fltCon.fltAnker.bottom = Dvars::xo_con_fltConBottom->current.value;
+				conAddon.fltCon.fltAnker.left	= dvars::xo_con_fltConLeft->current.value;
+				conAddon.fltCon.fltAnker.top	= dvars::xo_con_fltConTop->current.value;
+				conAddon.fltCon.fltAnker.right	= dvars::xo_con_fltConRight->current.value;
+				conAddon.fltCon.fltAnker.bottom = dvars::xo_con_fltConBottom->current.value;
 
 				// update width / height
 				conAddon.fltCon.fltDimensions.width = conAddon.fltCon.fltAnker.right - conAddon.fltCon.fltAnker.left;
@@ -659,19 +659,19 @@ namespace Components
 
 		// do not set defaults when we load a saved floating console state on initialization
 		// non floating console / fullscreen console position and dimensions
-		if ((!conAddon.fltCon.flt_initialized && !Dvars::xo_con_fltCon->current.enabled) || !conAddon.fltCon.flt_enabled || Game::con->outputVisible)
+		if ((!conAddon.fltCon.flt_initialized && !dvars::xo_con_fltCon->current.enabled) || !conAddon.fltCon.flt_enabled || Game::con->outputVisible)
 		{
 			// left HORIZONTAL_APPLY_LEFT
-			Game::con->screenMin[0] = floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_LEFT, Dvars::xo_con_padding->current.value, 0.0f));
+			Game::con->screenMin[0] = floorf(_ui::scrplace_apply_x(HORIZONTAL_APPLY_LEFT, dvars::xo_con_padding->current.value, 0.0f));
 
 			// top
-			Game::con->screenMin[1] = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_TOP, Dvars::xo_con_padding->current.value, 0.0f));
+			Game::con->screenMin[1] = floorf(_ui::scrplace_apply_y(VERTICAL_APPLY_TOP, dvars::xo_con_padding->current.value, 0.0f));
 
 			// right
-			Game::con->screenMax[0] = floorf(_UI::ScrPlace_ApplyX(HORIZONTAL_APPLY_RIGHT, -Dvars::xo_con_padding->current.value, 0.0f));
+			Game::con->screenMax[0] = floorf(_ui::scrplace_apply_x(HORIZONTAL_APPLY_RIGHT, -dvars::xo_con_padding->current.value, 0.0f));
 
 			// bottom
-			Game::con->screenMax[1] = floorf(_UI::ScrPlace_ApplyY(VERTICAL_APPLY_BOTTOM, -Dvars::xo_con_padding->current.value, 0.0f));
+			Game::con->screenMax[1] = floorf(_ui::scrplace_apply_y(VERTICAL_APPLY_BOTTOM, -dvars::xo_con_padding->current.value, 0.0f));
 
 			// keep our struct updated even when the floating console isnt in use -- why did i do this?
 			//conAddon.fltCon.fltAnker.left	= Game::con->screenMin[0];
@@ -687,10 +687,10 @@ namespace Components
 		{
 			if (consoleFont->pixelHeight != 16)
 			{
-				Game::Com_PrintMessage(0, Utils::VA("Console :: consoleFont was %d", consoleFont->pixelHeight), 0);
+				Game::Com_PrintMessage(0, utils::va("Console :: consoleFont was %d", consoleFont->pixelHeight), 0);
 			}
 
-			Game::con->fontHeight = (std::int32_t)(consoleFont->pixelHeight * Dvars::xo_con_fontSpacing->current.value);
+			Game::con->fontHeight = (std::int32_t)(consoleFont->pixelHeight * dvars::xo_con_fontSpacing->current.value);
 
 			// adjust visibleLineCount for output text so we do not draw more lines then our rect can hold
 			if (Game::con->fontHeight) 
@@ -708,7 +708,7 @@ namespace Components
 			} 
 			else if(DEBUG) 
 			{
-				Game::Com_PrintMessage(0, Utils::VA("^1Con_CheckResize L#%d ^7:: con->fontHeight was NULL \n", __LINE__), 0);
+				Game::Com_PrintMessage(0, utils::va("^1Con_CheckResize L#%d ^7:: con->fontHeight was NULL \n", __LINE__), 0);
 			}
 
 			Game::con->visiblePixelWidth = (std::int32_t)(Game::con->screenMax[0] - Game::con->screenMin[0] - -28.0f);
@@ -725,7 +725,7 @@ namespace Components
 		{
 			// print help text on init
 			Game::Com_PrintMessage(0, "\n", 0);
-			Game::Com_PrintMessage(0, Utils::VA("%s", CON_HELP_PRINT), 0);
+			Game::Com_PrintMessage(0, utils::va("%s", CON_HELP_PRINT), 0);
 		}
 		
 		// floating console initialized
@@ -845,7 +845,7 @@ namespace Components
 
 			// current nob y position
 			cursorPos		= (float)(Game::con->displayLineOffset - Game::con->visibleLineCount) * (1.0f / hiddenLineCount);
-			scrollbar_NobY	= (y + height - scrollbar_NobLength - y) * Utils::fmaxOf3(cursorPos, 0.0f, 1.0f) + y;
+			scrollbar_NobY	= (y + height - scrollbar_NobLength - y) * utils::fmaxf3(cursorPos, 0.0f, 1.0f) + y;
 
 			// cap scrollbar nob top
 			if (scrollbar_NobY < scrollbar_BackgroundPosY) {
@@ -875,11 +875,11 @@ namespace Components
 
 		if (DEBUG) 
 		{
-			build = Utils::VA(IW3XO_BUILDSTRING " :: ^1DEBUG");
+			build = utils::va(IW3XO_BUILDSTRING " :: ^1DEBUG");
 		}
 		else 
 		{
-			build = Utils::VA(IW3XO_BUILDSTRING);
+			build = utils::va(IW3XO_BUILDSTRING);
 		}
 
 		Game::SCR_DrawSmallStringExt((int)(x), (int)(height - 16.0f + y), build);
@@ -899,7 +899,7 @@ namespace Components
 		rowCount = Game::con->visibleLineCount;
 		firstRow = Game::con->displayLineOffset - Game::con->visibleLineCount;
 
-		float linesForSpacing = ((Dvars::xo_con_fontSpacing->current.value + 0.2f) - 1.0f) * 10.0f;
+		float linesForSpacing = ((dvars::xo_con_fontSpacing->current.value + 0.2f) - 1.0f) * 10.0f;
 
 		// no idea what i did here but it works
 		y = y + height + (Game::con->fontHeight * 4) + (Game::con->fontHeight * 0.5f) - (linesForSpacing * Game::con->fontHeight * 0.5f);
@@ -980,7 +980,7 @@ namespace Components
 		xo_con_DrawOutputVersion(conAddon.conItems.fullCon.outputBox.x + 6.0f, conAddon.conItems.fullCon.outputBox.y - 4.0f, conAddon.conItems.fullCon.outputBox.h);
 
 		// console output below input text box
-		xo_con_DrawOutputText(conAddon.conItems.fullCon.outputBox.x + 6.0f, Dvars::xo_con_padding->current.value * 2.0f, 0.0f);
+		xo_con_DrawOutputText(conAddon.conItems.fullCon.outputBox.x + 6.0f, dvars::xo_con_padding->current.value * 2.0f, 0.0f);
 	}
 
 	void ConDrawInput_DetailedCmdMatch(Game::cmd_function_s* cmd)
@@ -1062,11 +1062,11 @@ namespace Components
 		float	x, y, w, h;
 
 		// hintbox txt color dvars
-		memcpy(&Game::con_matchtxtColor_currentDvar[0], &Dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_currentValue[0], &Dvars::xo_con_hintBoxTxtColor_currentValue->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_defaultValue[0], &Dvars::xo_con_hintBoxTxtColor_defaultValue->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_dvarDescription[0], &Dvars::xo_con_hintBoxTxtColor_dvarDescription->current.vector, sizeof(float[4]));
-		memcpy(&Game::con_matchtxtColor_domainDescription[0], &Dvars::xo_con_hintBoxTxtColor_domainDescription->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_currentDvar[0], &dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_currentValue[0], &dvars::xo_con_hintBoxTxtColor_currentValue->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_defaultValue[0], &dvars::xo_con_hintBoxTxtColor_defaultValue->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_dvarDescription[0], &dvars::xo_con_hintBoxTxtColor_dvarDescription->current.vector, sizeof(float[4]));
+		memcpy(&Game::con_matchtxtColor_domainDescription[0], &dvars::xo_con_hintBoxTxtColor_domainDescription->current.vector, sizeof(float[4]));
 
 		// increase max drawing width for console input
 		Game::g_consoleField->drawWidth = 512;
@@ -1092,7 +1092,7 @@ namespace Components
 			x = Game::conDrawInputGlob->x;
 			y = Game::conDrawInputGlob->y;
 			w = Game::con->screenMax[0] - Game::con->screenMin[0] - (x - Game::con->screenMin[0]);
-			h = (float)(Dvars::xo_con_outputHeight->current.integer + 4) * Game::con->fontHeight; // we have to add 4 because @ 5 we get the first line ..
+			h = (float)(dvars::xo_con_outputHeight->current.integer + 4) * Game::con->fontHeight; // we have to add 4 because @ 5 we get the first line ..
 
 			// input box
 			float inputBoxHeight = Game::conDrawInputGlob->fontHeight + 15.0f;
@@ -1204,7 +1204,7 @@ namespace Components
 		/* scY */ 0.75f,
 		/* fon */ (char*)FONT_BIG,
 		/* col */ Game::COLOR_WHITE,
-		/* txt */ Utils::VA("IW3 >"));
+		/* txt */ utils::va("IW3 >"));
 
 		// move cursor position
 		Game::conDrawInputGlob->x += 40.0f;
@@ -1299,7 +1299,7 @@ namespace Components
 			Game::Cmd_ForEachXO(Game::ConDrawInput_IncrMatchCounter);
 		}
 
-		if (Game::conDrawInputGlob->matchCount > Dvars::xo_con_maxMatches->current.integer) // autocomplete avail.
+		if (Game::conDrawInputGlob->matchCount > dvars::xo_con_maxMatches->current.integer) // autocomplete avail.
 		{
 			Game::conDrawInputGlob->hasExactMatch = 0;
 			Game::conDrawInputGlob->matchCount = 0;
@@ -1377,11 +1377,11 @@ CON_MATCH_PREFIX_ONLY:
 
 		outputSliderWidth = 16.0f;
 
-		if(Game::conDrawInputGlob->matchCount > Dvars::xo_con_maxMatches->current.integer)
+		if(Game::conDrawInputGlob->matchCount > dvars::xo_con_maxMatches->current.integer)
 		{
 			// create the text and get its width in pixels so we can center it
 			Game::Font_s *fontHandle = reinterpret_cast<Game::Font_s *>(Game::R_RegisterFont(FONT_CONSOLE, sizeof(FONT_CONSOLE)));
-			const char* tooManyTxt = Utils::VA("%i matches (too many to show here, press TAB to print all, press SHIFT + TILDE to open full console)", var_con_currentMatchCount);
+			const char* tooManyTxt = utils::va("%i matches (too many to show here, press TAB to print all, press SHIFT + TILDE to open full console)", var_con_currentMatchCount);
 			
 			int txtLength = Game::R_TextWidth(tooManyTxt, 0, fontHandle);
 
@@ -1448,7 +1448,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* scX */ 1.0f,
 			/* scY */ 1.0f,
 			/* fon */ fontHandle,
-			/* col */ Dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector,
+			/* col */ dvars::xo_con_hintBoxTxtColor_currentDvar->current.vector,
 			/* txt */ tooManyTxt);
 			
 			Game::Cmd_EndTokenizedString();
@@ -1619,9 +1619,9 @@ CON_MATCH_PREFIX_ONLY:
 		REDRAW_CURSOR_RETURN:
 
 		// Overdraw the cursor so its above the console so we obv. can not return early ;)
-		if ((Game::_uiContext->openMenuCount || Dvars::xo_con_cursorState->current.enabled) && Dvars::xo_con_cursorOverdraw->current.enabled)
+		if ((Game::ui_context->openMenuCount || dvars::xo_con_cursorState->current.enabled) && dvars::xo_con_cursorOverdraw->current.enabled)
 		{
-			_UI::redraw_cursor();
+			_ui::redraw_cursor();
 		}
 	}
 
@@ -1817,21 +1817,21 @@ CON_MATCH_PREFIX_ONLY:
 	void Con_DrawMessageWindowOldToNew_Proxy(DWORD* msgWnd, int s_xPos, int s_yPos, int s_charHeight, int s_horzAlign, int s_vertAlign, int s_mode, Game::Font_s* s_font, const float* s_color, int s_textStyle, float s_msgwndScale, int s_textAlignMode)
 	{
 		// get font handle
-		auto _font	= _CG::GetFontForStyle(Dvars::con_minicon_font->current.integer);
+		auto _font	= _cg::get_font_for_style(dvars::con_minicon_font->current.integer);
 		auto  font	= reinterpret_cast<Game::Font_s*>(Game::R_RegisterFont(_font, sizeof(_font)));
 
 		Game::Con_DrawMessageWindowOldToNew(
 			msgWnd,
 			0,
-			static_cast<int>(Dvars::con_minicon_position->current.vector[0]),
-			static_cast<int>(Dvars::con_minicon_position->current.vector[1]),
-			Dvars::con_minicon_fontHeight->current.integer,
+			static_cast<int>(dvars::con_minicon_position->current.vector[0]),
+			static_cast<int>(dvars::con_minicon_position->current.vector[1]),
+			dvars::con_minicon_fontHeight->current.integer,
 			s_horzAlign,
 			s_vertAlign,
 			s_mode,
 			font,
-			Dvars::con_minicon_fontColor->current.vector,
-			Dvars::con_minicon_fontStyle->current.integer,
+			dvars::con_minicon_fontColor->current.vector,
+			dvars::con_minicon_fontStyle->current.integer,
 			s_msgwndScale,
 			s_textAlignMode
 		);
@@ -1876,7 +1876,7 @@ CON_MATCH_PREFIX_ONLY:
 		// -----
 		// DVARS
 
-		Dvars::con_minicon_position = Game::Dvar_RegisterVec2(
+		dvars::con_minicon_position = Game::Dvar_RegisterVec2(
 			/* name		*/ "con_minicon_position",
 			/* desc		*/ "minicon position (int)",
 			/* x		*/ 115.0f,
@@ -1885,7 +1885,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxValue	*/ 640.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::con_minicon_font = Game::Dvar_RegisterInt(
+		dvars::con_minicon_font = Game::Dvar_RegisterInt(
 			/* name		*/ "con_minicon_font",
 			/* desc		*/ "minicon font",
 			/* default	*/ 8,
@@ -1893,7 +1893,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 8,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::con_minicon_fontHeight = Game::Dvar_RegisterInt(
+		dvars::con_minicon_fontHeight = Game::Dvar_RegisterInt(
 			/* name		*/ "con_minicon_fontHeight",
 			/* desc		*/ "minicon char height",
 			/* default	*/ 11,
@@ -1901,7 +1901,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::con_minicon_fontColor = Game::Dvar_RegisterVec4(
+		dvars::con_minicon_fontColor = Game::Dvar_RegisterVec4(
 			/* name		*/ "con_minicon_fontColor",
 			/* desc		*/ "minicon font color",
 			/* x		*/ 1.0f,
@@ -1912,7 +1912,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::con_minicon_fontStyle = Game::Dvar_RegisterInt(
+		dvars::con_minicon_fontStyle = Game::Dvar_RegisterInt(
 			/* name		*/ "con_minicon_fontStyle",
 			/* desc		*/ "3 = <renderFlags 4>; 6 = <renderFlags 12>; 128 = <renderFlags 1>",
 			/* default	*/ 3,
@@ -1920,13 +1920,13 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 128,
 			/* flags	*/ Game::dvar_flags::saved);
 		
-		Dvars::xo_con_fltCon = Game::Dvar_RegisterBool(
+		dvars::xo_con_fltCon = Game::Dvar_RegisterBool(
 			/* name		*/ "xo_con_fltCon",
 			/* desc		*/ "console :: floating console state",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_fltConLeft = Game::Dvar_RegisterFloat(
+		dvars::xo_con_fltConLeft = Game::Dvar_RegisterFloat(
 			/* name		*/ "xo_con_fltConLeft",
 			/* desc		*/ "console :: floating console left anker",
 			/* default	*/ 0.0f,
@@ -1934,7 +1934,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 7680.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_fltConTop = Game::Dvar_RegisterFloat(
+		dvars::xo_con_fltConTop = Game::Dvar_RegisterFloat(
 			/* name		*/ "xo_con_fltConTop",
 			/* desc		*/ "console :: floating console top anker",
 			/* default	*/ 0.0f,
@@ -1942,7 +1942,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 4320.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_fltConRight = Game::Dvar_RegisterFloat(
+		dvars::xo_con_fltConRight = Game::Dvar_RegisterFloat(
 			/* name		*/ "xo_con_fltConRight",
 			/* desc		*/ "console :: floating console right anker",
 			/* default	*/ 0.0f,
@@ -1950,7 +1950,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 7680.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_fltConBottom = Game::Dvar_RegisterFloat(
+		dvars::xo_con_fltConBottom = Game::Dvar_RegisterFloat(
 			/* name		*/ "xo_con_fltConBottom",
 			/* desc		*/ "console :: floating console bottom anker",
 			/* default	*/ 0.0f,
@@ -1958,7 +1958,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 4320.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_outputHeight = Game::Dvar_RegisterInt(
+		dvars::xo_con_outputHeight = Game::Dvar_RegisterInt(
 			/* name		*/ "xo_con_outputHeight",
 			/* desc		*/ "console :: height / lines of console output.",
 			/* default	*/ 8,
@@ -1966,7 +1966,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 30,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_maxMatches = Game::Dvar_RegisterInt(
+		dvars::xo_con_maxMatches = Game::Dvar_RegisterInt(
 			/* name		*/ "xo_con_maxMatches",
 			/* desc		*/ "console :: maximum amout of matches to show till \"too many to show here\" is drawn.",
 			/* default	*/ 24,
@@ -1974,13 +1974,13 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 50,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_useDepth = Game::Dvar_RegisterBool(
+		dvars::xo_con_useDepth = Game::Dvar_RegisterBool(
 			/* name		*/ "xo_con_useDepth",
 			/* desc		*/ "console :: use scene depth as inputBox background.",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_padding = Game::Dvar_RegisterFloat(
+		dvars::xo_con_padding = Game::Dvar_RegisterFloat(
 			/* name		*/ "xo_con_padding",
 			/* desc		*/ "console :: distance screen border <-> console (all sides)",
 			/* default	*/ 0.0f,
@@ -1988,7 +1988,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 2000.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_fontSpacing = Game::Dvar_RegisterFloat(
+		dvars::xo_con_fontSpacing = Game::Dvar_RegisterFloat(
 			/* name		*/ "xo_con_fontSpacing",
 			/* desc		*/ "console output :: space between lines",
 			/* default	*/ 0.8f,
@@ -1996,19 +1996,19 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_cursorOverdraw = Game::Dvar_RegisterBool(
+		dvars::xo_con_cursorOverdraw = Game::Dvar_RegisterBool(
 			/* name		*/ "xo_con_cursorOverdraw",
 			/* desc		*/ "console :: redraw the menu cursor so its above the console.",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_cursorState = Game::Dvar_RegisterBool(
+		dvars::xo_con_cursorState = Game::Dvar_RegisterBool(
 			/* name		*/ "xo_con_cursorState",
 			/* desc		*/ "console :: current state of the cursor.",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::xo_con_hintBoxTxtColor_currentDvar = Game::Dvar_RegisterVec4(
+		dvars::xo_con_hintBoxTxtColor_currentDvar = Game::Dvar_RegisterVec4(
 			/* name		*/ "xo_con_hintBoxTxtColor_currentDvar",
 			/* desc		*/ "console :: color of dvar names in the hintbox",
 			/* x		*/ 0.8f,
@@ -2019,7 +2019,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_hintBoxTxtColor_currentValue = Game::Dvar_RegisterVec4(
+		dvars::xo_con_hintBoxTxtColor_currentValue = Game::Dvar_RegisterVec4(
 			/* name		*/ "xo_con_hintBoxTxtColor_currentValue",
 			/* desc		*/ "console :: color of dvar values in the hintbox",
 			/* x		*/ 0.8f,
@@ -2030,7 +2030,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_hintBoxTxtColor_defaultValue = Game::Dvar_RegisterVec4(
+		dvars::xo_con_hintBoxTxtColor_defaultValue = Game::Dvar_RegisterVec4(
 			/* name		*/ "xo_con_hintBoxTxtColor_defaultValue",
 			/* desc		*/ "console :: color of default dvar value in the hintbox",
 			/* x		*/ 0.8f,
@@ -2041,7 +2041,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_hintBoxTxtColor_dvarDescription = Game::Dvar_RegisterVec4(
+		dvars::xo_con_hintBoxTxtColor_dvarDescription = Game::Dvar_RegisterVec4(
 			/* name		*/ "xo_con_hintBoxTxtColor_dvarDescription",
 			/* desc		*/ "console :: color of dvar description in the hintbox",
 			/* x		*/ 0.8f,
@@ -2052,7 +2052,7 @@ CON_MATCH_PREFIX_ONLY:
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::xo_con_hintBoxTxtColor_domainDescription = Game::Dvar_RegisterVec4(
+		dvars::xo_con_hintBoxTxtColor_domainDescription = Game::Dvar_RegisterVec4(
 			/* name		*/ "xo_con_hintBoxTxtColor_domainDescription",
 			/* desc		*/ "console :: color of dvar domain in the hintbox",
 			/* x		*/ 0.8f,
@@ -2069,15 +2069,15 @@ CON_MATCH_PREFIX_ONLY:
 		// activate cursor in-game with empty helper menu "pregame_loaderror_mp" in xcommon_iw3xo
 		//Command::Add("con_toggle_cursor", [](Command::Params)
 		//{
-		//	if (!Dvars::xo_con_cursorState->current.enabled)
+		//	if (!dvars::xo_con_cursorState->current.enabled)
 		//	{
-		//		Game::Dvar_SetValue(Dvars::xo_con_cursorState, true);
+		//		Game::Dvar_SetValue(dvars::xo_con_cursorState, true);
 		//		Game::UI_SetActiveMenu(0, 5);
 		//	}
 
 		//	else 
 		//	{
-		//		Game::Dvar_SetValue(Dvars::xo_con_cursorState, false);
+		//		Game::Dvar_SetValue(dvars::xo_con_cursorState, false);
 
 		//		Game::UiContext *ui = &Game::_uiContext[0];
 		//		Game::Menus_CloseByName("pregame_loaderror_mp", ui);
@@ -2088,65 +2088,100 @@ CON_MATCH_PREFIX_ONLY:
 		// Hooks
 		
 		// Minicon drawing - wrapper to proxy
-		Utils::Hook::Nop(0x4615A8, 6);
-		Utils::Hook(0x4615A8, con_minicon_stub, HOOK_JUMP).install()->quick(); // in Con_DrawMiniConsole
+		utils::hook::nop(0x4615A8, 6);
+		utils::hook(0x4615A8, con_minicon_stub, HOOK_JUMP).install()->quick(); // in Con_DrawMiniConsole
 
 		// Con_CheckResize - main position
-		//Utils::Hook(0x475052, xo_con_CheckResize, HOOK_CALL).install()->quick(); // in SCR_UpdateFrame
-		Utils::Hook(0x45EB81, xo_con_CheckResize_On_Init, HOOK_CALL).install()->quick(); // in Con_OneTimeInit
-		Utils::Hook(0x46CC6B, xo_con_CheckResize_On_Init, HOOK_CALL).install()->quick(); // in CL_InitRenderer
+		//utils::hook(0x475052, xo_con_CheckResize, HOOK_CALL).install()->quick(); // in SCR_UpdateFrame
+		utils::hook(0x45EB81, xo_con_CheckResize_On_Init, HOOK_CALL).install()->quick(); // in Con_OneTimeInit
+		utils::hook(0x46CC6B, xo_con_CheckResize_On_Init, HOOK_CALL).install()->quick(); // in CL_InitRenderer
 		
 
 		// Con_DrawOuputWindow -- in "Con_DrawSolidConsole" before "Con_DrawInput"
-		Utils::Hook(0x461D44, xo_con_DrawOutputWindow, HOOK_CALL).install()->quick(); // no flicker but latched value bug on vec4
+		utils::hook(0x461D44, xo_con_DrawOutputWindow, HOOK_CALL).install()->quick(); // no flicker but latched value bug on vec4
 
 		// Con_DrawInput ( 2x IfElse )
-		Utils::Hook(0x461D34, xo_con_DrawInput, HOOK_CALL).install()->quick();
-		Utils::Hook(0x461D49, xo_con_DrawInput, HOOK_CALL).install()->quick(); // our active func
+		utils::hook(0x461D34, xo_con_DrawInput, HOOK_CALL).install()->quick();
+		utils::hook(0x461D49, xo_con_DrawInput, HOOK_CALL).install()->quick(); // our active func
 
 		// Disable the need for Forward/Backslash for console cmds
-		Utils::Hook::Nop(0x46752F, 5);
+		utils::hook::nop(0x46752F, 5);
 
 		// Replace ConDrawInput_Box in ConDrawInput_DetailedDvarMatch ( mid-hook ) -- upper box
-		Utils::Hook(0x46001C, detailed_dvar_match_stub_01, HOOK_CALL).install()->quick();
-		Utils::Hook::Nop(0x460021, 1);
+		utils::hook(0x46001C, detailed_dvar_match_stub_01, HOOK_CALL).install()->quick();
+		utils::hook::nop(0x460021, 1);
 
 		// Replace ConDrawInput_Box in ConDrawInput_DetailedDvarMatch ( mid-hook ) -- lower box
-		Utils::Hook(0x4601F5, detailed_dvar_match_stub_02, HOOK_CALL).install()->quick();
-		Utils::Hook::Nop(0x4601FA, 1);
+		utils::hook(0x4601F5, detailed_dvar_match_stub_02, HOOK_CALL).install()->quick();
+		utils::hook::nop(0x4601FA, 1);
 
 		// Replace ConDrawInput_Box in ConDrawInput_DetailedCmdMatch
-		Utils::Hook(0x4603B8, detailed_cmd_match_stub, HOOK_CALL).install()->quick();
-		Utils::Hook::Nop(0x4603BD, 2);
+		utils::hook(0x4603B8, detailed_cmd_match_stub, HOOK_CALL).install()->quick();
+		utils::hook::nop(0x4603BD, 2);
 
 		// Increase max chars to draw for dvar matches
-		Utils::Hook::Set<BYTE>(0x45FADA, 0x40); // Stock 0x18
+		utils::hook::set<BYTE>(0x45FADA, 0x40); // Stock 0x18
 
 		// Increase draw width for matched dvar - dvar string
-		Utils::Hook::Set<BYTE>(0x46002E, 0x40); // Stock 0x18
+		utils::hook::set<BYTE>(0x46002E, 0x40); // Stock 0x18
 
 		// Increase distance to matched dvars as we increased the maximum amount of chars for found matches
-		Utils::Hook::Nop(0x45FAE5, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x45FAE5, matchbox_offset_values_stub_01, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x45FAE5, 6); // nop the instruction first, then install our jmp
+		utils::hook(0x45FAE5, matchbox_offset_values_stub_01, HOOK_JUMP).install()->quick();
 		
 		// same for detailed match (3 times for current, latched, default)
-		Utils::Hook::Nop(0x460037, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x460037, matchbox_offset_values_stub_02, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x460037, 6); // nop the instruction first, then install our jmp
+		utils::hook(0x460037, matchbox_offset_values_stub_02, HOOK_JUMP).install()->quick();
 
-		Utils::Hook::Nop(0x4600B7, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x4600B7, matchbox_offset_values_stub_03, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x4600B7, 6); // nop the instruction first, then install our jmp
+		utils::hook(0x4600B7, matchbox_offset_values_stub_03, HOOK_JUMP).install()->quick();
 
-		Utils::Hook::Nop(0x460133, 6); // Nop the instruction first, then install our jmp
-		Utils::Hook(0x460133, matchbox_offset_values_stub_04, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x460133, 6); // nop the instruction first, then install our jmp
+		utils::hook(0x460133, matchbox_offset_values_stub_04, HOOK_JUMP).install()->quick();
 		
 		// fully disable cmd autocomplete box with dir searching
-		Utils::Hook::Nop(0x4603FC, 6); Utils::Hook(0x4603FC, xo_con_disableCmdAutocomplBox_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x4603FC, 6); utils::hook(0x4603FC, xo_con_disableCmdAutocomplBox_stub, HOOK_JUMP).install()->quick();
 		
 		//// devmap autocomplete :: change extentsion to .autocomplete and place nullfiles in main/maps/mp/mp_mapname.autocomplete
-		//Utils::Hook(0x528F8C, con_devmap_autocompl_stub, HOOK_JUMP).install()->quick();
-		//Utils::Hook::Nop(0x528F91, 2);
+		//utils::hook(0x528F8C, con_devmap_autocompl_stub, HOOK_JUMP).install()->quick();
+		//utils::hook::nop(0x528F91, 2);
 		//// map autocomplete :: change extentsion to .autocomplete and place nullfiles in main/maps/mp/mp_mapname.autocomplete
-		//Utils::Hook(0x528E4F, con_map_autocompl_stub, HOOK_JUMP).install()->quick();
+		//utils::hook(0x528E4F, con_map_autocompl_stub, HOOK_JUMP).install()->quick();
+
+		// Game::con
+
+		command::add("condump", "", "dump console contents to root/iw3xo/condump", [&](auto)
+		{
+				
+				if (const auto& base_path = Game::Dvar_FindVar("fs_basepath"); 
+								base_path)
+				{
+					const std::string file_path = base_path->current.string + "\\iw3xo\\condump\\"s;
+					if(!std::filesystem::exists(file_path))
+					{
+						std::filesystem::create_directories(file_path);
+					}
+
+					std::ofstream condump;
+					const std::string file_name = file_path + "condump_";
+
+					for (auto i = 0; i < 1024; i++) // clean your f'in folder
+					{
+						if(std::filesystem::exists(file_name + std::to_string(i)))
+						{
+							continue;
+						}
+
+						condump.open((file_name + std::to_string(i) + ".txt").c_str());
+
+						std::string line;
+						condump << Game::con->consoleText;
+						condump.close();
+
+						break;
+					}
+				}
+		});
 	}
 
 	XO_Console::~XO_Console()

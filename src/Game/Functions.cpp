@@ -5,26 +5,25 @@ namespace Game
 	namespace Globals
 	{
 		// Init
-		std::string loadedModules = "";
+		std::string loaded_modules = "";
 		std::string loaded_libaries = "";
 
 		// Radiant
-		Game::cgsAddon				cgsAddons			= Game::cgsAddon();
-		Game::savedRadiantBrushes	rad_savedBrushes	= Game::savedRadiantBrushes();
-		Game::dynBrushesArray_t		dynBrushes			= Game::dynBrushesArray_t();
-		Game::dynBrushModelsArray_t dynBrushModels		= Game::dynBrushModelsArray_t();
+		Game::cgsAddon				cgs_addons			= Game::cgsAddon();
+		Game::savedRadiantBrushes	radiant_saved_brushes	= Game::savedRadiantBrushes();
+		Game::dynBrushesArray_t		dynamic_brushes			= Game::dynBrushesArray_t();
+		Game::dynBrushModelsArray_t dynamic_brush_models		= Game::dynBrushModelsArray_t();
 
 		// Movement
-		bool locPmove_checkJump = false; // if Jumped in Check_Jump, reset after x frames in PmoveSingle
-
-		glm::vec3 locPmove_playerVelocity	= { 0.0f, 0.0f, 0.0f };	// grab local player velocity
-		glm::vec3 locPmove_playerOrigin		= { 0.0f, 0.0f, 0.0f };	// grab local player origin
-		glm::vec3 locPmove_playerAngles		= { 0.0f, 0.0f, 0.0f };	// grab local player angles
-		glm::vec3 locPmove_cameraOrigin		= { 0.0f, 0.0f, 0.0f };	// grab local camera origin
+		bool lpmove_check_jump = false; // if Jumped in Check_Jump, reset after x frames in PmoveSingle
+		glm::vec3 lpmove_velocity = {};	// grab local player velocity
+		glm::vec3 lpmove_origin	= {}; // grab local player origin
+		glm::vec3 lpmove_angles	= {}; // grab local player angles
+		glm::vec3 lpmove_camera_origin = {}; // grab local camera origin
 
 		// UI / Devgui
-		bool loaded_MainMenu = false;
-		bool mainmenu_fadeDone = false;
+		bool loaded_main_menu = false;
+		bool mainmenu_fade_done = false;
 
 		Game::gui_t gui = Game::gui_t();
 		std::string changelog_html_body = "";
@@ -44,7 +43,7 @@ namespace Game
 		int serverTime		= 0;
 		int serverTimeOld	= 0;
 		int serverFrameTime = 0;
-		int pmlFrameTime	= 0;
+		int lpmove_pml_frame_time	= 0;
 
 		// Misc
 		int Q3_LastProjectileWeaponUsed = 0; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired
@@ -134,7 +133,7 @@ namespace Game
 		int elSize = DB_GetXAssetSizeHandlers[type]();
 		
 		XAssetHeader poolEntry = { 
-			Utils::Memory::GetAllocator()->allocate(newSize * elSize) 
+			utils::Memory::GetAllocator()->allocate(newSize * elSize) 
 		};
 
 		DB_XAssetPool[type] = poolEntry;
@@ -301,7 +300,7 @@ namespace Game
 		}
 	}
 
-	void DrawTextWithEngine(float x, float y, float scaleX, float scaleY, const char* font, const float *color, const char* text)
+	void draw_text_with_engine(float x, float y, float scaleX, float scaleY, const char* font, const float *color, const char* text)
 	{
 		void* fontHandle = R_RegisterFont(font, sizeof(font));
 		R_AddCmdDrawTextASM(text, 0x7FFFFFFF, fontHandle, x, y, scaleX, scaleY, 0.0f, color, 0);
@@ -580,7 +579,7 @@ namespace Game
 	int*	mapNameEnum = reinterpret_cast<int*>(0xCAF2330);
 
 	Game::UiContext* _cgDC = reinterpret_cast<Game::UiContext*>(0x746FA8);
-	Game::UiContext* _uiContext = reinterpret_cast<Game::UiContext*>(0xCAEE200);
+	Game::UiContext* ui_context = reinterpret_cast<Game::UiContext*>(0xCAEE200);
 
 	Game::PlayerKeyState*	playerKeys = reinterpret_cast<Game::PlayerKeyState*>(0x8F1DB8);
 	Game::clientUIActive_t* clientUI = reinterpret_cast<Game::clientUIActive_t*>(0xC5F8F4);
@@ -756,7 +755,7 @@ namespace Game
 		scr_script_inst_ptr = reinterpret_cast<bool**>(0x1794068);
 
 		// part_of_IncInParam
-		Utils::function<void()>(0x51D260)();
+		utils::function<void()>(0x51D260)();
 
 		if (*scr_script_inst == *(DWORD*)0x179405C)
 		{
@@ -1194,7 +1193,7 @@ namespace Game
 	{
 		Game::dvar_s *dvarToRegister;
 
-		auto registerString = Utils::VA("set %s %s\n", dvarName, dvarValue);
+		auto registerString = utils::va("set %s %s\n", dvarName, dvarValue);
 		Game::Cmd_ExecuteSingleCommand(0, 0, registerString);
 
 		// find the dvar
@@ -1302,7 +1301,7 @@ namespace Game
 		auto dvar = Dvar_FindVar(dvarName);
 		if (!dvar)
 		{
-			return Utils::function<Game::dvar_s*(const char* dvarName, DvarType type, std::uint16_t flags, const char* description, int x, int y, int z, int w, int min, int max)>(0x56C130)
+			return utils::function<Game::dvar_s*(const char* dvarName, DvarType type, std::uint16_t flags, const char* description, int x, int y, int z, int w, int min, int max)>(0x56C130)
 				(dvarName, type, flags, description, x, y, z, w, min, max); // Dvar_RegisterNew
 		}
 
@@ -1832,8 +1831,8 @@ namespace Game
 
 		bool split = end > start;
 
-		start	= Utils::vector::_AngleNormalizePI(start - yaw);
-		end		= Utils::vector::_AngleNormalizePI(end - yaw);
+		start	= utils::vector::_AngleNormalizePI(start - yaw);
+		end		= utils::vector::_AngleNormalizePI(end - yaw);
 
 		if (end > start)
 		{
@@ -1864,7 +1863,7 @@ namespace Game
 
 	void CG_DrawLineYaw(float angle, float yaw, float y, float w, float h, float color[4])
 	{
-		angle = Utils::vector::_AngleNormalizePI(angle - yaw);
+		angle = utils::vector::_AngleNormalizePI(angle - yaw);
 		if (!AngleInFov(angle))
 		{
 			return;

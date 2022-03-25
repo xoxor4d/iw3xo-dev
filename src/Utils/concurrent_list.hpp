@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Utils
+namespace utils
 {
 	template <typename T>
 	class concurrent_list final

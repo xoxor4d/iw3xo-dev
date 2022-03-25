@@ -567,8 +567,8 @@ namespace Game
 	struct dbgLinesDelaySync_t
 	{
 		bool initialized;
-		int delayInFrames;
-		int delayCounter;
+		int delay_in_frames;
+		int delay_counter;
 		bool sync;
 	};
 
@@ -589,8 +589,8 @@ namespace Game
 	struct ServerCommand
 	{
 		ServerCommandType type;
-		int liveUpdateId;
-		char strCommand[512];
+		int update_id;
+		char command[512];
 	};
 
 	enum RadiantCommandType
@@ -615,37 +615,37 @@ namespace Game
 	struct RadiantCommand
 	{
 		RadiantCommandType type;
-		int liveUpdateId;
-		char strCommand[512];
+		int update_id;
+		char command[512];
 	};
 
 	struct radiantFace_t
 	{
 		vec3_t normal;
 		float dist;
-		int windingCount;		// amount windingPts send over remote
-		vec3_t windingPts[16];	// max winding-points per face = 16
+		int winding_count;		// amount windingPts send over remote
+		vec3_t winding_pts[16];	// max winding-points per face = 16
 	};
 
 	struct radiantBrush_t
 	{
-		bool isSaved;
+		bool is_saved;
 		uint32_t hash;
-		int faceCount;			// amount of faces send over remote
-		int nextFreeFaceIdx;	// index of the next free face (++ on each face, reset when we get an update over remote)
+		int face_count;			// amount of faces send over remote
+		int next_free_face_idx;	// index of the next free face (++ on each face, reset when we get an update over remote)
 		radiantFace_t face[16]; // max faces per brush = 16
 	};
 
 	struct savedRadiantBrushes
 	{
-		bool wasModified;
-		bool brushSelected;		// true if one or more valid brushes are selected
-		bool disabledCollision;
-		bool resetCollision;	// flag bool to be used for first iter after "radiant_saveSelection" was called
-		bool usingSaved;		// true after command "radiant_saveSelection"
-		int brushSelectedCount; // amount of selected brushes
-		int brushSelectedNum;	// index of current processing brush
-		int brushSavedCount;
+		bool was_modified;
+		bool any_selected;		// true if one or more valid brushes are selected
+		bool disabled_collision;
+		bool reset_collision;	// flag bool to be used for first iter after "radiant_saveSelection" was called
+		bool using_saved;		// true after command "radiant_saveSelection"
+		int selected_brush_count; // amount of selected brushes
+		int selected_brush_num;	// index of current processing brush
+		int saved_brush_count;
 		radiantBrush_t brush[RADIANT_MAX_SEL_BRUSHES];	// [16] max brushes? 
 	};
 
@@ -660,16 +660,16 @@ namespace Game
 
 	struct cgsAddon
 	{
-		bool	radiantLiveConnected;
-		bool	radiantCamInUse;
-		bool	radiantCamSyncEnabled;
-		bool	radiantCamModelSpawned;
-		float	radiantCamOrigin[3];
-		float	radiantCamAngles[3];
-		float	radiantCamOriginOld[3];
-		int		radiantCamClientTimeOld;
-		int		radiantCamClientMsecPassed;
-		bool	radiantCamCappedPackets;
+		bool	radiant_livelink_connected;
+		bool	radiant_camera_in_use;
+		bool	radiant_camera_sync_enabled;
+		bool	radiant_camera_model_spawned;
+		float	radiant_camera_origin[3];
+		float	radiant_camera_angles[3];
+		float	radiant_camera_origin_old[3];
+		int		radiant_camera_client_time_old;
+		int		radiant_camera_client_msec_passed;
+		bool	radiant_camera_capped_packets;
 	};
 
 	struct vector2

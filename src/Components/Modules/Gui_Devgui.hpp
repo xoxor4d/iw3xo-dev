@@ -2,12 +2,11 @@
 
 namespace Components
 {
-	class Gui_Devgui : public Component
+	class gui_devgui final : public Component
 	{
 	public:
-		Gui_Devgui();
-		~Gui_Devgui();
-		const char* getName() override { return "Gui_Devgui"; };
+		gui_devgui();
+		const char* getName() override { return "gui_devgui"; };
 
 		static void create_devgui(Game::gui_menus_t& menu);
 		

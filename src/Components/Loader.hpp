@@ -5,35 +5,35 @@ namespace Components
 	// add new modules here
 	struct activeModules_s
 	{
-		bool _UI;
-		bool _CG;
-		bool _Client;
-		bool _Pmove;
-		bool _Debug;
-		bool _Game;
-		bool _Map;
-		bool _Common;
-		bool _Renderer;
-		bool Command;
-		bool QuickPatch;
-		bool GScr_Methods;
+		bool _cg;
+		bool _client;
+		bool _common;
+		bool _debug;
+		bool _ggame;
+		bool _map;
+		bool _pmove;
+		bool _renderer;
+		bool _ui;
+		bool command;
+		bool patches;
+		bool gscr_methods;
 		bool Scheduler;
 
-		bool D3D9Ex;
-		bool MenuExport;
-		bool PM_Movement;
+		bool d3d9ex;
+		bool movement;
 		bool XO_Console;
 		bool RB_DrawCollision;
 		bool RB_ShaderOverlays;
-		bool RadiantRemote;
+		bool radiant_livelink;
 		bool Window;
-		bool Gui;
-		bool Gui_Devgui;
-		bool Compass;
-		bool CGaz;
-		bool Mvm;
-		bool DayNightCycle;
-		bool Ocean;
+		bool gui;
+		bool gui_devgui;
+		bool menu_export;
+		bool compass;
+		bool cgaz;
+		bool mvm;
+		bool daynight_cycle;
+		bool ocean;
 	};
 
 	extern activeModules_s active;
@@ -45,8 +45,8 @@ namespace Components
 	class Component
 	{
 	public:
-		Component() {};
-		virtual ~Component() {};
+		Component() = default;
+		virtual ~Component() = default;
 		virtual const char* getName() { return "Unknown"; };
 	};
 
@@ -58,44 +58,44 @@ namespace Components
 		static void Register(Component* component);//, bool& registered);
 		static bool Registered(const char *componentName);
 
-		static Utils::Memory::Allocator* GetAlloctor();
+		static utils::Memory::Allocator* GetAlloctor();
 		
 	private:
 		static std::vector<Component*> Components;
-		static Utils::Memory::Allocator MemAllocator;
+		static utils::Memory::Allocator MemAllocator;
 	};
 }
 
 // General modules that have to be included
-#include "Modules/_UI.hpp"
-#include "Modules/_CG.hpp"
-#include "Modules/_Client.hpp"
-#include "Modules/_Pmove.hpp"
-#include "Modules/_Debug.hpp"
-#include "Modules/_Game.hpp"
-#include "Modules/_Map.hpp"
-#include "Modules/_Common.hpp"
-#include "Modules/_Renderer.hpp"
-#include "Modules/Command.hpp"
-#include "Modules/QuickPatch.hpp"
-#include "Modules/GScr_Methods.hpp"
+#include "Modules/_cg.hpp"
+#include "Modules/_client.hpp"
+#include "Modules/_common.hpp"
+#include "Modules/_debug.hpp"
+#include "Modules/_ggame.hpp"
+#include "Modules/_map.hpp"
+#include "Modules/_pmove.hpp"
+#include "Modules/_renderer.hpp"
+#include "Modules/_ui.hpp"
+#include "Modules/command.hpp"
+#include "Modules/patches.hpp"
+#include "Modules/gscr_methods.hpp"
 
 // Addons
-#include "Modules/D3D9Ex.hpp"
-#include "Modules/MenuExport.hpp"
-#include "Modules/PM_Movement.hpp"
+#include "Modules/d3d9ex.hpp"
+#include "Modules/menu_export.hpp"
+#include "Modules/movement.hpp"
 #include "Modules/XO_Console.hpp"
 #include "Modules/RB_DrawCollision.hpp"
 #include "Modules/RB_ShaderOverlays.hpp"
-#include "Modules/RadiantRemote.hpp"
+#include "Modules/radiant_livelink.hpp"
 #include "Modules/Window.hpp"
-#include "Modules/Gui.hpp"
-#include "Modules/Gui_Devgui.hpp"
-#include "Modules/Compass.hpp"
-#include "Modules/CGaz.hpp"
-#include "Modules/Mvm.hpp"
-#include "Modules/DayNightCycle.hpp"
-#include "Modules/Ocean.hpp"
+#include "Modules/gui.hpp"
+#include "Modules/gui_devgui.hpp"
+#include "Modules/compass.hpp"
+#include "Modules/cgaz.hpp"
+#include "Modules/mvm.hpp"
+#include "Modules/daynight_cycle.hpp"
+#include "Modules/ocean.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

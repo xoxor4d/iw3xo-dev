@@ -2,15 +2,12 @@
 
 namespace Components
 {
-	class _CG : public Component
+	class _cg final : public Component
 	{
 	public:
-		_CG();
-		~_CG();
-		const char* getName() override { return "_CG"; };
+		_cg();
+		const char* getName() override { return "_cg"; };
 
-		static const char* GetFontForStyle(int fontStyle);
-
-	private:
+		static const char* get_font_for_style(int font_style);
 	};
 }

@@ -26,79 +26,83 @@ namespace Components
 		}
 	}
 
-	// Dynamic Indices
-	int R_AllocDynamicIndexBuffer(IDirect3DIndexBuffer9** ib, int sizeInBytes, const char* buffer_name, bool loadForRenderer)
+	// R_AllocDynamicIndexBuffer
+	int alloc_dynamic_index_buffer(IDirect3DIndexBuffer9** ib, int size_in_bytes, const char* buffer_name, bool load_for_renderer)
 	{
-		if (!loadForRenderer) {
+		if (!load_for_renderer) 
+		{
 			return 0;
 		}
 
-		HRESULT hr = get_d3d_device()->CreateIndexBuffer(sizeInBytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
+		HRESULT hr = get_d3d_device()->CreateIndexBuffer(size_in_bytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, nullptr);
 		if (hr < 0)
 		{
-			const char* msg = Utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
-			msg = Utils::VA("DirectX didn't create a 0x%.8x dynamic index buffer: %s\n", sizeInBytes, msg);
+			const char* msg = utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
+			msg = utils::va("DirectX didn't create a 0x%.8x dynamic index buffer: %s\n", size_in_bytes, msg);
 
-			Utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
+			utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 		}
 
-		Game::Com_PrintMessage(0, Utils::VA("D3D9: Created Indexbuffer (%s) of size: 0x%.8x\n", buffer_name, sizeInBytes), 0);
+		Game::Com_PrintMessage(0, utils::va("D3D9: Created Indexbuffer (%s) of size: 0x%.8x\n", buffer_name, size_in_bytes), 0);
 		return 0;
 	}
 
-	void R_InitDynamicIndexBufferState(Game::GfxIndexBufferState* ib, int indexCount, const char* buffer_name, bool loadForRenderer)
+	// R_InitDynamicIndexBufferState
+	void init_dynamic_index_buffer_state(Game::GfxIndexBufferState* ib, int indexCount, const char* buffer_name, bool loadForRenderer)
 	{
 		ib->used = 0;
 		ib->total = indexCount;
 
-		R_AllocDynamicIndexBuffer(&ib->buffer, 2 * indexCount, buffer_name, loadForRenderer);
+		alloc_dynamic_index_buffer(&ib->buffer, 2 * indexCount, buffer_name, loadForRenderer);
 	}
 
-	// Dynamic Vertices
-	char* R_AllocDynamicVertexBuffer(IDirect3DVertexBuffer9** vb, int sizeInBytes, const char* buffer_name, bool loadForRenderer)
+	// R_AllocDynamicVertexBuffer
+	char* alloc_dynamic_vertex_buffer(IDirect3DVertexBuffer9** vb, int size_in_bytes, const char* buffer_name, bool load_for_renderer)
 	{
-		if (!loadForRenderer)
+		if (!load_for_renderer)
 		{
-			return 0;
+			return nullptr;
 		}
 
-		HRESULT hr = get_d3d_device()->CreateVertexBuffer(sizeInBytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, vb, 0);
+		HRESULT hr = get_d3d_device()->CreateVertexBuffer(size_in_bytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, vb, 0);
 		if (hr < 0)
 		{
-			const char* msg = Utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
-			msg = Utils::VA("DirectX didn't create a 0x%.8x dynamic vertex buffer: %s\n", sizeInBytes, msg);
+			const char* msg = utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
+			msg = utils::va("DirectX didn't create a 0x%.8x dynamic vertex buffer: %s\n", size_in_bytes, msg);
 
-			Utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
+			utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 		}
 
-		Game::Com_PrintMessage(0, Utils::VA("D3D9: Created Vertexbuffer (%s) of size: 0x%.8x\n", buffer_name, sizeInBytes), 0);
-		return 0;
+		Game::Com_PrintMessage(0, utils::va("D3D9: Created Vertexbuffer (%s) of size: 0x%.8x\n", buffer_name, size_in_bytes), 0);
+		return nullptr;
 	}
 
-	void R_InitDynamicVertexBufferState(Game::GfxVertexBufferState* vb, int bytes, const char* buffer_name, bool loadForRenderer)
+	// R_InitDynamicVertexBufferState
+	void init_dynamic_vertex_buffer_state(Game::GfxVertexBufferState* vb, int bytes, const char* buffer_name, bool load_for_renderer)
 	{
 		vb->used = 0;
 		vb->total = bytes;
 		vb->verts = 0;
 
-		R_AllocDynamicVertexBuffer(&vb->buffer, bytes, buffer_name, loadForRenderer);
+		alloc_dynamic_vertex_buffer(&vb->buffer, bytes, buffer_name, load_for_renderer);
 	}
 
-	// Temp skin buffer within backenddata
-	void R_InitTempSkinBuf(int bytes)
+	// R_InitTempSkinBuf :: Temp skin buffer within backenddata
+	void init_temp_skin_buf(int bytes)
 	{
-		auto* s_backEndData = reinterpret_cast<Game::GfxBackEndData*>(0xCC9F600);
+		auto* back_end_data = reinterpret_cast<Game::GfxBackEndData*>(0xCC9F600);
 
 		for (auto i = 0; i < 2; ++i)
 		{
-			s_backEndData[i].tempSkinBuf = (char*)VirtualAlloc(0, bytes, MEM_RESERVE, PAGE_READWRITE);
-			Game::Com_PrintMessage(0, Utils::VA("Allocated tempSkinBuffer of size: 0x%.8x\n", bytes), 0);
+			back_end_data[i].tempSkinBuf = (char*)VirtualAlloc(nullptr, bytes, MEM_RESERVE, PAGE_READWRITE);
+			Game::Com_PrintMessage(0, utils::va("Allocated tempSkinBuffer of size: 0x%.8x\n", bytes), 0);
 		}
 	}
 
-	void R_CreateDynamicBuffers()
+	// R_CreateDynamicBuffers
+	void create_dynamic_buffers()
 	{
-		auto& gfxBuf = *reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
+		auto& gfx_buf = *reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
 		const auto& r_loadForRenderer = Game::Dvar_FindVar("r_loadForRenderer")->current.enabled;
 
 		// default size in bytes
@@ -109,116 +113,117 @@ namespace Components
 		std::uint32_t pretess_ib_size = 2 * 1048576;
 
 		// get size in bytes from dvars
-		if (Dvars::r_buf_dynamicVertexBuffer)
+		if (dvars::r_buf_dynamicVertexBuffer)
 		{
-			dynamic_vb_size = Dvars::r_buf_dynamicVertexBuffer->current.integer * 1048576;
+			dynamic_vb_size = dvars::r_buf_dynamicVertexBuffer->current.integer * 1048576;
 		}
 
-		if (Dvars::r_buf_skinnedCacheVb)
+		if (dvars::r_buf_skinnedCacheVb)
 		{
-			skinned_cache_size = Dvars::r_buf_skinnedCacheVb->current.integer * 1048576;
+			skinned_cache_size = dvars::r_buf_skinnedCacheVb->current.integer * 1048576;
 		}
 
-		if (Dvars::r_buf_tempSkin)
+		if (dvars::r_buf_tempSkin)
 		{
-			temp_skin_size = Dvars::r_buf_tempSkin->current.integer * 1048576;
+			temp_skin_size = dvars::r_buf_tempSkin->current.integer * 1048576;
 		}
 
-		if (Dvars::r_buf_dynamicIndexBuffer)
+		if (dvars::r_buf_dynamicIndexBuffer)
 		{
-			dynamic_ib_size = Dvars::r_buf_dynamicIndexBuffer->current.integer * 1048576;
+			dynamic_ib_size = dvars::r_buf_dynamicIndexBuffer->current.integer * 1048576;
 		}
 
-		if (Dvars::r_buf_preTessIndexBuffer)
+		if (dvars::r_buf_preTessIndexBuffer)
 		{
-			pretess_ib_size = Dvars::r_buf_preTessIndexBuffer->current.integer * 1048576;
+			pretess_ib_size = dvars::r_buf_preTessIndexBuffer->current.integer * 1048576;
 		}
 
 
 		for (auto i = 0; i != 1; ++i)
 		{
-			R_InitDynamicVertexBufferState(&gfxBuf.dynamicVertexBufferPool[i], dynamic_vb_size, "dynamicVertexBufferPool", r_loadForRenderer);
+			init_dynamic_vertex_buffer_state(&gfx_buf.dynamicVertexBufferPool[i], dynamic_vb_size, "dynamicVertexBufferPool", r_loadForRenderer);
 		}
-		gfxBuf.dynamicVertexBuffer = gfxBuf.dynamicVertexBufferPool;
+		gfx_buf.dynamicVertexBuffer = gfx_buf.dynamicVertexBufferPool;
 
 
 		for (auto i = 0; i != 2; ++i)
 		{
-			R_InitDynamicVertexBufferState(&gfxBuf.skinnedCacheVbPool[i], skinned_cache_size, "skinnedCacheVbPool", r_loadForRenderer);
+			init_dynamic_vertex_buffer_state(&gfx_buf.skinnedCacheVbPool[i], skinned_cache_size, "skinnedCacheVbPool", r_loadForRenderer);
 		}
 
-		R_InitTempSkinBuf(temp_skin_size);
+		init_temp_skin_buf(temp_skin_size);
 
 
 		for (auto i = 0; i != 1; ++i)
 		{
-			R_InitDynamicIndexBufferState(&gfxBuf.dynamicIndexBufferPool[i], dynamic_ib_size, "dynamicIndexBufferPool", r_loadForRenderer);
+			init_dynamic_index_buffer_state(&gfx_buf.dynamicIndexBufferPool[i], dynamic_ib_size, "dynamicIndexBufferPool", r_loadForRenderer);
 		}
-		gfxBuf.dynamicIndexBuffer = gfxBuf.dynamicIndexBufferPool;
+		gfx_buf.dynamicIndexBuffer = gfx_buf.dynamicIndexBufferPool;
 
 
 		for (auto i = 0; i != 2; ++i)
 		{
-			R_InitDynamicIndexBufferState(&gfxBuf.preTessIndexBufferPool[i], pretess_ib_size, "preTessIndexBufferPool", r_loadForRenderer);
+			init_dynamic_index_buffer_state(&gfx_buf.preTessIndexBufferPool[i], pretess_ib_size, "preTessIndexBufferPool", r_loadForRenderer);
 		}
-		gfxBuf.preTessBufferFrame = 0;
-		gfxBuf.preTessIndexBuffer = gfxBuf.preTessIndexBufferPool;
+		gfx_buf.preTessBufferFrame = 0;
+		gfx_buf.preTessIndexBuffer = gfx_buf.preTessIndexBufferPool;
 	}
 
 	/* ---------------------------------------------------------- */
 	/* ---------- Alloc dynamic vertices (smodelCache) ---------- */
 
-	void R_AllocDynamicVertexBuffer()
+	// R_AllocDynamicVertexBuffer
+	void alloc_dynamic_vertex_buffer()
 	{
-		auto& gfxBuf = *reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
+		auto& gfx_buf = *reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
 		const auto& r_loadForRenderer = Game::Dvar_FindVar("r_loadForRenderer")->current.enabled;
 
 		// default size in bytes
 		std::uint32_t smodel_cache_vb_size = 8 * 1048576;
 
 		// get size in bytes from dvar
-		if (Dvars::r_buf_smodelCacheVb)
+		if (dvars::r_buf_smodelCacheVb)
 		{
-			smodel_cache_vb_size = Dvars::r_buf_smodelCacheVb->current.integer * 1048576;
+			smodel_cache_vb_size = dvars::r_buf_smodelCacheVb->current.integer * 1048576;
 		}
 
 		if (r_loadForRenderer)
 		{
-			HRESULT hr = get_d3d_device()->CreateVertexBuffer(smodel_cache_vb_size, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, &gfxBuf.smodelCacheVb, 0);
+			HRESULT hr = get_d3d_device()->CreateVertexBuffer(smodel_cache_vb_size, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, &gfx_buf.smodelCacheVb, 0);
 			if (hr < 0)
 			{
-				const char* msg = Utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
-				msg = Utils::VA("DirectX didn't create a 0x%.8x dynamic vertex buffer: %s\n", smodel_cache_vb_size, msg);
+				const char* msg = utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
+				msg = utils::va("DirectX didn't create a 0x%.8x dynamic vertex buffer: %s\n", smodel_cache_vb_size, msg);
 
-				Utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
+				utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 			}
 			
 
-			Game::Com_PrintMessage(0, Utils::VA("D3D9: Created Vertexbuffer (smodelCacheVb) of size: 0x%.8x\n", smodel_cache_vb_size), 0);
+			Game::Com_PrintMessage(0, utils::va("D3D9: Created Vertexbuffer (smodelCacheVb) of size: 0x%.8x\n", smodel_cache_vb_size), 0);
 		}
 	}
 
 	/* ---------------------------------------------------------- */
 	/* ---------- Alloc dynamic indices (smodelCache) ----------- */
 
-	void r_init_smodel_indices()
+	void init_smodel_indices()
 	{
-		auto& gfxBuf = *reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
+		auto& gfx_buf = *reinterpret_cast<Game::GfxBuffers*>(0xD2B0840);
 
 		// default size in bytes
 		std::uint32_t smodel_cache_ib_size = 2 * 1048576;
 
 		// get size in bytes from dvar
-		if (Dvars::r_buf_smodelCacheIb)
+		if (dvars::r_buf_smodelCacheIb)
 		{
-			smodel_cache_ib_size = Dvars::r_buf_smodelCacheIb->current.integer * 1048576;
+			smodel_cache_ib_size = dvars::r_buf_smodelCacheIb->current.integer * 1048576;
 		}
 
-		gfxBuf.smodelCache.used = 0;
-		gfxBuf.smodelCache.total = smodel_cache_ib_size / 2; // Why half?
+		gfx_buf.smodelCache.used = 0;
+		gfx_buf.smodelCache.total = static_cast<int>(smodel_cache_ib_size / 2); // why half?
 
-		auto mem_reserve = VirtualAlloc(0, 0x200000u, MEM_RESERVE, PAGE_READWRITE);
-		auto mem_commit = VirtualAlloc(mem_reserve, 0x200000u, MEM_COMMIT, PAGE_READWRITE);
+		const auto mem_reserve = VirtualAlloc(nullptr, 0x200000u, MEM_RESERVE, PAGE_READWRITE);
+		const auto mem_commit = VirtualAlloc(mem_reserve, 0x200000u, MEM_COMMIT, PAGE_READWRITE);
 
 		if (!mem_commit || !mem_reserve)
 		{
@@ -227,22 +232,22 @@ namespace Components
 				VirtualFree(mem_reserve, 0, MEM_RESET);
 			}
 
-			const char* msg = Utils::VA("r_init_smodel_indices :: Unable to allocate 0x%.8x bytes. Out of memory?\n", smodel_cache_ib_size);
-			Utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
+			const char* msg = utils::va("r_init_smodel_indices :: Unable to allocate 0x%.8x bytes. Out of memory?\n", smodel_cache_ib_size);
+			utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 		}
 
-		Game::Com_PrintMessage(0, Utils::VA("Allocated smodelCache (smodelCacheIb) of size: 0x%.8x\n", smodel_cache_ib_size), 0);
-		gfxBuf.smodelCache.indices = static_cast<unsigned __int16*>(mem_reserve);
+		Game::Com_PrintMessage(0, utils::va("Allocated smodelCache (smodelCacheIb) of size: 0x%.8x\n", smodel_cache_ib_size), 0);
+		gfx_buf.smodelCache.indices = static_cast<unsigned __int16*>(mem_reserve);
 	}
 
-	__declspec(naked) void r_init_smodel_indices_stub()
+	__declspec(naked) void init_smodel_indices_stub()
 	{
-		const static uint32_t rtn_pt = 0x5F5E7D;
+		const static uint32_t retn_addr = 0x5F5E7D;
 		__asm
 		{
-			call	r_init_smodel_indices;
+			call	init_smodel_indices;
 			pop     edi;
-			jmp		rtn_pt;
+			jmp		retn_addr;
 		}
 	}
 
@@ -252,52 +257,52 @@ namespace Components
 	__declspec(naked) void r_warn_temp_skin_size_limit_stub()
 	{
 		const static uint32_t mb_size = 1048576;
-		const static uint32_t rtn_pt = 0x643948;
+		const static uint32_t retn_addr = 0x643948;
 		__asm
 		{
 			// replace 'cmp edx, 480000h'
 
 			push	eax;
-			mov		eax, Dvars::r_buf_tempSkin;
+			mov		eax, dvars::r_buf_tempSkin;
 			mov		eax, dword ptr[eax + 12];	// current->integer
 			imul	eax, mb_size;				// get size in bytes
 
 			cmp		edx, eax;					// warning limit compare
 			pop		eax;
 
-			jmp		rtn_pt;
+			jmp		retn_addr;
 		}
 	}
 
 	__declspec(naked) void r_warn_max_skinned_cache_vertices_limit_stub()
 	{
 		const static uint32_t mb_size = 1048576;
-		const static uint32_t rtn_pt = 0x643822;
+		const static uint32_t retn_addr = 0x643822;
 		__asm
 		{
 			// replace 'cmp edx, 480000h'
 
 			push	eax;
-			mov		eax, Dvars::r_buf_skinnedCacheVb;
+			mov		eax, dvars::r_buf_skinnedCacheVb;
 			mov		eax, dword ptr[eax + 12];	// current->integer
 			imul	eax, mb_size;				// get size in bytes
 
 			cmp		edx, eax;					// warning limit compare
 			pop		eax;
 
-			jmp		rtn_pt;
+			jmp		retn_addr;
 		}
 	}
 
 	// ---------------------
 
-	// called from _Common::R_RegisterAdditionalDvars (R_Init->R_RegisterDvars)
+	// called from _common::register_additional_dvars (R_Init->R_RegisterDvars)
 	// these need to be re-registered on vid_restart because they are latched
-	void _Renderer::R_RegisterBufferDvars()
+	void _renderer::register_dvars()
 	{
-		// Do not register dvars with the "default" register functions here. (create duplicates)
+		// do not register dvars with the "default" register functions here. (creates duplicates)
 
-		Dvars::r_buf_skinnedCacheVb = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_skinnedCacheVb = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_skinnedCacheVb",
 			/* desc		*/ "Size of skinnedCache Vertexbuffer (Size * 2 will be allocated) in Megabytes. Default : 4 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 4, // 24
@@ -305,7 +310,7 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_buf_smodelCacheVb = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_smodelCacheVb = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_smodelCacheVb",
 			/* desc		*/ "Size of smodelCache Vertexbuffer in Megabytes. Default : 8 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 8, // 24
@@ -313,7 +318,7 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_buf_smodelCacheIb = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_smodelCacheIb = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_smodelCacheIb",
 			/* desc		*/ "Size of smodelCache Indexbuffer in Megabytes. Default : 2 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 2, // 4
@@ -321,7 +326,7 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_buf_tempSkin = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_tempSkin = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_tempSkin",
 			/* desc		*/ "Size of tempSkin buffer in Megabytes. Default : 4 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 4, // 16
@@ -329,7 +334,7 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_buf_dynamicVertexBuffer = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_dynamicVertexBuffer = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_dynamicVertexBuffer",
 			/* desc		*/ "Size of dynamic Vertexbuffer in Megabytes. Default : 1 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 1, // 2
@@ -337,7 +342,7 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_buf_dynamicIndexBuffer = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_dynamicIndexBuffer = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_dynamicIndexBuffer",
 			/* desc		*/ "Size of dynamic Indexbuffer in Megabytes. Default : 2 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 2, // 4
@@ -345,7 +350,7 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		Dvars::r_buf_preTessIndexBuffer = Game::Dvar_RegisterIntWrapper(
+		dvars::r_buf_preTessIndexBuffer = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "r_buf_preTessIndexBuffer",
 			/* desc		*/ "Size of preTess Indexbuffer (Size * 2 will be allocated) in Megabytes. Default : 2 \n! DISABLE r_fastSkin if you are changing this dvar or the client will crash when hitting the old limit.",
 			/* default	*/ 2, // 4
@@ -353,19 +358,19 @@ namespace Components
 			/* maxVal	*/ 64,
 			/* flags	*/ Game::dvar_flags::saved | Game::dvar_flags::latched);
 
-		//Dvars::r_cullWorld = Game::Dvar_RegisterBoolWrapper(
+		//dvars::r_cullWorld = Game::Dvar_RegisterBoolWrapper(
 		//	/* name		*/ "r_cullWorld",
 		//	/* desc		*/ "Culls invisible world surfaces. Disabling this can be useful for vertex manipulating shaders.",
 		//	/* default	*/ true,
 		//	/* flags	*/ Game::dvar_flags::latched);
 
-		//Dvars::r_cullEntities = Game::Dvar_RegisterBoolWrapper(
+		//dvars::r_cullEntities = Game::Dvar_RegisterBoolWrapper(
 		//	/* name		*/ "r_cullEntities",
 		//	/* desc		*/ "Culls invisible entities. Disabling this can be useful for vertex manipulating shaders.",
 		//	/* default	*/ true,
 		//	/* flags	*/ Game::dvar_flags::latched);
 
-		//Dvars::r_drawDynents = Game::Dvar_RegisterBoolWrapper(
+		//dvars::r_drawDynents = Game::Dvar_RegisterBoolWrapper(
 		//	/* name		*/ "r_drawDynents",
 		//	/* desc		*/ "Draw dynamic entities.",
 		//	/* default	*/ true,
@@ -375,14 +380,14 @@ namespace Components
 
 	/* ---------------------------------------------------------- */
 
-	void codesampler_error(Game::MaterialShaderArgument* arg, Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state, const char* sampler, int droptype, const char* msg, ...)
+	void codesampler_error([[maybe_unused]] Game::MaterialShaderArgument* arg, [[maybe_unused]] Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state, const char* sampler, [[maybe_unused]] int droptype, [[maybe_unused]] const char* msg, ...)
 	{
 		if (!sampler || !state || !state->material || !state->technique) 
 		{
 			return;
 		}
 
-		Game::Com_PrintMessage(0, Utils::VA(
+		Game::Com_PrintMessage(0, utils::va(
 			"^1Tried to use sampler <%s> when it isn't valid!\n"
 			"^7[Passdump]\n"
 			"|-> Material ----- %s\n"
@@ -395,7 +400,7 @@ namespace Components
 	// R_SetupPassPerObjectArgs
 	__declspec(naked) void codesampler_error01_stub()
 	{
-		const static uint32_t rtnPt = 0x64BD0F; // offset after call to R_SetSampler
+		const static uint32_t retn_addr = 0x64BD0F; // offset after call to R_SetSampler
 		__asm
 		{
 			// - already pushed args -
@@ -423,14 +428,14 @@ namespace Components
 			push    ebx;
 			mov     eax, ebp;
 
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
 	// R_SetPassShaderStableArguments
 	__declspec(naked) void codesampler_error02_stub()
 	{
-		const static uint32_t rtnPt = 0x64C36C; // offset after call to R_SetSampler
+		const static uint32_t retn_addr = 0x64C36C; // offset after call to R_SetSampler
 		__asm
 		{
 			// skip error and R_SetSampler
@@ -444,42 +449,38 @@ namespace Components
 			push    ebp;
 
 			//call    R_SetSampler
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
 	void cubemap_shot_f_sync_msg()
 	{
-		if (const auto& r_smp_backend = Game::Dvar_FindVar("r_smp_backend"))
+		if (const auto& r_smp_backend = Game::Dvar_FindVar("r_smp_backend");
+						r_smp_backend && r_smp_backend->current.enabled)
 		{
-			if (r_smp_backend->current.enabled)
-			{
-				Game::Com_PrintMessage(0, "^1Error: ^7r_smp_backend must be set to 0!", 0);
-			}
+			Game::Com_PrintMessage(0, "^1Error: ^7r_smp_backend must be set to 0!", 0);
 		}
 
-		if (const auto& r_aaSamples = Game::Dvar_FindVar("r_aaSamples"))
+		if (const auto& r_aaSamples = Game::Dvar_FindVar("r_aaSamples");
+						r_aaSamples && r_aaSamples->current.integer != 1)
 		{
-			if (r_aaSamples->current.integer != 1)
-			{
-				Game::Com_PrintMessage(0, "^1Error: ^7r_aaSamples must be set to 1 (Disable AA)!", 0);
-			}
+			Game::Com_PrintMessage(0, "^1Error: ^7r_aaSamples must be set to 1 (Disable AA)!", 0);
 		}
 	}
 
 	__declspec(naked) void cubemap_shot_f_stub()
 	{
-		const static uint32_t R_SyncRenderThread_Func = 0x5F6070;
-		const static uint32_t rtnPt = 0x475411;
+		const static uint32_t R_SyncRenderThread_func = 0x5F6070;
+		const static uint32_t retn_addr = 0x475411;
 		__asm
 		{
-			call	R_SyncRenderThread_Func;
+			call	R_SyncRenderThread_func;
 
 			pushad;
 			call	cubemap_shot_f_sync_msg;
 			popad;
 
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
@@ -500,7 +501,7 @@ namespace Components
 
 			pushad;
 			push	eax;
-			mov		eax, Dvars::r_cullWorld;
+			mov		eax, dvars::r_cullWorld;
 			cmp		byte ptr[eax + 12], 1;
 			pop		eax;
 
@@ -529,7 +530,7 @@ namespace Components
 
 			pushad;
 			push	eax;
-			mov		eax, Dvars::r_cullWorld;
+			mov		eax, dvars::r_cullWorld;
 			cmp		byte ptr[eax + 12], 1;
 			pop		eax;
 
@@ -558,7 +559,7 @@ namespace Components
 
 			pushad;
 			push	eax;
-			mov		eax, Dvars::r_cullWorld;
+			mov		eax, dvars::r_cullWorld;
 			cmp		byte ptr[eax + 12], 1;
 			pop		eax;
 
@@ -587,7 +588,7 @@ namespace Components
 
 			pushad;
 			push	eax;
-			mov		eax, Dvars::r_cullEntities;
+			mov		eax, dvars::r_cullEntities;
 			cmp		byte ptr[eax + 12], 1;
 			pop		eax;
 
@@ -612,7 +613,7 @@ namespace Components
 		{
 			pushad;
 			push	eax;
-			mov		eax, Dvars::r_drawDynents;
+			mov		eax, dvars::r_drawDynents;
 			cmp		byte ptr[eax + 12], 1;
 			pop		eax;
 
@@ -636,7 +637,7 @@ namespace Components
 
 	// *
 	// mat->techniqueSet->remappedTechniqueSet->techniques[type]
-	bool _Renderer::is_valid_technique_for_type(const Game::Material* mat, const Game::MaterialTechniqueType type)
+	bool _renderer::is_valid_technique_for_type(const Game::Material* mat, const Game::MaterialTechniqueType type)
 	{
 		if (	mat
 			 && mat->techniqueSet
@@ -653,7 +654,7 @@ namespace Components
 
 	// *
 	// return remappedTechnique for technique_type if valid, stock technique otherwise
-	void _Renderer::switch_technique(Game::switch_material_t* swm, Game::Material* material)
+	void _renderer::switch_technique(Game::switch_material_t* swm, Game::Material* material)
 	{
 		if (material)
 		{
@@ -675,17 +676,18 @@ namespace Components
 
 	// *
 	// return remappedTechnique for technique_type if valid, stock technique otherwise
-	void _Renderer::switch_technique(Game::switch_material_t* swm, const char* material_name)
+	void _renderer::switch_technique(Game::switch_material_t* swm, const char* material_name)
 	{
-		Game::Material* temp_mat = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle(material_name, 3));
+		
 
-		if (temp_mat)
+		if (const auto	material = Game::Material_RegisterHandle(material_name, 3); 
+						material)
 		{
 			swm->technique = nullptr;
 
-			if (is_valid_technique_for_type(temp_mat, swm->technique_type))
+			if (is_valid_technique_for_type(material, swm->technique_type))
 			{
-				swm->technique = temp_mat->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
+				swm->technique = material->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
 			}
 
 			swm->switch_technique = true;
@@ -699,18 +701,19 @@ namespace Components
 
 	//*
 	// return new material if valid, stock material otherwise
-	void _Renderer::switch_material(Game::switch_material_t* swm, const char* material_name)
+	void _renderer::switch_material(Game::switch_material_t* swm, const char* material_name)
 	{
-		Game::Material* temp_mat = reinterpret_cast<Game::Material*>(Game::Material_RegisterHandle(material_name, 3));
 		
-		if (temp_mat)
+		
+		if (const auto	material = Game::Material_RegisterHandle(material_name, 3); 
+						material)
 		{
-			swm->material = temp_mat;
+			swm->material = material;
 			swm->technique = nullptr;
 
-			if (is_valid_technique_for_type(temp_mat, swm->technique_type))
+			if (is_valid_technique_for_type(material, swm->technique_type))
 			{
-				swm->technique = temp_mat->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
+				swm->technique = material->techniqueSet->remappedTechniqueSet->techniques[swm->technique_type];
 			}
 
 			swm->switch_material = true;
@@ -731,7 +734,7 @@ namespace Components
 		auto& rg = *reinterpret_cast<Game::r_globals_t*>(0xCC9D150);
 		auto rgp =  reinterpret_cast<Game::r_global_permanent_t*>(0xCC98280);
 
-		Game::switch_material_t mat = { 0 };
+		Game::switch_material_t mat = {};
 
 		mat.current_material  = rgp->sortedMaterials[(drawSurf.packed >> 29) & 0x7FF];
 		mat.current_technique = mat.current_material->techniqueSet->remappedTechniqueSet->techniques[techType];
@@ -744,17 +747,17 @@ namespace Components
 
 		if (mat.current_material)
 		{
-			if (Components::active.DayNightCycle)
+			if (Components::active.daynight_cycle)
 			{
-				DayNightCycle::overwrite_sky_material(&mat);
+				daynight_cycle::overwrite_sky_material(&mat);
 			}
 
 			// wireframe xmodels
-			if (Dvars::r_wireframe_xmodels && Dvars::r_wireframe_xmodels->current.integer)
+			if (dvars::r_wireframe_xmodels && dvars::r_wireframe_xmodels->current.integer)
 			{
-				if (Utils::StartsWith(mat.current_material->info.name, "mc/"))
+				if (utils::starts_with(mat.current_material->info.name, "mc/"))
 				{
-					switch (Dvars::r_wireframe_xmodels->current.integer)
+					switch (dvars::r_wireframe_xmodels->current.integer)
 					{
 					case 1: // SHADED
 						mat.technique_type = Game::TECHNIQUE_WIREFRAME_SHADED;
@@ -770,23 +773,23 @@ namespace Components
 						disable_prepass = true;
 
 						mat.technique_type	= Game::TECHNIQUE_UNLIT;
-						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
+						_renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 
 					case 4: // SOLID_WHITE
 						mat.technique_type	= Game::TECHNIQUE_UNLIT;
-						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
+						_renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 					}
 				}
 			}
 
 			// wireframe world
-			if (Dvars::r_wireframe_world && Dvars::r_wireframe_world->current.integer)
+			if (dvars::r_wireframe_world && dvars::r_wireframe_world->current.integer)
 			{
-				if (Utils::StartsWith(mat.current_material->info.name, "wc/") && !Utils::StartsWith(mat.current_material->info.name, "wc/sky"))
+				if (utils::starts_with(mat.current_material->info.name, "wc/") && !utils::starts_with(mat.current_material->info.name, "wc/sky"))
 				{
-					switch (Dvars::r_wireframe_world->current.integer)
+					switch (dvars::r_wireframe_world->current.integer)
 					{
 					case 1: // SHADED
 						mat.technique_type = Game::TECHNIQUE_WIREFRAME_SHADED;
@@ -802,12 +805,12 @@ namespace Components
 						disable_prepass = true;
 
 						mat.technique_type	= Game::TECHNIQUE_UNLIT;
-						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
+						_renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 
 					case 4: // SOLID_WHITE
 						mat.technique_type	= Game::TECHNIQUE_UNLIT;
-						_Renderer::switch_material(&mat, "iw3xo_showcollision_wire");
+						_renderer::switch_material(&mat, "iw3xo_showcollision_wire");
 						break;
 					}
 				}
@@ -815,38 +818,23 @@ namespace Components
 
 
 			// texcoord debugshader
-			if (Dvars::r_debugShaderTexcoord && Dvars::r_debugShaderTexcoord->current.enabled)
+			if (dvars::r_debugShaderTexcoord && dvars::r_debugShaderTexcoord->current.enabled)
 			{
-				if (Utils::StartsWith(mat.current_material->info.name, "mc/"))
+				if (utils::starts_with(mat.current_material->info.name, "mc/"))
 				{
 					disable_prepass = true;
 
 					mat.technique_type = Game::TECHNIQUE_UNLIT;
-					_Renderer::switch_technique(&mat, "debug_texcoords_dtex");
+					_renderer::switch_technique(&mat, "debug_texcoords_dtex");
 				}
-				else if (Utils::StartsWith(mat.current_material->info.name, "wc/"))
+				else if (utils::starts_with(mat.current_material->info.name, "wc/"))
 				{
 					disable_prepass = true;
 
 					mat.technique_type = Game::TECHNIQUE_UNLIT;
-					_Renderer::switch_technique(&mat, "debug_texcoords");
+					_renderer::switch_technique(&mat, "debug_texcoords");
 				}
 			}
-
-			// memes
-			//{
-			//	if (Utils::Contains(mat.current_material->info.name, "mtl_weapon_acog_reticle"))
-			//	{
-			//		// float* matrix = Utils::function<float* (Game::GfxCmdBufSourceState* source, int argIndex, char row)>(0x631D90)(source, arg_def->u.codeConst.index, arg_def->u.codeConst.firstRow);
-			//		//Utils::function<void(Game::GfxViewInfo* view, float blur)>(0x63BFD0)(Game::_frontEndDataOut->viewInfo, 2.0f);
-
-			//		//mat.technique_type = Game::TECHNIQUE_UNLIT;
-			//		_Renderer::switch_technique(&mat, "reticle_blur");
-
-			//		rendered_scope = true;
-			//	}
-			//}
-
 
 			if (!mat.switch_material && !mat.switch_technique && !mat.switch_technique_type)
 			{
@@ -867,9 +855,9 @@ namespace Components
 		// only switch to a different technique_type
 		if (mat.switch_technique_type)
 		{
-			if (_Renderer::is_valid_technique_for_type(mat.current_material, mat.technique_type))
+			if (_renderer::is_valid_technique_for_type(mat.current_material, mat.technique_type))
 			{
-				_Renderer::switch_technique(&mat, mat.current_material);
+				_renderer::switch_technique(&mat, mat.current_material);
 			}
 		}
 
@@ -894,14 +882,13 @@ namespace Components
 		const auto& r_logFile = Game::Dvar_FindVar("r_logFile");
 		if (r_logFile && r_logFile->current.integer && mat.current_material)
 		{
-			auto string = Utils::VA("R_SetMaterial( %s, %s, %i )\n", state->material->info.name, state->technique->name, mat.technique_type);
-
-			const static uint32_t RB_LogPrint_Funk = 0x63CF40;
+			const auto string = utils::va("R_SetMaterial( %s, %s, %i )\n", state->material->info.name, state->technique->name, mat.technique_type);
+			const static uint32_t RB_LogPrint_func = 0x63CF40;
 			__asm
 			{
 				pushad;
 				mov		edx, string;
-				call	RB_LogPrint_Funk;
+				call	RB_LogPrint_func;
 				popad;
 			}
 		}
@@ -916,7 +903,7 @@ namespace Components
 	__declspec(naked) void R_SetMaterial_stub()
 	{
 		const static uint32_t rtn_to_set_shadowable_light = 0x648F92;
-		const static uint32_t rtn_to_rtn = 0x648F48;
+		const static uint32_t retn_to_retn = 0x648F48;
 		__asm
 		{
 			push	esi;		// techType
@@ -929,14 +916,14 @@ namespace Components
 			jmp		rtn_to_set_shadowable_light;
 
 		memes:
-			jmp		rtn_to_rtn;
+			jmp		retn_to_retn;
 		}
 	}
 
 	__declspec(naked) void R_SetPrepassMaterial_stub()
 	{
-		const static uint32_t R_SetPrepassMaterial_Func = 0x648DF0;
-		const static uint32_t rtnPt = 0x648F41;
+		const static uint32_t R_SetPrepassMaterial_func = 0x648DF0;
+		const static uint32_t retn_addr = 0x648F41;
 		__asm
 		{
 			push	eax;
@@ -946,23 +933,23 @@ namespace Components
 
 			// jump if true
 			je		disable;
-			call	R_SetPrepassMaterial_Func;
+			call	R_SetPrepassMaterial_func;
 
 		disable:
-			jmp		rtnPt;
+			jmp		retn_addr;
 		}
 	}
 
 	__declspec(naked) void R_SetMaterial_Emissive_stub()
 	{
-		const static uint32_t rtn_to_rtn = 0x6490BF;
+		const static uint32_t retn_to_retn = 0x6490BF;
 		__asm
 		{
 			push	esi;		// techType
 			call	R_SetMaterial;
 			pop		esi;
 			add     esp, 10h;
-			jmp		rtn_to_rtn;
+			jmp		retn_to_retn;
 		}
 	}
 
@@ -981,15 +968,15 @@ namespace Components
 	void pixelshader_custom_constants(Game::GfxCmdBufState* state)
 	{
 		// dump shaders at runtime ~> TODO: move that to its own function / hook
-		if (Dvars::r_dumpShaders && Dvars::r_dumpShaders->current.enabled)
+		if (dvars::r_dumpShaders && dvars::r_dumpShaders->current.enabled)
 		{
-			const auto basePath = Game::Dvar_FindVar("fs_basepath");
-
-			if (!basePath) {
+			const auto base_path = Game::Dvar_FindVar("fs_basepath");
+			if (!base_path) 
+			{
 				return;
 			}
 
-			std::string filePath = basePath->current.string + "\\iw3xo\\shader_dump\\"s;
+			const std::string file_path = base_path->current.string + "\\iw3xo\\shader_dump\\"s;
 
 			if (state && state->pass)
 			{
@@ -1000,12 +987,12 @@ namespace Components
 					{
 						if (!folder_vs_exists)
 						{
-							std::filesystem::create_directories(filePath + "vertexShader\\");
+							std::filesystem::create_directories(file_path + "vertexShader\\");
 							folder_vs_exists = true;
 						}
 
-						std::uint16_t bin_size = state->pass->vertexShader->prog.loadDef.programSize;
-						std::ofstream outfile(filePath + "vertexShader\\" + "vs_" + state->pass->vertexShader->name, std::ofstream::binary);
+						const std::uint16_t bin_size = state->pass->vertexShader->prog.loadDef.programSize;
+						std::ofstream outfile(file_path + "vertexShader\\" + "vs_" + state->pass->vertexShader->name, std::ofstream::binary);
 
 						outfile.write(reinterpret_cast<char*>(state->pass->vertexShader->prog.loadDef.program), bin_size * 4);
 						outfile.close();
@@ -1021,12 +1008,12 @@ namespace Components
 					{
 						if (!folder_ps_exists)
 						{
-							std::filesystem::create_directories(filePath + "pixelShader\\");
+							std::filesystem::create_directories(file_path + "pixelShader\\");
 							folder_ps_exists = true;
 						}
 
-						std::uint16_t bin_size = state->pass->pixelShader->prog.loadDef.programSize;
-						std::ofstream outfile(filePath + "pixelShader\\" + "ps_" + state->pass->pixelShader->name, std::ofstream::binary);
+						const std::uint16_t bin_size = state->pass->pixelShader->prog.loadDef.programSize;
+						std::ofstream outfile(file_path + "pixelShader\\" + "ps_" + state->pass->pixelShader->name, std::ofstream::binary);
 
 						outfile.write(reinterpret_cast<char*>(state->pass->pixelShader->prog.loadDef.program), bin_size * 4);
 						outfile.close();
@@ -1046,19 +1033,19 @@ namespace Components
 
 				if (arg_def && arg_def->type == 5)
 				{
-					if (Components::active.DayNightCycle)
+					if (Components::active.daynight_cycle)
 					{
-						DayNightCycle::set_pixelshader_constants(state, arg_def);
+						daynight_cycle::set_pixelshader_constants(state, arg_def);
 					}
 
-					if (Components::active.Ocean)
+					if (Components::active.ocean)
 					{
-						Ocean::set_pixelshader_constants(state, arg_def);
+						ocean::set_pixelshader_constants(state, arg_def);
 					}
 
 #ifdef DEVGUI_XO_BLUR
 					// dev stuff
-					if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "reticle_blur"))
+					if (state->pass->pixelShader && !utils::q_stricmp(state->pass->pixelShader->name, "reticle_blur"))
 					{
 						float constant[4] = { Game::Globals::xo_blur_directions, Game::Globals::xo_blur_quality, Game::Globals::xo_blur_size, Game::Globals::xo_blur_alpha };
 
@@ -1097,7 +1084,7 @@ namespace Components
 	}
 
 	
-	void vertexshader_custom_constants(Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state)
+	void vertexshader_custom_constants([[maybe_unused]] Game::GfxCmdBufSourceState* source, Game::GfxCmdBufState* state)
 	{
 		// fixup cod4 code constants
 		if (state && state->pass)
@@ -1109,26 +1096,11 @@ namespace Components
 
 				if (arg_def && arg_def->type == 3)
 				{
-					if (Components::active.Ocean)
+					if (Components::active.ocean)
 					{
-						Ocean::set_vertexshader_constants(state, arg_def);
+						ocean::set_vertexshader_constants(state, arg_def);
 					}
 				}
-
-				// reference
-				/*if (arg_def && arg_def->type == 4)
-				{
-					if (state->pass->pixelShader && !Utils::Q_stricmp(state->pass->pixelShader->name, "xo_2d_blur"))
-					{
-						auto& rg = *reinterpret_cast<Game::r_globals_t*>(0xCC9D150);
-						const char* sampler = rg.codeImageNames[arg_def->u.codeSampler];
-
-						char samplerState = source->input.codeImageSamplerStates[arg_def->u.codeSampler];
-						Game::GfxImage* mat = source->input.codeImages[arg_def->u.codeSampler];
-
-						int x = 1;
-					}
-				}*/
 			}
 		}
 	}
@@ -1165,13 +1137,13 @@ namespace Components
 #pragma warning(push)
 #pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
-	void InfinitePerspectiveMatrix(const float tanHalfFovX, const float tanHalfFovY, const float zNear, float(*mtx)[4])
+	void InfinitePerspectiveMatrix(const float tan_half_fov_x, const float tan_half_fov_y, const float z_near, float(*mtx)[4])
 	{
-		(*mtx)[0]  = 0.99951172f / tanHalfFovX;
-		(*mtx)[5]  = 0.99951172f / tanHalfFovY;
+		(*mtx)[0]  = 0.99951172f / tan_half_fov_x;
+		(*mtx)[5]  = 0.99951172f / tan_half_fov_y;
 		(*mtx)[10] = 0.99951172f;
 		(*mtx)[11] = 1.0f;
-		(*mtx)[14] = 0.99951171875f * -zNear;
+		(*mtx)[14] = 0.99951171875f * -z_near;
 	}
 #pragma warning(pop)
 	
@@ -1186,12 +1158,28 @@ namespace Components
 		{
 			offhand_index = Game::cgs->predictedPlayerState.weapon;
 		}
+
+		// #
+		auto check_flags_and_fovmin = [&]() -> float
+		{
+			if ((Game::cgs->predictedPlayerState.eFlags & 0x300) != 0)
+			{
+				calc_fov = 55.0f;
+			}
+
+			if (cg_fovMin->current.value - calc_fov >= 0.0f)
+			{
+				calc_fov = cg_fovMin->current.value;
+			}
+
+			return calc_fov;
+		};
+
 		
-		Game::WeaponDef* weapon = Game::BG_WeaponNames[offhand_index];
+		const auto weapon = Game::BG_WeaponNames[offhand_index];
 		if (Game::cgs->predictedPlayerState.pm_type == 5)
 		{
-			calc_fov = 90.0f;
-			goto LABEL_16;
+			return check_flags_and_fovmin();
 		}
 		
 		calc_fov = fov_val;
@@ -1200,7 +1188,7 @@ namespace Components
 			if (Game::cgs->predictedPlayerState.fWeaponPosFrac == 1.0f)
 			{
 				calc_fov = weapon->fAdsZoomFov;
-				goto LABEL_16;
+				return check_flags_and_fovmin();
 			}
 			
 			if (0.0f != Game::cgs->predictedPlayerState.fWeaponPosFrac)
@@ -1212,7 +1200,7 @@ namespace Components
 					const float w_pos_frac = Game::cgs->predictedPlayerState.fWeaponPosFrac - (1.0f - weapon->fAdsZoomInFrac);
 					if (w_pos_frac <= 0.0f)
 					{
-						goto LABEL_16;
+						return check_flags_and_fovmin();
 					}
 					ads_factor = w_pos_frac / weapon->fAdsZoomInFrac;
 				}
@@ -1221,7 +1209,7 @@ namespace Components
 					const float w_pos_frac = Game::cgs->predictedPlayerState.fWeaponPosFrac - (1.0f - weapon->fAdsZoomOutFrac);
 					if (w_pos_frac <= 0.0f)
 					{
-						goto LABEL_16;
+						return check_flags_and_fovmin();
 					}
 					ads_factor = w_pos_frac / weapon->fAdsZoomOutFrac;
 				}
@@ -1233,43 +1221,32 @@ namespace Components
 			}
 		}
 		
-	LABEL_16:
-		if ((Game::cgs->predictedPlayerState.eFlags & 0x300) != 0)
-		{
-			calc_fov = 55.0f;
-		}
-
-		if (cg_fovMin->current.value - calc_fov >= 0.0f)
-		{
-			calc_fov = cg_fovMin->current.value;
-		}
-		
-		return calc_fov;
+		return check_flags_and_fovmin();
 	}
 
-	void set_gunfov(Game::GfxViewParms* viewParms)
+	void set_gunfov(Game::GfxViewParms* view_parms)
 	{
-		if(Dvars::cg_fov_tweaks && Dvars::cg_fov_tweaks->current.enabled)
+		if(dvars::cg_fov_tweaks && dvars::cg_fov_tweaks->current.enabled)
 		{
 			// calc gun fov (includes weapon zoom)
-			const float gun_fov = calculate_gunfov_with_zoom(Dvars::cg_fov_gun->current.value);
+			const float gun_fov = calculate_gunfov_with_zoom(dvars::cg_fov_gun->current.value);
 			const float w_fov = 0.75f * tanf(gun_fov * 0.01745329238474369f * 0.5f);
 
-			const float tanHalfX = (static_cast<float>(Game::cgs->refdef.width) / static_cast<float>(Game::cgs->refdef.height)) * w_fov;
-			const float tanHalfY = w_fov;
+			const float tan_half_x = (static_cast<float>(Game::cgs->refdef.width) / static_cast<float>(Game::cgs->refdef.height)) * w_fov;
+			const float tan_half_y = w_fov;
 
 			// calc projection matrix
 			float proj_mtx[4][4] = {};
-			InfinitePerspectiveMatrix(tanHalfX, tanHalfY, viewParms->zNear, proj_mtx);
+			InfinitePerspectiveMatrix(tan_half_x, tan_half_y, view_parms->zNear, proj_mtx);
 
 			// only overwrite the projection matrix ;)
-			memcpy(viewParms->projectionMatrix.m, proj_mtx, sizeof(Game::GfxMatrix));
+			memcpy(view_parms->projectionMatrix.m, proj_mtx, sizeof(Game::GfxMatrix));
 		}
 	}
 	
 	__declspec(naked) void R_SetViewParmsForScene_stub()
 	{
-		const static uint32_t retn_pt = 0x5FAA0B;
+		const static uint32_t retn_addr = 0x5FAA0B;
 		__asm
 		{
 			pushad;
@@ -1280,11 +1257,11 @@ namespace Components
 			
 			// stock op's
 			lea     ecx, [edi + 0C0h];
-			jmp		retn_pt;
+			jmp		retn_addr;
 		}
 	}
 
-	_Renderer::_Renderer()
+	_renderer::_renderer()
 	{ 
 		/*
 		* Increase the amount of skinned vertices (bone controlled meshes) per frame.
@@ -1294,54 +1271,54 @@ namespace Components
 		*/
 
 		// Create dynamic rendering buffers
-		Utils::Hook(0x5F3EC2, R_CreateDynamicBuffers, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5F3EA9, R_AllocDynamicVertexBuffer, HOOK_CALL).install()->quick();
+		utils::hook(0x5F3EC2, create_dynamic_buffers, HOOK_CALL).install()->quick();
+		utils::hook(0x5F3EA9, alloc_dynamic_vertex_buffer, HOOK_CALL).install()->quick();
 
 		// Alloc dynamic indices (smodelCache)
-		Utils::Hook::Nop(0x5F5D97, 7); // clear
-		Utils::Hook(0x5F5D97, r_init_smodel_indices_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x5F5D97, 7); // clear
+		utils::hook(0x5F5D97, init_smodel_indices_stub, HOOK_JUMP).install()->quick();
 
 		// Change 'R_WARN_TEMP_SKIN_BUF_SIZE' warning limit to new buffer size
-		Utils::Hook::Nop(0x643942, 6); // clear
-		Utils::Hook(0x643942, r_warn_temp_skin_size_limit_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x643942, 6); // clear
+		utils::hook(0x643942, r_warn_temp_skin_size_limit_stub, HOOK_JUMP).install()->quick();
 
 		// Change 'R_WARN_MAX_SKINNED_CACHE_VERTICES' warning limit to new buffer size
-		Utils::Hook::Nop(0x64381C, 6); // clear
-		Utils::Hook(0x64381C, r_warn_max_skinned_cache_vertices_limit_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x64381C, 6); // clear
+		utils::hook(0x64381C, r_warn_max_skinned_cache_vertices_limit_stub, HOOK_JUMP).install()->quick();
 
 
 		/* ---------------------------------------------------------- */
 
-		// Hook "Com_Error(1, "Tried to use '%s' when it isn't valid\n", codeSampler)" to skip the R_SetSampler call
-		Utils::Hook(0x64BCF1, codesampler_error01_stub, HOOK_JUMP).install()->quick(); // R_SetupPassPerObjectArgs
-		Utils::Hook(0x64C350, codesampler_error02_stub, HOOK_JUMP).install()->quick(); // R_SetPassShaderStableArguments (not really used)
+		// hook "Com_Error(1, "Tried to use '%s' when it isn't valid\n", codeSampler)" to skip the R_SetSampler call
+		utils::hook(0x64BCF1, codesampler_error01_stub, HOOK_JUMP).install()->quick(); // R_SetupPassPerObjectArgs
+		utils::hook(0x64C350, codesampler_error02_stub, HOOK_JUMP).install()->quick(); // R_SetPassShaderStableArguments (not really used)
 
 		// fix cubemapshot_f (needs disabled AA, disabled r_smp_backend and game-resolution > then cubemapshot resolution)
-		Utils::Hook::Nop(0x47549E, 3);				// start with suffix "_rt" and not with junk memory
-		Utils::Hook::Set<BYTE>(0x4754D5 + 2, 0xB0); // end on "_dn" + 1 instead of "_bk" (6 images)
-		Utils::Hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // dvar info
+		utils::hook::nop(0x47549E, 3);				// start with suffix "_rt" and not with junk memory
+		utils::hook::set<BYTE>(0x4754D5 + 2, 0xB0); // end on "_dn" + 1 instead of "_bk" (6 images)
+		utils::hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // dvar info
 
 
 		/* ---------------------------------------------------------- */
 
 		// R_AddWorldSurfacesPortalWalk :: less culling
-		// 0x60B02E -> jl to jmp // 0x7C -> 0xEB //Utils::Hook::Set<BYTE>(0x60B02E, 0xEB);
-		//Utils::Hook::Nop(0x60B028, 6); Utils::Hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
+		// 0x60B02E -> jl to jmp // 0x7C -> 0xEB //utils::hook::set<BYTE>(0x60B02E, 0xEB);
+		//utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
 
 		// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps)
-		// 0x643B08 -> nop //Utils::Hook::Nop(0x643B08, 6);
-		//Utils::Hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
+		// 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
+		//utils::hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
 
-		// 0x643B39 -> jmp ^ // 0x74 -> 0xEB //Utils::Hook::Set<BYTE>(0x643B39, 0xEB);
-		//Utils::Hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
+		// 0x643B39 -> jmp ^ // 0x74 -> 0xEB //utils::hook::set<BYTE>(0x643B39, 0xEB);
+		//utils::hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
 
 		// R_AddCellSceneEntSurfacesInFrustumCmd :: active ents like destructible cars / players (disable all culling)
-		// 0x64D17A -> nop // 2 bytes //Utils::Hook::Nop(0x64D17A, 2);
-		//Utils::Hook::Nop(0x64D172, 8); Utils::Hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
+		// 0x64D17A -> nop // 2 bytes //utils::hook::nop(0x64D17A, 2);
+		//utils::hook::nop(0x64D172, 8); utils::hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
 
 		// R_AddWorkerCmd :: disable dynEnt models
 		// 0x629328 -> nop
-		//Utils::Hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
+		//utils::hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
 
 
 		/* ---------------------------------------------------------- */
@@ -1355,7 +1332,7 @@ namespace Components
 			"SOLID_WHITE"
 		};
 
-		Dvars::r_wireframe_world = Game::Dvar_RegisterEnum(
+		dvars::r_wireframe_world = Game::Dvar_RegisterEnum(
 			/* name		*/ "r_wireframe_world",
 			/* desc		*/ "Draw world objects using their wireframe technique",
 			/* default	*/ 0,
@@ -1363,7 +1340,7 @@ namespace Components
 			/* enumData */ r_wireframe_enum.data(),
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_wireframe_xmodels = Game::Dvar_RegisterEnum(
+		dvars::r_wireframe_xmodels = Game::Dvar_RegisterEnum(
 			/* name		*/ "r_wireframe_xmodels",
 			/* desc		*/ "Draw xmodels using their wireframe technique",
 			/* default	*/ 0,
@@ -1371,52 +1348,52 @@ namespace Components
 			/* enumData */ r_wireframe_enum.data(),
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::r_debugShaderTexcoord = Game::Dvar_RegisterBool(
+		dvars::r_debugShaderTexcoord = Game::Dvar_RegisterBool(
 			/* name		*/ "r_debugShaderTexcoord",
 			/* desc		*/ "Show surface UV's / Texcoords",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
 		// not in use
-		//Dvars::r_debugShaderToggle = Game::Dvar_RegisterBool(
+		//dvars::r_debugShaderToggle = Game::Dvar_RegisterBool(
 		//	/* name		*/ "r_debugShaderToggle",
 		//	/* desc		*/ "debugging purpose",
 		//	/* default	*/ false,
 		//	/* flags	*/ Game::dvar_flags::none);
 
 		//// not in use
-		//Dvars::r_setmaterial_hk = Game::Dvar_RegisterBool(
+		//dvars::r_setmaterial_hk = Game::Dvar_RegisterBool(
 		//	/* name		*/ "r_setmaterial_hk",
 		//	/* desc		*/ "debugging purpose",
 		//	/* default	*/ false,
 		//	/* flags	*/ Game::dvar_flags::none);
 
 
-		// Hook R_SetMaterial
-		Utils::Hook(0x648F86, R_SetMaterial_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x648F3C, R_SetPrepassMaterial_stub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x6490B7, R_SetMaterial_Emissive_stub, HOOK_JUMP).install()->quick();
+		// hook R_SetMaterial
+		utils::hook(0x648F86, R_SetMaterial_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x648F3C, R_SetPrepassMaterial_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x6490B7, R_SetMaterial_Emissive_stub, HOOK_JUMP).install()->quick();
 
 
 		// custom pixelshader code constants
-		Utils::Hook::Nop(0x64BEDB, 7);
-		Utils::Hook(0x64BEDB, R_SetPassPixelShaderStableArguments_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x64BEDB, 7);
+		utils::hook(0x64BEDB, R_SetPassPixelShaderStableArguments_stub, HOOK_JUMP).install()->quick();
 
 		// custom vertexshader code constants / per object :: R_SetPassShaderObjectArguments
-		Utils::Hook::Nop(0x64BD22, 7);
-		Utils::Hook(0x64BD22, R_SetVertexShaderConstantFromCode_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x64BD22, 7);
+		utils::hook(0x64BD22, R_SetVertexShaderConstantFromCode_stub, HOOK_JUMP).install()->quick();
 
 		// seperate world and viewmodel fov
-		Utils::Hook::Nop(0x5FAA05, 6);
-		Utils::Hook(0x5FAA05, R_SetViewParmsForScene_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x5FAA05, 6);
+		utils::hook(0x5FAA05, R_SetViewParmsForScene_stub, HOOK_JUMP).install()->quick();
 
-		Dvars::cg_fov_tweaks = Game::Dvar_RegisterBool(
+		dvars::cg_fov_tweaks = Game::Dvar_RegisterBool(
 			/* name		*/ "cg_fov_tweaks",
 			/* desc		*/ "Enable gun fov tweaks",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 		
-		Dvars::cg_fov_gun = Game::Dvar_RegisterFloat(
+		dvars::cg_fov_gun = Game::Dvar_RegisterFloat(
 			/* name		*/ "cg_fov_gun",
 			/* desc		*/ "Adjust gun fov separately (wont effect world fov)",
 			/* default	*/ 65.0f,
@@ -1426,13 +1403,13 @@ namespace Components
 
 
 		// increase fps cap to 125 for menus and loadscreen
-		Utils::Hook::Set<BYTE>(0x500174 + 2, 8);
-		Utils::Hook::Set<BYTE>(0x500177 + 2, 8);
+		utils::hook::set<BYTE>(0x500174 + 2, 8);
+		utils::hook::set<BYTE>(0x500177 + 2, 8);
 
 
-		Command::Add("dumpreflections", "", "", [this](Command::Params)
+		command::add("dumpreflections", "", "", [this](command::params)
 		{
-			const auto gfx = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_GFXWORLD, Utils::VA("maps/mp/%s.d3dbsp", Game::Dvar_FindVar("ui_mapname")->current.string)).gfxWorld;
+			const auto gfx = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_GFXWORLD, utils::va("maps/mp/%s.d3dbsp", Game::Dvar_FindVar("ui_mapname")->current.string)).gfxWorld;
 
 			for (size_t i = 0; i < gfx->reflectionProbeCount; i++)
 			{
@@ -1440,20 +1417,17 @@ namespace Components
 				for (auto j = 0; j < 6; j++)
 				{
 					const auto& base_path = Game::Dvar_FindVar("fs_basepath");
-					std::string filePath = base_path->current.string + "\\iw3xo\\reflection_cubes\\"s;
-					std::filesystem::create_directories(filePath);
+					std::string file_path = base_path->current.string + "\\iw3xo\\reflection_cubes\\"s;
+					std::filesystem::create_directories(file_path);
 
 					IDirect3DSurface9* surface = nullptr;
 					probe->GetCubeMapSurface((D3DCUBEMAP_FACES)j, 0, &surface);
 
-					const char* str = Utils::VA("%s\\probe%d_side%d.png", filePath.c_str(), i, j);
+					const char* str = utils::va("%s\\probe%d_side%d.png", file_path.c_str(), i, j);
 
 					D3DXSaveSurfaceToFileA(str, D3DXIMAGE_FILEFORMAT::D3DXIFF_PNG, surface, nullptr, nullptr);
 				}
 			}
 		});
 	}
-
-	_Renderer::~_Renderer()
-	{ }
 }

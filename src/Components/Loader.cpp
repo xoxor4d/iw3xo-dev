@@ -6,7 +6,7 @@ namespace Components
 	activeModules_s active = activeModules_s();
 
 	std::vector<Component*> Loader::Components;
-	Utils::Memory::Allocator Loader::MemAllocator;
+	utils::Memory::Allocator Loader::MemAllocator;
 
 	#define USE_MODULE(name, state)	active.##name = state
 
@@ -15,73 +15,73 @@ namespace Components
 		Loader::MemAllocator.clear();
 
 		// global bools for more dynamic modules (choose which modules to load)
-		active._UI			= true;
-		active._CG			= true;
-		active._Client		= true;
-		active._Pmove		= true;
-		active._Debug		= true;
-		active._Game		= true;
-		active._Map			= true;
-		active._Common		= true;
-		active._Renderer	= true;
-		active.Command		= true;
-		active.GScr_Methods	= true;
-		active.QuickPatch	= true;
+		active._cg			= true;
+		active._client		= true;
+		active._common		= true;
+		active._debug		= true;
+		active._ggame		= true;
+		active._map			= true;
+		active._pmove		= true;
+		active._renderer	= true;
+		active._ui			= true;
+		active.command		= true;
+		active.gscr_methods = true;
+		active.patches	= true;
 		active.Scheduler	= true;
 		
-		active.D3D9Ex			 = true;
-		active.MenuExport		 = true;
-		active.PM_Movement		 = true;
+		active.d3d9ex			 = true;
+		active.movement			 = true;
 		active.XO_Console		 = true;
 		active.RB_DrawCollision	 = true;
 		active.RB_ShaderOverlays = true;
-		active.RadiantRemote	 = true;
+		active.radiant_livelink	 = true;
 		active.Window			 = true;
-		active.Gui				 = active.Window == active.D3D9Ex; // needs the window module and d3d9ex
-		active.Gui_Devgui		 = active.Gui; // obv. needs imgui
-		active.Compass			 = true;
-		active.CGaz				 = true;
-		active.Mvm				 = true;
-		active.DayNightCycle	 = true;
-		active.Ocean			 = true;
+		active.gui				 = active.Window == active.d3d9ex; // needs the window module and d3d9ex
+		active.gui_devgui		 = active.gui; // obv. needs imgui
+		active.menu_export		 = true;
+		active.compass			 = true;
+		active.cgaz				 = true;
+		active.mvm				 = true;
+		active.daynight_cycle	 = true;
+		active.ocean			 = true;
 		
 		// General Modules that need to be loaded
-		REGISTER_MODULE(_UI);
-		REGISTER_MODULE(_CG);
-		REGISTER_MODULE(_Client);
-		REGISTER_MODULE(_Pmove);
-		REGISTER_MODULE(_Debug);
-		REGISTER_MODULE(_Game);
-		REGISTER_MODULE(_Map);
-		REGISTER_MODULE(_Common);
-		REGISTER_MODULE(_Renderer);
-		REGISTER_MODULE(Command);
-		REGISTER_MODULE(GScr_Methods);
-		REGISTER_MODULE(QuickPatch);
+		REGISTER_MODULE(_cg);
+		REGISTER_MODULE(_client);
+		REGISTER_MODULE(_common);
+		REGISTER_MODULE(_debug);
+		REGISTER_MODULE(_ggame);
+		REGISTER_MODULE(_map);
+		REGISTER_MODULE(_pmove);
+		REGISTER_MODULE(_renderer);
+		REGISTER_MODULE(_ui);
+		REGISTER_MODULE(command);
+		REGISTER_MODULE(gscr_methods);
+		REGISTER_MODULE(patches);
 		REGISTER_MODULE(Scheduler);
 
 		// Addons
-		REGISTER_MODULE(D3D9Ex);
-		REGISTER_MODULE(MenuExport);
-		REGISTER_MODULE(PM_Movement);
+		REGISTER_MODULE(d3d9ex);
+		REGISTER_MODULE(menu_export);
+		REGISTER_MODULE(movement);
 		REGISTER_MODULE(XO_Console);
 		REGISTER_MODULE(RB_DrawCollision);
 		REGISTER_MODULE(RB_ShaderOverlays);
-		REGISTER_MODULE(RadiantRemote);
+		REGISTER_MODULE(radiant_livelink);
 		REGISTER_MODULE(Window);
-		REGISTER_MODULE(Gui);
-		REGISTER_MODULE(Gui_Devgui);
-		REGISTER_MODULE(Compass);
-		REGISTER_MODULE(CGaz);
-		REGISTER_MODULE(Mvm);
-		REGISTER_MODULE(DayNightCycle);
-		REGISTER_MODULE(Ocean);
+		REGISTER_MODULE(gui);
+		REGISTER_MODULE(gui_devgui);
+		REGISTER_MODULE(compass);
+		REGISTER_MODULE(cgaz);
+		REGISTER_MODULE(mvm);
+		REGISTER_MODULE(daynight_cycle);
+		REGISTER_MODULE(ocean);
 	}
 
 	void Loader::Uninitialize()
 	{
-		std::reverse(Loader::Components.begin(), Loader::Components.end());
-		for (auto component : Loader::Components)
+		std::ranges::reverse(Loader::Components.begin(), Loader::Components.end());
+		for (const auto component : Loader::Components)
 		{
 			delete component;
 		}
@@ -94,15 +94,15 @@ namespace Components
 	{
 		if (component)
 		{
-			Game::Globals::loadedModules.append(Utils::VA("Component registered: %s\n", component->getName()));
+			Game::Globals::loaded_modules.append(utils::va("Component registered: %s\n", component->getName()));
 			Loader::Components.push_back(component);
 		}
 	}
 
 	bool Loader::Registered(const char *componentName)
 	{
-		std::reverse(Loader::Components.begin(), Loader::Components.end());
-		for (auto component : Loader::Components)
+		std::ranges::reverse(Loader::Components.begin(), Loader::Components.end());
+		for (const auto component : Loader::Components)
 		{
 			if (!strcmp(componentName, component->getName()))
 			{
@@ -113,7 +113,7 @@ namespace Components
 		return false;
 	}
 
-	Utils::Memory::Allocator* Loader::GetAlloctor()
+	utils::Memory::Allocator* Loader::GetAlloctor()
 	{
 		return &Loader::MemAllocator;
 	}

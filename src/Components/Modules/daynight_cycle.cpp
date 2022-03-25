@@ -21,16 +21,16 @@ namespace Components
 	bool		 time_rotates_sun = true;			// automatically rotate the sun
 
 	bool		 framefog_tweaks_overwrite = false;	// TOD uses stock fog
-	Game::vec4_t framefog_color_stock = { 0.0f };	// stock fog
+	Game::vec4_t framefog_color_stock	= {};		// stock fog
 	float		 framefog_start_stock	= 0.0f;
 	float		 framefog_density_stock = 0.0f;
 
-	Game::vec4_t sundiffuse_constant  = { 0.0f };	// used to display shader constants
-	Game::vec4_t sunposition_constant = { 0.0f };
-	Game::vec4_t colorbias_constant	  = { 0.0f };
+	Game::vec4_t sundiffuse_constant  = {};			// used to display shader constants
+	Game::vec4_t sunposition_constant = {};
+	Game::vec4_t colorbias_constant	  = {};
 
 	// suncolor lerp variable because steps are so small that they get discarded when packing as char[4] color
-	float		 tod_suncolor_lerp[3] = { 0.0f };
+	float		 tod_suncolor_lerp[3] = {};
 
 	
 	// *******************************************************************************
@@ -85,7 +85,7 @@ namespace Components
 	// *
 	// default time of day settings
 
-	DayNightCycle::time_of_day_settings tod_night = {
+	daynight_cycle::time_of_day_settings tod_night = {
 		/*float film_brightness		*/	-0.075f,
 		/*float film_contrast		*/	1.06f,
 		/*float film_desaturation	*/	0.375f,
@@ -103,7 +103,7 @@ namespace Components
 		/*float fog_color[3]		*/	{ 0.000f, 0.000f, 0.000f }
 	};
 
-	DayNightCycle::time_of_day_settings tod_day = {
+	daynight_cycle::time_of_day_settings tod_day = {
 		/*float film_brightness		*/	0.00f,
 		/*float film_contrast		*/	1.0f,
 		/*float film_desaturation	*/	0.1f,
@@ -121,7 +121,7 @@ namespace Components
 		/*float fog_color[3]		*/	{ 0.545f, 0.505f, 0.377f }
 	};
 
-	DayNightCycle::time_of_day_settings tod_sunset = {
+	daynight_cycle::time_of_day_settings tod_sunset = {
 		/*float film_brightness		*/	-0.03f,
 		/*float film_contrast		*/	1.155f,
 		/*float film_desaturation	*/	0.0f,
@@ -146,7 +146,7 @@ namespace Components
 	// *
 	// config saving
 
-	void cfg_write_tod_settings(std::ofstream& cfg, const DayNightCycle::time_of_day_settings* tod)
+	void cfg_write_tod_settings(std::ofstream& cfg, const daynight_cycle::time_of_day_settings* tod)
 	{
 		if (!tod)
 		{
@@ -256,7 +256,7 @@ namespace Components
 		}
 	}
 
-	void config_set_tod(DayNightCycle::time_of_day_settings* tod, std::vector<std::vector<float>>& v, int& x)
+	void config_set_tod(daynight_cycle::time_of_day_settings* tod, std::vector<std::vector<float>>& v, int& x)
 	{
 		config_set_var(&tod->film_brightness,	v[x++]);
 		config_set_var(&tod->film_contrast,		v[x++]);
@@ -283,13 +283,14 @@ namespace Components
 			return;
 		}
 
-		if (const auto& fs_basepath = Game::Dvar_FindVar("fs_basepath"); fs_basepath)
+		if (const auto& fs_basepath = Game::Dvar_FindVar("fs_basepath"); 
+						fs_basepath)
 		{
-			std::string basePath = fs_basepath->current.string;
-						basePath += "\\iw3xo\\daynight\\";
+			std::string base_path = fs_basepath->current.string;
+						base_path += "\\iw3xo\\daynight\\";
 
 			// open cfg
-			if (std::ifstream cfg((basePath + cfg_name).c_str()); cfg.is_open())
+			if (std::ifstream cfg((base_path + cfg_name).c_str()); cfg.is_open())
 			{
 				std::vector<std::vector<float>> v;
 				std::string line;
@@ -315,9 +316,9 @@ namespace Components
 					++i;
 				}
 
-				if (v.size() != CLOUD_VAR_AMOUNT + (TOD_AMOUNT * DayNightCycle::TOD_VAR_AMOUNT))
+				if (v.size() != CLOUD_VAR_AMOUNT + (TOD_AMOUNT * daynight_cycle::TOD_VAR_AMOUNT))
 				{
-					Game::Com_PrintMessage(0, utils::va("Unable to load config \"%s\". Variable amount mismatch.", (basePath + cfg_name + ".cfg").c_str()), 0);
+					Game::Com_PrintMessage(0, utils::va("Unable to load config \"%s\". Variable amount mismatch.", (base_path + cfg_name + ".cfg").c_str()), 0);
 					
 					cfg.close();
 					return;
@@ -425,7 +426,7 @@ namespace Components
 	// *
 	// fogtweaks over time
 
-	void DayNightCycle::lerp_fogtweaks(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time)
+	void daynight_cycle::lerp_fogtweaks(const daynight_cycle::time_of_day_settings* lerp_to, const float delta_time)
 	{
 		if (lerp_to)
 		{
@@ -480,7 +481,7 @@ namespace Components
 	// *
 	// suntweaks over time
 
-	void DayNightCycle::lerp_suntweaks(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time)
+	void daynight_cycle::lerp_suntweaks(const daynight_cycle::time_of_day_settings* lerp_to, const float delta_time)
 	{
 		const auto& r_lightTweakSunColor = Game::Dvar_FindVar("r_lightTweakSunColor");
 		const auto& r_lightTweakSunLight = Game::Dvar_FindVar("r_lightTweakSunLight");
@@ -544,7 +545,7 @@ namespace Components
 	// *
 	// filmtweaks over time
 
-	void DayNightCycle::lerp_filmtweaks(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time)
+	void daynight_cycle::lerp_filmtweaks(const daynight_cycle::time_of_day_settings* lerp_to, const float delta_time)
 	{
 		const auto& r_filmTweakBrightness = Game::Dvar_FindVar("r_filmTweakBrightness");
 		const auto& r_filmTweakContrast = Game::Dvar_FindVar("r_filmTweakContrast");
@@ -590,21 +591,21 @@ namespace Components
 	// *
 	// lerp over time
 
-	void DayNightCycle::lerp_time_of_day(const DayNightCycle::time_of_day_settings* lerp_to, const float delta_time)
+	void daynight_cycle::lerp_time_of_day(const daynight_cycle::time_of_day_settings* lerp_to, const float delta_time)
 	{
-		DayNightCycle::lerp_suntweaks(lerp_to, delta_time);
-		DayNightCycle::lerp_filmtweaks(lerp_to, delta_time);
-		DayNightCycle::lerp_fogtweaks(lerp_to, delta_time);
+		daynight_cycle::lerp_suntweaks(lerp_to, delta_time);
+		daynight_cycle::lerp_filmtweaks(lerp_to, delta_time);
+		daynight_cycle::lerp_fogtweaks(lerp_to, delta_time);
 	}
 
 
 	// *
 	// called from _client::on_set_cgame_time()
 
-	void DayNightCycle::set_world_time()
+	void daynight_cycle::set_world_time()
 	{
-		auto cui = Game::clientUI;
-		auto cl = Game::clients;
+		const auto cui = Game::clientUI;
+		const auto cl = Game::clients;
 
 		if (cui && cl)
 		{
@@ -613,9 +614,9 @@ namespace Components
 				
 				if (const auto& r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection"); r_lightTweakSunDirection && time_running)
 				{
-					float sun_current_rot = r_lightTweakSunDirection->current.vector[0];
-					float delta = float(cl->serverTimeDelta) * 0.0001f * time_scalar;
-					float delta_abs = fabsf(delta);
+					const float sun_current_rot = r_lightTweakSunDirection->current.vector[0];
+					float delta = static_cast<float>(cl->serverTimeDelta) * 0.0001f * time_scalar;
+					const float delta_abs = fabsf(delta);
 
 
 					// enable filmtweaks
@@ -642,7 +643,7 @@ namespace Components
 					// night time (360 equals 0 so start night transition slightly before 360/0)
 					if (sun_current_rot >= 355.0f || sun_current_rot >= 0.0f && sun_current_rot <= 175.0f)
 					{
-						DayNightCycle::lerp_time_of_day(&tod_night, delta_abs);
+						daynight_cycle::lerp_time_of_day(&tod_night, delta_abs);
 
 						if(sun_current_rot >= 10.0f && sun_current_rot <= 175.0f)
 						{
@@ -654,19 +655,19 @@ namespace Components
 					// sunrise
 					else if (sun_current_rot <= 200.0f)
 					{
-						DayNightCycle::lerp_time_of_day(&tod_sunset, delta_abs);
+						daynight_cycle::lerp_time_of_day(&tod_sunset, delta_abs);
 					}
 
 					// day time
 					else if (sun_current_rot <= 340.0f)
 					{
-						DayNightCycle::lerp_time_of_day(&tod_day, delta_abs);
+						daynight_cycle::lerp_time_of_day(&tod_day, delta_abs);
 					}
 
 					// sunset
 					else
 					{
-						DayNightCycle::lerp_time_of_day(&tod_sunset, delta_abs);
+						daynight_cycle::lerp_time_of_day(&tod_sunset, delta_abs);
 					}
 
 
@@ -706,7 +707,7 @@ namespace Components
 	unsigned int	devgui_selected_config_idx = 0;
 
 	
-	void devgui_tod_settings(DayNightCycle::time_of_day_settings* tod)
+	void devgui_tod_settings(daynight_cycle::time_of_day_settings* tod)
 	{
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -734,7 +735,7 @@ namespace Components
 	}
 
 
-	void DayNightCycle::devgui_tab(Game::gui_menus_t& menu)
+	void daynight_cycle::devgui_tab(Game::gui_menus_t& menu)
 	{
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -753,7 +754,8 @@ namespace Components
 				Game::Dvar_SetValue(dvars::r_dayAndNight, !dvars::r_dayAndNight->current.enabled);
 			}
 
-			if (const auto& sm_sunSampleSizeNear = Game::Dvar_FindVar("sm_sunSampleSizeNear"); sm_sunSampleSizeNear)
+			if (const auto& sm_sunSampleSizeNear = Game::Dvar_FindVar("sm_sunSampleSizeNear"); 
+							sm_sunSampleSizeNear)
 			{
 				Game::Dvar_SetValue(sm_sunSampleSizeNear, 0.55f);
 				sm_sunSampleSizeNear->modified = true;
@@ -765,9 +767,10 @@ namespace Components
 		ImGui::SameLine(); SPACING(0.0f, 0.0f); ImGui::SameLine();
 		ImGui::Checkbox("Enable Auto Sun Rotation", &time_rotates_sun); TT("Automatically rotate the sun. Disable for manual mode using Sun Direction.");
 
-		if(const auto& r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection"); r_lightTweakSunDirection)
+		if (const auto& r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection"); 
+						r_lightTweakSunDirection)
 		{
-			ImGui::DragFloat("Sun Direction", Gui::DvarGetSet<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f");
+			ImGui::DragFloat("Sun Direction", gui::dvar_get_set<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f");
 			TT("Current Sun Direction (x). Disable Auto Sun Rotation for manual mode.");
 		}
 		
@@ -775,9 +778,10 @@ namespace Components
 		ImGui::DragFloat("Day Speed Scalar", &day_speed_scalar, SLIDER_SPEED, 0.1f, 50.0f, "%.4f"); TT("Speed up / Slow down daytime.");
 		ImGui::DragFloat("Night Speed Scalar", &night_speed_scalar, SLIDER_SPEED, 0.1f, 50.0f, "%.4f"); TT("Speed up / Slow down nighttime.");
 
-		if (const auto& sm_sunSampleSizeNear = Game::Dvar_FindVar("sm_sunSampleSizeNear"); sm_sunSampleSizeNear)
+		if (const auto& sm_sunSampleSizeNear = Game::Dvar_FindVar("sm_sunSampleSizeNear"); 
+						sm_sunSampleSizeNear)
 		{
-			ImGui::DragFloat("Shadow Near Sample", Gui::DvarGetSet<float*>(sm_sunSampleSizeNear), 0.25f, 0.0625f, 32.0f, "%.2f");
+			ImGui::DragFloat("Shadow Near Sample", gui::dvar_get_set<float*>(sm_sunSampleSizeNear), 0.25f, 0.0625f, 32.0f, "%.2f");
 			TT("sm_sunSampleSizeNear :: Higher values increases shadow draw distance but reduces quality.");
 		}
 		
@@ -935,8 +939,8 @@ namespace Components
 					r_lightTweakSunColor->modified = true;
 				}
 
-				ImGui::DragFloat3("Sun Direction", Gui::DvarGetSet<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f");
-				ImGui::SliderFloat("Sun Light", Gui::DvarGetSet<float*>(r_lightTweakSunLight), r_lightTweakSunLight->domain.value.min, r_lightTweakSunLight->domain.value.max, "%.2f");
+				ImGui::DragFloat3("Sun Direction", gui::dvar_get_set<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f");
+				ImGui::SliderFloat("Sun Light", gui::dvar_get_set<float*>(r_lightTweakSunLight), r_lightTweakSunLight->domain.value.min, r_lightTweakSunLight->domain.value.max, "%.2f");
 			}
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
@@ -946,10 +950,10 @@ namespace Components
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-			ImGui::Checkbox("Tweak Framefog", Gui::DvarGetSet<bool*>(dvars::r_fogTweaks)); TT("r_fogTweaks");
-			ImGui::ColorEdit4("Fog Color", Gui::DvarGetSet<float*>(dvars::r_fogTweaksColor), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel); TT("r_fogTweaksColor");
-			ImGui::DragFloat("Fog Start", Gui::DvarGetSet<float*>(dvars::r_fogTweaksStart), 5.0f, -1000.0f, 30000.0f, "%.4f"); TT("r_fogTweaksStart");
-			ImGui::DragFloat("Fog Density", Gui::DvarGetSet<float*>(dvars::r_fogTweaksDensity), 0.0001f, 0.0f, 1.0f, "%.4f"); TT("r_fogTweaksDensity");
+			ImGui::Checkbox("Tweak Framefog", gui::dvar_get_set<bool*>(dvars::r_fogTweaks)); TT("r_fogTweaks");
+			ImGui::ColorEdit4("Fog Color", gui::dvar_get_set<float*>(dvars::r_fogTweaksColor), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel); TT("r_fogTweaksColor");
+			ImGui::DragFloat("Fog Start", gui::dvar_get_set<float*>(dvars::r_fogTweaksStart), 5.0f, -1000.0f, 30000.0f, "%.4f"); TT("r_fogTweaksStart");
+			ImGui::DragFloat("Fog Density", gui::dvar_get_set<float*>(dvars::r_fogTweaksDensity), 0.0001f, 0.0f, 1.0f, "%.4f"); TT("r_fogTweaksDensity");
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
@@ -1065,7 +1069,7 @@ namespace Components
 	// skybox constants
 
 	// called from _Renderer::pixelshader_custom_constants
-	void DayNightCycle::set_pixelshader_constants(Game::GfxCmdBufState* state, Game::MaterialShaderArgument* const arg_def)
+	void daynight_cycle::set_pixelshader_constants(Game::GfxCmdBufState* state, Game::MaterialShaderArgument* const arg_def)
 	{
 		if (state->pass->pixelShader && !utils::q_stricmp(state->pass->pixelShader->name, "iw3xo_daynight"))
 		{
@@ -1091,43 +1095,43 @@ namespace Components
 			// set constants
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0)
 			{
-				float constant[4] = { outscatter_color01[0], outscatter_color01[1], outscatter_color01[2], outscatter_scale01 };
+				const float constant[4] = { outscatter_color01[0], outscatter_color01[1], outscatter_color01[2], outscatter_scale01 };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1)
 			{
-				float constant[4] = { outscatter_color02[0], outscatter_color02[1], outscatter_color02[2], outscatter_scale02 };
+				const float constant[4] = { outscatter_color02[0], outscatter_color02[1], outscatter_color02[2], outscatter_scale02 };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2)
 			{
-				float constant[4] = { dn_skydome_scale, dn_cloud_coverage, dn_cloud_thickness, dn_cloud_absorbtion };
+				const float constant[4] = { dn_skydome_scale, dn_cloud_coverage, dn_cloud_thickness, dn_cloud_absorbtion };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
 			{
-				float constant[4] = { dn_star_scale, dn_cloud_step_distance_xz, 0.0f, dn_cloud_exposure };
+				const float constant[4] = { dn_star_scale, dn_cloud_step_distance_xz, 0.0f, dn_cloud_exposure };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
 			{
-				float constant[4] = { dn_cloud_wind_vec[0], dn_cloud_wind_vec[1], dn_cloud_wind_vec[2], dn_cloud_wind_speed };
+				const float constant[4] = { dn_cloud_wind_vec[0], dn_cloud_wind_vec[1], dn_cloud_wind_vec[2], dn_cloud_wind_speed };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
 			{
-				float constant[4] = { dn_sky_sun_intensity, dn_sky_rayleigh_coeff[0], dn_sky_rayleigh_coeff[1], dn_sky_rayleigh_coeff[2] };
+				const float constant[4] = { dn_sky_sun_intensity, dn_sky_rayleigh_coeff[0], dn_sky_rayleigh_coeff[1], dn_sky_rayleigh_coeff[2] };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
 			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6)
 			{
-				float constant[4] = { dn_sky_mie_coeff, dn_sky_rayleigh_scale, dn_sky_mie_scale, dn_sky_mie_scatter_dir };
+				const float constant[4] = { dn_sky_mie_coeff, dn_sky_rayleigh_scale, dn_sky_mie_scale, dn_sky_mie_scatter_dir };
 				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 		}
@@ -1138,7 +1142,7 @@ namespace Components
 	// overwrite default sky
 
 	// called from _Renderer::R_SetMaterial
-	void DayNightCycle::overwrite_sky_material(Game::switch_material_t* swm)
+	void daynight_cycle::overwrite_sky_material(Game::switch_material_t* swm)
 	{
 		if (dvars::r_dayAndNight && dvars::r_dayAndNight->current.enabled)
 		{
@@ -1196,6 +1200,7 @@ namespace Components
 					{
 						r_clearColor->latched.color[i] = r_clearColor->current.color[i];
 					}
+
 					r_clearColor->modified = true;
 				}
 			}
@@ -1204,25 +1209,24 @@ namespace Components
 
 	__declspec(naked) void r_setframefog_stub()
 	{
-		const static uint32_t rtn_pt = 0x63DBE5;
+		const static uint32_t retn_addr = 0x63DBE5;
 		__asm
 		{
 			// stock op's
 			fstp    dword ptr[eax + 29Ch];
-			
-			// eax = GfxCmdBufInput*
+
 			pushad;
-			push	eax;
+			push	eax; // GfxCmdBufInput*
 			call	r_set_frame_fog;
 			add		esp, 4;
 			popad;
 
-			jmp		rtn_pt;
+			jmp		retn_addr;
 		}
 	}
 
 
-	DayNightCycle::DayNightCycle()
+	daynight_cycle::daynight_cycle()
 	{ 
 		// TODO: move to _Renderer
 		// mid-hook R_SetFrameFog
@@ -1272,7 +1276,4 @@ namespace Components
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::none);
 	}
-
-	DayNightCycle::~DayNightCycle()
-	{ }
 }

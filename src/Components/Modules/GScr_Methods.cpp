@@ -6,13 +6,13 @@
 #define SERVER_STRUCT_ADDR 0x17FC7C8 // correct
 #define sv (*((Game::server_t*)(SERVER_STRUCT_ADDR))) // def. 0x17FC7C8
 
-Game::scr_function_t* scr_functions = NULL; // only for PlayerMethods
-Game::scr_function_t *scr_methods = NULL; // only for PlayerMethods
+Game::scr_function_t* scr_functions = nullptr; // only for PlayerMethods
+Game::scr_function_t *scr_methods = nullptr; // only for PlayerMethods
 
 
 namespace Components
 {
-	bool Scr_AddFunction(const char* cmd_name, xfunction_t function, bool developer) 
+	bool scr_add_function(const char* cmd_name, xfunction_t function, bool developer) 
 	{
 		Game::scr_function_t* cmd;
 
@@ -22,9 +22,9 @@ namespace Components
 			if (!strcmp(cmd_name, cmd->name)) 
 			{
 				// allow completion-only commands to be silently doubled
-				if (function != NULL) 
+				if (function != nullptr)
 				{
-					Game::Com_PrintMessage(0, Utils::VA("Scr_AddFunction: %s already defined\n", cmd_name), 0);
+					Game::Com_PrintMessage(0, utils::va("scr_add_function: %s already defined\n", cmd_name), 0);
 				}
 
 				return false;
@@ -32,7 +32,7 @@ namespace Components
 		}
 
 		// use a small malloc to avoid zone fragmentation
-		cmd = reinterpret_cast<Game::scr_function_t*> (malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1));
+		cmd = static_cast<Game::scr_function_t*> (malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1));
 
 		if (cmd && cmd + 0x1)
 		{
@@ -44,7 +44,6 @@ namespace Components
 			return false;
 		}
 
-		//cmd->name		= cmd_name;
 		cmd->function = function;
 		cmd->developer = developer;
 		cmd->next = scr_methods;
@@ -53,9 +52,9 @@ namespace Components
 		return true;
 	}
 
-	bool Scr_AddMethod(const char *cmd_name, xfunction_t function, bool developer)
+	bool add_method(const char *cmd_name, xfunction_t function, bool developer)
 	{
-		Game::scr_function_t  *cmd;
+		Game::scr_function_t* cmd;
 
 		// fail if the command already exists
 		for (cmd = scr_methods; cmd; cmd = cmd->next)
@@ -63,9 +62,9 @@ namespace Components
 			if (!strcmp(cmd_name, cmd->name))
 			{
 				// allow completion-only commands to be silently doubled
-				if (function != NULL) 
+				if (function != nullptr) 
 				{
-					Game::Com_PrintMessage(0, Utils::VA("Scr_AddMethod: %s already defined\n", cmd_name), 0);
+					Game::Com_PrintMessage(0, utils::va("scr_add_method: %s already defined\n", cmd_name), 0);
 				}
 
 				return false;
@@ -73,7 +72,7 @@ namespace Components
 		}
 
 		// use a small malloc to avoid zone fragmentation
-		cmd = reinterpret_cast<Game::scr_function_t*> (malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1));
+		cmd = static_cast<Game::scr_function_t*> (malloc(sizeof(Game::scr_function_t) + strlen(cmd_name) + 1));
 
 		if (cmd && cmd + 0x1)
 		{
@@ -85,7 +84,6 @@ namespace Components
 			return false;
 		}
 
-		//cmd->name		= cmd_name;
 		cmd->function = function;
 		cmd->developer = developer;
 		cmd->next = scr_methods;
@@ -94,7 +92,7 @@ namespace Components
 		return true;
 	}
 
-	void Scr_Error(const char *error)
+	void scr_error(const char *error)
 	{
 		*Game::scrVarPub_p4 = 1;								// display type?
 
@@ -110,7 +108,7 @@ namespace Components
 
 	// *
 	// Get playerstate for clientNum
-	Game::playerState_s *SV_GameClientNum(int num) 
+	Game::playerState_s *get_playerstate_for_sv_client(int num) 
 	{
 		return (Game::playerState_s *)((BYTE*)sv.gameClients + sv.gameClientSize * (num));
 	}
@@ -121,20 +119,17 @@ namespace Components
 
 	// *
 	// Method :: wild LNR hiding in the bushes
-	void PlayerCmd_LNR(scr_entref_t arg)
+	void playercmd_lnr(scr_entref_t arg)
 	{
 		// just print sth to the console for now
-		Game::Com_PrintMessage(0, Utils::VA("Scr_AddMethod: ^3LNR is hiding in the bushes!\n"), 0);
+		Game::Com_PrintMessage(0, utils::va("Scr_AddMethod: ^3LNR is hiding in the bushes!\n"), 0);
 	}
 
 	// *
-	// Method :: SetVelocity
-	void PlayerCmd_SetVelocity(scr_entref_t arg) 
+	// method :: SetVelocity
+	void playercmd_set_velocity(scr_entref_t arg) 
 	{
-		Game::gentity_s* gentity	= nullptr;
-		Game::playerState_s* ps		= nullptr;
-		Game::client_t* cl			= nullptr;
-		std::int32_t entityNum		= 0;
+		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
 		{
@@ -143,32 +138,28 @@ namespace Components
 
 		else 
 		{
-			entityNum	= LOWORD(arg); // arg.entnum
-			gentity		= &Game::scr_g_entities[entityNum];
+			entityNum = LOWORD(arg); // arg.entnum
+			const auto gentity	= &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
-		if( *Game::scr_numParam != 1) 
+		if(*Game::scr_numParam != 1) 
 		{
-			Scr_Error("Usage: self setVelocity( <Vec3> )\n");
+			scr_error("Usage: self setVelocity( <Vec3> )\n");
 		}
 
-		cl = &svs.clients[entityNum];
-		ps = SV_GameClientNum(cl - svs.clients);
-		
-		Game::Scr_GetVector(0, ps->velocity);
+		const auto cl = &svs.clients[entityNum];
+		Game::Scr_GetVector(0, get_playerstate_for_sv_client(cl - svs.clients)->velocity);
 	}
 
 	// *
-	// Method :: SprintButtonPressed
-	void PlayerCmd_SprintButtonPressed(scr_entref_t arg)
+	// method :: SprintLeftButtonPressed
+	void playercmd_sprint_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -179,29 +170,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self sprintButtonPressed()\n");
+			scr_error("Usage: self sprintButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(2, cl->lastUsercmd.buttons));
 	}
 
 	// *
-	// Method :: LeanLeftButtonPressed
-	void PlayerCmd_LeanLeftButtonPressed(scr_entref_t arg)
+	// method :: LeanLeftButtonPressed
+	void playercmd_lean_left_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -212,29 +201,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self leanLeftButtonPressed()\n");
+			scr_error("Usage: self leanLeftButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(64, cl->lastUsercmd.buttons));
 	}
 
 	// *
 	// Method :: LeanRightButtonPressed
-	void PlayerCmd_LeanRightButtonPressed(scr_entref_t arg)
+	void playercmd_lean_right_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -245,29 +232,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self leanRightButtonPressed()\n");
+			scr_error("Usage: self leanRightButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(128, cl->lastUsercmd.buttons));
 	}
 
 	// *
 	// Method :: ReloadButtonPressed
-	void PlayerCmd_ReloadButtonPressed(scr_entref_t arg)
+	void playercmd_reload_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -278,29 +263,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self reloadButtonPressed()\n");
+			scr_error("Usage: self reloadButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(32, cl->lastUsercmd.buttons));
 	}
 
 	// *
 	// Method :: JumpButtonPressed
-	void PlayerCmd_JumpButtonPressed(scr_entref_t arg)
+	void playercmd_jump_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -311,29 +294,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self jumpButtonPressed()\n");
+			scr_error("Usage: self jumpButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(1024, cl->lastUsercmd.buttons));
 	}
 
 	// *
 	// Method :: ForwardButtonPressed
-	void PlayerCmd_ForwardButtonPressed(scr_entref_t arg)
+	void playercmd_forward_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -344,29 +325,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self forwardButtonPressed()\n");
+			scr_error("Usage: self forwardButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(127, cl->lastUsercmd.forwardmove));
 	}
 
 	// *
 	// Method :: BackButtonPressed
-	void PlayerCmd_BackButtonPressed(scr_entref_t arg)
+	void playercmd_back_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -377,29 +356,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self backButtonPressed()\n");
+			scr_error("Usage: self backButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(129, cl->lastUsercmd.forwardmove));
 	}
 
 	// *
 	// Method :: RightButtonPressed
-	void PlayerCmd_RightButtonPressed(scr_entref_t arg)
+	void playercmd_right_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -410,30 +387,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self rightButtonPressed()\n");
+			scr_error("Usage: self rightButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(Game::isButtonPressed(127, cl->lastUsercmd.rightmove));
-		//Game::Scr_AddBool(cl->lastUsercmd.rightmove == 127);
 	}
 
 	// *
 	// Method :: LeftButtonPressed
-	void PlayerCmd_LeftButtonPressed(scr_entref_t arg)
+	void playercmd_left_button_pressed(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		Game::client_t* cl = nullptr;
 		std::int32_t entityNum = 0;
 
 		if (HIWORD(arg)) 
@@ -444,33 +418,27 @@ namespace Components
 		else
 		{
 			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self leftButtonPressed()\n");
+			scr_error("Usage: self leftButtonPressed()\n");
 		}
 
-		cl = &svs.clients[entityNum];
-		//Game::Scr_AddInt(Game::isButtonPressed(129, cl->lastUsercmd.rightmove));
+		const auto cl = &svs.clients[entityNum];
 		Game::Scr_AddInt(cl->lastUsercmd.rightmove == 129);
-		//Game::Scr_AddBool(cl->lastUsercmd.rightmove == 129);
 	}
 
 	// *
 	// Method :: CheckJump
-	void PlayerCmd_CheckJump(scr_entref_t arg)
+	void playercmd_check_jump(scr_entref_t arg)
 	{
-		Game::gentity_s* gentity = nullptr;
-		std::int32_t entityNum = 0;
-
-		
 		if (HIWORD(arg)) 
 		{
 			Game::Scr_ObjectError("Not an entity"); // if arg.classnum
@@ -478,44 +446,44 @@ namespace Components
 
 		else
 		{
-			entityNum = LOWORD(arg); // arg.entnum
-			gentity = &Game::scr_g_entities[entityNum];
+			const std::int32_t entityNum = LOWORD(arg); // arg.entnum
+			const auto gentity = &Game::scr_g_entities[entityNum];
 
 			if (!gentity->client) 
 			{
-				Game::Scr_ObjectError(Utils::VA("Entity: %i is not a player", entityNum));
+				Game::Scr_ObjectError(utils::va("Entity: %i is not a player", entityNum));
 			}
 		}
 
 		if (*Game::scr_numParam != 0) 
 		{
-			Scr_Error("Usage: self checkJump()\n");
+			scr_error("Usage: self checkJump()\n");
 		}
 
-		Game::Scr_AddInt(Game::Globals::locPmove_checkJump);
+		Game::Scr_AddInt(Game::Globals::lpmove_check_jump);
 	}
 
 	// *
 	// Add GScr Methods
-	void Scr_AddStockPlayerMethods() 
+	void add_stock_player_methods() 
 	{
-		Scr_AddMethod("LNR",					(xfunction_t)(PlayerCmd_LNR), 0);
-		Scr_AddMethod("setvelocity",			(xfunction_t)(PlayerCmd_SetVelocity), 0);
-		Scr_AddMethod("sprintButtonPressed",	(xfunction_t)(PlayerCmd_SprintButtonPressed), 0);
-		Scr_AddMethod("leanLeftButtonPressed",	(xfunction_t)(PlayerCmd_LeanLeftButtonPressed), 0);
-		Scr_AddMethod("leanRightButtonPressed", (xfunction_t)(PlayerCmd_LeanRightButtonPressed), 0);
-		Scr_AddMethod("reloadButtonPressed",	(xfunction_t)(PlayerCmd_ReloadButtonPressed), 0);
-		Scr_AddMethod("jumpButtonPressed",		(xfunction_t)(PlayerCmd_JumpButtonPressed), 0);
-		Scr_AddMethod("forwardButtonPressed",	(xfunction_t)(PlayerCmd_ForwardButtonPressed), 0);
-		Scr_AddMethod("backButtonPressed",		(xfunction_t)(PlayerCmd_BackButtonPressed), 0);
-		Scr_AddMethod("rightButtonPressed",		(xfunction_t)(PlayerCmd_RightButtonPressed), 0);
-		Scr_AddMethod("leftButtonPressed",		(xfunction_t)(PlayerCmd_LeftButtonPressed), 0);
-		Scr_AddMethod("checkJump",				(xfunction_t)(PlayerCmd_CheckJump), 0);
+		add_method("LNR",						(xfunction_t)(playercmd_lnr), 0);
+		add_method("setvelocity",				(xfunction_t)(playercmd_set_velocity), 0);
+		add_method("sprintButtonPressed",		(xfunction_t)(playercmd_sprint_button_pressed), 0);
+		add_method("leanLeftButtonPressed",		(xfunction_t)(playercmd_lean_left_button_pressed), 0);
+		add_method("leanRightButtonPressed",	(xfunction_t)(playercmd_lean_right_button_pressed), 0);
+		add_method("reloadButtonPressed",		(xfunction_t)(playercmd_reload_button_pressed), 0);
+		add_method("jumpButtonPressed",			(xfunction_t)(playercmd_jump_button_pressed), 0);
+		add_method("forwardButtonPressed",		(xfunction_t)(playercmd_forward_button_pressed), 0);
+		add_method("backButtonPressed",			(xfunction_t)(playercmd_back_button_pressed), 0);
+		add_method("rightButtonPressed",		(xfunction_t)(playercmd_right_button_pressed), 0);
+		add_method("leftButtonPressed",			(xfunction_t)(playercmd_left_button_pressed), 0);
+		add_method("checkJump",					(xfunction_t)(playercmd_check_jump), 0);
 	}
 
 	// *
 	// Gets called if no stock player-method has been found
-	void* Player_GetCustomMethod(const char **v_functionName)
+	void* player_get_custom_method(const char **v_functionName)
 	{
 		Game::scr_function_t *cmd;
 
@@ -529,50 +497,46 @@ namespace Components
 			}
 		}
 
-		return NULL; // continue searching with the next method types
+		return nullptr; // continue searching with the next method types
 	}
 
 	// ASM :: Scr_GetMethod :: implement Player_GetCustomMethod
 	__declspec(naked) void Scr_GetMethod_stub()
 	{
-		const static uint32_t Player_GetMethod_Stock_Func = 0x4B1FC0;
+		const static uint32_t Player_GetMethod_Stock_func = 0x4B1FC0;
+		const static uint32_t retn_addr = 0x4D8583;
 		__asm
 		{
 			// esi is pushed already
-			call	Player_GetMethod_Stock_Func;
+			call	Player_GetMethod_Stock_func;
 			add     esp, 4;
 			test    eax, eax;
 
 			// Return if we got the Handle for a stock method
-			jnz		GotMethodHandle;
+			jnz		VALID_METHOD_HANDLE;
 
 			// else look if it is a custom method
 			push    esi;
-			call	Player_GetCustomMethod;
+			call	player_get_custom_method;
 			add     esp, 4;
 			test    eax, eax;
 			
 			// Return if we got the Handle for a custom method
-			jnz		GotMethodHandle;
+			jnz		VALID_METHOD_HANDLE;
 
 			// else jump back to the next check in code ( ScriptEnt_GetMethod )
-			push	0x4D8583;
-			retn;
+			jmp		retn_addr;
 
-		GotMethodHandle:
+		VALID_METHOD_HANDLE:
 			retn;
 		}
 	}
 
-	GScr_Methods::GScr_Methods()
+	gscr_methods::gscr_methods()
 	{
-		// Hook Player_GetMethod
-		Utils::Hook(0x4D8577, Scr_GetMethod_stub, HOOK_JUMP).install()->quick();
+		// hook Player_GetMethod
+		utils::hook(0x4D8577, Scr_GetMethod_stub, HOOK_JUMP).install()->quick();
 
-		Scr_AddStockPlayerMethods();
-	}
-
-	GScr_Methods::~GScr_Methods()
-	{
+		add_stock_player_methods();
 	}
 }

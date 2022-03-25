@@ -11,24 +11,21 @@ namespace Components
 	int  client_msec = 0;
 
 
-	void Screenshot(std::string prefix = "recording")
+	void screenshot(std::string prefix = "recording")
 	{
-		std::string mod_name, demo_name = "";
-
-		const char* screenshot_path;
+		std::string mod_name, demo_name;
 
 		const auto& base_path = Game::Dvar_FindVar("fs_basepath");
-		const auto& fs_game = Game::Dvar_FindVar("fs_game");
-
 		if (!base_path) 
 		{
 			return;
 		}
 
-		if (fs_game) 
+		if (const auto& fs_game = Game::Dvar_FindVar("fs_game"); 
+						fs_game)
 		{
 			mod_name = fs_game->current.string;
-			Utils::Replace(mod_name, "mods/"s, "");
+			utils::replace(mod_name, "mods/"s, "");
 		}
 
 		if (Game::clc.demoplaying) 
@@ -36,16 +33,16 @@ namespace Components
 			demo_name = Game::clc.demoName;
 		}
 
-		std::string filePath = base_path->current.string + "\\iw3xo\\screenshots\\"s + mod_name + "\\"s + demo_name;
-		std::filesystem::create_directories(filePath);
+		const std::string file_path = base_path->current.string + "\\iw3xo\\screenshots\\"s + mod_name + "\\"s + demo_name;
+		std::filesystem::create_directories(file_path);
 
 
-		screenshot_path = Utils::VA("%s\\%s_%07d.tga", filePath.c_str(), prefix.c_str(), streams_shotCount);
+		const char* screenshot_path = utils::va("%s\\%s_%07d.tga", file_path.c_str(), prefix.c_str(), streams_shotCount);
 
-		for (; Utils::FileExists(screenshot_path) ;)
+		for (; utils::file_exists(screenshot_path) ;)
 		{
 			streams_shotCount++;
-			screenshot_path = Utils::VA("%s\\%s_%07d.tga", filePath.c_str(), prefix.c_str(), streams_shotCount);
+			screenshot_path = utils::va("%s\\%s_%07d.tga", file_path.c_str(), prefix.c_str(), streams_shotCount);
 		}
 
 
@@ -59,16 +56,16 @@ namespace Components
 
 	void toggle_greenscreen(bool state)
 	{
-		auto r_clear = Game::Dvar_FindVar("r_clear");
-		auto r_clearcolor = Game::Dvar_FindVar("r_clearcolor");
-		auto r_clearcolor2 = Game::Dvar_FindVar("r_clearcolor2");
+		const auto& r_clear = Game::Dvar_FindVar("r_clear");
+		const auto& r_clearcolor = Game::Dvar_FindVar("r_clearcolor");
+		const auto& r_clearcolor2 = Game::Dvar_FindVar("r_clearcolor2");
 
-		auto r_skippvs = Game::Dvar_FindVar("r_skippvs");
-		auto fx_enable = Game::Dvar_FindVar("fx_enable");
-		auto fx_marks = Game::Dvar_FindVar("fx_marks");
+		const auto& r_skippvs = Game::Dvar_FindVar("r_skippvs");
+		const auto& fx_enable = Game::Dvar_FindVar("fx_enable");
+		const auto& fx_marks = Game::Dvar_FindVar("fx_marks");
 
-		auto r_zfar = Game::Dvar_FindVar("r_zfar");
-		auto r_znear = Game::Dvar_FindVar("r_znear");
+		const auto& r_zfar = Game::Dvar_FindVar("r_zfar");
+		const auto& r_znear = Game::Dvar_FindVar("r_znear");
 
 		if (state)
 		{
@@ -115,17 +112,17 @@ namespace Components
 	{
 		if (state)
 		{
-			Game::Dvar_SetValue(Dvars::xo_shaderoverlay, 4);
+			Game::Dvar_SetValue(dvars::xo_shaderoverlay, 4);
 		}
 		else
 		{
-			Game::Dvar_SetValue(Dvars::xo_shaderoverlay, 0);
+			Game::Dvar_SetValue(dvars::xo_shaderoverlay, 0);
 		}
 	}
 
 
-	// called from D3D9Ex::D3D9Device::BeginScene()
-	void Mvm::avidemo_streams()
+	// called from d3d9ex::D3D9Device::BeginScene()
+	void mvm::avidemo_streams()
 	{
 		if (Game::clc.demoplaying)
 		{
@@ -137,21 +134,21 @@ namespace Components
 
 				if (cl_avidemo && cl_forceavidemo && (cl_avidemo->current.integer || cl_forceavidemo->current.enabled))
 				{
-					Screenshot("shot");
+					screenshot("shot");
 				}
 
-				if (Dvars::cl_pause_demo && !Dvars::cl_avidemo_streams->current.integer)
+				if (dvars::cl_pause_demo && !dvars::cl_avidemo_streams->current.integer)
 				{
-					demo_paused = Dvars::cl_pause_demo->current.enabled;
+					demo_paused = dvars::cl_pause_demo->current.enabled;
 				}
 			}
 
-			if (Dvars::cl_avidemo_streams)
+			if (dvars::cl_avidemo_streams)
 			{
-				auto cg_draw2D = Game::Dvar_FindVar("cg_draw2D");
-				auto cg_drawGun = Game::Dvar_FindVar("cg_drawGun");
+				const auto& cg_draw2D = Game::Dvar_FindVar("cg_draw2D");
+				const auto& cg_drawGun = Game::Dvar_FindVar("cg_drawGun");
 
-				if (Dvars::cl_avidemo_streams->current.integer)
+				if (dvars::cl_avidemo_streams->current.integer)
 				{
 					// setup on first run, no screenshot
 					// greenscreen-gun -> world-no-gun -> depth-no-gun -> hud
@@ -159,15 +156,15 @@ namespace Components
 					if (streams_currentView == 0)
 					{
 						// reset cl_pause_demo dvar
-						if (Dvars::cl_pause_demo)
+						if (dvars::cl_pause_demo)
 						{
-							Game::Dvar_SetValue(Dvars::cl_pause_demo, false);
+							Game::Dvar_SetValue(dvars::cl_pause_demo, false);
 						}
 
 						// pause
 						if (!demo_paused) demo_paused = demo_paused ? 0 : 1;
 
-						if (Dvars::cl_avidemo_streams_greenscreen && Dvars::cl_avidemo_streams_greenscreen->current.enabled)
+						if (dvars::cl_avidemo_streams_greenscreen && dvars::cl_avidemo_streams_greenscreen->current.enabled)
 						{
 							toggle_greenscreen(1);
 						}
@@ -183,9 +180,9 @@ namespace Components
 						{
 							// greenscreen-gun 
 						case 2:
-							if (Dvars::cl_avidemo_streams_greenscreen && Dvars::cl_avidemo_streams_greenscreen->current.enabled)
+							if (dvars::cl_avidemo_streams_greenscreen && dvars::cl_avidemo_streams_greenscreen->current.enabled)
 							{
-								Screenshot("greenscreen");
+								screenshot("greenscreen");
 							}
 	
 							streams_prepare = false;
@@ -196,9 +193,9 @@ namespace Components
 						case 3:
 							toggle_greenscreen(0);
 
-							if (Dvars::cl_avidemo_streams_viewmodel)
+							if (dvars::cl_avidemo_streams_viewmodel)
 							{
-								Game::Dvar_SetValue(cg_drawGun, Dvars::cl_avidemo_streams_viewmodel->current.enabled);
+								Game::Dvar_SetValue(cg_drawGun, dvars::cl_avidemo_streams_viewmodel->current.enabled);
 							}
 
 							streams_prepare = true;
@@ -206,7 +203,7 @@ namespace Components
 
 							// ^
 						case 5:
-							Screenshot("normal");
+							screenshot("normal");
 
 							streams_prepare = false;
 							break;
@@ -214,14 +211,14 @@ namespace Components
 
 							// setup depth-no-gun
 						case 6:
-							if (Dvars::cl_avidemo_streams_depth && Dvars::cl_avidemo_streams_depth->current.enabled)
+							if (dvars::cl_avidemo_streams_depth && dvars::cl_avidemo_streams_depth->current.enabled)
 							{
 								toggle_depthmap(1);
 							}
 
-							if (Dvars::cl_avidemo_streams_viewmodel)
+							if (dvars::cl_avidemo_streams_viewmodel)
 							{
-								Game::Dvar_SetValue(cg_drawGun, Dvars::cl_avidemo_streams_viewmodel->current.enabled);
+								Game::Dvar_SetValue(cg_drawGun, dvars::cl_avidemo_streams_viewmodel->current.enabled);
 							}
 							
 							streams_prepare = true;
@@ -229,9 +226,9 @@ namespace Components
 
 							// ^
 						case 8:
-							if (Dvars::cl_avidemo_streams_depth && Dvars::cl_avidemo_streams_depth->current.enabled)
+							if (dvars::cl_avidemo_streams_depth && dvars::cl_avidemo_streams_depth->current.enabled)
 							{
-								Screenshot("depth");
+								screenshot("depth");
 							}
 	
 							streams_prepare = false;
@@ -242,7 +239,7 @@ namespace Components
 						case 9:
 							toggle_depthmap(0);
 
-							if (Dvars::cl_avidemo_streams_hud && Dvars::cl_avidemo_streams_hud->current.enabled)
+							if (dvars::cl_avidemo_streams_hud && dvars::cl_avidemo_streams_hud->current.enabled)
 							{
 								toggle_greenscreen(1);
 								Game::Dvar_SetValue(cg_draw2D, true);
@@ -254,9 +251,9 @@ namespace Components
 
 							// ^
 						case 11:
-							if (Dvars::cl_avidemo_streams_hud && Dvars::cl_avidemo_streams_hud->current.enabled)
+							if (dvars::cl_avidemo_streams_hud && dvars::cl_avidemo_streams_hud->current.enabled)
 							{
-								Screenshot("hud");
+								screenshot("hud");
 							}
 
 							streams_prepare = false;
@@ -287,9 +284,9 @@ namespace Components
 						if (demo_paused) demo_paused = demo_paused ? 0 : 1;
 					}
 				}
-				else // (Dvars::cl_avidemo_streams->current.integer
+				else // (dvars::cl_avidemo_streams->current.integer
 				{
-					if (Dvars::cl_pause_demo && !Dvars::cl_pause_demo->current.enabled)
+					if (dvars::cl_pause_demo && !dvars::cl_pause_demo->current.enabled)
 					{
 						if (demo_paused) demo_paused = demo_paused ? 0 : 1;
 					}
@@ -318,10 +315,12 @@ namespace Components
 		const auto& cl_forceavidemo = Game::Dvar_FindVar("cl_forceavidemo");
 
 		// check if iw3mvm is present
-		if (*(BYTE*)(0x46C90F) == 0x90) {
+		if (*(BYTE*)(0x46C90F) == 0x90) 
+		{
 			iw3mvm_loaded = true;
 		}
-		else {
+		else 
+		{
 			iw3mvm_loaded = false;
 		}
 
@@ -347,9 +346,9 @@ namespace Components
 			}
 		}
 
-		else if (Dvars::cl_avidemo_streams->current.integer)
+		else if (dvars::cl_avidemo_streams->current.integer)
 		{
-			client_msec = static_cast<int>(1000.0 / Dvars::cl_avidemo_streams->current.integer * *Game::com_timescaleValue);
+			client_msec = static_cast<int>(1000.0 / dvars::cl_avidemo_streams->current.integer * *Game::com_timescaleValue);
 
 			if (!client_msec)
 			{
@@ -360,8 +359,8 @@ namespace Components
 
 	__declspec(naked) void CL_RunOncePerClientFrame_stub()
 	{
-		const static uint32_t retnPt_stock = 0x46C94B; // to "add cls.realtime, esi" (iw3mvm hook spot)
-		const static uint32_t retnPt_paused = 0x46C951; // to "mov eax, ecx" (not setting realtime)
+		const static uint32_t retn_addr_stock = 0x46C94B; // to "add cls.realtime, esi" (iw3mvm hook spot)
+		const static uint32_t retn_addr_paused = 0x46C951; // to "mov eax, ecx" (not setting realtime)
 
 		__asm
 		{
@@ -379,8 +378,8 @@ namespace Components
 			mov		esi, client_msec;
 
 			// operation before mvm hook
-			mov     ecx, Game::com_frameTime; // stock
-			mov		ecx, dword ptr[ecx]; // val of com_frameTime
+			mov     ecx, Game::com_frameTime;	// stock
+			mov		ecx, dword ptr[ecx];		// val of com_frameTime
 
 
 			pushad;
@@ -391,7 +390,7 @@ namespace Components
 			pop		eax;
 
 			// jmp if not demo playback
-			jne		jmp_stock;
+			jne		JMP_STOCK;
 
 			// if demo is playing
 			push	eax;
@@ -400,50 +399,50 @@ namespace Components
 			pop		eax;d;
 
 			// jmp if demo not paused (overjump next op and iw3mvm "hook")
-			jne		jmp_stock;
+			jne		JMP_STOCK;
 
 			popad;
-			jmp		retnPt_paused;
+			jmp		retn_addr_paused;
 
-		jmp_stock:
+		JMP_STOCK:
 			popad;
-			jmp		retnPt_stock;
+			jmp		retn_addr_stock;
 		}
 	}
 
 
 	void should_draw_console()
 	{
-		if (!Dvars::cl_avidemo_streams->current.integer || !streams_prepare)
+		if (!dvars::cl_avidemo_streams->current.integer || !streams_prepare)
 		{
 			// Con_DrawSolidConsole
-			Utils::function<void()>(0x461CD0)();
+			utils::function<void()>(0x461CD0)();
 		}
 	}
 
 	__declspec(naked) void Con_DrawSolidConsole_stub()
 	{
-		const static uint32_t retnPt = 0x475065;
+		const static uint32_t retn_addr = 0x475065;
 		__asm
 		{
 			pushad;
 			call	should_draw_console;
 			popad;
 
-			jmp		retnPt;
+			jmp		retn_addr;
 		}
 	}
 
-	Mvm::Mvm()
+	mvm::mvm()
 	{
 #if 0
-		Dvars::load_iw3mvm = Game::Dvar_RegisterBool(
+		dvars::load_iw3mvm = Game::Dvar_RegisterBool(
 			/* name		*/ "load_iw3mvm",
 			/* desc		*/ "load iw3mvm on startup",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::cl_avidemo_streams = Game::Dvar_RegisterIntWrapper(
+		dvars::cl_avidemo_streams = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "cl_avidemo_streams",
 			/* desc		*/ "just like mvm_streams",
 			/* default	*/ 0,
@@ -451,31 +450,31 @@ namespace Components
 			/* maxVal	*/ 1000,
 			/* flags	*/ Game::dvar_flags::none);
 
-		Dvars::cl_avidemo_streams_greenscreen = Game::Dvar_RegisterBool(
+		dvars::cl_avidemo_streams_greenscreen = Game::Dvar_RegisterBool(
 			/* name		*/ "cl_avidemo_streams_greenscreen",
 			/* desc		*/ "take greenscreen shots of the viewmodel",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::cl_avidemo_streams_viewmodel = Game::Dvar_RegisterBool(
+		dvars::cl_avidemo_streams_viewmodel = Game::Dvar_RegisterBool(
 			/* name		*/ "cl_avidemo_streams_viewmodel",
 			/* desc		*/ "show viewmodel in normal shots",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::cl_avidemo_streams_depth = Game::Dvar_RegisterBool(
+		dvars::cl_avidemo_streams_depth = Game::Dvar_RegisterBool(
 			/* name		*/ "cl_avidemo_streams_depth",
 			/* desc		*/ "take depth shots of the world",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::cl_avidemo_streams_hud = Game::Dvar_RegisterBool(
+		dvars::cl_avidemo_streams_hud = Game::Dvar_RegisterBool(
 			/* name		*/ "cl_avidemo_streams_hud",
 			/* desc		*/ "take greenscreen shots of the hud",
 			/* default	*/ true,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::cl_pause_demo = Game::Dvar_RegisterBool(
+		dvars::cl_pause_demo = Game::Dvar_RegisterBool(
 			/* name		*/ "cl_pause_demo",
 			/* desc		*/ "pause the demo",
 			/* default	*/ false,
@@ -483,15 +482,12 @@ namespace Components
 #endif
 
 		// mvm hooks at the next op
-		//Utils::Hook(0x46C8EB, CL_RunOncePerClientFrame_stub, HOOK_JUMP).install()->quick();
+		//utils::hook(0x46C8EB, CL_RunOncePerClientFrame_stub, HOOK_JUMP).install()->quick();
 
 		// disable console drawing when taking screenshots using avidemo_streams
-		//Utils::Hook(0x475060, Con_DrawSolidConsole_stub, HOOK_JUMP).install()->quick();
+		//utils::hook(0x475060, Con_DrawSolidConsole_stub, HOOK_JUMP).install()->quick();
 
 		// fix out of memory error when trying to take screenshots with R_TakeScreenshot when using heavy mods
-		Utils::Hook::Set<BYTE>(0x60E624 + 1, 0x2); // CreateOffscreenPlainSurface D3DPOOL_SCRATCH -> D3DPOOL_SYSTEMMEM
+		utils::hook::set<BYTE>(0x60E624 + 1, 0x2); // CreateOffscreenPlainSurface D3DPOOL_SCRATCH -> D3DPOOL_SYSTEMMEM
 	}
-
-	Mvm::~Mvm()
-	{ }
 }

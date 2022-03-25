@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Utils
+namespace utils
 {
 	// build all entities (includes brushmodel pointers "*")
 	std::string Entities::buildAll()
@@ -36,10 +36,10 @@ namespace Utils
 			std::string classname = entity["classname"];
 
 			// if ent is a brushmodel/submodel
-			if (!classname.empty() && Utils::Contains(classname, "script_struct"))
+			if (!classname.empty() && utils::contains(classname, "script_struct"))
 			{
 				// start entity
-				//entityString.append(Utils::VA("// entity %d\n", entityNum));
+				//entityString.append(utils::va("// entity %d\n", entityNum));
 				entityString.append("{\n");
 
 				for (auto& property : entity)
@@ -87,7 +87,7 @@ namespace Utils
 					}
 
 					// start submodel
-					entityString.append(Utils::VA("// submodel %d\n", submodelNum));
+					entityString.append(utils::va("// submodel %d\n", submodelNum));
 					entityString.append("{\n");
 
 					// write submodel keys
@@ -127,7 +127,7 @@ namespace Utils
 			else
 			{
 				// start entity
-				entityString.append(Utils::VA("// entity %d\n", entityNum));
+				entityString.append(utils::va("// entity %d\n", entityNum));
 				entityString.append("{\n");
 
 				for (auto& property : entity)
@@ -178,7 +178,7 @@ namespace Utils
 					}
 
 					// start submodel
-					entityString.append(Utils::VA("// submodel %d\n", submodelNum));
+					entityString.append(utils::va("// submodel %d\n", submodelNum));
 					entityString.append("{\n");
 
 					// write submodel keys
@@ -221,13 +221,13 @@ namespace Utils
 
 				if (!sscanf_s(origin.c_str(), "%f %f %f", &tempOrigin[0], &tempOrigin[1], &tempOrigin[2]))
 				{
-					Game::Com_PrintMessage(0, Utils::VA("[!]: sscanf failed for entity %d", entityNum), 0);
+					Game::Com_PrintMessage(0, utils::va("[!]: sscanf failed for entity %d", entityNum), 0);
 				}
 
-				if (Utils::polylib::PointWithinBounds(glm::toVec3(tempOrigin), box->mins, box->maxs, 0.25f))
+				if (utils::polylib::PointWithinBounds(glm::toVec3(tempOrigin), box->mins, box->maxs, 0.25f))
 				{
 					// start entity
-					entityString.append(Utils::VA("// entity %d\n", entityNum));
+					entityString.append(utils::va("// entity %d\n", entityNum));
 					entityString.append("{\n");
 
 					for (auto& property : entity)
@@ -330,12 +330,12 @@ namespace Utils
 					// the index should always match the size of our vector or we did something wrong
 					if (p_index != (int)bModels.size())
 					{
-						Game::Com_PrintMessage(0, Utils::VA("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d != %d)", p_index, bModels.size()), 0);
+						Game::Com_PrintMessage(0, utils::va("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d != %d)", p_index, bModels.size()), 0);
 					}
 
 					if (p_index >= static_cast<int>(Game::cm->numSubModels))
 					{
-						Game::Com_PrintMessage(0, Utils::VA("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d >= %d numSubModels)", p_index, Game::cm->numSubModels), 0);
+						Game::Com_PrintMessage(0, utils::va("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d >= %d numSubModels)", p_index, Game::cm->numSubModels), 0);
 						break;
 					}
 
@@ -360,7 +360,7 @@ namespace Utils
 						}
 						else
 						{
-							Game::Com_PrintMessage(0, Utils::VA("[Entities::getBrushModels]: Skipping faulty brush-index pointer at leafbrushNodes[%d].data.leaf.brushes ...\n", p_index), 0);
+							Game::Com_PrintMessage(0, utils::va("[Entities::getBrushModels]: Skipping faulty brush-index pointer at leafbrushNodes[%d].data.leaf.brushes ...\n", p_index), 0);
 						}
 						
 						//currBModel.cmBrush = &Game::cm->brushes[*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes];
@@ -375,7 +375,7 @@ namespace Utils
 					// save entity origin
 					if (!sscanf_s(origin.c_str(), "%f %f %f", &currBModel.cmSubmodelOrigin[0], &currBModel.cmSubmodelOrigin[1], &currBModel.cmSubmodelOrigin[2]))
 					{
-						Game::Com_PrintMessage(0, Utils::VA("[!]: sscanf failed for submodel %d", p_index), 0);
+						Game::Com_PrintMessage(0, utils::va("[!]: sscanf failed for submodel %d", p_index), 0);
 						currBModel.cmSubmodelOrigin[0] = 0.0f;
 						currBModel.cmSubmodelOrigin[1] = 0.0f;
 						currBModel.cmSubmodelOrigin[2] = 0.0f;
@@ -396,7 +396,7 @@ namespace Utils
 			if (i->find("classname") != i->end())
 			{
 				std::string classname = (*i)["classname"];
-				if (Utils::StartsWith(classname, "worldspawn"))
+				if (utils::starts_with(classname, "worldspawn"))
 				{
 					i = this->entities.erase(i);
 					continue;
@@ -414,7 +414,7 @@ namespace Utils
 			if (i->find("classname") != i->end())
 			{
 				std::string classname = (*i)["classname"];
-				if (Utils::StartsWith(classname, "trigger_"))
+				if (utils::starts_with(classname, "trigger_"))
 				{
 					i = this->entities.erase(i);
 					continue;
@@ -490,7 +490,7 @@ namespace Utils
 					}
 					else if (parseState == PARSE_READ_VALUE)
 					{
-						entity[Utils::StrToLower(key)] = value;
+						entity[utils::str_to_lower(key)] = value;
 						parseState = PARSE_AWAIT_KEY;
 					}
 					else

@@ -2,7 +2,7 @@
 
 namespace Main
 {
-	static Utils::Hook EntryPointHook;
+	static utils::hook EntryPointHook;
 
 	void Initialize()
 	{
@@ -38,7 +38,7 @@ void load_addon_libaries()
 	// delay-load
 	Components::Scheduler::once([]()
 	{
-		if (Dvars::load_iw3mvm && Dvars::load_iw3mvm->current.enabled)
+		if (dvars::load_iw3mvm && dvars::load_iw3mvm->current.enabled)
 		{
 			if (LoadLibraryA("iw3xo\\bin\\iw3mvm.dll"))
 			{
@@ -48,7 +48,7 @@ void load_addon_libaries()
 		
 		if (Game::Globals::loaded_libaries.size())
 		{
-			Game::Com_PrintMessage(0, Utils::VA("\n-------------- Loaded Libaries -------------- \n%s\n", Game::Globals::loaded_libaries.c_str()), 0);
+			Game::Com_PrintMessage(0, utils::va("\n-------------- Loaded Libaries -------------- \n%s\n", Game::Globals::loaded_libaries.c_str()), 0);
 		}
 	});
 }
@@ -58,12 +58,6 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
-		// Ensure we're working with our desired binary
-		if (Utils::Hook::Get<DWORD>(0x4C0FFF) != 0x013EB894)
-		{
-			return FALSE;
-		}
-
 		DWORD oldProtect;
 		VirtualProtect(GetModuleHandle(nullptr), 0xD536000, PAGE_EXECUTE_READWRITE, &oldProtect);
 

@@ -2,37 +2,36 @@
 
 namespace Components
 {
-	class Command : public Component
+	class command final : public Component
 	{
 	public:
-		class Params
+		class params
 		{
 		public:
-			Params(DWORD id) : CommandId(id) {};
-			Params(const Params &obj) { this->CommandId = obj.CommandId; };
-			Params() : Params(*Game::cmd_id) {};
+			params(DWORD id) : command_id(id) {};
+			params(const params &obj) { this->command_id = obj.command_id; };
+			params() : params(*Game::cmd_id) {};
 
 			const char* operator[](size_t index);
-			size_t Length();
+			size_t length();
 
 		private:
-			DWORD CommandId;
+			DWORD command_id;
 		};
 
-		typedef void(Callback)(Command::Params params);
+		typedef void(callback)(command::params params);
 
-		Command();
-		~Command();
-		const char* getName() override { return "Command"; };
+		command() = default; ~command() override;
+		const char* getName() override { return "command"; };
 
-		static void Add(const char* name, Utils::Slot<Callback> callback);
-		static void Add(const char* name, const char* args, const char* description, Utils::Slot<Command::Callback> callback);
-		static void Execute(std::string command, bool sync = true);
+		static void add(const char* name, utils::Slot<callback> callback);
+		static void add(const char* name, const char* args, const char* description, utils::Slot<command::callback> callback);
+		static void execute(std::string command, bool sync = true);
 
 	private:
-		static Game::cmd_function_s* Allocate();
-		static std::vector<Game::cmd_function_s*> Functions;
-		static std::map<std::string, Utils::Slot<Callback>> FunctionMap;
-		static void MainCallback();
+		static Game::cmd_function_s* allocate();
+		static std::vector<Game::cmd_function_s*> functions;
+		static std::map<std::string, utils::Slot<callback>> function_map;
+		static void main_callback();
 	};
 }

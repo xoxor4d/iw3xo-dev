@@ -2,15 +2,12 @@
 
 namespace Components
 {
-	class _Pmove : public Component
+	class _pmove final : public Component
 	{
 	public:
-		_Pmove();
-		~_Pmove();
-		const char* getName() override { return "_Pmove"; };
+		_pmove();
+		const char* getName() override { return "_pmove"; };
 
-		static void PM_DrawDebug();
-
-	private:
+		static void draw_debug();
 	};
 }

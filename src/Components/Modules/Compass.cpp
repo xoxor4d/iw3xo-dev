@@ -10,55 +10,55 @@ namespace Components
 
 	static compass_t s;
 
-	void Compass::main()
+	void compass::main()
 	{
-		if (Dvars::mdd_compass && !Dvars::mdd_compass->current.enabled)
+		if (dvars::mdd_compass && !dvars::mdd_compass->current.enabled)
 		{
 			return;
 		}
 
 		s.pm_ps = Game::cgs->predictedPlayerState;
 
-		float yaw = Utils::vector::_DegreesToRadians(s.pm_ps.viewangles[YAW]);
+		const float yaw = utils::vector::_DegreesToRadians(s.pm_ps.viewangles[YAW]);
 		float y, w, h;
 
 		// draw quadrants
-		Game::CG_FillAngleYaw(0, M_PI / 2.0f, yaw, Dvars::mdd_compass_yh->current.vector[0], Dvars::mdd_compass_yh->current.vector[1], Dvars::mdd_compass_quadrant_rgbas0->current.vector);
-		Game::CG_FillAngleYaw(M_PI / 2.0f, M_PI, yaw, Dvars::mdd_compass_yh->current.vector[0], Dvars::mdd_compass_yh->current.vector[1], Dvars::mdd_compass_quadrant_rgbas1->current.vector);
-		Game::CG_FillAngleYaw(-M_PI / 2.0f, -M_PI, yaw, Dvars::mdd_compass_yh->current.vector[0], Dvars::mdd_compass_yh->current.vector[1], Dvars::mdd_compass_quadrant_rgbas2->current.vector);
-		Game::CG_FillAngleYaw(0, -M_PI / 2.0f, yaw, Dvars::mdd_compass_yh->current.vector[0], Dvars::mdd_compass_yh->current.vector[1], Dvars::mdd_compass_quadrant_rgbas3->current.vector);
+		Game::CG_FillAngleYaw(0, M_PI / 2.0f, yaw, dvars::mdd_compass_yh->current.vector[0], dvars::mdd_compass_yh->current.vector[1], dvars::mdd_compass_quadrant_rgbas0->current.vector);
+		Game::CG_FillAngleYaw(M_PI / 2.0f, M_PI, yaw, dvars::mdd_compass_yh->current.vector[0], dvars::mdd_compass_yh->current.vector[1], dvars::mdd_compass_quadrant_rgbas1->current.vector);
+		Game::CG_FillAngleYaw(-M_PI / 2.0f, -M_PI, yaw, dvars::mdd_compass_yh->current.vector[0], dvars::mdd_compass_yh->current.vector[1], dvars::mdd_compass_quadrant_rgbas2->current.vector);
+		Game::CG_FillAngleYaw(0, -M_PI / 2.0f, yaw, dvars::mdd_compass_yh->current.vector[0], dvars::mdd_compass_yh->current.vector[1], dvars::mdd_compass_quadrant_rgbas3->current.vector);
 		
 		// draw ticks
-		y = Dvars::mdd_compass_yh->current.vector[0] + Dvars::mdd_compass_yh->current.vector[1] / 2.0f;
+		y = dvars::mdd_compass_yh->current.vector[0] + dvars::mdd_compass_yh->current.vector[1] / 2.0f;
 		w = 1.0f;
-		h = Dvars::mdd_compass_yh->current.vector[1] / 2.0f;
+		h = dvars::mdd_compass_yh->current.vector[1] / 2.0f;
 
-		Game::CG_DrawLineYaw(0, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
-		Game::CG_DrawLineYaw(M_PI / 2.0f, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
-		Game::CG_DrawLineYaw(M_PI, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
-		Game::CG_DrawLineYaw(-M_PI / 2.0f, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(0, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(M_PI / 2.0f, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(M_PI, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(-M_PI / 2.0f, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
 		 
 		// --
-		y = Dvars::mdd_compass_yh->current.vector[0] + 3.0f * Dvars::mdd_compass_yh->current.vector[1] / 4.0f;
+		y = dvars::mdd_compass_yh->current.vector[0] + 3.0f * dvars::mdd_compass_yh->current.vector[1] / 4.0f;
 		w = 1.0f;
-		h = Dvars::mdd_compass_yh->current.vector[1] / 4.0f;
+		h = dvars::mdd_compass_yh->current.vector[1] / 4.0f;
 
-		Game::CG_DrawLineYaw(M_PI / 4.0f, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
-		Game::CG_DrawLineYaw(3.0f * M_PI / 4.0f, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
-		Game::CG_DrawLineYaw(-M_PI / 4.0f, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
-		Game::CG_DrawLineYaw(-3.0f * M_PI / 4.0f, yaw, y, w, h, Dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(M_PI / 4.0f, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(3.0f * M_PI / 4.0f, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(-M_PI / 4.0f, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
+		Game::CG_DrawLineYaw(-3.0f * M_PI / 4.0f, yaw, y, w, h, dvars::mdd_compass_ticks_rgba->current.vector);
 
 	}
 
-	Compass::Compass()
+	compass::compass()
 	{
-		Dvars::mdd_compass = Game::Dvar_RegisterBool(
+		dvars::mdd_compass = Game::Dvar_RegisterBool(
 			/* name		*/ "mdd_compass",
 			/* desc		*/ "Display mDd world compass",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_compass_yh = Game::Dvar_RegisterVec2(
+		dvars::mdd_compass_yh = Game::Dvar_RegisterVec2(
 			/* name		*/ "mdd_compass_yh",
 			/* desc		*/ "mdd_compass position on screen 'Y' and compass thickness 'H'",
 			/* y		*/ 192.0f,
@@ -67,9 +67,9 @@ namespace Components
 			/* maxValue	*/ 640.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_compass_quadrant_rgbas0 = Game::Dvar_RegisterVec4(
+		dvars::mdd_compass_quadrant_rgbas0 = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_compass_quadrant_rgbas0",
-			/* desc		*/ "color 0° to 90° quadrant",
+			/* desc		*/ "color 0 to 90 deg quadrant",
 			/* x		*/ 1.0f,
 			/* y		*/ 1.0f,
 			/* z		*/ 0.0f,
@@ -78,9 +78,9 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_compass_quadrant_rgbas1 = Game::Dvar_RegisterVec4(
+		dvars::mdd_compass_quadrant_rgbas1 = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_compass_quadrant_rgbas1",
-			/* desc		*/ "color 90° to 180° quadrant",
+			/* desc		*/ "color 90 to 180 deg quadrant",
 			/* x		*/ 0.0f,
 			/* y		*/ 1.0f,
 			/* z		*/ 0.0f,
@@ -89,9 +89,9 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_compass_quadrant_rgbas2 = Game::Dvar_RegisterVec4(
+		dvars::mdd_compass_quadrant_rgbas2 = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_compass_quadrant_rgbas2",
-			/* desc		*/ "color 180° to 270° quadrant",
+			/* desc		*/ "color 180 to 270 deg quadrant",
 			/* x		*/ 0.0f,
 			/* y		*/ 0.0f,
 			/* z		*/ 1.0f,
@@ -100,9 +100,9 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_compass_quadrant_rgbas3 = Game::Dvar_RegisterVec4(
+		dvars::mdd_compass_quadrant_rgbas3 = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_compass_quadrant_rgbas3",
-			/* desc		*/ "color 270° to 360° quadrant",
+			/* desc		*/ "color 270 to 360 deg quadrant",
 			/* x		*/ 1.0f,
 			/* y		*/ 0.0f,
 			/* z		*/ 1.0f,
@@ -111,7 +111,7 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 
-		Dvars::mdd_compass_ticks_rgba = Game::Dvar_RegisterVec4(
+		dvars::mdd_compass_ticks_rgba = Game::Dvar_RegisterVec4(
 			/* name		*/ "mdd_compass_ticks_rgba",
 			/* desc		*/ "color for ticks",
 			/* x		*/ 1.0f,
@@ -122,7 +122,4 @@ namespace Components
 			/* maxValue	*/ 1.0f,
 			/* flags	*/ Game::dvar_flags::saved);
 	}
-
-	Compass::~Compass()
-	{ }
 }

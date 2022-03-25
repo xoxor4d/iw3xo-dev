@@ -2,24 +2,22 @@
 
 namespace Components
 {
-	class CGaz : public Component
+	class cgaz final : public Component
 	{
-
 	public:
-		CGaz();
-		~CGaz();
-		const char* getName() override { return "CGaz"; };
+		cgaz();
+		const char* getName() override { return "cgaz"; };
 
 		static void main();
 	
 	private:
-		static void CG_DrawCGaz();
+		static void draw_cgaz();
 
 		static void PM_Accelerate(float wishspeed, float accel);
 		static void PM_SlickAccelerate(float wishspeed, float accel);
 
 		static float PM_CmdScaleForStance(Game::pmove_t* pm);
-		static float PM_GetViewHeightLerp(Game::pmove_t* pm, int iFromHeight, int iToHeight);
+		static float PM_GetViewHeightLerp(Game::pmove_t* pm, int from_height, int to_height);
 		static float PM_GetViewHeightLerpTime(int iTarget, int bDown);
 
 		static float PM_CmdScale(Game::playerState_s* ps, Game::usercmd_s* cmd);

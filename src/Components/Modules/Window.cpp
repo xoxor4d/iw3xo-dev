@@ -60,14 +60,14 @@ namespace Components
 		__asm
 		{
 			push	eax;
-			mov		eax, Dvars::r_noborder;
+			mov		eax, dvars::r_noborder;
 			cmp		byte ptr[eax + 12], 1;
 			pop		eax;
 
 			// jump if noborder is false
 			jne		STOCK;
 
-			// if (Dvars::r_noborder->current.enabled)
+			// if (dvars::r_noborder->current.enabled)
 			mov		ebp, WS_VISIBLE | WS_POPUP;
 			jmp		retn_pt;
 
@@ -87,9 +87,9 @@ namespace Components
 	{
 		Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 		
-		if (Components::active.Gui)
+		if (Components::active.gui)
 		{
-			Gui::reset();
+			gui::reset();
 		}
 
 		return Window::MainWindow;
@@ -105,7 +105,7 @@ namespace Components
 	{
 		auto menu_open = false;
 
-		if (Components::active.Gui && GGUI_READY)
+		if (Components::active.gui && GGUI_READY)
 		{
 			// handle input and mouse cursor for open menus
 			for (auto menu = 0; menu < GGUI_MENU_COUNT; menu++)
@@ -136,12 +136,12 @@ namespace Components
 		}
 
 		// MainWndProc
-		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x57BB20)(hWnd, Msg, wParam, lParam);
+		return utils::hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x57BB20)(hWnd, Msg, wParam, lParam);
 	}
 
 	bool Window::is_noborder()
 	{
-		if (Dvars::r_noborder && Dvars::r_noborder->current.enabled)
+		if (dvars::r_noborder && dvars::r_noborder->current.enabled)
 		{
 			return true;
 		}
@@ -177,26 +177,26 @@ namespace Components
 
 	Window::Window()
 	{
-		Dvars::r_noborder = Game::Dvar_RegisterBool(
+		dvars::r_noborder = Game::Dvar_RegisterBool(
 			/* name		*/ "r_noborder",
 			/* desc		*/ "Do not use a border in windowed mode",
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::saved);
 
 		// Main window border
-		Utils::Hook(0x5F4963, Window::StyleHookStub, HOOK_JUMP).install()->quick(); // was HOOK_CALL :>
+		utils::hook(0x5F4963, Window::StyleHookStub, HOOK_JUMP).install()->quick(); // was HOOK_CALL :>
 
 		// Main window creation
-		Utils::Hook::Nop(0x5F49CA, 6);		Utils::Hook(0x5F49CA, Window::CreateMainWindow, HOOK_CALL).install()->quick();
+		utils::hook::nop(0x5F49CA, 6);		utils::hook(0x5F49CA, Window::CreateMainWindow, HOOK_CALL).install()->quick();
 
 		// Don't let the game interact with the native cursor
-		Utils::Hook::Set(0x69128C, Window::ShowCursorHook);
+		utils::hook::set(0x69128C, Window::ShowCursorHook);
 
 		// Use custom message handler
-		Utils::Hook::Set(0x5774EE, Window::MessageHandler);
+		utils::hook::set(0x5774EE, Window::MessageHandler);
 
 		// Do not use vid_xpos / vid_ypos when r_noborder is enabled
-		Utils::Hook::Nop(0x5F4C47, 9);		Utils::Hook(0x5F4C47, vid_xypos_stub, HOOK_JUMP).install()->quick();
+		utils::hook::nop(0x5F4C47, 9);		utils::hook(0x5F4C47, vid_xypos_stub, HOOK_JUMP).install()->quick();
 	}
 
 	Window::~Window()

@@ -74,17 +74,16 @@
 #include <WinHttpClient.h>
 
 #include "Game/Structs.hpp"
-#include "Utils/vector.hpp"
-#include "Utils/Utils.hpp"
-#include "Utils/polylib.hpp"
-#include "Utils/Memory.hpp"
-#include "Utils/Stream.hpp"
-#include "Utils/Hooking.hpp"
-#include "Utils/Entities.hpp"
-#include "Utils/function.hpp"
+#include "utils/vector.hpp"
+#include "utils/utils.hpp"
+#include "utils/polylib.hpp"
+#include "utils/memory.hpp"
+#include "utils/hooking.hpp"
+#include "utils/Entities.hpp"
+#include "utils/function.hpp"
 
 #include "Game/Functions.hpp"
-#include "Game/Dvars.hpp"
+#include "Game/dvars.hpp"
 
 #include "Components/Fonts.hpp"
 #include "Components/Loader.hpp"

@@ -2,13 +2,10 @@
 
 namespace Components
 {
-	class _Client : public Component
+	class _client final : public Component
 	{
 	public:
-		_Client();
-		~_Client();
-		const char* getName() override { return "_Client"; };
-
-	private:
+		_client();
+		const char* getName() override { return "_client"; };
 	};
 }

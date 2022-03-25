@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Utils
+namespace utils
 {
 	class Entities
 	{

@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Dvars
+namespace dvars
 {
 	// Client
 	Game::dvar_s* cl_avidemo_streams = nullptr;

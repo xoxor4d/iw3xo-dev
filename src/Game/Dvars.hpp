@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Dvars
+namespace dvars
 {
 	// Client
 	extern Game::dvar_s* cl_avidemo_streams;

@@ -2,17 +2,14 @@
 
 namespace Components
 {
-	class Compass : public Component
+	class compass final : public Component
 	{
 
 	public:
 
-		Compass();
-		~Compass();
-		const char* getName() override { return "Compass"; };
+		compass();
+		const char* getName() override { return "compass"; };
 
 		static void main();
-
-	private:
 	};
 }

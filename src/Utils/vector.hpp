@@ -16,11 +16,11 @@ namespace glm
 	glm::vec4 toVec4(const float *value);
 
 	void setFloat2(float *dest, const glm::vec2 &src);
-	void setFloat3(float *dest, const glm::vec3 &src);
+	void set_float3(float *dest, const glm::vec3 &src);
 	void setFloat4(float *dest, const glm::vec4 &src);
 }
 
-namespace Utils
+namespace utils
 {
 	namespace vector // https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_shared.h
 	{

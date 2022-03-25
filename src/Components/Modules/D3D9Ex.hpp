@@ -3,10 +3,10 @@
 
 namespace Components
 {
-	class D3D9Ex : public Component
+	class d3d9ex final : public Component
 	{
 	public:
-		D3D9Ex();
+		d3d9ex();
 
 	private:
 		class D3D9Device : public IDirect3DDevice9
@@ -139,11 +139,11 @@ namespace Components
 			IDirect3DDevice9 *m_pIDirect3DDevice9;
 		};
 
-		class _D3D9 : public IDirect3D9
+		class _d3d9 final : public IDirect3D9
 		{
 		public:
-			_D3D9(IDirect3D9 *pOriginal) : m_pIDirect3D9(pOriginal) {};
-			virtual ~_D3D9() {};
+			_d3d9(IDirect3D9 *pOriginal) : m_pIDirect3D9(pOriginal) {};
+			virtual ~_d3d9() {};
 
 			HRESULT  __stdcall QueryInterface(REFIID riid, void** ppvObj) override;
 			ULONG    __stdcall AddRef() override;
@@ -167,11 +167,11 @@ namespace Components
 			IDirect3D9 *m_pIDirect3D9;
 		};
 
-		class _D3D9Ex : public IDirect3D9Ex
+		class _d3d9ex final : public IDirect3D9Ex
 		{
 		public:
-			_D3D9Ex(IDirect3D9Ex* pOriginal) : m_pIDirect3D9Ex(pOriginal) {};
-			virtual ~_D3D9Ex() {};
+			_d3d9ex(IDirect3D9Ex* pOriginal) : m_pIDirect3D9Ex(pOriginal) {};
+			virtual ~_d3d9ex() {};
 
 			HRESULT  __stdcall QueryInterface(REFIID riid, void** ppvObj) override;
 			ULONG    __stdcall AddRef() override;
@@ -200,6 +200,6 @@ namespace Components
 			IDirect3D9Ex* m_pIDirect3D9Ex;
 		};
 
-		static IDirect3D9* __stdcall Direct3DCreate9Stub(UINT sdk);
+		static IDirect3D9* __stdcall direct3d_create9_stub(UINT sdk);
 	};
 }
