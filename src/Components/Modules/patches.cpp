@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	// on renderer initialization
 	void print_loaded_modules()

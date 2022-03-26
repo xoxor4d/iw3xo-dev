@@ -75,7 +75,7 @@
 #define pm_prone_accelerate		19.0f
 #define pm_airaccelerate		1.0f
 
-namespace Components
+namespace components
 {
 	typedef struct
 	{

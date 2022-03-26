@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class movement final : public Component
+	class movement final : public component
 	{
 	public:
 		movement();

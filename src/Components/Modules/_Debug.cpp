@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	// -------------------------------------------------------------------------
 	// Lines
@@ -540,19 +540,19 @@ namespace Components
 	// pre RB_DrawDebug :: additional debug functions here
 	void additional_debug(Game::GfxViewParms *view_parms)
 	{
-		if (Components::active.RB_DrawCollision)
+		if (components::active.draw_collision)
 		{
 			// Draw Debug Collision
-			RB_DrawCollision::RB_ShowCollision(view_parms);
+			draw_collision::debug_collision_frame(view_parms);
 		}
 		
-		if (Components::active.radiant_livelink)
+		if (components::active.radiant_livelink)
 		{
 			// Radiant Live-Link
 			radiant_livelink::draw_debug_brush();
 		}
 
-		if (Components::active._pmove)
+		if (components::active._pmove)
 		{
 			_pmove::draw_debug();
 		}

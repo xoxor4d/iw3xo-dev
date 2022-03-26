@@ -1,9 +1,9 @@
 // https://github.com/IW4x/iw4x-client/blob/develop/src/Components/Modules/D3D9Ex.hpp
 #pragma once
 
-namespace Components
+namespace components
 {
-	class d3d9ex final : public Component
+	class d3d9ex final : public component
 	{
 	public:
 		d3d9ex();

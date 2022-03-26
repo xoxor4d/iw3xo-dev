@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class _ggame final : public Component
+	class _ggame final : public component
 	{
 	public:
 		_ggame();

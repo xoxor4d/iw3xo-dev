@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	// ---------------
 	// Movement traces
@@ -273,7 +273,7 @@ namespace Components
 	void pmove_client(Game::pmove_t *pm)
 	{
 		// remove me later
-		radiant_livelink::SV_ReceivePackets();
+		radiant_livelink::receive_packets();
 
 		const int server_time = pm->cmd.serverTime;
 		const int command_time = pm->ps->commandTime;
@@ -282,7 +282,7 @@ namespace Components
 		const bool radiant_camera_active = Game::Globals::cgs_addons.radiant_livelink_connected && (dvars::radiant_syncCamera->current.integer == 2 || dvars::radiant_syncCamera->current.integer == 3);
 		int refresh_rate_ms = 0, current_diff = 0;
 
-		if (Components::active.radiant_livelink && radiant_camera_active)
+		if (components::active.radiant_livelink && radiant_camera_active)
 		{
 			// *
 			// calculate client frametime
@@ -370,7 +370,7 @@ namespace Components
 					// -------------------------
 					// game->radiant cam control
 
-					if (Components::active.radiant_livelink && radiant_camera_active)
+					if (components::active.radiant_livelink && radiant_camera_active)
 					{
 						const float temp_camera_origin[3] =
 						{

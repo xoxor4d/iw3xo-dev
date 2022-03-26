@@ -20,7 +20,7 @@ https://github.com/Nukem9/LinkerMod/blob/development/components/radiant_mod/remo
 // execute a single command
 #define CMDEXEC(command) Game::Cmd_ExecuteSingleCommand(0, 0, command)
 
-namespace Components
+namespace components
 {
 	Game::radiantBrush_t _brush_sorting_container[RADIANT_MAX_SEL_BRUSHES];
 
@@ -374,7 +374,7 @@ namespace Components
 				{
 					if (!Game::Globals::dynamic_brush_models.initiated)
 					{
-						Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Disabled debug-brush collision. Could not find any dynamic brushmodels on the map!^7\n|-> ^1Make sure that you included the \"dynamic_collision_bmodels.map\" prefab within your map -> RE-BSP!", 0);
+						Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Disabled debug-brush collision. Could not find any dynamic brushmodels on the map!^7\n|-> ^1Make sure that you included the \"dynamic_collision_bmodels.map\" prefab within your map -> RE-BSP!", 0);
 						Game::Globals::dynamic_brush_models.initiated = true;
 					}
 
@@ -387,7 +387,7 @@ namespace Components
 					// if we ran out of avail. brushmodels, stop updating collision and notify the user
 					if (Game::Globals::radiant_saved_brushes.was_modified)
 					{
-						Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Not enough dynamic brushmodels available! Using oldest selection for collision ...\n", 0);
+						Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Not enough dynamic brushmodels available! Using oldest selection for collision ...\n", 0);
 						Game::Globals::radiant_saved_brushes.was_modified = false;
 					}
 
@@ -847,7 +847,7 @@ namespace Components
 		const int ret = send(_livelink_client_socket, (const char *)cmd, sizeof(Game::ServerCommand), 0);
 		if (ret == SOCKET_ERROR)
 		{
-			Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Sending msg to client failed!\n", 0);
+			Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Sending msg to client failed!\n", 0);
 			return;
 
 			//closesocket(g_RemoteSocket);
@@ -903,11 +903,11 @@ namespace Components
 
 	// *
 	// process dvars
-	void radiant_livelink::cmd_process_dvar(Game::SpawnVar* spawnVar)
+	void radiant_livelink::cmd_process_dvar(Game::SpawnVar* spawn_var)
 	{
-		if (const auto dvarname_string = _ggame::get_spawnvar_pair_value(spawnVar, "dvarname"))
+		if (const auto dvarname_string = _ggame::get_spawnvar_pair_value(spawn_var, "dvarname"))
 		{
-			if (const auto value_string = _ggame::get_spawnvar_pair_value(spawnVar, "value"))
+			if (const auto value_string = _ggame::get_spawnvar_pair_value(spawn_var, "value"))
 			{
 				Game::Cmd_ExecuteSingleCommand(0, 0, utils::va("%s %s\n", dvarname_string, value_string));
 			}
@@ -916,9 +916,9 @@ namespace Components
 
 	// *
 	// process camera commands from radiant
-	void radiant_livelink::cmd_process_camera(Game::SpawnVar *spawnVar)
+	void radiant_livelink::cmd_process_camera(Game::SpawnVar *spawn_var)
 	{
-		if (const auto origin_string = _ggame::get_spawnvar_pair_value(spawnVar, "origin"))
+		if (const auto origin_string = _ggame::get_spawnvar_pair_value(spawn_var, "origin"))
 		{
 			if (!sscanf(origin_string, "%f %f %f", &Game::Globals::cgs_addons.radiant_camera_origin[0], &Game::Globals::cgs_addons.radiant_camera_origin[1], &Game::Globals::cgs_addons.radiant_camera_origin[2]))
 			{
@@ -926,7 +926,7 @@ namespace Components
 			}
 		}
 
-		if (const auto angles_string = _ggame::get_spawnvar_pair_value(spawnVar, "angles"))
+		if (const auto angles_string = _ggame::get_spawnvar_pair_value(spawn_var, "angles"))
 		{
 			if (!sscanf(angles_string, "%f %f %f", &Game::Globals::cgs_addons.radiant_camera_angles[0], &Game::Globals::cgs_addons.radiant_camera_angles[1], &Game::Globals::cgs_addons.radiant_camera_angles[2]))
 			{
@@ -947,13 +947,13 @@ namespace Components
 
 	// on each selection (once)
 	// bool :: if valid selection or nothing selected
-	void radiant_livelink::Cmd_ProcessBrushSelect(Game::SpawnVar *spawnVar)
+	void radiant_livelink::cmd_process_brush_select(Game::SpawnVar *spawn_var)
 	{
-		if (auto brushselect_string = _ggame::get_spawnvar_pair_value(spawnVar, "brushselect"))
+		if (const auto brush_select_string = _ggame::get_spawnvar_pair_value(spawn_var, "brushselect"))
 		{
 			int temp;
 
-			if (!sscanf(brushselect_string, "%d", &temp))
+			if (!sscanf(brush_select_string, "%d", &temp))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_SELECT", 0);
 			}
@@ -969,11 +969,11 @@ namespace Components
 
 	// on each selection (once)
 	// int :: amount of selected brushes
-	void radiant_livelink::Cmd_ProcessBrushAmount(Game::SpawnVar *spawnVar)
+	void radiant_livelink::cmd_process_brush_amount(Game::SpawnVar *spawn_var)
 	{
-		if (auto brushcount_string = _ggame::get_spawnvar_pair_value(spawnVar, "brushcount"))
+		if (const auto brush_count_string = _ggame::get_spawnvar_pair_value(spawn_var, "brushcount"))
 		{
-			if (!sscanf(brushcount_string, "%d", &Game::Globals::radiant_saved_brushes.selected_brush_count))
+			if (!sscanf(brush_count_string, "%d", &Game::Globals::radiant_saved_brushes.selected_brush_count))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_COUNT", 0);
 			}
@@ -991,20 +991,20 @@ namespace Components
 
 	// *
 	// clear the last saved brush transmitted from radiant
-	void RadiantDB_ClearSavedBrush(int brushNum)
+	void brushcontainer_clear_saved_brush(int brush_num)
 	{
 		// reset the face index
-		Game::Globals::radiant_saved_brushes.brush[brushNum].next_free_face_idx = 0;
+		Game::Globals::radiant_saved_brushes.brush[brush_num].next_free_face_idx = 0;
 
 		// clear brush-faces and face-windingpoints
-		memset(Game::Globals::radiant_saved_brushes.brush[brushNum].face, 0, sizeof(Game::Globals::radiant_saved_brushes.brush[brushNum].face[16]));
+		memset(Game::Globals::radiant_saved_brushes.brush[brush_num].face, 0, sizeof(Game::Globals::radiant_saved_brushes.brush[brush_num].face[16]));
 	}
 
 	// per brush
 	// int :: the index of the current brush being transmitted
-	void radiant_livelink::Cmd_ProcessBrushNum(Game::SpawnVar *spawnVar)
+	void radiant_livelink::cmd_process_brush_num(Game::SpawnVar *spawnVar)
 	{
-		if (auto brushnum_string = _ggame::get_spawnvar_pair_value(spawnVar, "brushnum"))
+		if (const auto brushnum_string = _ggame::get_spawnvar_pair_value(spawnVar, "brushnum"))
 		{
 			if (!sscanf(brushnum_string, "%d", &Game::Globals::radiant_saved_brushes.selected_brush_num))
 			{
@@ -1020,46 +1020,45 @@ namespace Components
 
 	// per brush
 	// int :: how many faces we transmit in total
-	void radiant_livelink::Cmd_ProcessBrushFaceCount(Game::SpawnVar *spawnVar, int brushNum)
+	void radiant_livelink::cmd_process_brush_face_count(Game::SpawnVar *spawnVar, int brush_num)
 	{
-		if (auto brushFaceCount_str = _ggame::get_spawnvar_pair_value(spawnVar, "brushfacecount"))
+		if (const auto brush_face_count_str = _ggame::get_spawnvar_pair_value(spawnVar, "brushfacecount"))
 		{
 			// set brush face-count
-			if (!sscanf(brushFaceCount_str, "%d", &Game::Globals::radiant_saved_brushes.brush[brushNum].face_count))
+			if (!sscanf(brush_face_count_str, "%d", &Game::Globals::radiant_saved_brushes.brush[brush_num].face_count))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_FACE_COUNT", 0);
 			}
 
 			// clear old brush if we got atleast one valid face
-			if (Game::Globals::radiant_saved_brushes.brush[brushNum].face_count)
+			if (Game::Globals::radiant_saved_brushes.brush[brush_num].face_count)
 			{
-				RadiantDB_ClearSavedBrush(brushNum);
+				brushcontainer_clear_saved_brush(brush_num);
 			}
 		}
 	}
 
 	// per brush-face
 	// vec3_t :: face-normal (sent before windings)
-	void radiant_livelink::Cmd_ProcessBrushFaceNormals(Game::SpawnVar *spawnVar, int brushNum)
+	void radiant_livelink::cmd_process_brush_face_normals(Game::SpawnVar *spawn_var, int brush_num)
 	{
 		// next free face in rad_savedBrushes.brush.face (0 on new brush, ++ on each new face (do not increment here!))
-		int fIdx = Game::Globals::radiant_saved_brushes.brush[brushNum].next_free_face_idx;
+		const int next_free = Game::Globals::radiant_saved_brushes.brush[brush_num].next_free_face_idx;
 
-		if (auto brushFaceNormal_str = _ggame::get_spawnvar_pair_value(spawnVar, "normal"))
+		if (const auto brush_face_normal_str = _ggame::get_spawnvar_pair_value(spawn_var, "normal"))
 		{
-			if (!sscanf(brushFaceNormal_str, "%f %f %f",
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].normal[0],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].normal[1],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].normal[2]))
+			if (!sscanf(brush_face_normal_str, "%f %f %f",
+				&Game::Globals::radiant_saved_brushes.brush[brush_num].face[next_free].normal[0],
+				&Game::Globals::radiant_saved_brushes.brush[brush_num].face[next_free].normal[1],
+				&Game::Globals::radiant_saved_brushes.brush[brush_num].face[next_free].normal[2]))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_FACE_NORMALS", 0);
 			}
 		}
 
-		if (auto brushFaceDist_str = _ggame::get_spawnvar_pair_value(spawnVar, "dist"))
+		if (const auto brush_face_dist_str = _ggame::get_spawnvar_pair_value(spawn_var, "dist"))
 		{
-			if (!sscanf(brushFaceDist_str, "%f",
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].dist))
+			if (!sscanf(brush_face_dist_str, "%f", &Game::Globals::radiant_saved_brushes.brush[brush_num].face[next_free].dist))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_FACE_NORMALS_DIST", 0);
 			}
@@ -1068,40 +1067,40 @@ namespace Components
 
 	// per brush-face
 	// int / vec3 :: how many windings per face we transmit + the points themselfs 
-	void radiant_livelink::Cmd_ProcessBrushFace(Game::SpawnVar *spawnVar, int brushNum)
+	void radiant_livelink::cmd_process_brush_face(Game::SpawnVar *spawnVar, int brushNum)
 	{
 		// next free face in rad_savedBrushes.brush.face (0 on new brush, ++ on each new face)
-		int fIdx = Game::Globals::radiant_saved_brushes.brush[brushNum].next_free_face_idx;
+		const int next_free = Game::Globals::radiant_saved_brushes.brush[brushNum].next_free_face_idx;
 
 		// get the amount of winding points for the current face
-		if (auto brushWindingCount_str = _ggame::get_spawnvar_pair_value(spawnVar, "windingcount"))
+		if (const auto brush_winding_count_str = _ggame::get_spawnvar_pair_value(spawnVar, "windingcount"))
 		{
-			if (!sscanf(brushWindingCount_str, "%d", &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_count))
+			if (!sscanf(brush_winding_count_str, "%d", &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_count))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_FACE_WINDING_COUNT", 0);
 			}
 		}
 
 		// build winding points for the current face
-		if (auto brushWindings_str = _ggame::get_spawnvar_pair_value(spawnVar, "windingpoints"))
+		if (const auto brush_windings_str = _ggame::get_spawnvar_pair_value(spawnVar, "windingpoints"))
 		{
-			if (!sscanf(brushWindings_str, "%f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f",
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[0][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[0][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[0][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[1][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[1][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[1][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[2][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[2][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[2][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[3][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[3][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[3][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[4][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[4][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[4][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[5][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[5][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[5][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[6][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[6][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[6][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[7][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[7][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[7][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[8][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[8][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[8][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[9][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[9][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[9][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[10][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[10][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[10][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[11][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[11][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[11][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[12][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[12][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[12][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[13][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[13][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[13][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[14][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[14][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[14][2],
-				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[15][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[15][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[fIdx].winding_pts[15][2]))
+			if (!sscanf(brush_windings_str, "%f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f  %f %f %f",
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[0][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[0][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[0][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[1][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[1][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[1][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[2][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[2][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[2][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[3][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[3][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[3][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[4][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[4][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[4][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[5][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[5][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[5][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[6][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[6][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[6][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[7][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[7][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[7][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[8][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[8][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[8][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[9][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[9][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[9][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[10][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[10][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[10][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[11][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[11][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[11][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[12][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[12][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[12][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[13][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[13][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[13][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[14][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[14][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[14][2],
+				&Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[15][0], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[15][1], &Game::Globals::radiant_saved_brushes.brush[brushNum].face[next_free].winding_pts[15][2]))
 			{
 				Game::Com_PrintMessage(0, "[!]: sscanf failed to read command of type : RADIANT_COMMAND_BRUSH_FACE_WINDING_POINTS", 0);
 			}
@@ -1113,14 +1112,14 @@ namespace Components
 
 	// *
 	// Check radiant connection status - accept / reject
-	bool radiant_livelink::SV_UpdateSocket()
+	bool radiant_livelink::update_socket()
 	{
 		// Skip this function if client already connected
 		if (_livelink_client_socket != INVALID_SOCKET)
 		{
 			if (!Game::Globals::cgs_addons.radiant_livelink_connected)
 			{
-				Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Client connected!\n", 0);
+				Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Client connected!\n", 0);
 				Game::Globals::cgs_addons.radiant_livelink_connected = true;
 			}
 
@@ -1133,20 +1132,17 @@ namespace Components
 		}
 
 		// Check if there's a pending client connection request
-		fd_set readSet;
-		FD_ZERO(&readSet);
-		FD_SET(_livelink_server_socket, &readSet);
+		fd_set read_set;
+		FD_ZERO(&read_set);
+		FD_SET(_livelink_server_socket, &read_set);
 
 		// Zero timeout (poll)
-		timeval timeout;
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 0;
-
-		int status = select(_livelink_server_socket, &readSet, nullptr, nullptr, &timeout);
+		const timeval timeout = { 0, 0 };
+		const int status = select(_livelink_server_socket, &read_set, nullptr, nullptr, &timeout);
 
 		if (status == SOCKET_ERROR)
 		{
-			Game::Com_Error(0, "^1[LiveRadiant]: ^7Failed to query socket status!\n");
+			Game::Com_Error(0, "^1[LiveLink]: ^7Failed to query socket status!\n");
 		}
 
 		// Must be 1 (handle) if someone is waiting
@@ -1159,26 +1155,25 @@ namespace Components
 
 		if (_livelink_client_socket == INVALID_SOCKET)
 		{
-			Game::Com_Error(0, "^1[LiveRadiant]: ^7Failed to accept a connection!?\n");
+			Game::Com_Error(0, "^1[LiveLink]: ^7Failed to accept a connection!?\n");
 		}
 
 		// Set non-blocking flag
-		u_long socketMode = 1;
-		ioctlsocket(_livelink_client_socket, FIONBIO, &socketMode);
+		u_long socket_mode = 1;
+		ioctlsocket(_livelink_client_socket, FIONBIO, &socket_mode);
 
-		Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Client connected!\n", 0);
+		Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Client connected!\n", 0);
 		Game::Globals::cgs_addons.radiant_livelink_connected = true;
 
 
 		// ---------
 
-		Game::ServerCommand cmd;
-		memset(&cmd, 0, sizeof(Game::ServerCommand));
-
+		Game::ServerCommand cmd = {};
 		cmd.type = Game::SERVER_STRING_MSG;
-		std::string buildDate = IW3XO_BUILDVERSION_DATE;
-		std::string buildNum = std::to_string((int)IW3X_BUILDNUMBER);
-		sprintf_s(cmd.command, utils::va("(IW3XO::%s::%s) accepted request", buildNum.c_str(), buildDate.c_str()));
+
+		const std::string build_date = IW3XO_BUILDVERSION_DATE;
+		const std::string build_num = std::to_string((int)IW3X_BUILDNUMBER);
+		sprintf_s(cmd.command, utils::va("(IW3XO::%s::%s) accepted request", build_num.c_str(), build_date.c_str()));
 
 		radiant_livelink::send_packet(&cmd);
 
@@ -1187,26 +1182,26 @@ namespace Components
 		return true;
 	}
 
-	Game::RadiantCommand recvCommands[1024];
+	Game::RadiantCommand _recv_commands[1024];
 
 	// *
 	// Receive packets from radiant (would normally run within the server thread @ 20fps)
 	// Current networking only supports local usage, so why not increase the receiving rate by calling it from pmove
-	void radiant_livelink::SV_ReceivePackets()
+	void radiant_livelink::receive_packets()
 	{
-		if (!dvars::radiant_live || !dvars::radiant_live->current.enabled || !radiant_livelink::SV_UpdateSocket())
+		if (!dvars::radiant_live || !dvars::radiant_live->current.enabled || !radiant_livelink::update_socket())
 		{
 			Game::Globals::cgs_addons.radiant_livelink_connected = false;
 			return;
 		}
 
 		// Non-blocking read
-		memset(recvCommands, 0, sizeof(recvCommands));
+		memset(_recv_commands, 0, sizeof(_recv_commands));
 
-		int recvSize = recv(_livelink_client_socket, (char *)&recvCommands, sizeof(recvCommands), 0);
+		const int recv_size = recv(_livelink_client_socket, (char *)&_recv_commands, sizeof(_recv_commands), 0);
 
 		// Skip everything if there's no data
-		if (recvSize == SOCKET_ERROR) 
+		if (recv_size == SOCKET_ERROR) 
 		{
 			if (WSAGetLastError() == WSAEWOULDBLOCK)
 			{
@@ -1218,51 +1213,57 @@ namespace Components
 			closesocket(_livelink_client_socket);
 
 			_livelink_client_socket = INVALID_SOCKET;
-			Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Client disconnected!\n", 0);
+			Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Client disconnected!\n", 0);
 
 			return;
 		}
 
 		// Determine the number of commands sent, then tell the game
-		size_t commandCount = recvSize / sizeof(Game::RadiantCommand); 
+		const size_t command_count = recv_size / sizeof(Game::RadiantCommand); 
 
-		for (size_t i = 0; i < commandCount; i++)
+		for (size_t i = 0; i < command_count; i++)
 		{
-			Game::SpawnVar spawnVar;
+			Game::SpawnVar spawn_var = {};
 			
 			// set start and end of string command
-			_ggame::set_entity_parse_point(recvCommands[i].command);
+			_ggame::set_entity_parse_point(_recv_commands[i].command);
 
 			// parse it
-			_ggame::parse_spawn_vars(&spawnVar);
+			_ggame::parse_spawn_vars(&spawn_var);
 
 			// parse the following commands in order (see IW3xRadiant :: onBrush_SelectDeselect) 
 			// parse select first (once)
-			if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_SELECT)
+			if (_recv_commands[i].type == Game::RADIANT_COMMAND_BRUSH_SELECT)
 			{
-				radiant_livelink::Cmd_ProcessBrushSelect(&spawnVar);
+				radiant_livelink::cmd_process_brush_select(&spawn_var);
 
 				if (dvars::radiant_liveDebug->current.enabled)
-					Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_SELECT).\n", 0);
+				{
+					Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Received command of type (RADIANT_COMMAND_BRUSH_SELECT).\n", 0);
+				}
 			}
 
 			// amount of selected brushes (once)
-			if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_COUNT)
+			if (_recv_commands[i].type == Game::RADIANT_COMMAND_BRUSH_COUNT)
 			{
-				radiant_livelink::Cmd_ProcessBrushAmount(&spawnVar);
+				radiant_livelink::cmd_process_brush_amount(&spawn_var);
 
 				if (dvars::radiant_liveDebug->current.enabled)
-					Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_COUNT).\n", 0);
+				{
+					Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Received command of type (RADIANT_COMMAND_BRUSH_COUNT).\n", 0);
+				}
 			}
 
 			// on each brush
 			// per brush current brush number (once)
-			if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_CURRENT_NUM)
+			if (_recv_commands[i].type == Game::RADIANT_COMMAND_BRUSH_CURRENT_NUM)
 			{
-				radiant_livelink::Cmd_ProcessBrushNum(&spawnVar);
+				radiant_livelink::cmd_process_brush_num(&spawn_var);
 
 				if (dvars::radiant_liveDebug->current.enabled)
-					Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_CURRENT_NUM).\n", 0);
+				{
+					Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Received command of type (RADIANT_COMMAND_BRUSH_CURRENT_NUM).\n", 0);
+				}
 			}
 
 			// ^ above adds nextFree to selectedNum
@@ -1270,47 +1271,53 @@ namespace Components
 			{
 				// on each brush
 				// per brush face-count (once)
-				if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_FACE_COUNT)
+				if (_recv_commands[i].type == Game::RADIANT_COMMAND_BRUSH_FACE_COUNT)
 				{
-					radiant_livelink::Cmd_ProcessBrushFaceCount(&spawnVar, Game::Globals::radiant_saved_brushes.selected_brush_num);
+					radiant_livelink::cmd_process_brush_face_count(&spawn_var, Game::Globals::radiant_saved_brushes.selected_brush_num);
 
 					if (dvars::radiant_liveDebug->current.enabled)
-						Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_FACE_COUNT).\n", 0);
+					{
+						Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Received command of type (RADIANT_COMMAND_BRUSH_FACE_COUNT).\n", 0);
+					}
 				}
 
 				// on each brush
 				// per brush-face normal (face 1 and 3 only) ... all of them :o
-				if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_FACE_NORMALS)
+				if (_recv_commands[i].type == Game::RADIANT_COMMAND_BRUSH_FACE_NORMALS)
 				{
-					radiant_livelink::Cmd_ProcessBrushFaceNormals(&spawnVar, Game::Globals::radiant_saved_brushes.selected_brush_num);
+					radiant_livelink::cmd_process_brush_face_normals(&spawn_var, Game::Globals::radiant_saved_brushes.selected_brush_num);
 
 					if (dvars::radiant_liveDebug->current.enabled)
-						Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_FACE_NORMALS).\n", 0);
+					{
+						Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Received command of type (RADIANT_COMMAND_BRUSH_FACE_NORMALS).\n", 0);
+					}
 				}
 
 				// on each brush
 				// parse all of the brush faces (runs multiple times as we send 1 cmd for each face)
-				if (recvCommands[i].type == Game::RADIANT_COMMAND_BRUSH_FACE)
+				if (_recv_commands[i].type == Game::RADIANT_COMMAND_BRUSH_FACE)
 				{
-					radiant_livelink::Cmd_ProcessBrushFace(&spawnVar, Game::Globals::radiant_saved_brushes.selected_brush_num);
+					radiant_livelink::cmd_process_brush_face(&spawn_var, Game::Globals::radiant_saved_brushes.selected_brush_num);
 
 					if (dvars::radiant_liveDebug->current.enabled)
-						Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Received command of type (RADIANT_COMMAND_BRUSH_FACE).\n", 0);
+					{
+						Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Received command of type (RADIANT_COMMAND_BRUSH_FACE).\n", 0);
+					}
 				}
 			}
 
 			// -----------
 
 			// parse cammera commands
-			if (recvCommands[i].type == Game::RADIANT_COMMAND_CAMERA)
+			if (_recv_commands[i].type == Game::RADIANT_COMMAND_CAMERA)
 			{
-				radiant_livelink::cmd_process_camera(&spawnVar);
+				radiant_livelink::cmd_process_camera(&spawn_var);
 			}
 
 			// parse dvar
-			if (recvCommands[i].type == Game::RADIANT_COMMAND_SET_DVAR)
+			if (_recv_commands[i].type == Game::RADIANT_COMMAND_SET_DVAR)
 			{
-				radiant_livelink::cmd_process_dvar(&spawnVar);
+				radiant_livelink::cmd_process_dvar(&spawn_var);
 			}
 		}
 	}
@@ -1322,19 +1329,18 @@ namespace Components
 		//RadiantRemote::SV_ReceivePackets();
 	}
 
-	// :: SV_PostFrame
 	__declspec(naked) void SV_PostFrame_stub()
 	{
-		const static uint32_t SV_CheckTimeouts_Func = 0x532D20;
-		const static uint32_t retnPt = 0x5335B3; // SV_SendClientMessages Call
+		const static uint32_t SV_CheckTimeouts_func = 0x532D20;
+		const static uint32_t retn_addr = 0x5335B3; // SV_SendClientMessages call
 		__asm
 		{
 			pushad
 			Call	SV_PostFrame
 			popad
 
-			Call	SV_CheckTimeouts_Func // overwritten op
-			jmp		retnPt
+			Call	SV_CheckTimeouts_func // overwritten op
+			jmp		retn_addr
 		}
 	}
 
@@ -1344,7 +1350,7 @@ namespace Components
 
 	// *
 	// Shutdown live-link server
-	void radiant_livelink::SV_Shutdown()
+	void radiant_livelink::shutdown_livelink()
 	{
 		shutdown(_livelink_server_socket, 2 /*SD_BOTH*/);
 		closesocket(_livelink_server_socket);
@@ -1357,23 +1363,22 @@ namespace Components
 
 		Game::Globals::cgs_addons.radiant_livelink_connected = false;
 
-		Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Shutdown!\n", 0);
+		Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Shutdown!\n", 0);
 	}
 
 	// *
 	// Start live-link server on G_InitGame
-	void radiant_livelink::SV_Init()
+	void radiant_livelink::init()
 	{
 		if (_livelink_server_socket != INVALID_SOCKET)
 		{
 			return;
 		}
 
-		WSADATA wsaData;
-
-		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR)
+		WSADATA wsa_data;
+		if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != NO_ERROR)
 		{
-			Game::Com_Error(0, "^1[LiveRadiant]: ^7Socket startup failed!\n");
+			Game::Com_Error(0, "^1[LiveLink]: ^7Socket startup failed!\n");
 		}
 		
 		// Create a TCP server socket
@@ -1381,22 +1386,22 @@ namespace Components
 
 		if (_livelink_server_socket == INVALID_SOCKET)
 		{
-			Game::Com_Error(0, "^1[LiveRadiant]: ^7Socket creation failed!\n");
+			Game::Com_Error(0, "^1[LiveLink]: ^7Socket creation failed!\n");
 		}
 			
 		// Bind socket to any local address on port X
-		sockaddr_in addrIn;
+		sockaddr_in addrIn = {};
 		addrIn.sin_family = AF_INET;
-		addrIn.sin_port = htons((u_short)dvars::radiant_livePort->current.integer); //htons(3700);
+		addrIn.sin_port = htons((u_short)dvars::radiant_livePort->current.integer);
 		addrIn.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-		Game::Com_PrintMessage(0, utils::va("^2[LiveRadiant]: ^7Attempting to bind on port %d ... \n", (int)ntohs(addrIn.sin_port)), 0);
+		Game::Com_PrintMessage(0, utils::va("^2[LiveLink]: ^7Attempting to bind on port %d ... \n", static_cast<int>(ntohs(addrIn.sin_port))), 0);
 
 		if (bind(_livelink_server_socket, (SOCKADDR *)&addrIn, sizeof(addrIn)) == SOCKET_ERROR)
 		{
-			Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Failed to bind socket. Port in use? ~> radiant_livePort\n", 0);
+			Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Failed to bind socket. Port in use? ~> radiant_livePort\n", 0);
 
-			radiant_livelink::SV_Shutdown();
+			radiant_livelink::shutdown_livelink();
 
 			return;
 		}
@@ -1404,29 +1409,29 @@ namespace Components
 		// Listen for any number of incoming connections
 		if (listen(_livelink_server_socket, SOMAXCONN) == SOCKET_ERROR)
 		{
-			Game::Com_PrintMessage(0, "^1[LiveRadiant]: ^7Failed to listen for incoming connections!\n", 0);
+			Game::Com_PrintMessage(0, "^1[LiveLink]: ^7Failed to listen for incoming connections!\n", 0);
 
-			radiant_livelink::SV_Shutdown();
+			radiant_livelink::shutdown_livelink();
 			return;
 		}
 
-		Game::Com_PrintMessage(0, "^2[LiveRadiant]: ^7Succeeded!\n", 0);
+		Game::Com_PrintMessage(0, "^2[LiveLink]: ^7Succeeded!\n", 0);
 	}
 
 	// :: RadiantRemote::SV_Init()
 	__declspec(naked) void G_InitGame_stub()
 	{
-		const static uint32_t SaveRegisteredItems_Func = 0x4BCBE0;
-		const static uint32_t retnPt = 0x4BF5A8; // next op after hook loc
+		const static uint32_t SaveRegisteredItems_func = 0x4BCBE0;
+		const static uint32_t retn_addr = 0x4BF5A8; // next op after hook loc
 		__asm
 		{
-			Call	SaveRegisteredItems_Func
+			Call	SaveRegisteredItems_func
 
 			pushad
-			Call	radiant_livelink::SV_Init
+			Call	radiant_livelink::init
 			popad
 
-			jmp		retnPt
+			jmp		retn_addr
 		}
 	}
 
@@ -1440,6 +1445,7 @@ namespace Components
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
 			ImGui::Checkbox("Enable Radiant Live-Link", gui::dvar_get_set<bool*>(dvars::radiant_live)); TT("radiant_live");
+
 			ImGui::SameLine();
 			ImGui::Checkbox("Enable Live-Link Debug", gui::dvar_get_set<bool*>(dvars::radiant_liveDebug)); TT("radiant_liveDebug");
 
@@ -1458,8 +1464,10 @@ namespace Components
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
 			ImGui::Checkbox("Brush Collision", gui::dvar_get_set<bool*>(dvars::radiant_brushCollision)); TT("radiant_brushCollision");
+
 			ImGui::SameLine();
 			ImGui::Checkbox("Brush Fake-Light", gui::dvar_get_set<bool*>(dvars::radiant_brushLit)); TT("radiant_brushLit");
+
 			ImGui::SameLine();
 			ImGui::Checkbox("Brush Wireframe", gui::dvar_get_set<bool*>(dvars::radiant_brushWireframe)); TT("radiant_brushWireframe");
 
@@ -1476,9 +1484,16 @@ namespace Components
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-			if (ImGui::Button("Save Current Selection")) { CMDEXEC("radiant_saveSelection"); } TT("radiant_saveSelection");
+			if (ImGui::Button("Save Current Selection"))
+			{
+				CMDEXEC("radiant_saveSelection");
+			} TT("radiant_saveSelection");
+
 			ImGui::SameLine();
-			if (ImGui::Button("Clear Saved Selection")) { CMDEXEC("radiant_clearSaved"); } TT("radiant_clearSaved");
+			if (ImGui::Button("Clear Saved Selection"))
+			{
+				CMDEXEC("radiant_clearSaved");
+			} TT("radiant_clearSaved");
 
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
@@ -1489,7 +1504,7 @@ namespace Components
 	
 	radiant_livelink::radiant_livelink()
 	{
-		command::add("radiant_saveSelection", [](command::params)
+		command::add("radiant_saveSelection", [&](auto)
 		{
 			if (Game::Globals::cgs_addons.radiant_livelink_connected)
 			{
@@ -1506,26 +1521,20 @@ namespace Components
 
 					memcpy(&_brush_sorting_container, &Game::Globals::radiant_saved_brushes.brush, sizeof(Game::radiantBrush_t) * RADIANT_MAX_SEL_BRUSHES);
 
-					int firstNonSavedDB_idx = Game::Globals::radiant_saved_brushes.saved_brush_count;
-					int lastNonSavedDB_idx = Game::Globals::radiant_saved_brushes.saved_brush_count + Game::Globals::radiant_saved_brushes.selected_brush_count - 1;
+					const int first_free_saved_brush_index = Game::Globals::radiant_saved_brushes.saved_brush_count;
+					
+					int free_saved_brushes_count = Game::Globals::radiant_saved_brushes.selected_brush_count;
 
-					if (lastNonSavedDB_idx >= RADIANT_MAX_SEL_BRUSHES)
+					if (free_saved_brushes_count + first_free_saved_brush_index >= RADIANT_MAX_SEL_BRUSHES)
 					{
-						lastNonSavedDB_idx = RADIANT_MAX_SEL_BRUSHES - 1;
-					}
-
-					int nonSavedDB_count = Game::Globals::radiant_saved_brushes.selected_brush_count;
-
-					if (nonSavedDB_count + firstNonSavedDB_idx >= RADIANT_MAX_SEL_BRUSHES)
-					{
-						nonSavedDB_count = RADIANT_MAX_SEL_BRUSHES - 1 - firstNonSavedDB_idx;
+						free_saved_brushes_count = RADIANT_MAX_SEL_BRUSHES - 1 - first_free_saved_brush_index;
 					}
 
 					// clear all saved brushes first
 					memset(&Game::Globals::radiant_saved_brushes.brush[0], 0, sizeof(Game::radiantBrush_t) * RADIANT_MAX_SEL_BRUSHES);
 
 					// copy new brushes into the struct
-					memcpy(&Game::Globals::radiant_saved_brushes.brush[0], &_brush_sorting_container[firstNonSavedDB_idx], sizeof(Game::radiantBrush_t) * nonSavedDB_count);
+					memcpy(&Game::Globals::radiant_saved_brushes.brush[0], &_brush_sorting_container[first_free_saved_brush_index], sizeof(Game::radiantBrush_t) * free_saved_brushes_count);
 				
 					Game::Globals::radiant_saved_brushes.using_saved = true;
 					Game::Globals::radiant_saved_brushes.saved_brush_count = Game::Globals::radiant_saved_brushes.selected_brush_count;
@@ -1548,7 +1557,7 @@ namespace Components
 			}
 		});
 
-		command::add("radiant_clearSaved", [](command::params)
+		command::add("radiant_clearSaved", [&](auto)
 		{
 			if (Game::Globals::cgs_addons.radiant_livelink_connected)
 			{
@@ -1575,7 +1584,7 @@ namespace Components
 		});
 
 		/*radiant_connect*/ #if 0
-		Command::Add("radiant_connect", [](Command::Params params)
+		Command::Add("radiant_connect", [&](auto)
 		{
 			if (Game::Dvar_FindVar("sv_running")->current.enabled)
 			{
@@ -1605,7 +1614,7 @@ namespace Components
 
 			if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR)
 			{
-				Game::Com_PrintMessage(0, "^1[LiveRadiant]: WSAStartup ERROR!\n", 0);
+				Game::Com_PrintMessage(0, "^1[LiveLink]: WSAStartup ERROR!\n", 0);
 				return;
 			}
 
@@ -1619,11 +1628,11 @@ namespace Components
 
 			if (g_RemoteSocket == INVALID_SOCKET)
 			{
-				Game::Com_PrintMessage(0, "^1[LiveRadiant]: Failed to initialize client TCP socket!\n", 0);
+				Game::Com_PrintMessage(0, "^1[LiveLink]: Failed to initialize client TCP socket!\n", 0);
 				return;
 			}
 
-			Game::Com_PrintMessage(0, utils::va("[LiveRadiant]: Connecting to <%s> : <%d> ...\n", r_connectIp.c_str(), r_connectPort), 0);
+			Game::Com_PrintMessage(0, utils::va("[LiveLink]: Connecting to <%s> : <%d> ...\n", r_connectIp.c_str(), r_connectPort), 0);
 
 			g_RemoteSocketStatus = INVALID_SOCKET;
 
@@ -1642,7 +1651,7 @@ namespace Components
 			// if connected sucessfully
 			if (connect(g_RemoteSocket, (sockaddr*)&remoteAddr, sizeof(sockaddr)) != SOCKET_ERROR)
 			{
-				Game::Com_PrintMessage(0, "^2[LiveRadiant]: Connected!\n", 0);
+				Game::Com_PrintMessage(0, "^2[LiveLink]: Connected!\n", 0);
 				g_RemoteSocketStatus = 1;
 
 				Game::Globals::cgs_addons.radiantLiveConnected = true;

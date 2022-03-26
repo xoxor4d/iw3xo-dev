@@ -1,7 +1,7 @@
 // https://github.com/IW4x/iw4x-client/blob/develop/src/Components/Modules/D3D9Ex.cpp
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 #pragma region D3D9Device
 
@@ -96,7 +96,7 @@ namespace Components
 
 	HRESULT d3d9ex::D3D9Device::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	{
-		if (Components::active.gui)
+		if (components::active.gui)
 		{
 			if (GGUI_READY)
 			{
@@ -243,7 +243,7 @@ namespace Components
 
 	HRESULT d3d9ex::D3D9Device::BeginScene()
 	{
-		if (Components::active.mvm)
+		if (components::active.mvm)
 		{
 			mvm::avidemo_streams();
 		}
@@ -253,7 +253,7 @@ namespace Components
 
 	HRESULT d3d9ex::D3D9Device::EndScene()
 	{
-		if (Components::active.gui)
+		if (components::active.gui)
 		{
 			gui::render_loop();
 		}

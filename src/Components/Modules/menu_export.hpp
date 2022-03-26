@@ -29,9 +29,9 @@
 		write_number(name, value, map);			\
 	}
 
-namespace Components
+namespace components
 {
-	class menu_export final : public Component
+	class menu_export final : public component
 	{
 	public:
 		menu_export();

@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	void RB_GaussianFilterImage(float radius, Game::GfxRenderTargetId srcRenderTargetId, Game::GfxRenderTargetId dstRenderTargetId, float _dstWidth = 0.0, float _dstHeight = 0.0)
 	{

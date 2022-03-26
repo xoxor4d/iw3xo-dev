@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class gui_devgui final : public Component
+	class gui_devgui final : public component
 	{
 	public:
 		gui_devgui();

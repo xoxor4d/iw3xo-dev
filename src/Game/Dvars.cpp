@@ -175,9 +175,6 @@ namespace dvars
 	Game::dvar_s* r_drawCollision_polyDepth = nullptr;
 	Game::dvar_s* r_drawCollision_polyFace = nullptr;
 	Game::dvar_s* r_drawCollision_polyLit = nullptr;
-	Game::dvar_s* r_drawCollision_flickerBrushes = nullptr;
-	Game::dvar_s* r_drawCollision_flickerOnTime = nullptr;
-	Game::dvar_s* r_drawCollision_flickerOffTime = nullptr;
 	Game::dvar_s* r_drawCollision_hud = nullptr;
 	Game::dvar_s* r_drawCollision_hud_position = nullptr;
 	Game::dvar_s* r_drawCollision_hud_fontScale = nullptr;

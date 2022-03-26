@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class patches final : public Component
+	class patches final : public component
 	{
 	public:
 		patches();

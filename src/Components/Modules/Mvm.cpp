@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	bool iw3mvm_loaded	 = false;
 	bool demo_paused	 = false;

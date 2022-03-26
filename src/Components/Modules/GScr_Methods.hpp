@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Components
+namespace components
 {
 	typedef void(*xfunction_t)();
 
@@ -14,7 +14,7 @@ namespace Components
 
 	typedef int scr_entref_t;
 
-	class gscr_methods final : public Component
+	class gscr_methods final : public component
 	{
 	public:
 		gscr_methods();

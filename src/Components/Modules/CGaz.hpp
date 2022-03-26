@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class cgaz final : public Component
+	class cgaz final : public component
 	{
 	public:
 		cgaz();

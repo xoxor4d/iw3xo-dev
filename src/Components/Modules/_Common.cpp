@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	// *
 	// dvars
@@ -8,17 +8,17 @@ namespace Components
 	// register additional dvars in R_Init > R_RegisterDvars
 	void register_additional_dvars()
 	{
-		if (Components::active._ui)
+		if (components::active._ui)
 		{
 			_ui::register_dvars();
 		}
 		
-		if (Components::active._renderer)
+		if (components::active._renderer)
 		{
 			_renderer::register_dvars();
 		}
 
-		if (Components::active.RB_ShaderOverlays)
+		if (components::active.RB_ShaderOverlays)
 		{
 			RB_ShaderOverlays::register_dvars();
 		}
@@ -88,7 +88,7 @@ namespace Components
 			Game::Cmd_ExecuteSingleCommand(0, 0, "in_mouse 1\n");
 		}
 
-		if (Components::active.gui)
+		if (components::active.gui)
 		{
 			gui::load_settings();
 		}

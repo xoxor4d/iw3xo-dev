@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class ocean final : public Component
+	class ocean final : public component
 	{
 	public:
 		ocean() = default;

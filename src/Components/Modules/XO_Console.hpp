@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class XO_Console : public Component
+	class XO_Console : public component
 	{
 	public:
 		XO_Console();

@@ -2,30 +2,30 @@
 
 #define SERVER_DEBUG_CMDS true
 
-namespace Components
+namespace components
 {
-	class radiant_livelink final : public Component
+	class radiant_livelink final : public component
 	{
 	public:
 		radiant_livelink();
 		const char* getName() override { return "radiant_livelink"; };
 
-		static void		SV_Init();
-		static void		SV_Shutdown();
-		static bool		SV_UpdateSocket();
-		static void		SV_ReceivePackets();
+		static void		init();
+		static void		shutdown_livelink();
+		static bool		update_socket();
+		static void		receive_packets();
 
 		static void		send_packet(Game::ServerCommand *cmd);
 		static void		cmd_send_camera(const float *origin, const float *angles);
 
-		static void		cmd_process_dvar(Game::SpawnVar* spawnVar);
-		static void		cmd_process_camera(Game::SpawnVar *spawnVar);
-		static void		Cmd_ProcessBrushSelect(Game::SpawnVar *spawnVar);
-		static void		Cmd_ProcessBrushAmount(Game::SpawnVar *spawnVar);
-		static void		Cmd_ProcessBrushNum(Game::SpawnVar *spawnVar);
-		static void		Cmd_ProcessBrushFaceNormals(Game::SpawnVar *spawnVar, int brushNum);
-		static void		Cmd_ProcessBrushFaceCount(Game::SpawnVar *spawnVar, int brushNum);
-		static void		Cmd_ProcessBrushFace(Game::SpawnVar *spawnVar, int brushNum);
+		static void		cmd_process_dvar(Game::SpawnVar* spawn_var);
+		static void		cmd_process_camera(Game::SpawnVar *spawn_var);
+		static void		cmd_process_brush_select(Game::SpawnVar *spawn_var);
+		static void		cmd_process_brush_amount(Game::SpawnVar *spawn_var);
+		static void		cmd_process_brush_num(Game::SpawnVar *spawnVar);
+		static void		cmd_process_brush_face_normals(Game::SpawnVar *spawn_var, int brush_num);
+		static void		cmd_process_brush_face_count(Game::SpawnVar *spawnVar, int brush_num);
+		static void		cmd_process_brush_face(Game::SpawnVar *spawnVar, int brushNum);
 
 		// -------
 		// Clipmap

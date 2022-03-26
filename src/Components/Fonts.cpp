@@ -4,7 +4,7 @@
 // Compressed using ImGui's binary_to_compressed_c
 // https://www.apache.org/licenses/LICENSE-2.0.html
 
-namespace Components
+namespace components
 {
 	namespace fonts
     {

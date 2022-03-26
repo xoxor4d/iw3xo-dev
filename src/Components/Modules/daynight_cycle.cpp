@@ -11,7 +11,7 @@
 // spacing dummy
 #define SPACING(x, y) ImGui::Dummy(ImVec2(x, y)) 
 
-namespace Components
+namespace components
 {
 	// *
 	// internal helper vars

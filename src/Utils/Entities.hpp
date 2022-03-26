@@ -11,13 +11,13 @@ namespace utils
 		Entities(const Entities &obj) : entities(obj.entities) {};
 
 		std::string buildAll();
-		std::string buildAll_FixBrushmodels(const std::vector<Game::brushmodelEnt_t>& bModelList);
-		std::string buildSelection_FixBrushmodels(const Game::boundingBox_t* box, const std::vector<Game::brushmodelEnt_t>& bModelList);
+		std::string buildAll_FixBrushmodels(const std::vector<Game::brushmodel_entity_s>& bModelList);
+		std::string buildSelection_FixBrushmodels(const Game::boundingbox_s* box, const std::vector<Game::brushmodel_entity_s>& bModelList);
 		std::string buildAll_script_structs();
 		std::string buildWorldspawnKeys();
 
 		std::vector<std::string> getModels();
-		std::vector<Game::brushmodelEnt_t> getBrushModels();
+		std::vector<Game::brushmodel_entity_s> getBrushModels();
 
 		void deleteWorldspawn();
 		void deleteTriggers();

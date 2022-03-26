@@ -1,7 +1,7 @@
 #include "STDInclude.hpp"
 #include "menu_export.hpp"
 
-namespace Components
+namespace components
 {
 	menu_export::menu_export() 
 	{

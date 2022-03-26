@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	std::vector<Game::cmd_function_s*> command::functions;
 	std::map<std::string, utils::Slot<command::callback>> command::function_map;

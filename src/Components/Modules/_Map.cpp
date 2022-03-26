@@ -1,12 +1,12 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	void _map::on_load()
 	{
 		memset(&Game::Globals::cgs_addons, 0, sizeof(Game::cgsAddon));
 
-		if (Components::active.radiant_livelink)
+		if (components::active.radiant_livelink)
 		{
 			memset(&Game::Globals::dynamic_brush_models, 0, sizeof(Game::dynBrushModelsArray_t));
 			memset(&Game::Globals::radiant_saved_brushes, 0, sizeof(Game::savedRadiantBrushes));
@@ -14,17 +14,17 @@ namespace Components
 			radiant_livelink::find_dynamic_bmodels();
 		}
 
-		if (Components::active.RB_DrawCollision)
+		if (components::active.draw_collision)
 		{
-			Game::Globals::dbgColl_initialized = false;
+			Game::Globals::debug_collision_initialized = false;
 		}
 	}
 
 	void _map::on_unload()
 	{
-		if (Components::active.radiant_livelink)
+		if (components::active.radiant_livelink)
 		{
-			radiant_livelink::SV_Shutdown();
+			radiant_livelink::shutdown_livelink();
 		}
 	}
 

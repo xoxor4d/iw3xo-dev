@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	void on_disconnect()
 	{ 
@@ -22,7 +22,7 @@ namespace Components
 		Game::Globals::mainmenu_fade_done = false;
 		Game::Globals::loaded_main_menu = false;
 
-		if (Components::active.gui)
+		if (components::active.gui)
 		{
 			GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG].menustate = false;
 		}
@@ -50,7 +50,7 @@ namespace Components
 	// actually after time was set
 	void on_set_cgame_time()
 	{
-		if (Components::active.daynight_cycle)
+		if (components::active.daynight_cycle)
 		{
 			if (dvars::r_dayAndNight && dvars::r_dayAndNight->current.enabled)
 			{

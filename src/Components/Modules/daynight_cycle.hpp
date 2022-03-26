@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class daynight_cycle final : public Component
+	class daynight_cycle final : public component
 	{
 	public:
 		daynight_cycle();

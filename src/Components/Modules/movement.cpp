@@ -37,7 +37,7 @@
 
 using namespace utils::vector;
 
-namespace Components
+namespace components
 {
 	void PM_MT_AirMove(Game::pmove_t *pm, Game::pml_t *pml);
 	bool PM_Jump_Check(Game::pmove_t *pm, Game::pml_t *pml);

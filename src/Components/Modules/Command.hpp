@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class command final : public Component
+	class command final : public component
 	{
 	public:
 		class params

@@ -18,7 +18,7 @@ Game::Console_Addons conAddon = Game::Console_Addons();
 static const char* con_mapdir = "maps/mp";
 static const char* con_mapext = "autocomplete"; // change d3dbsp to autocomplete
 
-namespace Components
+namespace components
 {
 	#pragma region CON-UTILS // ++++++
 

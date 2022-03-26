@@ -7,12 +7,12 @@ namespace Main
 	void Initialize()
 	{
 		Main::EntryPointHook.uninstall();
-		Components::Loader::Initialize();
+		components::loader::initialize_();
 	}
 
 	void Uninitialize()
 	{
-		Components::Loader::Uninitialize();
+		components::loader::uninitialize_();
 	}
 }
 
@@ -36,7 +36,7 @@ void load_addon_libaries()
 	}
 
 	// delay-load
-	Components::Scheduler::once([]()
+	components::Scheduler::once([]()
 	{
 		if (dvars::load_iw3mvm && dvars::load_iw3mvm->current.enabled)
 		{

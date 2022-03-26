@@ -30,7 +30,7 @@
 // execute a single command
 #define CMDEXEC(command) Game::Cmd_ExecuteSingleCommand(0, 0, command)
 
-namespace Components
+namespace components
 {
 	struct my_markdown : imgui_md
 	{
@@ -194,7 +194,7 @@ namespace Components
 	{
 		IDirect3DDevice9* device = *Game::dx9_device_ptr;
 
-		if (Components::active.d3d9ex)
+		if (components::active.d3d9ex)
 		{
 			// get the device from D3D9Ex::_D3D9/Ex::CreateDevice
 			device = Game::Globals::d3d9_device;

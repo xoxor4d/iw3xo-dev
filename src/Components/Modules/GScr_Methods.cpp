@@ -10,7 +10,7 @@ Game::scr_function_t* scr_functions = nullptr; // only for PlayerMethods
 Game::scr_function_t *scr_methods = nullptr; // only for PlayerMethods
 
 
-namespace Components
+namespace components
 {
 	bool scr_add_function(const char* cmd_name, xfunction_t function, bool developer) 
 	{

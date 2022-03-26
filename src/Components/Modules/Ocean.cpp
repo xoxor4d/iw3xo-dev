@@ -13,7 +13,7 @@
 #define SEPERATORV(spacing) SPACING(0.0f, spacing); ImGui::Separator(); SPACING(0.0f, spacing); 
 
 
-namespace Components
+namespace components
 {
 	// vert + pixel
 	Game::vec4_t _WaveAmplitude		= { 0.72f,	0.40f,	0.46f,	1.93f };	// filterTap0

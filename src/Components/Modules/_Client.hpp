@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class _client final : public Component
+	class _client final : public component
 	{
 	public:
 		_client();

@@ -12,7 +12,7 @@
 // fade from black into main menu on first start 
 #define MAINMENU_INIT_FADE_TIME 50.0f
 
-namespace Components
+namespace components
 {
 	int _ui::get_text_height(Game::Font_s *font)
 	{
@@ -674,7 +674,7 @@ R"(
 		
 		// _client::on_disconnect() hides / shows the changelog when connecting/disconnecting
 		// d3d9ex::D3D9Device::Release() resets mainmenu vars on vid_restart
-		if (Components::active.gui)
+		if (components::active.gui)
 		{
 			// do not draw the changelog when the Com_Error menu is open
 			if (const auto& com_errorMessage = Game::Dvar_FindVar("com_errorMessage"); 

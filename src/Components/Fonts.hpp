@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Components
+namespace components
 {
     enum FONTS
 	{

@@ -4,6 +4,8 @@
 
 //#define DEVGUI_XO_BLUR
 
+#define COM_ERROR_MSG			"Line %d :: %s\n%s ", __LINE__, __func__, __FILE__
+
 // *
 // Common
 #define FF_LOAD_ADDON_MENU		true

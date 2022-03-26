@@ -86,6 +86,6 @@
 #include "Game/dvars.hpp"
 
 #include "Components/Fonts.hpp"
-#include "Components/Loader.hpp"
+#include "Components/loader.hpp"
 
 using namespace std::literals;

@@ -3,7 +3,7 @@
 #define MAX_SPAWN_VARS 64
 #define MAX_SPAWN_VARS_CHARS 2048
 
-namespace Components
+namespace components
 {
 	// -------
 	// G_SPAWN

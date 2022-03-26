@@ -1,7 +1,7 @@
 // Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod/blob/master/src/compass.c)
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	typedef struct
 	{

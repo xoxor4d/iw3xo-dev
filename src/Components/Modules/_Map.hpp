@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class _map final : public Component
+	class _map final : public component
 	{
 	public:
 		_map(); ~_map() override;

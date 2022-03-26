@@ -3,7 +3,7 @@
 #include "STDInclude.hpp"
 IMGUI_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-namespace Components
+namespace components
 {
 	HWND Window::MainWindow = nullptr;
 
@@ -87,7 +87,7 @@ namespace Components
 	{
 		Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 		
-		if (Components::active.gui)
+		if (components::active.gui)
 		{
 			gui::reset();
 		}
@@ -105,7 +105,7 @@ namespace Components
 	{
 		auto menu_open = false;
 
-		if (Components::active.gui && GGUI_READY)
+		if (components::active.gui && GGUI_READY)
 		{
 			// handle input and mouse cursor for open menus
 			for (auto menu = 0; menu < GGUI_MENU_COUNT; menu++)

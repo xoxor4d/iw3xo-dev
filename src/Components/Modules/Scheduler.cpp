@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	std::mutex Scheduler::mutex_;
 	std::queue<std::pair<std::string, int>> Scheduler::errors_;
@@ -178,7 +178,7 @@ namespace Components
 	{
 		utils::hook(0x500328, main_frame_stub, HOOK_CALL).install()->quick();
 		
-		if (Components::active.XO_Console)
+		if (components::active.XO_Console)
 		{
 			utils::hook(0x475052, renderer_frame_stub_con_addon, HOOK_CALL).install()->quick(); // call xo_con_CheckResize if console addon is loaded
 		}

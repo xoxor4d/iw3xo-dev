@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Components
+namespace components
 {
 	// add new modules here
 	struct activeModules_s
@@ -15,54 +15,54 @@ namespace Components
 		bool _renderer;
 		bool _ui;
 		bool command;
-		bool patches;
-		bool gscr_methods;
-		bool Scheduler;
-
 		bool d3d9ex;
-		bool movement;
-		bool XO_Console;
-		bool RB_DrawCollision;
-		bool RB_ShaderOverlays;
-		bool radiant_livelink;
+		bool gscr_methods;
+		bool patches;
+		bool Scheduler;
 		bool Window;
+
+		bool cgaz;
+		bool compass;
+		bool daynight_cycle;
+		bool draw_collision;
 		bool gui;
 		bool gui_devgui;
 		bool menu_export;
-		bool compass;
-		bool cgaz;
+		bool movement;
 		bool mvm;
-		bool daynight_cycle;
 		bool ocean;
+		bool radiant_livelink;
+		bool RB_ShaderOverlays;
+		bool XO_Console;
 	};
 
 	extern activeModules_s active;
 
 #define REGISTER_MODULE(name)			\
 	if(active.##name)					\
-		Loader::Register(new name())
+		loader::register_(new name())
 
-	class Component
+	class component
 	{
 	public:
-		Component() = default;
-		virtual ~Component() = default;
+		component() = default;
+		virtual ~component() = default;
 		virtual const char* getName() { return "Unknown"; };
 	};
 
-	class Loader
+	class loader
 	{
 	public:
-		static void Initialize();
-		static void Uninitialize();
-		static void Register(Component* component);//, bool& registered);
-		static bool Registered(const char *componentName);
+		static void initialize_();
+		static void uninitialize_();
+		static void register_(component* component);//, bool& registered);
+		static bool is_registered(const char *componentName);
 
-		static utils::Memory::Allocator* GetAlloctor();
+		static utils::Memory::Allocator* get_alloctor();
 		
 	private:
-		static std::vector<Component*> Components;
-		static utils::Memory::Allocator MemAllocator;
+		static std::vector<component*> components_;
+		static utils::Memory::Allocator mem_allocator_;
 	};
 }
 
@@ -77,25 +77,24 @@ namespace Components
 #include "Modules/_renderer.hpp"
 #include "Modules/_ui.hpp"
 #include "Modules/command.hpp"
-#include "Modules/patches.hpp"
-#include "Modules/gscr_methods.hpp"
-
-// Addons
 #include "Modules/d3d9ex.hpp"
-#include "Modules/menu_export.hpp"
-#include "Modules/movement.hpp"
-#include "Modules/XO_Console.hpp"
-#include "Modules/RB_DrawCollision.hpp"
-#include "Modules/RB_ShaderOverlays.hpp"
-#include "Modules/radiant_livelink.hpp"
-#include "Modules/Window.hpp"
+#include "Modules/gscr_methods.hpp"
+#include "Modules/patches.hpp"
+
+#include "Modules/cgaz.hpp"
+#include "Modules/compass.hpp"
+#include "Modules/daynight_cycle.hpp"
+#include "Modules/draw_collision.hpp"
 #include "Modules/gui.hpp"
 #include "Modules/gui_devgui.hpp"
-#include "Modules/compass.hpp"
-#include "Modules/cgaz.hpp"
+#include "Modules/menu_export.hpp"
+#include "Modules/movement.hpp"
 #include "Modules/mvm.hpp"
-#include "Modules/daynight_cycle.hpp"
 #include "Modules/ocean.hpp"
+#include "Modules/radiant_livelink.hpp"
+#include "Modules/RB_ShaderOverlays.hpp"
+#include "Modules/Window.hpp"
+#include "Modules/XO_Console.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "Modules/Scheduler.hpp"

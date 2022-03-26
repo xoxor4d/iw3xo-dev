@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-namespace Components
+namespace components
 {
 	// *
 	// return font string for style
@@ -59,7 +59,7 @@ namespace Components
 					/* font */ _cg::get_font_for_style(dvars::r_drawCollision_hud_fontStyle->current.integer),
 					/* colr */ dvars::r_drawCollision_hud_fontColor->current.vector,
 					/* txt	*/ utils::va("Total amount of Brushes used for calculations: %d \n"
-						"Total amount of Polygons drawn: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount));
+						"Total amount of Polygons drawn: %d", Game::Globals::debug_collision_rendered_brush_amount, Game::Globals::debug_collision_rendered_planes_amount));
 			}
 		}
 
@@ -78,13 +78,13 @@ namespace Components
 		}
 
 		// mDd proxymod compass
-		if (Components::active.compass)
+		if (components::active.compass)
 		{
 			compass::main();
 		}
 
 		// mDd proxymod CGaz
-		if (Components::active.cgaz)
+		if (components::active.cgaz)
 		{
 			cgaz::main();
 		}

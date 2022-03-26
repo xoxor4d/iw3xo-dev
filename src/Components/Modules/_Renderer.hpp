@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class _renderer final : public Component
+	class _renderer final : public component
 	{
 	public:
 		_renderer();

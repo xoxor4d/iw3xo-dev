@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class _debug final : public Component
+	class _debug final : public component
 	{
 	public:
 		_debug();

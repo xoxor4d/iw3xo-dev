@@ -9,7 +9,7 @@
 //#define GFX_DYN_IB_POOL_SIZE				0x250000				// stock : 0x100000 : gfxBuf.dynamicIndexBufferPool
 //#define GFX_PRETESS_IB_POOL_SIZE			GFX_DYN_IB_POOL_SIZE	// stock : 0x100000 : gfxBuf.preTessIndexBufferPool
 
-namespace Components
+namespace components
 {
 	/* ---------------------------------------------------------- */
 	/* ------------ create dynamic rendering buffers ------------ */
@@ -747,7 +747,7 @@ namespace Components
 
 		if (mat.current_material)
 		{
-			if (Components::active.daynight_cycle)
+			if (components::active.daynight_cycle)
 			{
 				daynight_cycle::overwrite_sky_material(&mat);
 			}
@@ -1033,12 +1033,12 @@ namespace Components
 
 				if (arg_def && arg_def->type == 5)
 				{
-					if (Components::active.daynight_cycle)
+					if (components::active.daynight_cycle)
 					{
 						daynight_cycle::set_pixelshader_constants(state, arg_def);
 					}
 
-					if (Components::active.ocean)
+					if (components::active.ocean)
 					{
 						ocean::set_pixelshader_constants(state, arg_def);
 					}
@@ -1096,7 +1096,7 @@ namespace Components
 
 				if (arg_def && arg_def->type == 3)
 				{
-					if (Components::active.ocean)
+					if (components::active.ocean)
 					{
 						ocean::set_vertexshader_constants(state, arg_def);
 					}

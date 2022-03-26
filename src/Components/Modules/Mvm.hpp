@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class mvm final : public Component
+	class mvm final : public component
 	{
 	public:
 		mvm();

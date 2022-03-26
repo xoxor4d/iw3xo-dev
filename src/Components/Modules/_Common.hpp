@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class _common final : public Component
+	class _common final : public component
 	{
 	public:
 		_common();

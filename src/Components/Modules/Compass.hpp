@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class compass final : public Component
+	class compass final : public component
 	{
 
 	public:

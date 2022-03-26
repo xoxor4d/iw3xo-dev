@@ -34,10 +34,10 @@ namespace Game
 		extern IDirect3DDevice9* d3d9_device;
 
 		// Collision
-		extern bool dbgColl_initialized;			// debug collision was used
-		extern int  dbgColl_drawnBrushAmount;		// total amount of brushes used for calculations of planes 
-		extern int  dbgColl_drawnPlanesAmount;		// total amount of planes rendered 
-		extern int  dbgColl_drawnPlanesAmountTemp;	// total amount of planes rendered used to count while drawing
+		extern bool debug_collision_initialized;			// debug collision was used
+		extern int  debug_collision_rendered_brush_amount;		// total amount of brushes used for calculations of planes 
+		extern int  debug_collision_rendered_planes_amount;		// total amount of planes rendered 
+		extern int  debug_collision_rendered_planes_counter;	// total amount of planes rendered used to count while drawing
 
 		extern std::string	r_drawCollision_materialList_string;
 

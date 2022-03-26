@@ -32,10 +32,10 @@ namespace Game
 		IDirect3DDevice9* d3d9_device = nullptr;
 
 		// Collision
-		bool dbgColl_initialized			= false; // debug collision was used
-		int  dbgColl_drawnBrushAmount		= 0; // total amount of brushes used for calculations of planes 
-		int  dbgColl_drawnPlanesAmount		= 0; // total amount of planes rendered for hud
-		int  dbgColl_drawnPlanesAmountTemp	= 0; // total amount of planes rendered used to count while drawing 
+		bool debug_collision_initialized = false; // debug collision was used
+		int  debug_collision_rendered_brush_amount = 0; // total amount of brushes used for calculations of planes 
+		int  debug_collision_rendered_planes_amount	= 0; // total amount of planes rendered for hud
+		int  debug_collision_rendered_planes_counter = 0; // total amount of planes rendered used to count while drawing 
 		
 		std::string	r_drawCollision_materialList_string = "";
 

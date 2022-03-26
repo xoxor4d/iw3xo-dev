@@ -182,9 +182,6 @@ namespace dvars
 	extern Game::dvar_s* r_drawCollision_polyDepth;
 	extern Game::dvar_s* r_drawCollision_polyFace;
 	extern Game::dvar_s* r_drawCollision_polyLit;
-	extern Game::dvar_s* r_drawCollision_flickerBrushes;
-	extern Game::dvar_s* r_drawCollision_flickerOnTime;
-	extern Game::dvar_s* r_drawCollision_flickerOffTime;
 	extern Game::dvar_s* r_drawCollision_hud;
 	extern Game::dvar_s* r_drawCollision_hud_position;
 	extern Game::dvar_s* r_drawCollision_hud_fontScale;

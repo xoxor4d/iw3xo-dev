@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class RB_ShaderOverlays : public Component
+	class RB_ShaderOverlays : public component
 	{
 	public:
 		RB_ShaderOverlays();

@@ -6906,27 +6906,27 @@ namespace Game
 			dynBrushModel_t brushes[16];
 		};
 
-		struct brushmodelEnt_t
+		struct brushmodel_entity_s
 		{
-			int cmSubmodelIndex;
-			cmodel_t* cmSubmodel;
-			float cmSubmodelOrigin[3];
-			int cmBrushIndex;
-			cbrush_t* cmBrush;
-			std::vector<std::string> brushSides;
+			int cm_submodel_index;
+			cmodel_t* cm_submodel;
+			float cm_submodel_origin[3];
+			int cm_brush_index;
+			cbrush_t* cm_brush;
+			std::vector<std::string> brush_sides;
 		};
 
-		struct boundingBox_t
+		struct boundingbox_s
 		{
-			int numPoints;
+			int num_points;
 			glm::vec3 points[3];
 			glm::vec3 mins;
 			glm::vec3 maxs;
 			cbrush_t box;
-			bool keyFlagInsert;
-			bool keyFlagReset;
-			bool isBoxValid;
-			bool wasReset;
+			bool key_flag_insert;
+			bool key_flag_reset;
+			bool is_box_valid;
+			bool was_reset;
 		};
 
 		struct circleZone_t

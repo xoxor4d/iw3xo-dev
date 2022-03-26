@@ -1,9 +1,9 @@
 #pragma once
 #include "Utils/concurrent_list.hpp"
 
-namespace Components
+namespace components
 {
-	class Scheduler : public Component
+	class Scheduler : public component
 	{
 	public:
 		enum thread

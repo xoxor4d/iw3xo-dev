@@ -15,7 +15,7 @@
 // execute a single command
 #define CMDEXEC(command) Game::Cmd_ExecuteSingleCommand(0, 0, command)
 
-namespace Components
+namespace components
 {
 	// *
 	// the "main" menu
@@ -101,19 +101,19 @@ namespace Components
 			if (const auto& cl_ingame = Game::Dvar_FindVar("cl_ingame"); 
 							cl_ingame && cl_ingame->current.enabled)
 			{
-				if ((Components::active.cgaz || Components::active.compass || Components::active.movement || Components::active._cg || Components::active._pmove) && ImGui::BeginTabItem("Movement"))
+				if ((components::active.cgaz || components::active.compass || components::active.movement || components::active._cg || components::active._pmove) && ImGui::BeginTabItem("Movement"))
 				{
 					gui_devgui::menu_tab_movement(menu);
 					ImGui::EndTabItem();
 				}
 
-				if (Components::active.RB_DrawCollision && ImGui::BeginTabItem("Collision/Export"))
+				if (components::active.draw_collision && ImGui::BeginTabItem("Collision/Export"))
 				{
 					gui_devgui::menu_tab_collision(menu);
 					ImGui::EndTabItem();
 				}
 
-				if (Components::active.RB_ShaderOverlays && ImGui::BeginTabItem("Shaders"))
+				if (components::active.RB_ShaderOverlays && ImGui::BeginTabItem("Shaders"))
 				{
 					gui_devgui::menu_tab_shaders(menu);
 					ImGui::EndTabItem();
@@ -125,20 +125,20 @@ namespace Components
 					ImGui::EndTabItem();
 				}
 
-				if (Components::active.ocean && ImGui::BeginTabItem("Ocean"))
+				if (components::active.ocean && ImGui::BeginTabItem("Ocean"))
 				{
 					ocean::devgui_tab(menu);
 					ImGui::EndTabItem();
 				}
 
-				if (Components::active.daynight_cycle && ImGui::BeginTabItem("DayNight"))
+				if (components::active.daynight_cycle && ImGui::BeginTabItem("DayNight"))
 				{
 					daynight_cycle::devgui_tab(menu);
 					ImGui::EndTabItem();
 				}
 			}
 
-			if (Components::active.radiant_livelink && ImGui::BeginTabItem("Radiant"))
+			if (components::active.radiant_livelink && ImGui::BeginTabItem("Radiant"))
 			{
 				radiant_livelink::devgui_tab(menu);
 				ImGui::EndTabItem();
@@ -160,7 +160,7 @@ namespace Components
 	// movement tab
 	void gui_devgui::menu_tab_movement(Game::gui_menus_t& menu)
 	{
-		if (Components::active.movement)
+		if (components::active.movement)
 		{
 			// *
 			if (ImGui::CollapsingHeader("Presets", ImGuiTreeNodeFlags_DefaultOpen))
@@ -274,7 +274,7 @@ namespace Components
 			const char* hudFont_items[] = { "FONT_SMALL_DEV", "FONT_BIG_DEV", "FONT_CONSOLE", "FONT_BIG", "FONT_SMALL", "FONT_BOLD", "FONT_NORMAL", "FONT_EXTRA_BIG", "FONT_OBJECTIVE" };
 
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-			if (Components::active.movement && Components::active._cg)
+			if (components::active.movement && components::active._cg)
 			{
 				// ---------------
 
@@ -289,7 +289,7 @@ namespace Components
 				SEPERATORV(4.0f);
 			}
 
-			if (Components::active._cg)
+			if (components::active._cg)
 			{
 				ImGui::Checkbox("Enable Position Hud", gui::dvar_get_set<bool*>(dvars::pm_origin_hud)); TT("pm_origin_hud");
 				ImGui::SliderFloat("Origin Hud Position X", gui::dvar_get_set<float*>(dvars::pm_origin_hud_x), dvars::pm_origin_hud_x->domain.value.min, dvars::pm_origin_hud_x->domain.value.max, "%.0f"); TT("pm_origin_hud_x");
@@ -302,7 +302,7 @@ namespace Components
 				SEPERATORV(4.0f);
 			}
 
-			if (Components::active.compass)
+			if (components::active.compass)
 			{
 				ImGui::Checkbox("Enable mDd world compass", gui::dvar_get_set<bool*>(dvars::mdd_compass)); TT("mdd_compass");
 				ImGui::SliderFloat2("Compass position and thickness", gui::dvar_get_set<float*>(dvars::mdd_compass_yh), dvars::mdd_compass_yh->domain.value.min, dvars::mdd_compass_yh->domain.value.max, "%.0f"); TT("mdd_compass_yh");
@@ -316,7 +316,7 @@ namespace Components
 				SEPERATORV(4.0f);
 			}
 
-			if (Components::active.cgaz)
+			if (components::active.cgaz)
 			{
 				ImGui::Checkbox("Display mDd CampingGaz HUD", gui::dvar_get_set<bool*>(dvars::mdd_cgaz)); TT("mdd_cgaz");
 				ImGui::Checkbox("Show true ground zones", gui::dvar_get_set<bool*>(dvars::mdd_cgaz_ground)); TT("mdd_cgaz_ground");
@@ -331,7 +331,7 @@ namespace Components
 				SEPERATORV(4.0f);
 			}
 
-			if (Components::active._pmove)
+			if (components::active._pmove)
 			{
 				const char* drawAxis_items[] = { "disabled", "axis only", "fps zone circle" };
 				ImGui::Combo("Draw Axis", &dvars::pm_debug_drawAxis->current.integer, drawAxis_items, IM_ARRAYSIZE(drawAxis_items)); TT("pm_debug_drawAxis");
@@ -363,7 +363,7 @@ namespace Components
 				SEPERATORV(4.0f);
 			}
 
-			if (Components::active.movement)
+			if (components::active.movement)
 			{
 				ImGui::Checkbox("Debug Prints", &dvars::pm_debug_prints->current.enabled); TT("pm_debug_prints");
 			}
@@ -391,7 +391,7 @@ namespace Components
 			ImGui::Combo("Brush Sorting", gui::dvar_get_set<int*>(dvars::r_drawCollision_brushSorting), brush_sorting_items, IM_ARRAYSIZE(brush_sorting_items)); TT("r_drawCollision_brushSorting");
 
 			SPACING(0.0f, 4.0f);
-			ImGui::Text("Amount of brushes to render: %d\nAmount of brushsides to render: %d", Game::Globals::dbgColl_drawnBrushAmount, Game::Globals::dbgColl_drawnPlanesAmount);
+			ImGui::Text("Amount of brushes to render: %d\nAmount of brushsides to render: %d", Game::Globals::debug_collision_rendered_brush_amount, Game::Globals::debug_collision_rendered_planes_amount);
 #if DEBUG
 			SPACING(0.0f, 4.0f);
 			ImGui::Checkbox("Brush Debug Prints", gui::dvar_get_set<bool*>(dvars::r_drawCollision_brushDebug)); TT("r_drawCollision_brushDebug");
@@ -741,7 +741,7 @@ namespace Components
 			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 		}
 
-		if (Components::active._ui && ImGui::CollapsingHeader("Main Menu", ImGuiTreeNodeFlags_DefaultOpen))
+		if (components::active._ui && ImGui::CollapsingHeader("Main Menu", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 

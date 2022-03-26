@@ -3,9 +3,9 @@
 #define LISTBOX_SLIDER_THUMB_COLOR { 1.0f, 1.0f, 1.0f, 0.1f }
 #define LISTBOX_SLIDER_BACKGROUND_COLOR { 1.0f, 1.0f, 1.0f, 0.02f }
 
-namespace Components
+namespace components
 {
-	class _ui final : public Component
+	class _ui final : public component
 	{
 	public:
 		_ui();

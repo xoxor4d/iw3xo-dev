@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class gui final : public Component
+	class gui final : public component
 	{
 	public:
 		gui();

@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Components
+namespace components
 {
-	class Window : public Component
+	class Window : public component
 	{
 	public:
 		Window();
