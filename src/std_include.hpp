@@ -64,7 +64,9 @@
 // Revision number
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
-#define AssertSize(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
+#define AssertSize(x, size)								static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
+#define STATIC_ASSERT_SIZE(struct, size)				static_assert(sizeof(struct) == size, "Size check")
+#define STATIC_ASSERT_OFFSET(struct, member, offset)	static_assert(offsetof(struct, member) == offset, "Offset check")
 
 #include <glm.hpp>
 #include <imgui.h>
@@ -73,7 +75,7 @@
 #include <imgui_md.h>
 #include <WinHttpClient.h>
 
-#include "Game/structs.hpp"
+#include "game/structs.hpp"
 #include "utils/vector.hpp"
 #include "utils/utils.hpp"
 #include "utils/polylib.hpp"
@@ -82,10 +84,10 @@
 #include "utils/entities.hpp"
 #include "utils/function.hpp"
 
-#include "Game/Functions.hpp"
-#include "Game/dvars.hpp"
+#include "game/functions.hpp"
+#include "game/dvars.hpp"
 
-#include "Components/imgui_fonts.hpp"
-#include "Components/loader.hpp"
+#include "components/imgui_fonts.hpp"
+#include "components/loader.hpp"
 
 using namespace std::literals;

@@ -1,4 +1,4 @@
-#include "STDInclude.hpp"
+#include "std_include.hpp"
 
 #define SLIDER_SPEED 0.01f
 
@@ -21,13 +21,13 @@ namespace components
 	bool		 time_rotates_sun = true;			// automatically rotate the sun
 
 	bool		 framefog_tweaks_overwrite = false;	// TOD uses stock fog
-	Game::vec4_t framefog_color_stock	= {};		// stock fog
+	game::vec4_t framefog_color_stock	= {};		// stock fog
 	float		 framefog_start_stock	= 0.0f;
 	float		 framefog_density_stock = 0.0f;
 
-	Game::vec4_t sundiffuse_constant  = {};			// used to display shader constants
-	Game::vec4_t sunposition_constant = {};
-	Game::vec4_t colorbias_constant	  = {};
+	game::vec4_t sundiffuse_constant  = {};			// used to display shader constants
+	game::vec4_t sunposition_constant = {};
+	game::vec4_t colorbias_constant	  = {};
 
 	// suncolor lerp variable because steps are so small that they get discarded when packing as char[4] color
 	float		 tod_suncolor_lerp[3] = {};
@@ -43,11 +43,11 @@ namespace components
 	// default day and night shader constants
 
 	// FILTER_TAP_0 
-	Game::vec3_t outscatter_color01 = { 0.859f, 0.654f, 0.362f };	// xyz
+	game::vec3_t outscatter_color01 = { 0.859f, 0.654f, 0.362f };	// xyz
 	float		 outscatter_scale01 = 0.61f;						// w
 
 	// FILTER_TAP_1
-	Game::vec3_t outscatter_color02 = { 1.0f, 1.00f, 1.00f };		// xyz
+	game::vec3_t outscatter_color02 = { 1.0f, 1.00f, 1.00f };		// xyz
 	float		 outscatter_scale02 = 15.0f;						// w
 
 	// FILTER_TAP_2
@@ -62,12 +62,12 @@ namespace components
 	float		 dn_cloud_exposure			= 0.65f;	// w
 
 	// FILTER_TAP_4
-	Game::vec3_t dn_cloud_wind_vec		= { 0.01f, 0.00f, 0.01f };	// xyz
+	game::vec3_t dn_cloud_wind_vec		= { 0.01f, 0.00f, 0.01f };	// xyz
 	float		 dn_cloud_wind_speed	= 1.3f;						// w
 
 	// FILTER_TAP_5
 	float		 dn_sky_sun_intensity	= 22.0f;					// x
-	Game::vec3_t dn_sky_rayleigh_coeff	= { 7.52f, 13.0f, 22.4f };	// yzw
+	game::vec3_t dn_sky_rayleigh_coeff	= { 7.52f, 13.0f, 22.4f };	// yzw
 
 	// FILTER_TAP_6
 	float		 dn_sky_mie_coeff		= 7.00f;	// x
@@ -177,14 +177,14 @@ namespace components
 			cfg_name = "daynight_unnamed_";
 		}
 
-		if (const auto& fs_basepath = Game::Dvar_FindVar("fs_basepath"); fs_basepath)
+		if (const auto& fs_basepath = game::Dvar_FindVar("fs_basepath"); fs_basepath)
 		{
 			std::string base_path = fs_basepath->current.string;
 						base_path += "\\iw3xo\\daynight\\";
 
 			if (std::filesystem::create_directories(base_path))
 			{
-				Game::Com_PrintMessage(0, "Created directory \"root/iw3xo/daynight\"\n", 0);
+				game::Com_PrintMessage(0, "Created directory \"root/iw3xo/daynight\"\n", 0);
 			}
 
 			std::ofstream cfg;
@@ -239,7 +239,7 @@ namespace components
 			cfg << std::endl << "// *" << std::endl << "// time of day - night" << std::endl << std::endl;
 			cfg_write_tod_settings(cfg, &tod_night);
 
-			Game::Com_PrintMessage(0, utils::va("Saved day and night settings to: %s", (base_path + cfg_name + ".cfg").c_str()), 0);
+			game::Com_PrintMessage(0, utils::va("Saved day and night settings to: %s", (base_path + cfg_name + ".cfg").c_str()), 0);
 			cfg.close();
 		}
 	}
@@ -283,7 +283,7 @@ namespace components
 			return;
 		}
 
-		if (const auto& fs_basepath = Game::Dvar_FindVar("fs_basepath"); 
+		if (const auto& fs_basepath = game::Dvar_FindVar("fs_basepath"); 
 						fs_basepath)
 		{
 			std::string base_path = fs_basepath->current.string;
@@ -318,7 +318,7 @@ namespace components
 
 				if (v.size() != CLOUD_VAR_AMOUNT + (TOD_AMOUNT * daynight_cycle::TOD_VAR_AMOUNT))
 				{
-					Game::Com_PrintMessage(0, utils::va("Unable to load config \"%s\". Variable amount mismatch.", (base_path + cfg_name + ".cfg").c_str()), 0);
+					game::Com_PrintMessage(0, utils::va("Unable to load config \"%s\". Variable amount mismatch.", (base_path + cfg_name + ".cfg").c_str()), 0);
 					
 					cfg.close();
 					return;
@@ -430,7 +430,7 @@ namespace components
 	{
 		if (lerp_to)
 		{
-			Game::Dvar_SetValue(dvars::r_fogTweaks, lerp_to->tweak_fog);
+			game::dvar_set_value_dirty(dvars::r_fogTweaks, lerp_to->tweak_fog);
 
 			// use default fog if TOD fog is disabled
 			if (!lerp_to->tweak_fog)
@@ -440,15 +440,15 @@ namespace components
 
 				if (lerp_to->film_interpolation_speed <= 0.0f)
 				{
-					Game::Dvar_SetValue(dvars::r_fogTweaksStart, framefog_start_stock);
-					Game::Dvar_SetValue(dvars::r_fogTweaksDensity, framefog_density_stock);
-					Game::Dvar_SetValue(dvars::r_fogTweaksColor, framefog_color_stock, 4);
+					game::dvar_set_value_dirty(dvars::r_fogTweaksStart, framefog_start_stock);
+					game::dvar_set_value_dirty(dvars::r_fogTweaksDensity, framefog_density_stock);
+					game::dvar_set_value_dirty(dvars::r_fogTweaksColor, framefog_color_stock, 4);
 
 					return;
 				}
 
-				Game::Dvar_SetValue(dvars::r_fogTweaksStart, finterp_to(dvars::r_fogTweaksStart->current.value, framefog_start_stock, delta_time, lerp_to->film_interpolation_speed));
-				Game::Dvar_SetValue(dvars::r_fogTweaksDensity, finterp_to(dvars::r_fogTweaksDensity->current.value, framefog_density_stock, delta_time, lerp_to->film_interpolation_speed));
+				game::dvar_set_value_dirty(dvars::r_fogTweaksStart, finterp_to(dvars::r_fogTweaksStart->current.value, framefog_start_stock, delta_time, lerp_to->film_interpolation_speed));
+				game::dvar_set_value_dirty(dvars::r_fogTweaksDensity, finterp_to(dvars::r_fogTweaksDensity->current.value, framefog_density_stock, delta_time, lerp_to->film_interpolation_speed));
 				
 				vinterp_to(dvars::r_fogTweaksColor->current.vector, 3, dvars::r_fogTweaksColor->current.vector, framefog_color_stock, delta_time, lerp_to->film_interpolation_speed);
 				utils::vector::copy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 3);
@@ -462,15 +462,15 @@ namespace components
 
 			if (lerp_to->film_interpolation_speed <= 0.0f)
 			{
-				Game::Dvar_SetValue(dvars::r_fogTweaksStart, lerp_to->fog_start);
-				Game::Dvar_SetValue(dvars::r_fogTweaksDensity, lerp_to->fog_density);
-				Game::Dvar_SetValue(dvars::r_fogTweaksStart, lerp_to->fog_color, 3);
+				game::dvar_set_value_dirty(dvars::r_fogTweaksStart, lerp_to->fog_start);
+				game::dvar_set_value_dirty(dvars::r_fogTweaksDensity, lerp_to->fog_density);
+				game::dvar_set_value_dirty(dvars::r_fogTweaksStart, lerp_to->fog_color, 3);
 
 				return;
 			}
 
-			Game::Dvar_SetValue(dvars::r_fogTweaksStart, finterp_to(dvars::r_fogTweaksStart->current.value, lerp_to->fog_start, delta_time, lerp_to->film_interpolation_speed));
-			Game::Dvar_SetValue(dvars::r_fogTweaksDensity, finterp_to(dvars::r_fogTweaksDensity->current.value, lerp_to->fog_density, delta_time, lerp_to->film_interpolation_speed));
+			game::dvar_set_value_dirty(dvars::r_fogTweaksStart, finterp_to(dvars::r_fogTweaksStart->current.value, lerp_to->fog_start, delta_time, lerp_to->film_interpolation_speed));
+			game::dvar_set_value_dirty(dvars::r_fogTweaksDensity, finterp_to(dvars::r_fogTweaksDensity->current.value, lerp_to->fog_density, delta_time, lerp_to->film_interpolation_speed));
 			
 			vinterp_to(dvars::r_fogTweaksColor->current.vector, 3, dvars::r_fogTweaksColor->current.vector, lerp_to->fog_color, delta_time, lerp_to->film_interpolation_speed);
 			utils::vector::copy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 3);
@@ -483,8 +483,8 @@ namespace components
 
 	void daynight_cycle::lerp_suntweaks(const daynight_cycle::time_of_day_settings* lerp_to, const float delta_time)
 	{
-		const auto& r_lightTweakSunColor = Game::Dvar_FindVar("r_lightTweakSunColor");
-		const auto& r_lightTweakSunLight = Game::Dvar_FindVar("r_lightTweakSunLight");
+		const auto& r_lightTweakSunColor = game::Dvar_FindVar("r_lightTweakSunColor");
+		const auto& r_lightTweakSunLight = game::Dvar_FindVar("r_lightTweakSunLight");
 
 		if (r_lightTweakSunColor && r_lightTweakSunLight)
 		{
@@ -493,7 +493,7 @@ namespace components
 				if (lerp_to->film_interpolation_speed <= 0.0f)
 				{
 					// sunlight
-					Game::Dvar_SetValue(r_lightTweakSunLight, lerp_to->sun_light);		
+					game::dvar_set_value_dirty(r_lightTweakSunLight, lerp_to->sun_light);		
 					r_lightTweakSunLight->modified = true;
 
 					// pack suncolor and modify dvar
@@ -510,7 +510,7 @@ namespace components
 				}
 
 				// sunlight
-				Game::Dvar_SetValue(r_lightTweakSunLight, finterp_to(r_lightTweakSunLight->current.value, lerp_to->sun_light, delta_time, lerp_to->sun_interpolation_speed));
+				game::dvar_set_value_dirty(r_lightTweakSunLight, finterp_to(r_lightTweakSunLight->current.value, lerp_to->sun_light, delta_time, lerp_to->sun_interpolation_speed));
 				r_lightTweakSunLight->modified = true;
 
 
@@ -547,11 +547,11 @@ namespace components
 
 	void daynight_cycle::lerp_filmtweaks(const daynight_cycle::time_of_day_settings* lerp_to, const float delta_time)
 	{
-		const auto& r_filmTweakBrightness = Game::Dvar_FindVar("r_filmTweakBrightness");
-		const auto& r_filmTweakContrast = Game::Dvar_FindVar("r_filmTweakContrast");
-		const auto& r_filmTweakDesaturation = Game::Dvar_FindVar("r_filmTweakDesaturation");
-		const auto& r_filmTweakDarkTint = Game::Dvar_FindVar("r_filmTweakDarkTint");
-		const auto& r_filmTweakLightTint = Game::Dvar_FindVar("r_filmTweakLightTint");
+		const auto& r_filmTweakBrightness = game::Dvar_FindVar("r_filmTweakBrightness");
+		const auto& r_filmTweakContrast = game::Dvar_FindVar("r_filmTweakContrast");
+		const auto& r_filmTweakDesaturation = game::Dvar_FindVar("r_filmTweakDesaturation");
+		const auto& r_filmTweakDarkTint = game::Dvar_FindVar("r_filmTweakDarkTint");
+		const auto& r_filmTweakLightTint = game::Dvar_FindVar("r_filmTweakLightTint");
 
 		if (r_filmTweakBrightness && r_filmTweakContrast && r_filmTweakDesaturation && r_filmTweakDarkTint && r_filmTweakLightTint)
 		{
@@ -559,22 +559,22 @@ namespace components
 			{
 				if (lerp_to->film_interpolation_speed <= 0.0f)
 				{
-					Game::Dvar_SetValue(r_filmTweakBrightness, lerp_to->film_brightness);		r_filmTweakBrightness->modified = true;
-					Game::Dvar_SetValue(r_filmTweakContrast, lerp_to->film_contrast);			r_filmTweakContrast->modified = true;
-					Game::Dvar_SetValue(r_filmTweakDesaturation, lerp_to->film_desaturation);	r_filmTweakDesaturation->modified = true;
-					Game::Dvar_SetValue(r_filmTweakDarkTint, lerp_to->film_darktint, 3);		r_filmTweakDarkTint->modified = true;
-					Game::Dvar_SetValue(r_filmTweakLightTint, lerp_to->film_lighttint, 3);		r_filmTweakLightTint->modified = true;
+					game::dvar_set_value_dirty(r_filmTweakBrightness, lerp_to->film_brightness);		r_filmTweakBrightness->modified = true;
+					game::dvar_set_value_dirty(r_filmTweakContrast, lerp_to->film_contrast);			r_filmTweakContrast->modified = true;
+					game::dvar_set_value_dirty(r_filmTweakDesaturation, lerp_to->film_desaturation);	r_filmTweakDesaturation->modified = true;
+					game::dvar_set_value_dirty(r_filmTweakDarkTint, lerp_to->film_darktint, 3);		r_filmTweakDarkTint->modified = true;
+					game::dvar_set_value_dirty(r_filmTweakLightTint, lerp_to->film_lighttint, 3);		r_filmTweakLightTint->modified = true;
 
 					return;
 				}
 
-				Game::Dvar_SetValue(r_filmTweakBrightness, finterp_to(r_filmTweakBrightness->current.value, lerp_to->film_brightness, delta_time, lerp_to->film_interpolation_speed));
+				game::dvar_set_value_dirty(r_filmTweakBrightness, finterp_to(r_filmTweakBrightness->current.value, lerp_to->film_brightness, delta_time, lerp_to->film_interpolation_speed));
 				r_filmTweakBrightness->modified = true;
 
-				Game::Dvar_SetValue(r_filmTweakContrast, finterp_to(r_filmTweakContrast->current.value, lerp_to->film_contrast, delta_time, lerp_to->film_interpolation_speed));
+				game::dvar_set_value_dirty(r_filmTweakContrast, finterp_to(r_filmTweakContrast->current.value, lerp_to->film_contrast, delta_time, lerp_to->film_interpolation_speed));
 				r_filmTweakContrast->modified = true;
 
-				Game::Dvar_SetValue(r_filmTweakDesaturation, finterp_to(r_filmTweakDesaturation->current.value, lerp_to->film_desaturation, delta_time, lerp_to->film_interpolation_speed));
+				game::dvar_set_value_dirty(r_filmTweakDesaturation, finterp_to(r_filmTweakDesaturation->current.value, lerp_to->film_desaturation, delta_time, lerp_to->film_interpolation_speed));
 				r_filmTweakDesaturation->modified = true;
 
 				
@@ -604,15 +604,15 @@ namespace components
 
 	void daynight_cycle::set_world_time()
 	{
-		const auto cui = Game::clientUI;
-		const auto cl = Game::clients;
+		const auto cui = game::clientUI;
+		const auto cl = game::clients;
 
 		if (cui && cl)
 		{
-			if (cui->connectionState == Game::CA_ACTIVE)
+			if (cui->connectionState == game::CA_ACTIVE)
 			{
 				
-				if (const auto& r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection"); r_lightTweakSunDirection && time_running)
+				if (const auto& r_lightTweakSunDirection = game::Dvar_FindVar("r_lightTweakSunDirection"); r_lightTweakSunDirection && time_running)
 				{
 					const float sun_current_rot = r_lightTweakSunDirection->current.vector[0];
 					float delta = static_cast<float>(cl->serverTimeDelta) * 0.0001f * time_scalar;
@@ -620,20 +620,20 @@ namespace components
 
 
 					// enable filmtweaks
-					const auto& r_filmTweakEnable = Game::Dvar_FindVar("r_filmTweakEnable");
-					const auto& r_filmUseTweaks = Game::Dvar_FindVar("r_filmUseTweaks");
+					const auto& r_filmTweakEnable = game::Dvar_FindVar("r_filmTweakEnable");
+					const auto& r_filmUseTweaks = game::Dvar_FindVar("r_filmUseTweaks");
 					
 					if (r_filmTweakEnable && r_filmUseTweaks && (!r_filmTweakEnable->current.enabled || !r_filmUseTweaks->current.enabled))
 					{
-						Game::Dvar_SetValue(r_filmTweakEnable, true);	r_filmTweakEnable->modified = true;
-						Game::Dvar_SetValue(r_filmUseTweaks, true);		r_filmUseTweaks->modified = true;
+						game::dvar_set_value_dirty(r_filmTweakEnable, true);	r_filmTweakEnable->modified = true;
+						game::dvar_set_value_dirty(r_filmUseTweaks, true);		r_filmUseTweaks->modified = true;
 					}
 
 
 					// disable stock sunflare and darkening effect
-					if (const auto& r_drawSun = Game::Dvar_FindVar("r_drawSun"); r_drawSun && r_drawSun->current.enabled)
+					if (const auto& r_drawSun = game::Dvar_FindVar("r_drawSun"); r_drawSun && r_drawSun->current.enabled)
 					{
-						Game::Dvar_SetValue(r_drawSun, false);	r_drawSun->modified = true;
+						game::dvar_set_value_dirty(r_drawSun, false);	r_drawSun->modified = true;
 					}
 
 
@@ -735,14 +735,14 @@ namespace components
 	}
 
 
-	void daynight_cycle::devgui_tab(Game::gui_menus_t& menu)
+	void daynight_cycle::devgui_tab(game::gui_menus_t& menu)
 	{
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
 #if DEBUG
 		if (ImGui::Button("Reload xcommon_iw3xo_addon"))
 		{
-			Game::Cbuf_AddText("loadzone xcommon_iw3xo_addon\n", 0);
+			game::Cbuf_AddText("loadzone xcommon_iw3xo_addon\n", 0);
 		}
 		SPACING(0.0f, 4.0f);
 #endif
@@ -751,13 +751,13 @@ namespace components
 		{
 			if (dvars::r_dayAndNight)
 			{
-				Game::Dvar_SetValue(dvars::r_dayAndNight, !dvars::r_dayAndNight->current.enabled);
+				game::dvar_set_value_dirty(dvars::r_dayAndNight, !dvars::r_dayAndNight->current.enabled);
 			}
 
-			if (const auto& sm_sunSampleSizeNear = Game::Dvar_FindVar("sm_sunSampleSizeNear"); 
+			if (const auto& sm_sunSampleSizeNear = game::Dvar_FindVar("sm_sunSampleSizeNear"); 
 							sm_sunSampleSizeNear)
 			{
-				Game::Dvar_SetValue(sm_sunSampleSizeNear, 0.55f);
+				game::dvar_set_value_dirty(sm_sunSampleSizeNear, 0.55f);
 				sm_sunSampleSizeNear->modified = true;
 			}
 		}
@@ -767,7 +767,7 @@ namespace components
 		ImGui::SameLine(); SPACING(0.0f, 0.0f); ImGui::SameLine();
 		ImGui::Checkbox("Enable Auto Sun Rotation", &time_rotates_sun); TT("Automatically rotate the sun. Disable for manual mode using Sun Direction.");
 
-		if (const auto& r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection"); 
+		if (const auto& r_lightTweakSunDirection = game::Dvar_FindVar("r_lightTweakSunDirection"); 
 						r_lightTweakSunDirection)
 		{
 			ImGui::DragFloat("Sun Direction", gui::dvar_get_set<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f");
@@ -778,7 +778,7 @@ namespace components
 		ImGui::DragFloat("Day Speed Scalar", &day_speed_scalar, SLIDER_SPEED, 0.1f, 50.0f, "%.4f"); TT("Speed up / Slow down daytime.");
 		ImGui::DragFloat("Night Speed Scalar", &night_speed_scalar, SLIDER_SPEED, 0.1f, 50.0f, "%.4f"); TT("Speed up / Slow down nighttime.");
 
-		if (const auto& sm_sunSampleSizeNear = Game::Dvar_FindVar("sm_sunSampleSizeNear"); 
+		if (const auto& sm_sunSampleSizeNear = game::Dvar_FindVar("sm_sunSampleSizeNear"); 
 						sm_sunSampleSizeNear)
 		{
 			ImGui::DragFloat("Shadow Near Sample", gui::dvar_get_set<float*>(sm_sunSampleSizeNear), 0.25f, 0.0625f, 32.0f, "%.2f");
@@ -874,8 +874,8 @@ namespace components
 		// dupe of film/lighttweaks tab
 		if (ImGui::CollapsingHeader("Filmtweaks", ImGuiTreeNodeFlags_CollapsingHeader))
 		{
-			const auto& r_filmTweakEnable = Game::Dvar_FindVar("r_filmTweakEnable");
-			const auto& r_filmUseTweaks = Game::Dvar_FindVar("r_filmUseTweaks");
+			const auto& r_filmTweakEnable = game::Dvar_FindVar("r_filmTweakEnable");
+			const auto& r_filmUseTweaks = game::Dvar_FindVar("r_filmUseTweaks");
 
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -887,12 +887,12 @@ namespace components
 
 				if (r_filmTweakEnable->current.enabled && r_filmUseTweaks->current.enabled)
 				{
-					const auto& r_filmTweakInvert = Game::Dvar_FindVar("r_filmTweakInvert");
-					const auto& r_filmTweakLightTint = Game::Dvar_FindVar("r_filmTweakLightTint");
-					const auto& r_filmTweakDarkTint = Game::Dvar_FindVar("r_filmTweakDarkTint");
-					const auto& r_filmTweakDesaturation = Game::Dvar_FindVar("r_filmTweakDesaturation");
-					const auto& r_filmTweakContrast = Game::Dvar_FindVar("r_filmTweakContrast");
-					const auto& r_filmTweakBrightness = Game::Dvar_FindVar("r_filmTweakBrightness");
+					const auto& r_filmTweakInvert = game::Dvar_FindVar("r_filmTweakInvert");
+					const auto& r_filmTweakLightTint = game::Dvar_FindVar("r_filmTweakLightTint");
+					const auto& r_filmTweakDarkTint = game::Dvar_FindVar("r_filmTweakDarkTint");
+					const auto& r_filmTweakDesaturation = game::Dvar_FindVar("r_filmTweakDesaturation");
+					const auto& r_filmTweakContrast = game::Dvar_FindVar("r_filmTweakContrast");
+					const auto& r_filmTweakBrightness = game::Dvar_FindVar("r_filmTweakBrightness");
 
 					if (r_filmTweakInvert && r_filmTweakLightTint && r_filmTweakDarkTint && r_filmTweakDesaturation && r_filmTweakContrast && r_filmTweakBrightness)
 					{
@@ -916,9 +916,9 @@ namespace components
 
 		if (ImGui::CollapsingHeader("Lighttweaks", ImGuiTreeNodeFlags_CollapsingHeader))
 		{
-			const auto& r_lightTweakSunColor = Game::Dvar_FindVar("r_lightTweakSunColor");
-			const auto& r_lightTweakSunDirection = Game::Dvar_FindVar("r_lightTweakSunDirection");
-			const auto& r_lightTweakSunLight = Game::Dvar_FindVar("r_lightTweakSunLight");
+			const auto& r_lightTweakSunColor = game::Dvar_FindVar("r_lightTweakSunColor");
+			const auto& r_lightTweakSunDirection = game::Dvar_FindVar("r_lightTweakSunDirection");
+			const auto& r_lightTweakSunLight = game::Dvar_FindVar("r_lightTweakSunLight");
 
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -1018,7 +1018,7 @@ namespace components
 					devgui_configs.clear();
 				}
 
-				if (const auto& fs_basepath = Game::Dvar_FindVar("fs_basepath"); fs_basepath)
+				if (const auto& fs_basepath = game::Dvar_FindVar("fs_basepath"); fs_basepath)
 				{
 					std::string base_path = fs_basepath->current.string;
 								base_path += "\\iw3xo\\daynight\\";
@@ -1069,70 +1069,70 @@ namespace components
 	// skybox constants
 
 	// called from _Renderer::pixelshader_custom_constants
-	void daynight_cycle::set_pixelshader_constants(Game::GfxCmdBufState* state, Game::MaterialShaderArgument* const arg_def)
+	void daynight_cycle::set_pixelshader_constants(game::GfxCmdBufState* state, game::MaterialShaderArgument* const arg_def)
 	{
 		if (state->pass->pixelShader && !utils::q_stricmp(state->pass->pixelShader->name, "iw3xo_daynight"))
 		{
 			// *
 			// get constants for debugging purposes
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE)
 			{
-				(*Game::dx9_device_ptr)->GetPixelShaderConstantF(arg_def->dest, sundiffuse_constant, 1);
+				(*game::dx9_device_ptr)->GetPixelShaderConstantF(arg_def->dest, sundiffuse_constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION)
 			{
-				(*Game::dx9_device_ptr)->GetPixelShaderConstantF(arg_def->dest, sunposition_constant, 1);
+				(*game::dx9_device_ptr)->GetPixelShaderConstantF(arg_def->dest, sunposition_constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS)
 			{
-				(*Game::dx9_device_ptr)->GetPixelShaderConstantF(arg_def->dest, colorbias_constant, 1);
+				(*game::dx9_device_ptr)->GetPixelShaderConstantF(arg_def->dest, colorbias_constant, 1);
 			}
 
 
 			// *
 			// set constants
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0)
 			{
 				const float constant[4] = { outscatter_color01[0], outscatter_color01[1], outscatter_color01[2], outscatter_scale01 };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1)
 			{
 				const float constant[4] = { outscatter_color02[0], outscatter_color02[1], outscatter_color02[2], outscatter_scale02 };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2)
 			{
 				const float constant[4] = { dn_skydome_scale, dn_cloud_coverage, dn_cloud_thickness, dn_cloud_absorbtion };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3)
 			{
 				const float constant[4] = { dn_star_scale, dn_cloud_step_distance_xz, 0.0f, dn_cloud_exposure };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
 			{
 				const float constant[4] = { dn_cloud_wind_vec[0], dn_cloud_wind_vec[1], dn_cloud_wind_vec[2], dn_cloud_wind_speed };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5)
 			{
 				const float constant[4] = { dn_sky_sun_intensity, dn_sky_rayleigh_coeff[0], dn_sky_rayleigh_coeff[1], dn_sky_rayleigh_coeff[2] };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
-			if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6)
+			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6)
 			{
 				const float constant[4] = { dn_sky_mie_coeff, dn_sky_rayleigh_scale, dn_sky_mie_scale, dn_sky_mie_scatter_dir };
-				(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 		}
 	}
@@ -1142,13 +1142,13 @@ namespace components
 	// overwrite default sky
 
 	// called from _Renderer::R_SetMaterial
-	void daynight_cycle::overwrite_sky_material(Game::switch_material_t* swm)
+	void daynight_cycle::overwrite_sky_material(game::switch_material_t* swm)
 	{
 		if (dvars::r_dayAndNight && dvars::r_dayAndNight->current.enabled)
 		{
 			if (utils::starts_with(swm->current_material->info.name, "wc/sky_"))
 			{
-				swm->technique_type = Game::TECHNIQUE_UNLIT;
+				swm->technique_type = game::TECHNIQUE_UNLIT;
 				_renderer::switch_material(swm, "wc/iw3xo_daynight");
 			}
 		}
@@ -1158,7 +1158,7 @@ namespace components
 	// TODO:
 	// move to _Renderer
 
-	void r_set_frame_fog(Game::GfxCmdBufInput* input)
+	void r_set_frame_fog(game::GfxCmdBufInput* input)
 	{
 		if (input)
 		{
@@ -1167,11 +1167,11 @@ namespace components
 				// save stock settings
 				framefog_start_stock = input->data->fogSettings.fogStart;
 				framefog_density_stock = input->data->fogSettings.density * 100.0f;
-				utils::vector::copy(input->consts[Game::CONST_SRC_CODE_FOG_COLOR], framefog_color_stock, 4);
+				utils::vector::copy(input->consts[game::CONST_SRC_CODE_FOG_COLOR], framefog_color_stock, 4);
 
 				// set dvars
-				Game::Dvar_SetValue(dvars::r_fogTweaksStart, framefog_start_stock);
-				Game::Dvar_SetValue(dvars::r_fogTweaksDensity, framefog_density_stock);
+				game::dvar_set_value_dirty(dvars::r_fogTweaksStart, framefog_start_stock);
+				game::dvar_set_value_dirty(dvars::r_fogTweaksDensity, framefog_density_stock);
 
 				utils::vector::copy(framefog_color_stock, dvars::r_fogTweaksColor->current.vector, 4);
 				utils::vector::copy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 4);
@@ -1179,21 +1179,21 @@ namespace components
 
 			else
 			{
-				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][0] = dvars::r_fogTweaksColor->current.vector[0];
-				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][1] = dvars::r_fogTweaksColor->current.vector[1];
-				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][2] = dvars::r_fogTweaksColor->current.vector[2];
-				input->consts[Game::CONST_SRC_CODE_FOG_COLOR][3] = dvars::r_fogTweaksColor->current.vector[3];
+				input->consts[game::CONST_SRC_CODE_FOG_COLOR][0] = dvars::r_fogTweaksColor->current.vector[0];
+				input->consts[game::CONST_SRC_CODE_FOG_COLOR][1] = dvars::r_fogTweaksColor->current.vector[1];
+				input->consts[game::CONST_SRC_CODE_FOG_COLOR][2] = dvars::r_fogTweaksColor->current.vector[2];
+				input->consts[game::CONST_SRC_CODE_FOG_COLOR][3] = dvars::r_fogTweaksColor->current.vector[3];
 
-				input->consts[Game::CONST_SRC_CODE_FOG][2] = -(dvars::r_fogTweaksDensity->current.value * 0.01f);
-				input->consts[Game::CONST_SRC_CODE_FOG][3] = dvars::r_fogTweaksStart->current.value * (dvars::r_fogTweaksDensity->current.value * 0.01f);
+				input->consts[game::CONST_SRC_CODE_FOG][2] = -(dvars::r_fogTweaksDensity->current.value * 0.01f);
+				input->consts[game::CONST_SRC_CODE_FOG][3] = dvars::r_fogTweaksStart->current.value * (dvars::r_fogTweaksDensity->current.value * 0.01f);
 
 				// set the clear color so that the bottom of the skybox matches the fog
-				const auto& r_clear = Game::Dvar_FindVar("r_clear");
-				const auto& r_clearColor = Game::Dvar_FindVar("r_clearColor");
+				const auto& r_clear = game::Dvar_FindVar("r_clear");
+				const auto& r_clearColor = game::Dvar_FindVar("r_clearColor");
 
 				if (r_clear && r_clearColor)
 				{
-					Game::Dvar_SetValue(r_clear, 3);	r_clear->modified = true;
+					game::dvar_set_value_dirty(r_clear, 3);	r_clear->modified = true;
 					utils::byte4_pack_rgba(dvars::r_fogTweaksColor->current.vector, r_clearColor->current.color);
 
 					for (auto i = 0; i < 4; i++)
@@ -1233,23 +1233,23 @@ namespace components
 		
 		utils::hook::nop(0x63DBDF, 6); utils::hook(0x63DBDF, r_setframefog_stub, HOOK_JUMP).install()->quick();
 
-		dvars::r_dayAndNight = Game::Dvar_RegisterBool(
+		dvars::r_dayAndNight = game::Dvar_RegisterBool(
 			/* name		*/ "r_dayAndNight",
 			/* desc		*/ "enable day and night cycle",
 			/* default	*/ false,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ game::dvar_flags::none);
 
 
 		// TODO:
 		// move to _Renderer
 
-		dvars::r_fogTweaks = Game::Dvar_RegisterBool(
+		dvars::r_fogTweaks = game::Dvar_RegisterBool(
 			/* name		*/ "r_fogTweaks",
 			/* desc		*/ "enable framefog tweaks",
 			/* default	*/ false,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ game::dvar_flags::none);
 
-		dvars::r_fogTweaksColor = Game::Dvar_RegisterVec4(
+		dvars::r_fogTweaksColor = game::Dvar_RegisterVec4(
 			/* name		*/ "r_fogTweaksColor",
 			/* desc		*/ "framefog color",
 			/* x		*/ 0.0f,
@@ -1258,22 +1258,22 @@ namespace components
 			/* w		*/ 0.0f,
 			/* minVal	*/ 0.0f,
 			/* maxVal	*/ 1.0f,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ game::dvar_flags::none);
 
-		dvars::r_fogTweaksStart = Game::Dvar_RegisterFloat(
+		dvars::r_fogTweaksStart = game::Dvar_RegisterFloat(
 			/* name		*/ "r_fogTweaksStart",
 			/* desc		*/ "framefog start",
 			/* default	*/ 0.0f,
 			/* minVal	*/ -1000.0f,
 			/* maxVal	*/ 30000.0f,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ game::dvar_flags::none);
 
-		dvars::r_fogTweaksDensity = Game::Dvar_RegisterFloat(
+		dvars::r_fogTweaksDensity = game::Dvar_RegisterFloat(
 			/* name		*/ "r_fogTweaksDensity",
 			/* desc		*/ "framefog density",
 			/* default	*/ 0.0f,
 			/* minVal	*/ 0.0f,
 			/* maxVal	*/ 1.0f,
-			/* flags	*/ Game::dvar_flags::none);
+			/* flags	*/ game::dvar_flags::none);
 	}
 }

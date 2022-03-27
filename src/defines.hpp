@@ -25,10 +25,10 @@
 
 // *
 // Gui
-#define GET_GGUI Game::Globals::gui
-#define GGUI_READY Game::Globals::gui.imgui_initialized
-#define GGUI_READY_DVARS Game::Globals::gui.dvars_initialized
-#define GGUI_ANY_MENUS_OPEN Game::Globals::gui.any_menus_open
+#define GET_GGUI game::glob::gui
+#define GGUI_READY game::glob::gui.imgui_initialized
+#define GGUI_READY_DVARS game::glob::gui.dvars_initialized
+#define GGUI_ANY_MENUS_OPEN game::glob::gui.any_menus_open
 #define GGUI_MENU_COUNT 4
 
 //#define DEVGUI_XO_BLUR // iw4 blur shader test
