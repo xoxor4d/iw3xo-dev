@@ -1,9 +1,9 @@
 #pragma once
-#include "Utils/concurrent_list.hpp"
+#include "utils/concurrent_list.hpp"
 
 namespace components
 {
-	class Scheduler : public component
+	class scheduler final : public component
 	{
 	public:
 		enum thread
@@ -25,22 +25,20 @@ namespace components
 
 		static void error(const std::string& message, int level);
 
-		Scheduler();
-		~Scheduler();
-		const char* getName() override { return "Scheduler"; };
+		scheduler();
+		const char* get_name() override { return "scheduler"; };
 
 	private:
 		static std::mutex mutex_;
 		static std::queue<std::pair<std::string, int>> errors_;
 		static utils::concurrent_list<std::pair<std::function<void()>, thread>> callbacks_;
 		static utils::concurrent_list<std::pair<std::function<void()>, thread>> single_callbacks_;
-		static utils::concurrent_list<std::pair<std::function<Scheduler::evaluation()>, thread>> condition_callbacks_;
+		static utils::concurrent_list<std::pair<std::function<scheduler::evaluation()>, thread>> condition_callbacks_;
 
 		static void main_frame_stub();
 		static void renderer_frame_stub_stock();
 		static void renderer_frame_stub_con_addon();
-		//static void sv_spawnserver_stub();
-
+	
 		static void execute(thread thread);
 		static void execute_safe(thread thread);
 		static void execute_error(thread thread);

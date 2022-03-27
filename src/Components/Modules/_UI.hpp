@@ -9,7 +9,7 @@ namespace components
 	{
 	public:
 		_ui();
-		const char* getName() override { return "_ui"; };
+		const char* get_name() override { return "_ui"; };
 
 		static int		get_text_height(Game::Font_s *font);
 		static float	scrplace_apply_x(int horz_align, const float x, const float x_offs);

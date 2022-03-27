@@ -245,16 +245,16 @@ namespace Game
 
 	struct fltCon_s
 	{
-		bool				flt_initialized;
-		bool				flt_enabled;
-		bool				flt_isMoving;
-		bool				flt_wasUsed;
-		bool				flt_wasReset;
-		bool				flt_isResizing;
-		fltCon_borderClip	fltClippedAtBorder;
-		fltCon_Anker		fltAnker;
-		fltCon_Dimensions	fltDimensions;
-		fltCon_Dimensions	fltMinDimensions;
+		bool				initialized;
+		bool				enabled;
+		bool				is_moving;
+		bool				was_in_use;
+		bool				was_reset;
+		bool				is_resizing;
+		fltCon_borderClip	clipped_at_border;
+		fltCon_Anker		anker;
+		fltCon_Dimensions	dimensions;
+		fltCon_Dimensions	min_dimensions;
 	};
 
 	struct conItem_slider
@@ -283,34 +283,34 @@ namespace Game
 
 	struct conItems_conType
 	{
-		conItem_box			inputBox;
-		conItem_box			outputBox;
-		conItem_text		outputText;
-		conItem_slider		outputSlider;
-		conItem_box			hintBoxUpper;
-		conItem_text		hintBoxUpperText;
-		conItem_box			hintBoxLower;
-		conItem_text		hintBoxLowerText;
-		conItem_box			hintBoxTotal;
-		conItem_box			resizeBtnTrigger;
+		conItem_box			input_box;
+		conItem_box			output_box;
+		conItem_text		output_text;
+		conItem_slider		output_slider;
+		conItem_box			hint_box_upper;
+		conItem_text		hint_box_upper_text;
+		conItem_box			hint_box_lower;
+		conItem_text		hint_box_lower_text;
+		conItem_box			hint_box_total;
+		conItem_box			resize_button_trigger;
 	};
 
 	struct conItems_s
 	{
-		conItems_conType	smallCon;
-		conItems_conType	fullCon;
+		conItems_conType	s_con;
+		conItems_conType	f_con;
 	};
 
 	struct Console_Addons
 	{
-		fltCon_s			fltCon;
-		conItems_s			conItems;
-		conAddons_CursorPos	cursorPos;
-		conAddons_CursorPos	cursorPosSaved;
-		conAddons_CursorPos	cursorPosSavedOnClick;
-		fltCon_Dimensions	viewportRes;
-		bool				fullConFirstFrame;
-		int					cursorToggleTimeout;
+		fltCon_s			floating;
+		conItems_s			items;
+		conAddons_CursorPos	cursor_pos;
+		conAddons_CursorPos	cursor_pos_saved;
+		conAddons_CursorPos	cursor_pos_saved_on_click;
+		fltCon_Dimensions	viewport_res;
+		bool				fcon_first_frame;
+		int					cursor_toggle_timeout;
 	};
 
 	struct ConDrawInputGlob

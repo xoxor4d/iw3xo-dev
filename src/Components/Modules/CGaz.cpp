@@ -181,8 +181,8 @@ namespace components
 	{
 		state_t state;
 		state.g_squared = slickGravity * slickGravity;
-		state.v_squared = utils::vector::_VectorLengthSquared2(s.pml.previous_velocity);
-		state.vf_squared = utils::vector::_VectorLengthSquared2(s.pm.ps->velocity);
+		state.v_squared = utils::vector::length_squared2(s.pml.previous_velocity);
+		state.vf_squared = utils::vector::length_squared2(s.pm.ps->velocity);
 		state.wishspeed = wishspeed;
 		state.a = accel * state.wishspeed * s.pml.frametime;
 		state.a_squared = state.a * state.a;
@@ -289,15 +289,15 @@ namespace components
 		pml->forward[2] = 0;
 		pml->right[2] = 0;
 
-		utils::vector::_VectorNormalize(pml->forward);
-		utils::vector::_VectorNormalize(pml->right);
+		utils::vector::normalize3(pml->forward);
+		utils::vector::normalize3(pml->right);
 
 		for (uint8_t i = 0; i < 2; ++i)
 		{
 			s.wishvel[i] = pm->cmd.forwardmove * pml->forward[i] + pm->cmd.rightmove * pml->right[i];
 		}
 
-		float const wishspeed = scale * VectorLength2(s.wishvel);
+		float const wishspeed = scale * m_vector_length2(s.wishvel);
 
 		cgaz::PM_Accelerate(wishspeed, pm_airaccelerate);
 	}
@@ -486,8 +486,8 @@ namespace components
 		pml->forward[2] = 0;
 		pml->right[2] = 0;
 
-		utils::vector::_VectorNormalize(pml->forward);
-		utils::vector::_VectorNormalize(pml->right);
+		utils::vector::normalize3(pml->forward);
+		utils::vector::normalize3(pml->right);
 
 		for (uint8_t i = 0; i < 2; ++i)
 		{
@@ -495,7 +495,7 @@ namespace components
 		}
 
 		const float dmg_scale = cgaz::PM_DamageScale_Walk(pm->ps->damageTimer) * cgaz::PM_CmdScale_Walk(pm, &pm->cmd);
-		const float wishspeed = dmg_scale * VectorLength2(s.wishvel);
+		const float wishspeed = dmg_scale * m_vector_length2(s.wishvel);
 
 		// when a player gets hit, they temporarily lose
 		// full control, which allows them to be moved a bit
@@ -530,9 +530,9 @@ namespace components
 		memset(pml, 0, sizeof(pml));
 
 		// save old velocity for crashlanding
-		VectorCopy(pm->ps->velocity, pml->previous_velocity);
+		m_vector_copy3(pm->ps->velocity, pml->previous_velocity);
 
-		utils::vector::_AngleVectors(pm->ps->viewangles, pml->forward, pml->right, pml->up);
+		utils::vector::angle_vectors(pm->ps->viewangles, pml->forward, pml->right, pml->up);
 
 		pml->frametime = static_cast<float>(Game::cgs->frametime) / 1000.f;
 
@@ -569,7 +569,7 @@ namespace components
 		memcpy(&s.pm, &*Game::pmove, sizeof(Game::pmove_t));
 
 		if (!(s.pm.ps->otherFlags & PMF_FOLLOW) 
-			&& (utils::vector::_VectorLengthSquared2(s.pm.ps->velocity) >= static_cast<float>(dvars::mdd_cgaz_min_speed->current.integer * dvars::mdd_cgaz_min_speed->current.integer)))
+			&& (utils::vector::length_squared2(s.pm.ps->velocity) >= static_cast<float>(dvars::mdd_cgaz_min_speed->current.integer * dvars::mdd_cgaz_min_speed->current.integer)))
 		{
 			cgaz::PmoveSingle(&s.pm, &s.pml);
 		}

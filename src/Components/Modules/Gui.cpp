@@ -207,18 +207,18 @@ namespace components
 		// init fonts (see Fonts.cpp)
 
 		// H1 Bold Larger
-		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 32.0f);
+		io.Fonts->AddFontFromMemoryCompressedTTF(imgui_fonts::opensans_bold_compressed_data, imgui_fonts::opensans_bold_compressed_size, 32.0f);
 		// H2 Bold Large
-		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 28.0f);
+		io.Fonts->AddFontFromMemoryCompressedTTF(imgui_fonts::opensans_bold_compressed_data, imgui_fonts::opensans_bold_compressed_size, 28.0f);
 		// H1 Bold
-		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_bold_compressed_data, fonts::opensans_bold_compressed_size, 24.0f);
+		io.Fonts->AddFontFromMemoryCompressedTTF(imgui_fonts::opensans_bold_compressed_data, imgui_fonts::opensans_bold_compressed_size, 24.0f);
 
 		// Regular Large
-		io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_regular_compressed_data, fonts::opensans_regular_compressed_size, 24.0f);
+		io.Fonts->AddFontFromMemoryCompressedTTF(imgui_fonts::opensans_regular_compressed_data, imgui_fonts::opensans_regular_compressed_size, 24.0f);
 		// Regular
-        io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(fonts::opensans_regular_compressed_data, fonts::opensans_regular_compressed_size, 18.0f);
+        io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(imgui_fonts::opensans_regular_compressed_data, imgui_fonts::opensans_regular_compressed_size, 18.0f);
 
-		ImGui_ImplWin32_Init(Window::GetWindow());
+		ImGui_ImplWin32_Init(window::GetWindow());
 		ImGui_ImplDX9_Init(device);
 
 		// Style
@@ -449,13 +449,13 @@ namespace components
 	{
 #if DEBUG
 		// check hotkeys every frame
-		Scheduler::on_frame([this]()
+		scheduler::on_frame([this]()
 		{
 			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
 			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
 			gui::toggle(GET_GGUI.menus[Game::GUI_MENUS::CHANGELOG], KEYCATCHER_INS);
 
-		}, Scheduler::thread::main);
+		}, scheduler::thread::main);
 #endif
 
 		// *

@@ -58,7 +58,7 @@ namespace components
 				Game::Globals::dynamic_brush_models.brushes[0].ent = &Game::scr_g_entities[ent];
 
 				// save the original origin
-				glm::set_float3(Game::Globals::dynamic_brush_models.brushes[0].originalOrigin, glm::toVec3(Game::Globals::dynamic_brush_models.brushes[0].ent->r.currentOrigin));
+				glm::set_float3(Game::Globals::dynamic_brush_models.brushes[0].originalOrigin, glm::to_vec3(Game::Globals::dynamic_brush_models.brushes[0].ent->r.currentOrigin));
 
 				Game::Com_PrintMessage(0, utils::va("|-> found base-brushmodel @ g_entities[%d]\n", ent), 0);
 				Game::Globals::dynamic_brush_models.mapped_bmodels++;
@@ -102,7 +102,7 @@ namespace components
 					Game::Globals::dynamic_brush_models.brushes[child].ent = &Game::scr_g_entities[ent];
 
 					// save the original origin
-					glm::set_float3(Game::Globals::dynamic_brush_models.brushes[child].originalOrigin, glm::toVec3(Game::Globals::dynamic_brush_models.brushes[child].ent->r.currentOrigin));
+					glm::set_float3(Game::Globals::dynamic_brush_models.brushes[child].originalOrigin, glm::to_vec3(Game::Globals::dynamic_brush_models.brushes[child].ent->r.currentOrigin));
 
 					mapped_children.push_back(ent);
 
@@ -137,13 +137,13 @@ namespace components
 					}
 
 					// compare mins
-					if (!utils::vector::_VectorCompare(Game::cm->cmodels[cmod].mins, Game::Globals::dynamic_brush_models.brushes[bModel].ent->r.mins))
+					if (!utils::vector::compare3(Game::cm->cmodels[cmod].mins, Game::Globals::dynamic_brush_models.brushes[bModel].ent->r.mins))
 					{
 						continue;
 					}	
 
 					// compare maxs
-					if (!utils::vector::_VectorCompare(Game::cm->cmodels[cmod].maxs, Game::Globals::dynamic_brush_models.brushes[bModel].ent->r.maxs))
+					if (!utils::vector::compare3(Game::cm->cmodels[cmod].maxs, Game::Globals::dynamic_brush_models.brushes[bModel].ent->r.maxs))
 					{
 						continue;
 					}	
@@ -279,7 +279,7 @@ namespace components
 				for (auto b = 0; b < Game::Globals::dynamic_brush_models.mapped_bmodels; b++)
 				{
 					_ggame::ent_brushmodel_set_collision(Game::Globals::dynamic_brush_models.brushes[b].ent, false);
-					_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[b].ent, glm::toVec3(Game::Globals::dynamic_brush_models.brushes[b].originalOrigin));
+					_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[b].ent, glm::to_vec3(Game::Globals::dynamic_brush_models.brushes[b].originalOrigin));
 				}
 
 				Game::Globals::radiant_saved_brushes.disabled_collision = true;
@@ -360,7 +360,7 @@ namespace components
 						for (auto bb = 0; bb < Game::Globals::dynamic_brush_models.mapped_bmodels; bb++)
 						{
 							_ggame::ent_brushmodel_set_collision(Game::Globals::dynamic_brush_models.brushes[bb].ent, false);
-							_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[bb].ent, glm::toVec3(Game::Globals::dynamic_brush_models.brushes[bb].originalOrigin));
+							_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[bb].ent, glm::to_vec3(Game::Globals::dynamic_brush_models.brushes[bb].originalOrigin));
 						}
 
 						Game::Globals::dynamic_brush_models.initiated = false;
@@ -476,7 +476,7 @@ namespace components
 			for (auto b = Game::Globals::radiant_saved_brushes.selected_brush_count + Game::Globals::radiant_saved_brushes.saved_brush_count; b < Game::Globals::dynamic_brush_models.mapped_bmodels; b++)
 			{
 				_ggame::ent_brushmodel_set_collision(Game::Globals::dynamic_brush_models.brushes[b].ent, false);
-				_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[b].ent, glm::toVec3(Game::Globals::dynamic_brush_models.brushes[b].originalOrigin));
+				_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[b].ent, glm::to_vec3(Game::Globals::dynamic_brush_models.brushes[b].originalOrigin));
 			}
 #pragma warning(pop)
 
@@ -489,7 +489,7 @@ namespace components
 			for (auto b = 0; b < Game::Globals::dynamic_brush_models.mapped_bmodels; b++)
 			{
 				_ggame::ent_brushmodel_set_collision(Game::Globals::dynamic_brush_models.brushes[b].ent, false);
-				_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[b].ent, glm::toVec3(Game::Globals::dynamic_brush_models.brushes[b].originalOrigin));
+				_ggame::ent_instant_move_to(Game::Globals::dynamic_brush_models.brushes[b].ent, glm::to_vec3(Game::Globals::dynamic_brush_models.brushes[b].originalOrigin));
 			}
 
 			Game::Globals::radiant_saved_brushes.disabled_collision = true;
@@ -762,7 +762,7 @@ namespace components
 		Game::cgs->refdefViewAngles[1] = Game::Globals::cgs_addons.radiant_camera_angles[1];
 		Game::cgs->refdefViewAngles[2] = Game::Globals::cgs_addons.radiant_camera_angles[2];
 
-		utils::vector::_AnglesToAxis(Game::Globals::cgs_addons.radiant_camera_angles, Game::cgs->refdef.viewaxis);
+		utils::vector::angles_to_axis(Game::Globals::cgs_addons.radiant_camera_angles, Game::cgs->refdef.viewaxis);
 
 		Game::cgs->refdef.vieworg[0] = Game::Globals::cgs_addons.radiant_camera_origin[0];
 		Game::cgs->refdef.vieworg[1] = Game::Globals::cgs_addons.radiant_camera_origin[1];

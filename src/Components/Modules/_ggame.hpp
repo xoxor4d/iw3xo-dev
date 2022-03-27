@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		_ggame();
-		const char* getName() override { return "_ggame"; };
+		const char* get_name() override { return "_ggame"; };
 
 		static bool			parse_spawn_vars(Game::SpawnVar* spawnVar);
 		static void			set_entity_parse_point(const char* begin_parse_point);

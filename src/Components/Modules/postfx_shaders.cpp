@@ -2,26 +2,24 @@
 
 namespace components
 {
-	void RB_GaussianFilterImage(float radius, Game::GfxRenderTargetId srcRenderTargetId, Game::GfxRenderTargetId dstRenderTargetId, float _dstWidth = 0.0, float _dstHeight = 0.0)
+	// RB_GaussianFilterImage
+	void gaussian_filter_image(float radius, Game::GfxRenderTargetId src_render_target, Game::GfxRenderTargetId dest_render_target, [[maybe_unused]] float dest_width = 0.0, [[maybe_unused]] float dest_height = 0.0)
 	{
-		int srcWidth, srcHeight, dstWidth, dstHeight;
-		float radiusX, radiusY;
+		float radius_y = *Game::wnd_SceneHeight * radius / 480.0f; // sceneHeight
+		float radius_x = *Game::wnd_SceneAspect * radius_y; // sceneHeight * AspectRatio(1.7778) / sceneWidth
 
-		radiusY = *Game::wnd_SceneHeight * radius / 480.0f; // sceneHeight
-		radiusX = *Game::wnd_SceneAspect * radiusY; // sceneHeight * AspectRatio(1.7778) / sceneWidth
+		int src_width = Game::RenderTargetWidth[5 * src_render_target];
+		int src_height = Game::RenderTargetHeight[5 * src_render_target];
 
-		srcWidth = Game::RenderTargetWidth[5 * srcRenderTargetId];
-		srcHeight = Game::RenderTargetHeight[5 * srcRenderTargetId];
-
-		dstWidth = (std::int32_t)(Game::RenderTargetWidth[5 * dstRenderTargetId] * 0.25);
-		dstHeight = (std::int32_t)(Game::RenderTargetHeight[5 * dstRenderTargetId] * 0.25);
+		int dst_width = (std::int32_t)(Game::RenderTargetWidth[5 * dest_render_target] * 0.25);
+		int dst_height = (std::int32_t)(Game::RenderTargetHeight[5 * dest_render_target] * 0.25);
 
 		Game::GfxImageFilter filter = {};
-		filter.sourceImage = (Game::GfxImage *)Game::RenderTargetArray[5 * srcRenderTargetId];
-		filter.finalTarget = dstRenderTargetId;
+		filter.sourceImage = (Game::GfxImage *)Game::RenderTargetArray[5 * src_render_target];
+		filter.finalTarget = dest_render_target;
 
 		// generates 1 pass if src is 2x bigger then dest
-		filter.passCount = Game::RB_GenerateGaussianFilterChain( radiusX, radiusY, srcWidth, srcHeight, dstWidth, dstHeight, filter.passes );
+		filter.passCount = Game::RB_GenerateGaussianFilterChain( radius_x, radius_y, src_width, src_height, dst_width, dst_height, filter.passes );
 
 		if (filter.passCount) 
 		{
@@ -29,12 +27,12 @@ namespace components
 		}
 	}
 
-	void DrawToRendertarget(Game::GfxRenderTargetId Rendertarget, const char *materialName, float x, float y, float width, float height)
+	void draw_to_rendertarget(Game::GfxRenderTargetId render_target, const char *material_name, const float x, const float y, const float width, const float height)
 	{
 		Game::R_Set2D();
-		Game::R_SetRenderTarget(Rendertarget);
+		Game::R_SetRenderTarget(render_target);
 
-		if (const auto	material = Game::Material_RegisterHandle(materialName, 3); 
+		if (const auto	material = Game::Material_RegisterHandle(material_name, 3); 
 						material)
 		{
 			Game::RB_DrawStretchPic(material, x, y, width, height, 0.0, 0.0, 1.0, 1.0);
@@ -43,7 +41,7 @@ namespace components
 		Game::RB_EndTessSurface();
 	}
 
-	void RB_DrawCustomShaders(const char *shader)
+	void draw_custom_postfx_shaders(const char *shader)
 	{
 		if (!Game::gfxCmdBufSourceState)
 		{
@@ -55,14 +53,14 @@ namespace components
 			Game::RB_EndTessSurface();
 		}
 
-		const float fullscreenX = Game::scrPlace->realViewableMax[0];
-		const float fullscreenY = Game::scrPlace->realViewableMax[1];
+		const float fullscreen_x = Game::scrPlace->realViewableMax[0];
+		const float fullscreen_y = Game::scrPlace->realViewableMax[1];
 		
 		// POSTFX_OUTLINER
 		if (dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_POSTFX_OUTLINER)
 		{
 			// Depth prepass
-			DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FLOAT_Z, "floatz_display", 0.0f, 0.0f, fullscreenX, fullscreenY);
+			draw_to_rendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FLOAT_Z, "floatz_display", 0.0f, 0.0f, fullscreen_x, fullscreen_y);
 
 			// FilterTap 0
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = dvars::xo_outliner_scale->current.value;
@@ -74,7 +72,7 @@ namespace components
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2][1] = dvars::xo_outliner_toonShades->current.value;
 
 			// Draw Outliner
-			DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_outliner", 0.0f, 0.0f, fullscreenX, fullscreenY);
+			draw_to_rendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_outliner", 0.0f, 0.0f, fullscreen_x, fullscreen_y);
 		}
 
 		else 
@@ -82,16 +80,17 @@ namespace components
 			if(dvars::xo_shaderoverlay->current.integer != Game::XO_SHADEROVERLAY::Z_SHADER_SSAO)
 			{
 				// If using other overlay shaders
-				DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, shader, 0.0f, 0.0f, fullscreenX, fullscreenY);
+				draw_to_rendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, shader, 0.0f, 0.0f, fullscreen_x, fullscreen_y);
 			}
 		}
 	}
 
-	void RB_DrawDebugPostEffects(const Game::GfxViewInfo* viewInfo)
+	// rewrite of RB_DrawDebugPostEffects
+	void draw_debug_postfx(const Game::GfxViewInfo* view_info)
 	{
-		const auto r_showFbColorDebug = Game::Dvar_FindVar("r_showFbColorDebug");
-		const auto r_showFloatZDebug = Game::Dvar_FindVar("r_showFloatZDebug");
-		const auto sc_showDebug	= Game::Dvar_FindVar("sc_showDebug");
+		const auto& r_showFbColorDebug = Game::Dvar_FindVar("r_showFbColorDebug");
+		const auto& r_showFloatZDebug = Game::Dvar_FindVar("r_showFloatZDebug");
+		const auto& sc_showDebug	= Game::Dvar_FindVar("sc_showDebug");
 		
 		if (r_showFbColorDebug && r_showFbColorDebug->current.integer == 1)
 		{
@@ -115,9 +114,9 @@ namespace components
 
 		else if (dvars::xo_shaderoverlay && dvars::xo_ssao_debugnormal && (dvars::xo_shaderoverlay->current.integer != 0 || dvars::xo_ssao_debugnormal->current.enabled))
 		{
-			const auto r_zFeather = Game::Dvar_FindVar("r_zFeather");
-			const auto r_distortion	= Game::Dvar_FindVar("r_distortion");
-			const auto r_glow_allowed = Game::Dvar_FindVar("r_glow_allowed");
+			const auto& r_zFeather = Game::Dvar_FindVar("r_zFeather");
+			const auto& r_distortion	= Game::Dvar_FindVar("r_distortion");
+			const auto& r_glow_allowed = Game::Dvar_FindVar("r_glow_allowed");
 			
 			// force depthbuffer
 			if (r_zFeather && !r_zFeather->current.enabled)
@@ -140,13 +139,13 @@ namespace components
 			// use a custom material
 			if (dvars::xo_shaderoverlay_custom && dvars::xo_shaderoverlay->current.integer == 5)
 			{
-				RB_DrawCustomShaders(dvars::xo_shaderoverlay_custom->current.string);
+				draw_custom_postfx_shaders(dvars::xo_shaderoverlay_custom->current.string);
 			}
 
 			// use pre-defined materials
 			else
 			{
-				RB_DrawCustomShaders(Game::Dvar_EnumToString(dvars::xo_shaderoverlay));
+				draw_custom_postfx_shaders(Game::Dvar_EnumToString(dvars::xo_shaderoverlay));
 			}
 		}
 
@@ -167,34 +166,34 @@ namespace components
 		Game::RB_EndTessSurface();
 	}
 
-	__declspec(naked) void RB_DrawDebugPostEffects_Pre()
+	__declspec(naked) void RB_DrawDebugPostEffects_stub()
 	{
+		const static uint32_t retn_addr = 0x64AD75;
 		__asm
 		{
 			pushad;
 			push	esi; // GfxViewInfo
-			call	RB_DrawDebugPostEffects;
+			call	draw_debug_postfx;
 			add		esp, 4;
 			popad;
 
-			push	0x64AD75;
-			retn;
+			jmp		retn_addr;
 		}
 	}
 
-	void ao_draw()
+	void draw_ssao()
 	{
 		if (dvars::xo_shaderoverlay->current.integer == Game::XO_SHADEROVERLAY::Z_SHADER_SSAO)
 		{
 			Game::R_Set2D();
 
-			const float fullscreenX = Game::scrPlace->realViewableMax[0];
-			const float fullscreenY = Game::scrPlace->realViewableMax[1];
+			const float fullscreen_x = Game::scrPlace->realViewableMax[0];
+			const float fullscreen_y = Game::scrPlace->realViewableMax[1];
 
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][0] = dvars::xo_ssao_noisescale->current.value;
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][1] = dvars::xo_ssao_quality->current.value;
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = fullscreenX; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
-			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = fullscreenY; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][2] = fullscreen_x; // DONT USE FilterTap[0][2] for dvars -> Used as TextureSize.x
+			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0][3] = fullscreen_y; // DONT USE FilterTap[0][3] for dvars -> Used as TextureSize.y
 
 			// FilterTap 1
 			Game::gfxCmdBufSourceState->input.consts[Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1][0] = dvars::xo_ssao_radius->current.value;
@@ -208,14 +207,14 @@ namespace components
 			// DEBUG :: fullscreen normals
 			if (dvars::xo_ssao_debugnormal->current.enabled)
 			{
-				DrawToRendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_ssao_normal", 0.0f, 0.0f, fullscreenX, fullscreenY);
+				draw_to_rendertarget(Game::GfxRenderTargetId::R_RENDERTARGET_FRAME_BUFFER, "z_shader_ssao_normal", 0.0f, 0.0f, fullscreen_x, fullscreen_y);
 				return;
 			}
 
 			Game::R_SetRenderTarget(Game::GfxRenderTargetId::R_RENDERTARGET_RESOLVED_SCENE);
 
 			auto material = Game::Material_RegisterHandle("z_shader_ssao", 3);
-			utils::hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
+			Game::RB_DrawFullScreenColoredQuad(material, 0.0f, 0.0f, 1.0f, 1.0f, -1);
 
 			Game::GfxRenderTarget& resolved_scene = *reinterpret_cast<Game::GfxRenderTarget*>(0xD573F00);
 
@@ -227,23 +226,23 @@ namespace components
 			Game::gfxCmdBufSourceState->input.codeImages[11] = resolved_scene.image;
 
 			material = Game::Material_RegisterHandle("z_shader_ssao_blur", 3);
-			utils::hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
+			Game::RB_DrawFullScreenColoredQuad(material, 0.0f, 0.0f, 1.0f, 1.0f, -1);
 
 			Game::R_SetRenderTarget(Game::GfxRenderTargetId::R_RENDERTARGET_SCENE);
 
 			material = Game::Material_RegisterHandle("z_shader_ssao_apply", 3);
-			utils::hook::Call<void(__cdecl)(Game::Material*, float, float, float, float, int)>(0x6113E0)(material, 0.0, 0.0, 1.0, 1.0, -1); // RB_DrawFullScreenColoredQuad
+			Game::RB_DrawFullScreenColoredQuad(material, 0.0f, 0.0f, 1.0f, 1.0f, -1);
 		}
 	}
 
-	__declspec(naked) void ao_draw_stub()
+	__declspec(naked) void ssao_draw_stub()
 	{
 		const static uint32_t og_func_addr = 0x634820;
-		const static uint32_t retn_addr = 0x64B2EB; // 64B2FC
+		const static uint32_t retn_addr = 0x64B2EB;
 		__asm
 		{
 			pushad;
-			call	ao_draw;
+			call	draw_ssao;
 			popad;
 
 			call	og_func_addr;
@@ -251,7 +250,7 @@ namespace components
 		}
 	}
 
-	void RB_ShaderOverlays::register_dvars()
+	void postfx_shaders::register_dvars()
 	{
 		dvars::xo_shaderoverlay_custom = Game::Dvar_RegisterString(
 			/* name		*/ "xo_shaderoverlay_custom",
@@ -260,7 +259,7 @@ namespace components
 			/* flags	*/ Game::dvar_flags::none);
 	}
 
-	RB_ShaderOverlays::RB_ShaderOverlays()
+	postfx_shaders::postfx_shaders()
 	{
 		// -----
 		// dvars
@@ -271,7 +270,7 @@ namespace components
 			/* default	*/ false,
 			/* flags	*/ Game::dvar_flags::none);
 
-		static std::vector <const char*> xo_shaderoverlayEnum =
+		static std::vector <const char*> xo_shaderoverlay_enum =
 		{
 			"NONE",
 			"Z_SHADER_SSAO",
@@ -285,8 +284,8 @@ namespace components
 			/* name		*/ "xo_shaderoverlay",
 			/* desc		*/ "fullscreen shaderoverlays. <CUSTOM> uses the material defined with \"xo_shaderoverlay_custom\"",
 			/* default	*/ 0,
-			/* enumSize	*/ xo_shaderoverlayEnum.size(),
-			/* enumData */ xo_shaderoverlayEnum.data(),
+			/* enumSize	*/ xo_shaderoverlay_enum.size(),
+			/* enumData */ xo_shaderoverlay_enum.data(),
 			/* flags	*/ Game::dvar_flags::none);
 
 		dvars::xo_ssao_debugnormal = Game::Dvar_RegisterBool(
@@ -324,11 +323,8 @@ namespace components
 		utils::hook::nop(0x658FB2, 2);
 
 		// Rewrite RB_DrawDebugPostEffects (Entry for custom post-effects)
-		utils::hook(0x64AD70, RB_DrawDebugPostEffects_Pre, HOOK_JUMP).install()->quick();
+		utils::hook(0x64AD70, RB_DrawDebugPostEffects_stub, HOOK_JUMP).install()->quick();
 
-		utils::hook(0x64B2E6, ao_draw_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x64B2E6, ssao_draw_stub, HOOK_JUMP).install()->quick();
 	}
-
-	RB_ShaderOverlays::~RB_ShaderOverlays()
-	{ }
 }

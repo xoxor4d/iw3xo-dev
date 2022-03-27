@@ -73,19 +73,19 @@
 #include <imgui_md.h>
 #include <WinHttpClient.h>
 
-#include "Game/Structs.hpp"
+#include "Game/structs.hpp"
 #include "utils/vector.hpp"
 #include "utils/utils.hpp"
 #include "utils/polylib.hpp"
 #include "utils/memory.hpp"
 #include "utils/hooking.hpp"
-#include "utils/Entities.hpp"
+#include "utils/entities.hpp"
 #include "utils/function.hpp"
 
 #include "Game/Functions.hpp"
 #include "Game/dvars.hpp"
 
-#include "Components/Fonts.hpp"
+#include "Components/imgui_fonts.hpp"
 #include "Components/loader.hpp"
 
 using namespace std::literals;

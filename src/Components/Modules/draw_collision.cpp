@@ -17,7 +17,7 @@ float mapexport_quad_eps_ = 0.0f;
 
 std::ofstream mapexport_mapfile_;
 std::ofstream mapexport_mapfile_addon_;
-utils::Entities	mapexport_entities_;
+utils::entities	mapexport_entities_;
 Game::boundingbox_s mapexport_selectionbox_;
 
 const char *map_clipmap_name_ = "";
@@ -68,7 +68,7 @@ namespace components
 	{
 		glm::vec3 delta = glm::vec3(origin.x, origin.y, origin.z) - glm::vec3(view_parms->origin[0], view_parms->origin[1], view_parms->origin[2]);
 
-		float scale = utils::vector::_GLM_VectorNormalize(delta);
+		float scale = utils::vector::normalize3_glm(delta);
 		const float dot = glm::dot(delta, glm::vec3(view_parms->axis[0][0], view_parms->axis[0][1], view_parms->axis[0][2]));
 
 		scale = (dot - 0.995f) * scale;
@@ -136,7 +136,7 @@ namespace components
 														 + ((*side_planes)[4 * planeIndex + 3] * view_proj_mtx->m[term][3]);
 			}
 
-			const float length = utils::vector::_VectorLength(frustum_planes[planeIndex].coeffs);
+			const float length = utils::vector::length3(frustum_planes[planeIndex].coeffs);
 
 			if (length <= 0.0f) 
 			{
@@ -520,7 +520,7 @@ namespace components
 					Game::Com_PrintMessage(0, utils::va("^4get_xyz_list L#%d ^7:: Adding X:^2 %.2lf ^7Y:^2 %.2lf ^7Z:^2 %.2lf ^7 \n", __LINE__, xyz_list[count][0], xyz_list[count][1], xyz_list[count][2]), 0);
 				}
 #endif
-				xyz_list[count] = glm::toVec3(pts[index].xyz);
+				xyz_list[count] = glm::to_vec3(pts[index].xyz);
 				++count;
 			}
 		}
@@ -699,7 +699,7 @@ namespace components
 					va[1] = w->p[i][1] - w->p[j][1];	
 					va[2] = w->p[i][2] - w->p[j][2];
 
-					utils::vector::_Vec3Cross(va, vb, vc);
+					utils::vector::cross3(va, vb, vc);
 					const float test_against = fabs(((vc[0] * normal[0]) + (vc[1] * normal[1])) + (vc[2] * normal[2]));
 
 					if(test_against > 0.0f)
@@ -727,7 +727,7 @@ namespace components
 		v2_v0[1] = v2[1] - v0[1];
 		v2_v0[2] = v2[2] - v0[2];
 
-		utils::vector::_Vec3Cross(v2_v0, v1_v0, plane);
+		utils::vector::cross3(v2_v0, v1_v0, plane);
 		const float length_sqr = ((plane[0] * plane[0]) + (plane[1] * plane[1])) + (plane[2] * plane[2]);
 
 		if (length_sqr < 2.0f)
@@ -737,7 +737,7 @@ namespace components
 				return false;
 			}
 
-			if(utils::vector::_VectorLengthSquared(v2_v0) * utils::vector::_VectorLengthSquared(v1_v0) * 0.0000010000001f >= length_sqr)
+			if(utils::vector::length_squared3(v2_v0) * utils::vector::length_squared3(v1_v0) * 0.0000010000001f >= length_sqr)
 			{
 				v1_v0[0] = v2[0] - v1[0];
 				v1_v0[1] = v2[1] - v1[1];
@@ -746,9 +746,9 @@ namespace components
 				v2_v0[1] = v0[1] - v1[1];
 				v2_v0[2] = v0[2] - v1[2];
 
-				utils::vector::_Vec3Cross(v2_v0, v1_v0, plane);
+				utils::vector::cross3(v2_v0, v1_v0, plane);
 
-				if (utils::vector::_VectorLengthSquared(v2_v0) * utils::vector::_VectorLengthSquared(v1_v0) * 0.0000010000001f >= length_sqr)
+				if (utils::vector::length_squared3(v2_v0) * utils::vector::length_squared3(v1_v0) * 0.0000010000001f >= length_sqr)
 				{
 					return false;
 				}
@@ -790,7 +790,7 @@ namespace components
 		int i, i0, i1, i2, j;
 
 		Game::vec4_t plane;
-		utils::vector::_VectorZero4(plane);
+		utils::vector::zero4(plane);
 
 		if (!winding)
 		{
@@ -837,7 +837,7 @@ namespace components
 
 		plane_from_points(&*plane, winding->p[i0], winding->p[i1], winding->p[i2]);
 
-		if (utils::vector::_DotProduct(plane, plane_normal) < 0.0f)
+		if (utils::vector::dot3(plane, plane_normal) < 0.0f)
 		{
 			reverse_winding(winding);
 		}
@@ -894,7 +894,7 @@ namespace components
 	bool build_brush_winding_for_side(Game::winding_t* winding, const float* plane_normal, const int side_index, Game::ShowCollisionBrushPt* pts, int pt_count)
 	{
 		int i, i0, i1, i2, j;
-		Game::vec4_t plane; utils::vector::_VectorZero4(plane);
+		Game::vec4_t plane; utils::vector::zero4(plane);
 
 		if (!winding) 
 		{
@@ -961,7 +961,7 @@ namespace components
 		plane_from_points(&*plane, winding->p[i0], winding->p[i1], winding->p[i2]);
 
 		// if our winding has a clock-wise winding, reverse it
-		if (utils::vector::_DotProduct(plane, plane_normal) > 0.0f)
+		if (utils::vector::dot3(plane, plane_normal) > 0.0f)
 		{
 			reverse_winding(winding);
 		}
@@ -993,7 +993,7 @@ namespace components
 
 		for (auto plane = 0; plane < 3; plane++)
 		{
-			if (!utils::polylib::PointWithinBounds(glm::toVec3(brush_side->brushPlane[plane].point), mins, maxs, 0.25f))
+			if (!utils::polylib::is_point_within_bounds(glm::to_vec3(brush_side->brushPlane[plane].point), mins, maxs, 0.25f))
 			{
 				return false;
 			}
@@ -1172,8 +1172,8 @@ namespace components
 					}
 				}
 
-				const glm::vec3 brush_mins = glm::toVec3(brush->mins);
-				const glm::vec3 brush_maxs = glm::toVec3(brush->maxs);
+				const glm::vec3 brush_mins = glm::to_vec3(brush->mins);
+				const glm::vec3 brush_maxs = glm::to_vec3(brush->maxs);
 
 				// check brushes defined by more then their axialplanes
 				if(map_brush.size() > 6)
@@ -1675,7 +1675,7 @@ namespace components
 	{
 		if (brush && sbox->is_box_valid)
 		{
-			return utils::polylib::PointWithinBounds(get_brush_midpoint(brush, true), sbox->mins, sbox->maxs, 0.25f);
+			return utils::polylib::is_point_within_bounds(get_brush_midpoint(brush, true), sbox->mins, sbox->maxs, 0.25f);
 		}
 		
 		return false;
@@ -1686,7 +1686,7 @@ namespace components
 	{
 		for (auto t = 0; t < 3; t++)
 		{
-			if(!utils::polylib::PointWithinBounds(glm::toVec3(tris->coords[t].xyz), sbox->mins, sbox->maxs, 0.25f))
+			if(!utils::polylib::is_point_within_bounds(glm::to_vec3(tris->coords[t].xyz), sbox->mins, sbox->maxs, 0.25f))
 			{
 				return false;
 			}
@@ -1721,8 +1721,8 @@ namespace components
 				mapents_ptr = _map::mpsp_mapents_original;
 			}
 
-			utils::Entities mapEnts(mapents_ptr);
-			map_brushmodel_list_ = mapEnts.getBrushModels();
+			utils::entities mapEnts(mapents_ptr);
+			map_brushmodel_list_ = mapEnts.get_brushmodels();
 
 			Game::Com_PrintMessage(0, utils::va("|-> found %d submodels\n", static_cast<int>(map_brushmodel_list_.size())), 0);
 
@@ -1957,7 +1957,7 @@ namespace components
 			// for each edge of triangle 2
 			for (auto edge_tri2 = 0; edge_tri2 < 3; edge_tri2++)
 			{
-				matched_points += utils::vector::_VectorCompare(ptri1->coords[edge_tri1].xyz, ptri2->coords[edge_tri2].xyz);
+				matched_points += utils::vector::compare3(ptri1->coords[edge_tri1].xyz, ptri2->coords[edge_tri2].xyz);
 			}
 
 			// shouldnt happen
@@ -1991,7 +1991,7 @@ namespace components
 		for (auto gfx_vert = 0u; gfx_vert < Game::_gfxWorld->vertexCount; gfx_vert++)
 		{
 			// try to match our first clipmap vertex to a gfxworld vertex
-			if (!found_first && utils::vector::_VectorCompare(Game::cm->verts[incides[0]], Game::_gfxWorld->vd.vertices[gfx_vert].xyz))
+			if (!found_first && utils::vector::compare3(Game::cm->verts[incides[0]], Game::_gfxWorld->vd.vertices[gfx_vert].xyz))
 			{
 				// found the first corrosponding gfx vertex :: copy gfx vertex data to our temp vertex
 				memcpy(&ptris->coords[0], &Game::_gfxWorld->vd.vertices[gfx_vert], sizeof(Game::GfxWorldVertex));
@@ -2013,7 +2013,7 @@ namespace components
 			}
 
 			// try to match our second clipmap vertex to a gfxworld vertex
-			if (!found_second && utils::vector::_VectorCompare(Game::cm->verts[incides[1]], Game::_gfxWorld->vd.vertices[gfx_vert].xyz))
+			if (!found_second && utils::vector::compare3(Game::cm->verts[incides[1]], Game::_gfxWorld->vd.vertices[gfx_vert].xyz))
 			{
 				// found the second corrosponding gfx vertex :: copy gfx vertex data to our temp vertex
 				memcpy(&ptris->coords[1], &Game::_gfxWorld->vd.vertices[gfx_vert], sizeof(Game::GfxWorldVertex));
@@ -2035,7 +2035,7 @@ namespace components
 			}
 
 			// try to match our third clipmap vertex to a gfxworld vertex
-			if (!found_third && utils::vector::_VectorCompare(Game::cm->verts[incides[2]], Game::_gfxWorld->vd.vertices[gfx_vert].xyz))
+			if (!found_third && utils::vector::compare3(Game::cm->verts[incides[2]], Game::_gfxWorld->vd.vertices[gfx_vert].xyz))
 			{
 				// found the third corrosponding gfx vertex :: copy gfx vertex data to our temp vertex
 				memcpy(&ptris->coords[2], &Game::_gfxWorld->vd.vertices[gfx_vert], sizeof(Game::GfxWorldVertex));
@@ -2165,7 +2165,7 @@ namespace components
 			for (auto t2 = 0; t2 < 3; t2++)
 			{
 				// check if the current coord from tri 1 is unique and not part of tri 2
-				if (utils::vector::_VectorCompare(ptri1->coords[t1].xyz, ptri2->coords[t2].xyz))
+				if (utils::vector::compare3(ptri1->coords[t1].xyz, ptri2->coords[t2].xyz))
 				{
 					// found shared point
 					shared_pt_count++;
@@ -2206,7 +2206,7 @@ namespace components
 
 			// unpack the normal .. might be needed for texture info later down the line
 			Game::vec3_t normal; 
-			utils::vector::_Vec3UnpackUnitVec(ptri2->coords[1].normal, normal);
+			utils::vector::unpack_unit_vec3(ptri2->coords[1].normal, normal);
 
 			// sort x accending
 			std::ranges::sort(v_quad_pts.begin(), v_quad_pts.end());
@@ -2527,7 +2527,7 @@ namespace components
 				mapents_ptr = _map::mpsp_mapents_original;
 			}
 
-			mapexport_entities_ = utils::Entities(mapents_ptr);
+			mapexport_entities_ = utils::entities(mapents_ptr);
 			Game::Com_PrintMessage(0, "|- Writing header and world entity ...\n\n", 0);
 
 			// write header
@@ -2542,7 +2542,7 @@ namespace components
 			// write worldspawn
 			mapexport_mapfile_ <<	"// entity 0\n"
 									"{\n"
-									+ mapexport_entities_.buildWorldspawnKeys();
+									+ mapexport_entities_.build_worldspawn();
 
 			// Use debug collision methods to create our brushes ...
 			mapexport_timestamp_brushgen_start_ = utils::clock_start_timer_print("[MAP-EXPORT]: Creating brushes ...\n");
@@ -2659,8 +2659,8 @@ namespace components
 				Game::cbrush_t dupe = {};
 				memcpy(&dupe, brush, sizeof(Game::cbrush_t));
 
-				utils::vector::_VectorAdd(map_brushmodel_list_[dupe.cmSubmodelIndex].cm_submodel_origin, dupe.mins, dupe.mins);
-				utils::vector::_VectorAdd(map_brushmodel_list_[dupe.cmSubmodelIndex].cm_submodel_origin, dupe.maxs, dupe.maxs);
+				utils::vector::add3(map_brushmodel_list_[dupe.cmSubmodelIndex].cm_submodel_origin, dupe.mins, dupe.mins);
+				utils::vector::add3(map_brushmodel_list_[dupe.cmSubmodelIndex].cm_submodel_origin, dupe.maxs, dupe.maxs);
 
 				brush = &dupe;
 			}
@@ -3051,7 +3051,7 @@ namespace components
 				Game::Com_PrintMessage(0, "[MAP-EXPORT]: Building entities ...\n", 0);
 
 				// already exported the worldspawn entity, so delete it from the list
-				mapexport_entities_.deleteWorldspawn();
+				mapexport_entities_.delete_worldspawn();
 
 				// *
 				// map entities and brushmodels
@@ -3073,7 +3073,7 @@ namespace components
 				for (auto probe = 1u; probe < Game::_gfxWorld->reflectionProbeCount; probe++)
 				{
 					if (filter_brush_selection && 
-						!utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->reflectionProbes[probe].origin[0],
+						!utils::polylib::is_point_within_bounds(glm::vec3(Game::_gfxWorld->reflectionProbes[probe].origin[0],
 																	 Game::_gfxWorld->reflectionProbes[probe].origin[1],
 																	 Game::_gfxWorld->reflectionProbes[probe].origin[2]),
 																	 mapexport_selectionbox_.mins, mapexport_selectionbox_.maxs, 0.25f))
@@ -3107,7 +3107,7 @@ namespace components
 				{
 					// only export static models within the selection box
 					if (filter_brush_selection &&
-						!utils::polylib::PointWithinBounds(glm::vec3(Game::_gfxWorld->dpvs.smodelDrawInsts[smodel].placement.origin[0],
+						!utils::polylib::is_point_within_bounds(glm::vec3(Game::_gfxWorld->dpvs.smodelDrawInsts[smodel].placement.origin[0],
 																	 Game::_gfxWorld->dpvs.smodelDrawInsts[smodel].placement.origin[1],
 																	 Game::_gfxWorld->dpvs.smodelDrawInsts[smodel].placement.origin[2]),
 																	 mapexport_selectionbox_.mins, mapexport_selectionbox_.maxs, 0.25f)) 
@@ -3136,7 +3136,7 @@ namespace components
 
 					// calculate model angles
 					Game::vec3_t angles;
-					utils::vector::_ToEulerAnglesDegrees(matrix, angles);
+					utils::vector::to_euler_angles_deg(matrix, angles);
 
 					mapexport_mapfile_ << utils::va("// static model %d\n{", exported_static_model_counter) << std::endl;
 					mapexport_mapfile_ << "layer \"000_Global/Models\"" << std::endl;
@@ -3181,7 +3181,7 @@ namespace components
 								float axis[3][3] = {};
 								float angles[3] = {};
 
-								utils::vector::UnitQuatToAxis(next->pose.quat, axis);
+								utils::vector::unit_quat_to_axis(next->pose.quat, axis);
 								Game::AxisToAngles(angles, axis);
 
 								mapexport_mapfile_ << utils::va("\"angles\" \"%.1f %.1f %.1f\"", angles[0], angles[1], angles[2]) << std::endl;

@@ -440,9 +440,9 @@ namespace components
 		{
 			Game::vec3_t pt1, pt2, normal;
 
-			utils::vector::_VectorSubtract(points[1], points[0], pt1);
-			utils::vector::_VectorSubtract(points[2], points[0], pt2);
-			utils::vector::_Vec3Cross(pt1, pt2, normal);
+			utils::vector::subtract3(points[1], points[0], pt1);
+			utils::vector::subtract3(points[2], points[0], pt2);
+			utils::vector::cross3(pt1, pt2, normal);
 
 			for (vert_index = 0; vert_index < num_points; ++vert_index)
 			{

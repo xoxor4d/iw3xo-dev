@@ -18,6 +18,6 @@ namespace components
 	{
 	public:
 		gscr_methods();
-		const char* getName() override { return "gscr_methods"; };
+		const char* get_name() override { return "gscr_methods"; };
 	};
 }

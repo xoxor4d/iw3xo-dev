@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		_common();
-		const char* getName() override { return "_common"; };
+		const char* get_name() override { return "_common"; };
 
 	private:
 		void db_realloc_entry_pool();

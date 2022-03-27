@@ -2,18 +2,18 @@
 
 namespace components
 {
-	std::mutex Scheduler::mutex_;
-	std::queue<std::pair<std::string, int>> Scheduler::errors_;
-	utils::concurrent_list<std::pair<std::function<void()>, Scheduler::thread>> Scheduler::callbacks_;
-	utils::concurrent_list<std::pair<std::function<void()>, Scheduler::thread>> Scheduler::single_callbacks_;
-	utils::concurrent_list<std::pair<std::function<Scheduler::evaluation()>, Scheduler::thread>> Scheduler::condition_callbacks_;
+	std::mutex scheduler::mutex_;
+	std::queue<std::pair<std::string, int>> scheduler::errors_;
+	utils::concurrent_list<std::pair<std::function<void()>, scheduler::thread>> scheduler::callbacks_;
+	utils::concurrent_list<std::pair<std::function<void()>, scheduler::thread>> scheduler::single_callbacks_;
+	utils::concurrent_list<std::pair<std::function<scheduler::evaluation()>, scheduler::thread>> scheduler::condition_callbacks_;
 
-	void Scheduler::on_frame(const std::function<void()>& callback, const thread thread)
+	void scheduler::on_frame(const std::function<void()>& callback, const thread thread)
 	{
 		callbacks_.add({ callback, thread });
 	}
 
-	void Scheduler::delay(const std::function<void()>& callback, const std::chrono::milliseconds delay, const thread thread)
+	void scheduler::delay(const std::function<void()>& callback, const std::chrono::milliseconds delay, const thread thread)
 	{
 		const auto begin = std::chrono::high_resolution_clock::now();
 
@@ -29,26 +29,26 @@ namespace components
 		}, thread);
 	}
 
-	void Scheduler::once(const std::function<void()>& callback, const thread thread)
+	void scheduler::once(const std::function<void()>& callback, const thread thread)
 	{
 		single_callbacks_.add({ callback, thread });
 	}
 
-	void Scheduler::until(const std::function<evaluation()>& callback, thread thread)
+	void scheduler::until(const std::function<evaluation()>& callback, thread thread)
 	{
 		condition_callbacks_.add({ callback, thread });
 	}
 
-	void Scheduler::error(const std::string& message, int level)
+	void scheduler::error(const std::string& message, int level)
 	{
 		std::lock_guard _(mutex_);
 		errors_.emplace(message, level);
 	}
 
-	__declspec(naked) void Scheduler::main_frame_stub()
+	__declspec(naked) void scheduler::main_frame_stub()
 	{
 		static const int execution_thread = thread::main;
-
+		const static uint32_t retn_addr = 0x4FFF30;
 		__asm
 		{
 			pushad;
@@ -57,14 +57,29 @@ namespace components
 			pop		eax;
 			popad;
 
-			push	0x4FFF30;
-			retn;
+			jmp		retn_addr;
 		}
 	}
 
 	// -------
 
-	__declspec(naked) void Scheduler::renderer_frame_stub_stock()
+	__declspec(naked) void scheduler::renderer_frame_stub_stock()
+	{
+		static const int execution_thread = thread::renderer;
+		const static uint32_t retn_addr = 0x45CEF0;
+		__asm
+		{
+			pushad;
+			push	execution_thread;
+			call	execute;
+			pop		eax;
+			popad;
+
+			jmp		retn_addr;
+		}
+	}
+
+	__declspec(naked) void scheduler::renderer_frame_stub_con_addon()
 	{
 		static const int execution_thread = thread::renderer;
 
@@ -76,31 +91,14 @@ namespace components
 			pop		eax;
 			popad;
 
-			push	0x45CEF0;
-			retn;
-		}
-	}
-
-	__declspec(naked) void Scheduler::renderer_frame_stub_con_addon()
-	{
-		static const int execution_thread = thread::renderer;
-
-		__asm
-		{
-			pushad;
-			push	execution_thread;
-			call	execute;
-			pop		eax;
-			popad;
-
-			call	XO_Console::xo_con_CheckResize;
+			call	console::check_resize;
 			retn;
 		}
 	}
 
 	// -------
 
-	__declspec(naked) void Scheduler::execute(thread)
+	__declspec(naked) void scheduler::execute(thread)
 	{
 		__asm
 		{
@@ -114,7 +112,7 @@ namespace components
 		}
 	}
 
-	void Scheduler::execute_safe(const thread thread)
+	void scheduler::execute_safe(const thread thread)
 	{
 		for (const auto callback : callbacks_)
 		{
@@ -145,7 +143,7 @@ namespace components
 		}
 	}
 
-	void Scheduler::execute_error(thread thread)
+	void scheduler::execute_error(thread thread)
 	{
 		const char* message;
 		int level;
@@ -156,7 +154,7 @@ namespace components
 		}
 	}
 
-	bool Scheduler::get_next_error(const char** error_message, int* error_level)
+	bool scheduler::get_next_error(const char** error_message, int* error_level)
 	{
 		std::lock_guard _(mutex_);
 		if (errors_.empty())
@@ -174,11 +172,11 @@ namespace components
 		return true;
 	}
 
-	Scheduler::Scheduler()
+	scheduler::scheduler()
 	{
 		utils::hook(0x500328, main_frame_stub, HOOK_CALL).install()->quick();
 		
-		if (components::active.XO_Console)
+		if (components::active.console)
 		{
 			utils::hook(0x475052, renderer_frame_stub_con_addon, HOOK_CALL).install()->quick(); // call xo_con_CheckResize if console addon is loaded
 		}
@@ -187,7 +185,4 @@ namespace components
 			utils::hook(0x475052, renderer_frame_stub_stock, HOOK_CALL).install()->quick(); // call stock Con_CheckResize otherwise
 		}
 	}
-
-	Scheduler::~Scheduler()
-	{ }
 }

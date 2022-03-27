@@ -6,13 +6,13 @@ namespace components
 	activeModules_s active = activeModules_s();
 
 	std::vector<component*> loader::components_;
-	utils::Memory::Allocator loader::mem_allocator_;
+	utils::memory::Allocator loader::component_allocator_;
 
 	#define USE_MODULE(name, state)	active.##name = state
 
 	void loader::initialize_()
 	{
-		loader::mem_allocator_.clear();
+		loader::component_allocator_.clear();
 
 		// global bools for more dynamic modules (choose which modules to load)
 		active._cg				= true;
@@ -28,22 +28,22 @@ namespace components
 		active.d3d9ex			= true;
 		active.gscr_methods		= true;
 		active.patches			= true;
-		active.Scheduler		= true;
-		active.Window			= true;
+		active.scheduler		= true;
+		active.window			= true;
 		
-		active.cgaz				 = true;
-		active.compass			 = true;
-		active.daynight_cycle	 = true;
-		active.draw_collision	 = true;
-		active.gui				 = active.Window == active.d3d9ex; // needs the window module and d3d9ex
-		active.gui_devgui		 = active.gui; // obv. needs imgui
-		active.menu_export		 = true;
-		active.movement			 = true;
-		active.mvm				 = true;
-		active.ocean			 = true;
-		active.radiant_livelink	 = true;
-		active.RB_ShaderOverlays = true;
-		active.XO_Console		 = true;
+		active.cgaz				= true;
+		active.compass			= true;
+		active.console			= true;
+		active.daynight_cycle	= true;
+		active.draw_collision	= true;
+		active.gui				= active.window == active.d3d9ex; // needs the window module and d3d9ex
+		active.gui_devgui		= active.gui; // obv. needs imgui
+		active.menu_export		= true;
+		active.movement			= true;
+		active.mvm				= true;
+		active.ocean			= true;
+		active.postfx_shaders	= true;
+		active.radiant_livelink	= true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_cg);
@@ -59,12 +59,13 @@ namespace components
 		REGISTER_MODULE(d3d9ex);
 		REGISTER_MODULE(gscr_methods);
 		REGISTER_MODULE(patches);
-		REGISTER_MODULE(Scheduler);
-		REGISTER_MODULE(Window);
+		REGISTER_MODULE(scheduler);
+		REGISTER_MODULE(window);
 
 		// Addons
 		REGISTER_MODULE(cgaz);
 		REGISTER_MODULE(compass);
+		REGISTER_MODULE(console);
 		REGISTER_MODULE(daynight_cycle);
 		REGISTER_MODULE(draw_collision);
 		REGISTER_MODULE(gui);
@@ -73,9 +74,8 @@ namespace components
 		REGISTER_MODULE(movement);
 		REGISTER_MODULE(mvm);
 		REGISTER_MODULE(ocean);
+		REGISTER_MODULE(postfx_shaders);
 		REGISTER_MODULE(radiant_livelink);
-		REGISTER_MODULE(RB_ShaderOverlays);
-		REGISTER_MODULE(XO_Console);
 	}
 
 	void loader::uninitialize_()
@@ -87,14 +87,14 @@ namespace components
 		}
 
 		loader::components_.clear();
-		loader::mem_allocator_.clear();
+		loader::component_allocator_.clear();
 	}
 
 	void loader::register_(component* component)
 	{
 		if (component)
 		{
-			Game::Globals::loaded_modules.append(utils::va("Component registered: %s\n", component->getName()));
+			Game::Globals::loaded_modules.append(utils::va("Component registered: %s\n", component->get_name()));
 			loader::components_.push_back(component);
 		}
 	}
@@ -104,7 +104,7 @@ namespace components
 		std::ranges::reverse(loader::components_.begin(), loader::components_.end());
 		for (const auto component : loader::components_)
 		{
-			if (!strcmp(componentName, component->getName()))
+			if (!strcmp(componentName, component->get_name()))
 			{
 				return true;
 			}
@@ -113,8 +113,8 @@ namespace components
 		return false;
 	}
 
-	utils::Memory::Allocator* loader::get_alloctor()
+	utils::memory::Allocator* loader::get_alloctor()
 	{
-		return &loader::mem_allocator_;
+		return &loader::component_allocator_;
 	}
 }

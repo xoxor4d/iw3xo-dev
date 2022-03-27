@@ -18,9 +18,9 @@ namespace components
 			_renderer::register_dvars();
 		}
 
-		if (components::active.RB_ShaderOverlays)
+		if (components::active.postfx_shaders)
 		{
-			RB_ShaderOverlays::register_dvars();
+			postfx_shaders::register_dvars();
 		}
 	}
 
@@ -403,7 +403,7 @@ namespace components
 		AssertSize(Game::XAssetEntry, 16);
 
 		size_t size = 789312;
-		Game::XAssetEntry* entry_pool = utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
+		Game::XAssetEntry* entry_pool = utils::memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
 
 		// Apply new size
 		utils::hook::set<DWORD>(0x488F50, size);

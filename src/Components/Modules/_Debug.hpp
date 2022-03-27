@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		_debug();
-		const char* getName() override { return "_debug"; };
+		const char* get_name() override { return "_debug"; };
 
 		// -------------------
 		// Lines

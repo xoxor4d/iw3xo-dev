@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		daynight_cycle();
-		const char* getName() override { return "daynight_cycle"; };
+		const char* get_name() override { return "daynight_cycle"; };
 
 		struct time_of_day_settings
 		{

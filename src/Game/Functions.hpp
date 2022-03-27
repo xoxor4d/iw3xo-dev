@@ -196,6 +196,7 @@ namespace Game
 	static utils::function<void(float radius, int srcRenderTargetId)> RB_GaussianFilterImage = 0x6517A0;
 	static utils::function<int(float radiusX, float radiusY, int srcWidth, int srcHeight, int dstWidth, int dstHeight, Game::GfxImageFilterPass *filterPass)> RB_GenerateGaussianFilterChain = 0x651310;
 	static utils::function<void(Game::GfxImageFilter *filter)> RB_FilterImage = 0x6516A0;
+	static utils::function<void(Game::Material*, float s0, float t0, float s1, float t1, int color)> RB_DrawFullScreenColoredQuad = 0x6113E0;
 
 	static utils::function<void(std::int32_t a1, std::int32_t a2, std::int32_t a3)> DrawXModelSkinnedCached = 0x646870;
 	static utils::function<bool()> CreateDebugLinesIfNeeded = 0x462080;
@@ -223,13 +224,13 @@ namespace Game
 
 	void draw_text_with_engine(float x, float y, float scaleX, float scaleY, const char* font, const float *color, const char* text);
 	void R_AddCmdDrawTextASM(const char *text, int maxChars, void *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
-	void RB_StandardDrawCommands(Game::GfxViewInfo *viewInfo);																															
-	void R_AddCmdDrawStretchPic(void *material, float x, float y, float w, float h, float null1, float null2, float null3, float null4, float *color); // ASM
+	void RB_StandardDrawCommands(Game::GfxViewInfo* viewInfo);																															
+	void R_AddCmdDrawStretchPic(Game::Material* material, float x, float y, float w, float h, float null1, float null2, float null3, float null4, float* color); // ASM
 	void R_SetRenderTarget(int target); // ASM
 	void R_Set2D(); // ASM
 	void R_Set3D(); // ASM
-	void RB_DrawStretchPic(Game::Material *material, float x, float y, float w, float h, float a6, float a7, float a8, float a9 /*-1 pushed*/);
-	void CG_DrawRotatedPicPhysical(ScreenPlacement* place, float a2, float a3, float a4, float a5, float a6, float *color, void *material);
+	void RB_DrawStretchPic(Game::Material* material, float x, float y, float w, float h, float a6, float a7, float a8, float a9 /*-1 pushed*/);
+	void CG_DrawRotatedPicPhysical(ScreenPlacement* place, float a2, float a3, float a4, float a5, float a6, float *color, void* material);
 	int  R_TextWidth(const char *text /*<eax*/, int maxChars, Game::Font_s *font); // ASM
 
 

@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		gui_devgui();
-		const char* getName() override { return "gui_devgui"; };
+		const char* get_name() override { return "gui_devgui"; };
 
 		static void create_devgui(Game::gui_menus_t& menu);
 		

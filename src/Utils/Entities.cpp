@@ -3,35 +3,35 @@
 namespace utils
 {
 	// build all entities (includes brushmodel pointers "*")
-	std::string Entities::buildAll()
+	std::string entities::build_all()
 	{
-		std::string entityString;
+		std::string entity_string;
 
-		for (auto& entity : this->entities)
+		for (auto& entity : this->entities_)
 		{
-			entityString.append("{\n");
+			entity_string.append("{\n");
 
 			for (auto& property : entity)
 			{
-				entityString.push_back('"');
-				entityString.append(property.first);
-				entityString.append("\" \"");
-				entityString.append(property.second);
-				entityString.append("\"\n");
+				entity_string.push_back('"');
+				entity_string.append(property.first);
+				entity_string.append("\" \"");
+				entity_string.append(property.second);
+				entity_string.append("\"\n");
 			}
 
-			entityString.append("}\n");
+			entity_string.append("}\n");
 		}
 
-		return entityString;
+		return entity_string;
 	}
 
 	// build all entities and fix brushmodels
-	std::string Entities::buildAll_script_structs()
+	std::string entities::build_all_script_structs()
 	{
-		std::string entityString;
+		std::string entity_string;
 
-		for (auto& entity : this->entities)
+		for (auto& entity : this->entities_)
 		{
 			std::string classname = entity["classname"];
 
@@ -40,33 +40,34 @@ namespace utils
 			{
 				// start entity
 				//entityString.append(utils::va("// entity %d\n", entityNum));
-				entityString.append("{\n");
+				entity_string.append("{\n");
 
 				for (auto& property : entity)
 				{
-					entityString.push_back('"');
-					entityString.append(property.first);
-					entityString.append("\" \"");
-					entityString.append(property.second);
-					entityString.append("\"\n");
+					entity_string.push_back('"');
+					entity_string.append(property.first);
+					entity_string.append("\" \"");
+					entity_string.append(property.second);
+					entity_string.append("\"\n");
 				}
 
 				// close entity
-				entityString.append("}\n");
+				entity_string.append("}\n");
 			}
 		}
 
-		return entityString;
+		return entity_string;
 	}
 
 	// build all entities and fix brushmodels
-	std::string Entities::buildAll_FixBrushmodels(const std::vector<Game::brushmodel_entity_s> &bModelList)
+	std::string entities::buildAll_FixBrushmodels(const std::vector<Game::brushmodel_entity_s> &bmodel_list)
 	{
-		int entityNum = 1; // worldspawn is 0
-		int submodelNum = 0;
-		std::string entityString;
+		int entity_num = 1; // worldspawn is 0
+		int submodel_num = 0;
 
-		for (auto& entity : this->entities)
+		std::string basic_string;
+
+		for (auto& entity : this->entities_)
 		{
 			std::string model = entity["model"];
 
@@ -74,21 +75,21 @@ namespace utils
 			if (!model.empty() && model[0] == '*')
 			{
 				// get the submodel index 
-				auto p_index = std::stoi(model.erase(0, 1));
+				const auto p_index = std::stoi(model.erase(0, 1));
 
-				if (p_index < static_cast<int>(bModelList.size()))
+				if (p_index < static_cast<int>(bmodel_list.size()))
 				{
-					auto bModelSideCount = static_cast<int>(bModelList[p_index].brush_sides.size());
+					const auto bmodel_side_count = static_cast<int>(bmodel_list[p_index].brush_sides.size());
 					
 					// skip submodel entity if we have less then 6 brushsides (we could also create a temp. cube at its origin)
-					if (bModelSideCount < 6)
+					if (bmodel_side_count < 6)
 					{
 						continue;
 					}
 
 					// start submodel
-					entityString.append(utils::va("// submodel %d\n", submodelNum));
-					entityString.append("{\n");
+					basic_string.append(utils::va("// submodel %d\n", submodel_num));
+					basic_string.append("{\n");
 
 					// write submodel keys
 					for (auto& property : entity)
@@ -99,64 +100,65 @@ namespace utils
 							continue;
 						}
 
-						entityString.push_back('"');
-						entityString.append(property.first);
-						entityString.append("\" \"");
-						entityString.append(property.second);
-						entityString.append("\"\n");
+						basic_string.push_back('"');
+						basic_string.append(property.first);
+						basic_string.append("\" \"");
+						basic_string.append(property.second);
+						basic_string.append("\"\n");
 					}
 
 					// start submodel brush
-					entityString.append("{\n");
+					basic_string.append("{\n");
 
-					for (auto bSide = 0; bSide < bModelSideCount; bSide++)
+					for (auto bSide = 0; bSide < bmodel_side_count; bSide++)
 					{
-						entityString.append(bModelList[p_index].brush_sides[bSide]);
+						basic_string.append(bmodel_list[p_index].brush_sides[bSide]);
 					}
 
 					// close submodel brush
-					entityString.append("}\n");
+					basic_string.append("}\n");
 
 					// close submodel
-					entityString.append("}\n");
+					basic_string.append("}\n");
 
-					submodelNum++;
+					submodel_num++;
 				}
 			}
 
 			else
 			{
 				// start entity
-				entityString.append(utils::va("// entity %d\n", entityNum));
-				entityString.append("{\n");
+				basic_string.append(utils::va("// entity %d\n", entity_num));
+				basic_string.append("{\n");
 
 				for (auto& property : entity)
 				{
-					entityString.push_back('"');
-					entityString.append(property.first);
-					entityString.append("\" \"");
-					entityString.append(property.second);
-					entityString.append("\"\n");
+					basic_string.push_back('"');
+					basic_string.append(property.first);
+					basic_string.append("\" \"");
+					basic_string.append(property.second);
+					basic_string.append("\"\n");
 				}
 
 				// close entity
-				entityString.append("}\n");
+				basic_string.append("}\n");
 
-				entityNum++;
+				entity_num++;
 			}
 		}
 
-		return entityString;
+		return basic_string;
 	}
 
 	// build all selected entities and fix brushmodels
-	std::string Entities::buildSelection_FixBrushmodels(const Game::boundingbox_s* box, const std::vector<Game::brushmodel_entity_s>& bModelList)
+	std::string entities::buildSelection_FixBrushmodels(const Game::boundingbox_s* sbox, const std::vector<Game::brushmodel_entity_s>& bmodel_list)
 	{
-		int entityNum = 1; // worldspawn is 0
-		int submodelNum = 0;
-		std::string entityString;
+		int entity_num = 1; // worldspawn is 0
+		int submodel_num = 0;
 
-		for (auto& entity : this->entities)
+		std::string entity_string;
+
+		for (auto& entity : this->entities_)
 		{
 			std::string model = entity["model"];
 			std::string origin = entity["origin"];
@@ -165,21 +167,21 @@ namespace utils
 			if (!model.empty() && model[0] == '*')
 			{
 				// get the submodel index 
-				auto p_index = std::stoi(model.erase(0, 1));
+				const auto p_index = std::stoi(model.erase(0, 1));
 
-				if (p_index < static_cast<int>(bModelList.size()))
+				if (p_index < static_cast<int>(bmodel_list.size()))
 				{
-					auto bModelSideCount = static_cast<int>(bModelList[p_index].brush_sides.size());
+					const auto bmodel_side_count = static_cast<int>(bmodel_list[p_index].brush_sides.size());
 
 					// skip submodel entity if we have less then 6 brushsides (we could also create a temp. cube at its origin)
-					if (bModelSideCount < 6)
+					if (bmodel_side_count < 6)
 					{
 						continue;
 					}
 
 					// start submodel
-					entityString.append(utils::va("// submodel %d\n", submodelNum));
-					entityString.append("{\n");
+					entity_string.append(utils::va("// submodel %d\n", submodel_num));
+					entity_string.append("{\n");
 
 					// write submodel keys
 					for (auto& property : entity)
@@ -190,71 +192,71 @@ namespace utils
 							continue;
 						}
 
-						entityString.push_back('"');
-						entityString.append(property.first);
-						entityString.append("\" \"");
-						entityString.append(property.second);
-						entityString.append("\"\n");
+						entity_string.push_back('"');
+						entity_string.append(property.first);
+						entity_string.append("\" \"");
+						entity_string.append(property.second);
+						entity_string.append("\"\n");
 					}
 
 					// start submodel brush
-					entityString.append("{\n");
+					entity_string.append("{\n");
 
-					for (auto bSide = 0; bSide < bModelSideCount; bSide++)
+					for (auto bside = 0; bside < bmodel_side_count; bside++)
 					{
-						entityString.append(bModelList[p_index].brush_sides[bSide]);
+						entity_string.append(bmodel_list[p_index].brush_sides[bside]);
 					}
 
 					// close submodel brush
-					entityString.append("}\n");
+					entity_string.append("}\n");
 
 					// close submodel
-					entityString.append("}\n");
+					entity_string.append("}\n");
 
-					submodelNum++;
+					submodel_num++;
 				}
 			}
 
 			else
 			{
-				float tempOrigin[3] = {0.0f, 0.0f, 0.0f};
+				float t_origin[3] = {0.0f, 0.0f, 0.0f};
 
-				if (!sscanf_s(origin.c_str(), "%f %f %f", &tempOrigin[0], &tempOrigin[1], &tempOrigin[2]))
+				if (!sscanf_s(origin.c_str(), "%f %f %f", &t_origin[0], &t_origin[1], &t_origin[2]))
 				{
-					Game::Com_PrintMessage(0, utils::va("[!]: sscanf failed for entity %d", entityNum), 0);
+					Game::Com_PrintMessage(0, utils::va("[!]: sscanf failed for entity %d", entity_num), 0);
 				}
 
-				if (utils::polylib::PointWithinBounds(glm::toVec3(tempOrigin), box->mins, box->maxs, 0.25f))
+				if (utils::polylib::is_point_within_bounds(glm::to_vec3(t_origin), sbox->mins, sbox->maxs, 0.25f))
 				{
 					// start entity
-					entityString.append(utils::va("// entity %d\n", entityNum));
-					entityString.append("{\n");
+					entity_string.append(utils::va("// entity %d\n", entity_num));
+					entity_string.append("{\n");
 
 					for (auto& property : entity)
 					{
-						entityString.push_back('"');
-						entityString.append(property.first);
-						entityString.append("\" \"");
-						entityString.append(property.second);
-						entityString.append("\"\n");
+						entity_string.push_back('"');
+						entity_string.append(property.first);
+						entity_string.append("\" \"");
+						entity_string.append(property.second);
+						entity_string.append("\"\n");
 					}
 
 					// close entity
-					entityString.append("}\n");
-					entityNum++;
+					entity_string.append("}\n");
+					entity_num++;
 				}
 			}
 		}
 
-		return entityString;
+		return entity_string;
 	}
 
 	// only build worldspawn keys/values without opening/closing brackets
-	std::string Entities::buildWorldspawnKeys()
+	std::string entities::build_worldspawn()
 	{
 		std::string entityString;
 
-		for (auto& entity : this->entities)
+		for (auto& entity : this->entities_)
 		{
 			if (entity.find("classname") != entity.end())
 			{
@@ -277,11 +279,11 @@ namespace utils
 		return entityString;
 	}
 
-	std::vector<std::string> Entities::getModels()
+	std::vector<std::string> entities::get_models()
 	{
 		std::vector<std::string> models;
 
-		for (auto& entity : this->entities)
+		for (auto& entity : this->entities_)
 		{
 			if (entity.find("model") != entity.end())
 			{
@@ -300,21 +302,21 @@ namespace utils
 		return models;
 	}
 
-	std::vector<Game::brushmodel_entity_s> Entities::getBrushModels()
+	std::vector<Game::brushmodel_entity_s> entities::get_brushmodels()
 	{
-		std::vector<Game::brushmodel_entity_s> bModels;
+		std::vector<Game::brushmodel_entity_s> bmodels;
 
 		// geting the total clipmap size would prob. be better
-		uintptr_t leafBrushesStart = reinterpret_cast<uintptr_t>(&*Game::cm->leafbrushNodes);
-		uintptr_t leafBrushesEnd = leafBrushesStart + sizeof(Game::cLeafBrushNode_s) * (Game::cm->leafbrushNodesCount + Game::cm->numLeafBrushes); // wrong
+		const uintptr_t leaf_brushes_start = reinterpret_cast<uintptr_t>(&*Game::cm->leafbrushNodes);
+		const uintptr_t leaf_brushes_end = leaf_brushes_start + sizeof(Game::cLeafBrushNode_s) * (Game::cm->leafbrushNodesCount + Game::cm->numLeafBrushes); // wrong
 
 		// first element is always empty because
 		// the first submodel within the entsMap starts at 1 and we want to avoid subtracting - 1 everywhere 
-		bModels.push_back(Game::brushmodel_entity_s()); 
+		bmodels.emplace_back(Game::brushmodel_entity_s()); 
 
-		for (auto& entity : this->entities)
+		for (auto& entity : this->entities_)
 		{
-			if (entity.find("model") != entity.end())
+			if (entity.contains("model"))
 			{
 				std::string model = entity["model"];
 				std::string origin = entity["origin"];
@@ -322,15 +324,15 @@ namespace utils
 				// if ent is a brushmodel/submodel
 				if (!model.empty() && model[0] == '*' && !origin.empty())
 				{
-					auto currBModel = Game::brushmodel_entity_s();
+					auto curr_bmodel = Game::brushmodel_entity_s();
 
 					// get the submodel index 
-					auto p_index = std::stoi(model.erase(0, 1));
+					const auto p_index = std::stoi(model.erase(0, 1));
 
 					// the index should always match the size of our vector or we did something wrong
-					if (p_index != (int)bModels.size())
+					if (p_index != (int)bmodels.size())
 					{
-						Game::Com_PrintMessage(0, utils::va("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d != %d)", p_index, bModels.size()), 0);
+						Game::Com_PrintMessage(0, utils::va("[Entities::getBrushModels]: Something went wrong while parsing submodels. (%d != %d)", p_index, bmodels.size()), 0);
 					}
 
 					if (p_index >= static_cast<int>(Game::cm->numSubModels))
@@ -340,23 +342,23 @@ namespace utils
 					}
 
 					// assign indices and pointers to both the brush and the submodel
-					currBModel.cm_submodel_index = p_index;
+					curr_bmodel.cm_submodel_index = p_index;
 					
 					if (&Game::cm->cmodels[p_index])
 					{
-						currBModel.cm_submodel = &Game::cm->cmodels[p_index];
+						curr_bmodel.cm_submodel = &Game::cm->cmodels[p_index];
 					}
 
 					// fix me daddy
-					auto brushIdx_ptr = Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes;
-					currBModel.cm_brush_index = 0;
+					auto brush_index_ptr = Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes;
+					curr_bmodel.cm_brush_index = 0;
 
 					// this is giving me cancer
-					if (Game::cm->cmodels[p_index].leaf.leafBrushNode != 0 && brushIdx_ptr)
+					if (Game::cm->cmodels[p_index].leaf.leafBrushNode != 0 && brush_index_ptr)
 					{
-						if ((uintptr_t)&*brushIdx_ptr >= leafBrushesStart && (uintptr_t) & *brushIdx_ptr < leafBrushesEnd)
+						if ((uintptr_t)&*brush_index_ptr >= leaf_brushes_start && (uintptr_t) & *brush_index_ptr < leaf_brushes_end)
 						{
-							currBModel.cm_brush_index = static_cast<int>(*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes);
+							curr_bmodel.cm_brush_index = static_cast<int>(*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes);
 						}
 						else
 						{
@@ -364,41 +366,41 @@ namespace utils
 						}
 						
 						//currBModel.cmBrush = &Game::cm->brushes[*Game::cm->leafbrushNodes[Game::cm->cmodels[p_index].leaf.leafBrushNode].data.leaf.brushes];
-						currBModel.cm_brush = &Game::cm->brushes[currBModel.cm_brush_index];
+						curr_bmodel.cm_brush = &Game::cm->brushes[curr_bmodel.cm_brush_index];
 
 						// add the submodel index to the clipmap brush
-						currBModel.cm_brush->isSubmodel = true;
-						currBModel.cm_brush->cmSubmodelIndex = static_cast<__int16>(p_index);
+						curr_bmodel.cm_brush->isSubmodel = true;
+						curr_bmodel.cm_brush->cmSubmodelIndex = static_cast<std::int16_t>(p_index);
 					}
 
 
 					// save entity origin
-					if (!sscanf_s(origin.c_str(), "%f %f %f", &currBModel.cm_submodel_origin[0], &currBModel.cm_submodel_origin[1], &currBModel.cm_submodel_origin[2]))
+					if (!sscanf_s(origin.c_str(), "%f %f %f", &curr_bmodel.cm_submodel_origin[0], &curr_bmodel.cm_submodel_origin[1], &curr_bmodel.cm_submodel_origin[2]))
 					{
 						Game::Com_PrintMessage(0, utils::va("[!]: sscanf failed for submodel %d", p_index), 0);
-						currBModel.cm_submodel_origin[0] = 0.0f;
-						currBModel.cm_submodel_origin[1] = 0.0f;
-						currBModel.cm_submodel_origin[2] = 0.0f;
+						curr_bmodel.cm_submodel_origin[0] = 0.0f;
+						curr_bmodel.cm_submodel_origin[1] = 0.0f;
+						curr_bmodel.cm_submodel_origin[2] = 0.0f;
 					}
 
-					bModels.push_back(currBModel);
+					bmodels.push_back(curr_bmodel);
 				}
 			}
 		}
 
-		return bModels;
+		return bmodels;
 	}
 
-	void Entities::deleteWorldspawn()
+	void entities::delete_worldspawn()
 	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
+		for (auto i = this->entities_.begin(); i != this->entities_.end();)
 		{
 			if (i->find("classname") != i->end())
 			{
 				std::string classname = (*i)["classname"];
 				if (utils::starts_with(classname, "worldspawn"))
 				{
-					i = this->entities.erase(i);
+					i = this->entities_.erase(i);
 					continue;
 				}
 			}
@@ -407,16 +409,16 @@ namespace utils
 		}
 	}
 
-	void Entities::deleteTriggers()
+	void entities::delete_triggers()
 	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
+		for (auto i = this->entities_.begin(); i != this->entities_.end();)
 		{
-			if (i->find("classname") != i->end())
+			if (i->contains("classname"))
 			{
-				std::string classname = (*i)["classname"];
+				const std::string classname = (*i)["classname"];
 				if (utils::starts_with(classname, "trigger_"))
 				{
-					i = this->entities.erase(i);
+					i = this->entities_.erase(i);
 					continue;
 				}
 			}
@@ -425,15 +427,18 @@ namespace utils
 		}
 	}
 
-	void Entities::deleteWeapons(bool keepTurrets)
+	void entities::delete_weapons(bool keepTurrets)
 	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
+		for (auto i = this->entities_.begin(); i != this->entities_.end();)
 		{
-			if (i->find("weaponinfo") != i->end() || (i->find("targetname") != i->end() && (*i)["targetname"] == "oldschool_pickup"s))
+			if (   i->contains("weaponinfo") 
+				|| i->contains("targetname") && (*i)["targetname"] == "oldschool_pickup"s)
 			{
-				if (!keepTurrets || i->find("classname") == i->end() || (*i)["classname"] != "misc_turret"s)
+				if (   !keepTurrets 
+					|| !i->contains("classname") 
+					|| (*i)["classname"] != "misc_turret"s)
 				{
-					i = this->entities.erase(i);
+					i = this->entities_.erase(i);
 					continue;
 				}
 			}
@@ -442,11 +447,13 @@ namespace utils
 		}
 	}
 
-	void Entities::parse(std::string buffer)
+	void entities::parse(std::string buffer)
 	{
-		int parseState = 0;
+		int parse_state= 0;
+
 		std::string key;
 		std::string value;
+
 		std::unordered_map<std::string, std::string> entity;
 
 		for (unsigned int i = 0; i < buffer.size(); ++i)
@@ -467,31 +474,31 @@ namespace utils
 
 				case '}':
 				{
-					this->entities.push_back(entity);
+					this->entities_.push_back(entity);
 					entity.clear();
 					break;
 				}
 
 				case '"':
 				{
-					if (parseState == PARSE_AWAIT_KEY)
+					if (parse_state == PARSE_AWAIT_KEY)
 					{
 						key.clear();
-						parseState = PARSE_READ_KEY;
+						parse_state = PARSE_READ_KEY;
 					}
-					else if (parseState == PARSE_READ_KEY)
+					else if (parse_state == PARSE_READ_KEY)
 					{
-						parseState = PARSE_AWAIT_VALUE;
+						parse_state = PARSE_AWAIT_VALUE;
 					}
-					else if (parseState == PARSE_AWAIT_VALUE)
+					else if (parse_state == PARSE_AWAIT_VALUE)
 					{
 						value.clear();
-						parseState = PARSE_READ_VALUE;
+						parse_state = PARSE_READ_VALUE;
 					}
-					else if (parseState == PARSE_READ_VALUE)
+					else if (parse_state == PARSE_READ_VALUE)
 					{
 						entity[utils::str_to_lower(key)] = value;
-						parseState = PARSE_AWAIT_KEY;
+						parse_state = PARSE_AWAIT_KEY;
 					}
 					else
 					{
@@ -502,8 +509,14 @@ namespace utils
 
 				default:
 				{
-					if (parseState == PARSE_READ_KEY) key.push_back(character);
-					else if (parseState == PARSE_READ_VALUE) value.push_back(character);
+					if (parse_state == PARSE_READ_KEY)
+					{
+						key.push_back(character);
+					}
+					else if (parse_state == PARSE_READ_VALUE)
+					{
+						value.push_back(character);
+					}
 
 					break;
 				}

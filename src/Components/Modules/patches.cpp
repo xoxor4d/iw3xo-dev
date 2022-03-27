@@ -118,7 +118,7 @@ namespace components
 
 		// (c) Snake :: Fix mouse lag by moving SetThreadExecutionState call out of event loop
 		utils::hook::nop(0x57BB2C, 8);
-		Scheduler::on_frame([]()
+		scheduler::on_frame([]()
 		{
 			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
 		});

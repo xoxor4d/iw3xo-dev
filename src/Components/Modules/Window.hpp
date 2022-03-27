@@ -2,33 +2,31 @@
 
 namespace components
 {
-	class Window : public component
+	class window final : public component
 	{
 	public:
-		Window();
-		~Window();
-
-		const char* getName() override { return "Window"; };
+		window();
+		const char* get_name() override { return "window"; };
 		
-		static int Width();
-		static int Height();
-		static int Width(HWND window);
-		static int Height(HWND window);
-		static void Dimension(RECT* rect);
-		static void Dimension(HWND window, RECT* rect);
+		static int width();
+		static int height();
+		static int width(HWND window);
+		static int height(HWND window);
+		static void dimension(RECT* rect);
+		static void dimension(HWND window, RECT* rect);
 		static HWND GetWindow();
 		static bool is_noborder();
 
 	private:
 		static BOOL CursorVisible;
-		static HWND MainWindow;
+		static HWND main_window_;
 
-		static void ApplyCursor();
+		static void apply_cursor();
 
 		static BOOL WINAPI MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-		static int WINAPI ShowCursorHook(BOOL show);
+		static int WINAPI show_cursor_hk(BOOL show);
 
-		static void StyleHookStub();
-		static HWND WINAPI CreateMainWindow(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+		static void style_hook_stub();
+		static HWND WINAPI create_main_window(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 	};
 }

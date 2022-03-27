@@ -35,7 +35,7 @@ namespace components
 	{
 	public:
 		menu_export();
-		const char* getName() override { return "menu_export"; };
+		const char* get_name() override { return "menu_export"; };
 
 		void export_menu(Game::menuDef_t* menu, std::string subdir);
 		void export_menu_itemdefs(Game::menuDef_t* menu, std::string subdir);

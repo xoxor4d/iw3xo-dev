@@ -60,7 +60,7 @@ namespace components
 	// Defrag :: clipvelocity
 	void PM_Q3_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 	{
-		float backoff = DotProduct(in, normal);
+		float backoff = m_dot_product(in, normal);
 		if (backoff < 0.0f)
 		{
 			backoff *= overbounce;
@@ -90,11 +90,11 @@ namespace components
 
 		Game::trace_t trace = {};
 
-		VectorCopy(pm->ps->velocity, primal_velocity);
+		m_vector_copy3(pm->ps->velocity, primal_velocity);
 
 		if (gravity)
 		{
-			VectorCopy(pm->ps->velocity, end_velocity);
+			m_vector_copy3(pm->ps->velocity, end_velocity);
 			end_velocity[2] -= static_cast<float>(pm->ps->gravity) * pml->frametime;
 			
 			pm->ps->velocity[2] = (pm->ps->velocity[2] + end_velocity[2]) * 0.5f;
@@ -113,7 +113,7 @@ namespace components
 		if (pml->groundPlane)
 		{
 			numplanes = 1;
-			VectorCopy(pml->groundTrace.normal, planes[0]);
+			m_vector_copy3(pml->groundTrace.normal, planes[0]);
 		}
 		else 
 		{
@@ -122,13 +122,13 @@ namespace components
 			
 
 		// never turn against original velocity
-		_VectorNormalize2(pm->ps->velocity, planes[numplanes]);
+		normalize_to(pm->ps->velocity, planes[numplanes]);
 		numplanes++;
 
 		for (bumpcount = 0; bumpcount < NUM_BUMPS; bumpcount++)
 		{
 			// calculate position we are trying to move to
-			VectorMA(pm->ps->origin, time_left, pm->ps->velocity, end);
+			m_vector_ma(pm->ps->origin, time_left, pm->ps->velocity, end);
 
 			// see if we can make it there
 			Game::PM_playerTrace(pm, &trace, pm->ps->origin, pm->mins, pm->maxs, end, pm->ps->clientNum, pm->tracemask);
@@ -154,8 +154,8 @@ namespace components
 			// actually covered some distance
 			if (trace.fraction > 0.0f)
 			{
-				_Vec3Lerp(pm->ps->origin, end, trace.fraction, end_pos);
-				VectorCopy(end_pos, pm->ps->origin); // could move "endpos" into origin directly above
+				lerp3(pm->ps->origin, end, trace.fraction, end_pos);
+				m_vector_copy3(end_pos, pm->ps->origin); // could move "endpos" into origin directly above
 			}
 
 			// moved the entire distance
@@ -172,7 +172,7 @@ namespace components
 			// this shouldn't really happen
 			if (numplanes >= MAX_CLIP_PLANES) // CoD has 8 max planes
 			{
-				VectorClear(pm->ps->velocity);
+				m_vector_clear(pm->ps->velocity);
 				
 				if (dvars::pm_debug_prints->current.enabled) 
 				{
@@ -186,7 +186,7 @@ namespace components
 			// which fixes some epsilon issues with non-axial planes
 			for (i = 0; i < numplanes; i++)
 			{
-				if (DotProduct(trace.normal, planes[i]) > 0.99f)
+				if (m_dot_product(trace.normal, planes[i]) > 0.99f)
 				{
 					if (dvars::pm_debug_prints->current.enabled) 
 					{
@@ -194,7 +194,7 @@ namespace components
 					}
 					
 					//PM_Q3_ClipVelocity(pm->ps->velocity, trace.normal, pm->ps->velocity, OVERCLIP); // T5 .. maybe remove didint fix stuck
-					VectorAdd(trace.normal, pm->ps->velocity, pm->ps->velocity);
+					m_vector_add(trace.normal, pm->ps->velocity, pm->ps->velocity);
 					break;
 				}
 			}
@@ -204,7 +204,7 @@ namespace components
 				continue;
 			}
 
-			VectorCopy(trace.normal, planes[numplanes]);
+			m_vector_copy3(trace.normal, planes[numplanes]);
 			numplanes++;
 
 			//
@@ -214,7 +214,7 @@ namespace components
 			// find a plane that it enters
 			for (i = 0; i < numplanes; i++)
 			{
-				into = DotProduct(pm->ps->velocity, planes[i]);
+				into = m_dot_product(pm->ps->velocity, planes[i]);
 				
 				if (into >= 0.1f) 
 				{
@@ -241,7 +241,7 @@ namespace components
 						continue;
 					}
 
-					if (DotProduct(clip_velocity, planes[j]) >= 0.1f) 
+					if (m_dot_product(clip_velocity, planes[j]) >= 0.1f) 
 					{
 						continue;   // move doesn't interact with the plane
 					}
@@ -251,23 +251,23 @@ namespace components
 					PM_Q3_ClipVelocity(end_clip_velocity, planes[j], end_clip_velocity, OVERCLIP);
 
 					// see if it goes back into the first clip plane
-					if (DotProduct(clip_velocity, planes[i]) >= 0) 
+					if (m_dot_product(clip_velocity, planes[i]) >= 0) 
 					{
 						continue;
 					}
 
 					// slide the original velocity along the crease
-					_CrossProduct(planes[i], planes[j], dir);
-					_VectorNormalize(dir);
+					cross3(planes[i], planes[j], dir);
+					normalize3(dir);
 
-					d = DotProduct(dir, pm->ps->velocity);
-					VectorScale(dir, d, clip_velocity);
+					d = m_dot_product(dir, pm->ps->velocity);
+					m_vector_scale(dir, d, clip_velocity);
 
-					_CrossProduct(planes[i], planes[j], dir);
-					_VectorNormalize(dir);
+					cross3(planes[i], planes[j], dir);
+					normalize3(dir);
 
-					d = DotProduct(dir, end_velocity);
-					VectorScale(dir, d, end_clip_velocity);
+					d = m_dot_product(dir, end_velocity);
+					m_vector_scale(dir, d, end_clip_velocity);
 
 					// see if there is a third plane the the new move enters
 					for (k = 0; k < numplanes; k++)
@@ -277,13 +277,13 @@ namespace components
 							continue;
 						}
 
-						if (DotProduct(clip_velocity, planes[k]) >= 0.1f) 
+						if (m_dot_product(clip_velocity, planes[k]) >= 0.1f) 
 						{
 							continue;   // move doesn't interact with the plane
 						}
 
 						// stop dead at a tripple plane interaction
-						VectorClear(pm->ps->velocity);
+						m_vector_clear(pm->ps->velocity);
 
 						if (dvars::pm_debug_prints->current.enabled) 
 						{
@@ -295,8 +295,8 @@ namespace components
 				}
 
 				// if we have fixed all interactions, try another move
-				VectorCopy(clip_velocity, pm->ps->velocity);
-				VectorCopy(end_clip_velocity, end_velocity);
+				m_vector_copy3(clip_velocity, pm->ps->velocity);
+				m_vector_copy3(end_clip_velocity, end_velocity);
 				
 				break;
 			}
@@ -304,13 +304,13 @@ namespace components
 
 		if (gravity)
 		{
-			VectorCopy(end_velocity, pm->ps->velocity);
+			m_vector_copy3(end_velocity, pm->ps->velocity);
 		}
 
 		// don't change velocity if in a timer :: clipping is caused by this
 		if (pm->ps->pm_time) 
 		{
-			VectorCopy(primal_velocity, pm->ps->velocity);
+			m_vector_copy3(primal_velocity, pm->ps->velocity);
 			//Game::Com_PrintMessage(0, utils::va("PM_Q3_SlideMove :: CLIP Timer! \n"), 0);
 		}	
 
@@ -324,7 +324,7 @@ namespace components
 
 		if ((normal[2]) < 0.001f || (speed_xy == 0.0f)) 
 		{
-			VectorCopy(velIn, velOut);
+			m_vector_copy3(velIn, velOut);
 		}
 
 		else
@@ -374,35 +374,35 @@ namespace components
 			}
 		}
 
-		VectorCopy(pm->ps->origin, start_o);
-		VectorCopy(pm->ps->velocity, start_v);
+		m_vector_copy3(pm->ps->origin, start_o);
+		m_vector_copy3(pm->ps->velocity, start_v);
 
 		if (PM_Q3_SlideMove(pm,pml,gravity) == 0) 
 		{
 			return;		// we got exactly where we wanted to go first try	
 		}
 
-		VectorCopy(start_o, down);
+		m_vector_copy3(start_o, down);
 		down[2] -= jump_stepSize->current.value;
 
 		Game::PM_playerTrace(pm, &trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
-		VectorSet(up, 0, 0, 1);
+		m_vector_set3(up, 0, 0, 1);
 
 		// never step up when you still have up velocity // org
-		if (pm->ps->velocity[2] > 0.0f && (trace.fraction == 1.0f || DotProduct(trace.normal, up) < 0.7f)) 
+		if (pm->ps->velocity[2] > 0.0f && (trace.fraction == 1.0f || m_dot_product(trace.normal, up) < 0.7f)) 
 		{
 			return;
 		}
 
-		VectorCopy(pm->ps->origin, down_o);
-		VectorCopy(pm->ps->velocity, down_v);
+		m_vector_copy3(pm->ps->origin, down_o);
+		m_vector_copy3(pm->ps->velocity, down_v);
 
-		VectorCopy(start_o, up);
+		m_vector_copy3(start_o, up);
 		up[2] += jump_stepSize->current.value;
 
 		// test the player position if they were a stepheight higher
 		Game::PM_playerTrace(pm, &trace, start_o, pm->mins, pm->maxs, up, pm->ps->clientNum, pm->tracemask);
-		_Vec3Lerp(pm->ps->origin, up, trace.fraction, endpos); // cod4 trace doesn't save the endpos so we calculate it the way q3 does it
+		lerp3(pm->ps->origin, up, trace.fraction, endpos); // cod4 trace doesn't save the endpos so we calculate it the way q3 does it
 
 		if (trace.allsolid) 
 		{
@@ -417,21 +417,21 @@ namespace components
 		float stepSize = endpos[2] - start_o[2];
 
 		// try slidemove from this position
-		VectorCopy(endpos, pm->ps->origin);
-		VectorCopy(start_v, pm->ps->velocity);
+		m_vector_copy3(endpos, pm->ps->origin);
+		m_vector_copy3(start_v, pm->ps->velocity);
 
 		PM_Q3_SlideMove(pm,pml,gravity);
 
 		// push down the final amount
-		VectorCopy(pm->ps->origin, down);
+		m_vector_copy3(pm->ps->origin, down);
 		down[2] -= stepSize;
 
 		Game::PM_playerTrace(pm, &trace, pm->ps->origin, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
-		_Vec3Lerp(pm->ps->origin, down, trace.fraction, endpos); // cod4 trace doesn't save the endpos so we calculate it the way q3 does it
+		lerp3(pm->ps->origin, down, trace.fraction, endpos); // cod4 trace doesn't save the endpos so we calculate it the way q3 does it
 
 		if (!trace.allsolid) 
 		{
-			VectorCopy(endpos, pm->ps->origin);
+			m_vector_copy3(endpos, pm->ps->origin);
 		}
 
 		if (trace.fraction < 1.0f) 
@@ -447,8 +447,8 @@ namespace components
 					}
 					//PM_Q3_ClipVelocity(pm->ps->velocity, trace.normal, pm->ps->velocity, OVERCLIP);
 
-					VectorCopy(start_o, pm->ps->velocity);
-					VectorCopy(start_v, pm->ps->velocity);
+					m_vector_copy3(start_o, pm->ps->velocity);
+					m_vector_copy3(start_v, pm->ps->velocity);
 
 					return;
 				}
@@ -464,13 +464,13 @@ namespace components
 			else 
 			{
 				// if !inAir // <-------------------------------------------------- needed?
-				if (!((pm->ps->velocity[2] > 0.0f) && (trace.fraction == 1.0f || DotProduct(trace.normal, up) < 0.7f))) 
+				if (!((pm->ps->velocity[2] > 0.0f) && (trace.fraction == 1.0f || m_dot_product(trace.normal, up) < 0.7f))) 
 				{
 					PM_Q3_ClipVelocity(pm->ps->velocity, trace.normal, pm->ps->velocity, OVERCLIP);
 				}
 				else 
 				{
-					VectorCopy(start_v, pm->ps->velocity);
+					m_vector_copy3(start_v, pm->ps->velocity);
 				}
 
 				// this keeps velocity on walkable slopes if fast enough
@@ -775,8 +775,8 @@ namespace components
 		const float zspeed = ps->velocity[2];
 		ps->velocity[2] = 0.0f;
 
-		const float speed = _VectorNormalize(ps->velocity);
-		const float dot = DotProduct(ps->velocity, wishdir_b);
+		const float speed = normalize3(ps->velocity);
+		const float dot = m_dot_product(ps->velocity, wishdir_b);
 
 		float k = 32.0f;
 		k *= cpm_airControl * dot * dot * pml->frametime * cpm_airAccelerate;
@@ -788,7 +788,7 @@ namespace components
 				ps->velocity[i] = ps->velocity[i] * speed + wishdir_b[i] * k;
 			}
 
-			_VectorNormalize(ps->velocity);
+			normalize3(ps->velocity);
 		}
 
 		for (auto i = 0; i < 2; i++) 
@@ -802,7 +802,7 @@ namespace components
 	// Defrag :: PM_Accelerate when we start our strafejump -> https://github.com/xzero450/revolution/blob/master/game/bg_pmove.c#L221
 	void PM_Q3_Accelerate(Game::playerState_s *ps, Game::pml_t *pml, vec3_t wishdir_b, float wishspeed_b, float accel_b)
 	{
-		const float currentspeed = DotProduct(ps->velocity, wishdir_b);
+		const float currentspeed = m_dot_product(ps->velocity, wishdir_b);
 		const float addspeed = wishspeed_b - currentspeed;
 		
 		if (addspeed <= 0) 
@@ -828,7 +828,7 @@ namespace components
 	{
 		PM_DisableSprint(ps);
 
-		const float currentspeed = DotProduct(ps->velocity, wishdir);
+		const float currentspeed = m_dot_product(ps->velocity, wishdir);
 		const float addspeed = wishspeed - currentspeed;
 		
 		if (addspeed <= 0)
@@ -868,14 +868,14 @@ namespace components
 		const float	friction = Game::Dvar_FindVar("friction")->current.value;
 
 		vec3_t vec;
-		VectorCopy(pm->ps->velocity, vec);
+		m_vector_copy3(pm->ps->velocity, vec);
 
 		if (pml->walking) 
 		{
 			vec[2] = 0.0f;	// ignore slope movement
 		}
 
-		const float speed = VectorLength(vec);
+		const float speed = m_vector_length(vec);
 		if (speed < 1.0f)
 		{
 			pm->ps->velocity[0] = 0.0f;
@@ -940,7 +940,7 @@ namespace components
 	void PM_CS_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce)
 	{
 		// Determine how far along plane to slide based on incoming direction.
-		const float backoff = DotProduct(in, normal) * overbounce;
+		const float backoff = m_dot_product(in, normal) * overbounce;
 
 		for (auto i = 0; i < 3; i++)
 		{
@@ -948,12 +948,12 @@ namespace components
 		}
 
 		// iterate once to make sure we aren't still moving through the plane
-		const float adjust = DotProduct(out, normal);
+		const float adjust = m_dot_product(out, normal);
 		if (adjust < 0.0f)
 		{
 			vec3_t reduce;
-			VectorScale(normal, adjust, reduce);
-			VectorSubtract(out, reduce, out);
+			m_vector_scale(normal, adjust, reduce);
+			m_vector_subtract(out, reduce, out);
 			//out -= reduce;
 		}
 	}
@@ -968,13 +968,13 @@ namespace components
 
 		const auto ps = pm->ps;
 
-		if (VectorLength(ps->velocity) == 0.0) 
+		if (m_vector_length(ps->velocity) == 0.0) 
 		{
 			return;
 		}
 
 		// Assume we can move all the way from the current origin to the end point.
-		VectorMA(ps->origin, pml->frametime, ps->velocity, end);
+		m_vector_ma(ps->origin, pml->frametime, ps->velocity, end);
 		Game::PM_playerTrace(pm, &trace, ps->origin, pm->mins, pm->maxs, end, ps->clientNum, pm->tracemask);
 
 		// If we covered the entire distance, we are done and can return.
@@ -1005,7 +1005,7 @@ namespace components
 			_wishspeed = airspeedcap;
 		}
 
-		const float currentspeed = DotProduct(ps->velocity, wishdir);
+		const float currentspeed = m_dot_product(ps->velocity, wishdir);
 		const float addspeed = _wishspeed - currentspeed;
 
 		if (addspeed > 0)
@@ -1087,14 +1087,14 @@ namespace components
 			y = 0.0f;
 		}
 
-		VectorScale(wp->forward, 16.0f, dir);
-		VectorScale(wp->right, x, _dir);
-		VectorAdd(dir, _dir, dir);
+		m_vector_scale(wp->forward, 16.0f, dir);
+		m_vector_scale(wp->right, x, _dir);
+		m_vector_add(dir, _dir, dir);
 
-		VectorScale(wp->up, y, _dir);
-		VectorAdd(dir, _dir, dir);
+		m_vector_scale(wp->up, y, _dir);
+		m_vector_add(dir, _dir, dir);
 
-		_VectorNormalize(dir);
+		normalize3(dir);
 
 		//VectorCopy(wp->muzzleTrace, kickBack);
 
@@ -1132,10 +1132,10 @@ namespace components
 			vec3_t vel;
 			const vec3_t zero = {};
 			
-			VectorSubtract(zero, wp->forward, vel);
+			m_vector_subtract(zero, wp->forward, vel);
 			
-			VectorScale(vel, dvars::pm_rocketJumpHeight->current.value, vel); // stock 64.0f
-			VectorAdd(vel, velocity, velocity);
+			m_vector_scale(vel, dvars::pm_rocketJumpHeight->current.value, vel); // stock 64.0f
+			m_vector_add(vel, velocity, velocity);
 		}
 	}
 
@@ -1202,7 +1202,7 @@ namespace components
 				}
 			}
 
-			dist = VectorLength(v);
+			dist = m_vector_length(v);
 
 			if (dist >= radius) 
 			{
@@ -1217,7 +1217,7 @@ namespace components
 			if(Game::CanDamage(inflictor, origin, ent, cone_angle_cos, cone_direction, *Game::CanDamageContentMask))
 			{
 
-				VectorSubtract(ent->r.currentOrigin, origin, dir);
+				m_vector_subtract(ent->r.currentOrigin, origin, dir);
 				// push the center of mass higher than the origin so players
 				// get knocked into the air more
 
@@ -1269,7 +1269,7 @@ namespace components
 
 				if (dir) 
 				{
-					_VectorNormalize(dir);
+					normalize3(dir);
 				}
 
 				float scale = 1.0f;
@@ -1289,8 +1289,8 @@ namespace components
 					vec3_t kvel;
 					const float mass = 200.0f;
 
-					_VectorScale(dir, g_knockback * static_cast<float>(knockback) / mass, kvel);
-					VectorAdd(targ->client->ps.velocity, kvel, targ->client->ps.velocity);
+					scale3(dir, g_knockback * static_cast<float>(knockback) / mass, kvel);
+					m_vector_add(targ->client->ps.velocity, kvel, targ->client->ps.velocity);
 
 					if (dvars::pm_debug_prints->current.enabled) 
 					{
@@ -1364,11 +1364,11 @@ namespace components
 	{
 		vec3_t	origin;
 
-		_AngleVectors(ent->client->ps.viewangles, wp->forward, wp->right, wp->up);
+		angle_vectors(ent->client->ps.viewangles, wp->forward, wp->right, wp->up);
 
-		VectorCopy(ent->client->ps.origin, origin);
+		m_vector_copy3(ent->client->ps.origin, origin);
 		origin[2] += ent->client->ps.viewHeightCurrent;
-		VectorMA(origin, 14.0f, wp->forward, wp->muzzleTrace);
+		m_vector_ma(origin, 14.0f, wp->forward, wp->muzzleTrace);
 	}
 
 	#pragma endregion
@@ -1433,16 +1433,16 @@ namespace components
 		PM_Q3_ClipVelocity(pml->forward, pml->groundTrace.normal, pml->forward, OVERCLIP);
 		PM_Q3_ClipVelocity(pml->right, pml->groundTrace.normal, pml->right, OVERCLIP);
 		
-		_VectorNormalize(pml->forward);
-		_VectorNormalize(pml->right);
+		normalize3(pml->forward);
+		normalize3(pml->right);
 
 		for (i = 0; i < 3; i++) 
 		{
 			wishvel[i] = pml->forward[i] * fmove + pml->right[i] * smove;
 		}
 
-		VectorCopy(wishvel, wishdir);
-		wishspeed = _VectorNormalize(wishdir);
+		m_vector_copy3(wishvel, wishdir);
+		wishspeed = normalize3(wishdir);
 		wishspeed *= scale;
 
 		// clamp the speed lower if ducking
@@ -1482,14 +1482,14 @@ namespace components
 			pm->ps->velocity[2] -= static_cast<float>(pm->ps->gravity) * pml->frametime;
 		}
 
-		vel = VectorLength(pm->ps->velocity);
+		vel = m_vector_length(pm->ps->velocity);
 
 		// slide along the ground plane
 		PM_Q3_ClipVelocity(pm->ps->velocity, pml->groundTrace.normal, pm->ps->velocity, OVERCLIP);
 
 		// don't decrease velocity when going up or down a slope
-		_VectorNormalize(pm->ps->velocity);
-		VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
+		normalize3(pm->ps->velocity);
+		m_vector_scale(pm->ps->velocity, vel, pm->ps->velocity);
 
 		// don't do anything if standing still
 		if (pm->ps->velocity[0] == 0.0f && pm->ps->velocity[1] == 0.0f) 
@@ -1541,8 +1541,8 @@ namespace components
 		pml->forward[2] = 0.0f;
 		pml->right[2] = 0.0f;
 
-		_VectorNormalize(pml->forward);
-		_VectorNormalize(pml->right);
+		normalize3(pml->forward);
+		normalize3(pml->right);
 
 		// Determine x and y parts of velocity
 		for (auto i = 0; i < 2; i++) 
@@ -1551,9 +1551,9 @@ namespace components
 		}
 
 		wishvel[2] = 0;					// Zero out z part of velocity
-		VectorCopy(wishvel, wishdir);
+		m_vector_copy3(wishvel, wishdir);
 
-		wishspeed = _VectorNormalize(wishdir);
+		wishspeed = normalize3(wishdir);
 
 		/* --------------------- mType Defrag ------------------------------*/
 
@@ -1567,7 +1567,7 @@ namespace components
 			const auto& cpm_airstopAccelerate = dvars::pm_cpm_airstopAccelerate->current.value;
 			const auto& cpm_strafeAccelerate = dvars::pm_cpm_strafeAccelerate->current.value;
 
-			if (DotProduct(ps->velocity, wishdir) < 0) 
+			if (m_dot_product(ps->velocity, wishdir) < 0) 
 			{
 				accel = cpm_airstopAccelerate; // cpm_pm_airstopAccelerate = 2.5
 			}
@@ -1610,7 +1610,7 @@ namespace components
 		{
 			if (wishspeed != 0 && (wishspeed > 320.0f)) // wishspeed > mv->m_flMaxSpeed // sv_maxspeed = 320; 
 			{
-				VectorScale(wishvel, 320.0f / wishspeed, wishvel);
+				m_vector_scale(wishvel, 320.0f / wishspeed, wishvel);
 				wishspeed = 320.0f;
 			}
 
@@ -1789,7 +1789,7 @@ namespace components
 		}
 
 		// check if getting thrown off the ground
-		if (pm->ps->velocity[2] > 0.0f && DotProduct(pm->ps->velocity, trace.normal) > 10.0f)
+		if (pm->ps->velocity[2] > 0.0f && m_dot_product(pm->ps->velocity, trace.normal) > 10.0f)
 		{
 			//if (pm->debugLevel)
 			//	Com_Printf("%i:kickoff\n", c_pmove);
@@ -1912,18 +1912,18 @@ namespace components
 		flat_forward[1] = pml->forward[1];
 		flat_forward[2] = 0.0;
 
-		_VectorNormalize(flat_forward);
-		float dot = DotProduct(ps->vLadderVec, pml->forward);
+		normalize3(flat_forward);
+		float dot = m_dot_product(ps->vLadderVec, pml->forward);
 		
 		if (dot >= 0.0f) 
 		{
-			VectorCopy(flat_forward, push_off_dir);
+			m_vector_copy3(flat_forward, push_off_dir);
 		}
 		else
 		{
-			dot = DotProduct(ps->vLadderVec, flat_forward);
-			VectorMA(flat_forward, -2.0f * dot, ps->vLadderVec, push_off_dir);
-			_VectorNormalize(push_off_dir);
+			dot = m_dot_product(ps->vLadderVec, flat_forward);
+			m_vector_ma(flat_forward, -2.0f * dot, ps->vLadderVec, push_off_dir);
+			normalize3(push_off_dir);
 		}
 
 		ps->velocity[0] = jump_ladderPushVel->current.value * push_off_dir[0];

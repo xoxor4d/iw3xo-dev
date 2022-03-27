@@ -6,6 +6,6 @@ namespace components
 	{
 	public:
 		patches();
-		const char* getName() override { return "patches"; };
+		const char* get_name() override { return "patches"; };
 	};
 }

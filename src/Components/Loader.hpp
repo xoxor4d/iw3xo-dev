@@ -18,11 +18,12 @@ namespace components
 		bool d3d9ex;
 		bool gscr_methods;
 		bool patches;
-		bool Scheduler;
-		bool Window;
+		bool scheduler;
+		bool window;
 
 		bool cgaz;
 		bool compass;
+		bool console;
 		bool daynight_cycle;
 		bool draw_collision;
 		bool gui;
@@ -31,9 +32,8 @@ namespace components
 		bool movement;
 		bool mvm;
 		bool ocean;
+		bool postfx_shaders;
 		bool radiant_livelink;
-		bool RB_ShaderOverlays;
-		bool XO_Console;
 	};
 
 	extern activeModules_s active;
@@ -47,7 +47,7 @@ namespace components
 	public:
 		component() = default;
 		virtual ~component() = default;
-		virtual const char* getName() { return "Unknown"; };
+		virtual const char* get_name() { return "unknown"; };
 	};
 
 	class loader
@@ -58,11 +58,11 @@ namespace components
 		static void register_(component* component);//, bool& registered);
 		static bool is_registered(const char *componentName);
 
-		static utils::Memory::Allocator* get_alloctor();
+		static utils::memory::Allocator* get_alloctor();
 		
 	private:
 		static std::vector<component*> components_;
-		static utils::Memory::Allocator mem_allocator_;
+		static utils::memory::Allocator component_allocator_;
 	};
 }
 
@@ -83,6 +83,7 @@ namespace components
 
 #include "Modules/cgaz.hpp"
 #include "Modules/compass.hpp"
+#include "Modules/console.hpp"
 #include "Modules/daynight_cycle.hpp"
 #include "Modules/draw_collision.hpp"
 #include "Modules/gui.hpp"
@@ -91,10 +92,9 @@ namespace components
 #include "Modules/movement.hpp"
 #include "Modules/mvm.hpp"
 #include "Modules/ocean.hpp"
+#include "Modules/postfx_shaders.hpp"
 #include "Modules/radiant_livelink.hpp"
-#include "Modules/RB_ShaderOverlays.hpp"
-#include "Modules/Window.hpp"
-#include "Modules/XO_Console.hpp"
+#include "Modules/window.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
-#include "Modules/Scheduler.hpp"
+#include "Modules/scheduler.hpp"

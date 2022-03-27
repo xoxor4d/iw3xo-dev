@@ -244,7 +244,7 @@ namespace components
 
 			for (auto i = 0; i < 3; ++i)
 			{
-				rotation[i] = Game::scr_g_entities[ent_index].r.currentAngles[i] + utils::vector::_AngleNormalize180(angles[i] - Game::scr_g_entities[ent_index].r.currentAngles[i]);
+				rotation[i] = Game::scr_g_entities[ent_index].r.currentAngles[i] + utils::vector::angle_normalize180(angles[i] - Game::scr_g_entities[ent_index].r.currentAngles[i]);
 			}
 
 			float tAngles[3] =

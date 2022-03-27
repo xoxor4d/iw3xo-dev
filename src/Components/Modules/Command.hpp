@@ -22,7 +22,7 @@ namespace components
 		typedef void(callback)(command::params params);
 
 		command() = default; ~command() override;
-		const char* getName() override { return "command"; };
+		const char* get_name() override { return "command"; };
 
 		static void add(const char* name, utils::Slot<callback> callback);
 		static void add(const char* name, const char* args, const char* description, utils::Slot<command::callback> callback);

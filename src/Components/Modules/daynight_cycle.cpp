@@ -374,7 +374,7 @@ namespace components
 			// If no interp speed, jump to target value
 			if (interpolation_speed <= 0.0f)
 			{
-				utils::vector::_VectorCopy(target, output, vector_size);
+				utils::vector::copy(target, output, vector_size);
 				return;
 			}
 
@@ -451,7 +451,7 @@ namespace components
 				Game::Dvar_SetValue(dvars::r_fogTweaksDensity, finterp_to(dvars::r_fogTweaksDensity->current.value, framefog_density_stock, delta_time, lerp_to->film_interpolation_speed));
 				
 				vinterp_to(dvars::r_fogTweaksColor->current.vector, 3, dvars::r_fogTweaksColor->current.vector, framefog_color_stock, delta_time, lerp_to->film_interpolation_speed);
-				utils::vector::_VectorCopy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 3);
+				utils::vector::copy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 3);
 
 				return;
 			}
@@ -473,7 +473,7 @@ namespace components
 			Game::Dvar_SetValue(dvars::r_fogTweaksDensity, finterp_to(dvars::r_fogTweaksDensity->current.value, lerp_to->fog_density, delta_time, lerp_to->film_interpolation_speed));
 			
 			vinterp_to(dvars::r_fogTweaksColor->current.vector, 3, dvars::r_fogTweaksColor->current.vector, lerp_to->fog_color, delta_time, lerp_to->film_interpolation_speed);
-			utils::vector::_VectorCopy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 3);
+			utils::vector::copy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 3);
 		}
 	}
 
@@ -519,9 +519,9 @@ namespace components
 				utils::byte3_unpack_rgba(r_lightTweakSunColor->current.color, temp_suncolor);
 
 				// update tod_suncolor_lerp if != temp_suncolor + epsilon (steps are so small that they get discarded when packing)
-				if (!utils::vector::_VectorCompareEpsilon(temp_suncolor, tod_suncolor_lerp, 0.05f))
+				if (!utils::vector::compare_epsilon3(temp_suncolor, tod_suncolor_lerp, 0.05f))
 				{
-					utils::vector::_VectorCopy(temp_suncolor, tod_suncolor_lerp, 3);
+					utils::vector::copy(temp_suncolor, tod_suncolor_lerp, 3);
 				}
 
 				vinterp_to(tod_suncolor_lerp, 3, tod_suncolor_lerp, lerp_to->sun_color, delta_time, lerp_to->sun_interpolation_speed);
@@ -1167,14 +1167,14 @@ namespace components
 				// save stock settings
 				framefog_start_stock = input->data->fogSettings.fogStart;
 				framefog_density_stock = input->data->fogSettings.density * 100.0f;
-				utils::vector::_VectorCopy(input->consts[Game::CONST_SRC_CODE_FOG_COLOR], framefog_color_stock, 4);
+				utils::vector::copy(input->consts[Game::CONST_SRC_CODE_FOG_COLOR], framefog_color_stock, 4);
 
 				// set dvars
 				Game::Dvar_SetValue(dvars::r_fogTweaksStart, framefog_start_stock);
 				Game::Dvar_SetValue(dvars::r_fogTweaksDensity, framefog_density_stock);
 
-				utils::vector::_VectorCopy(framefog_color_stock, dvars::r_fogTweaksColor->current.vector, 4);
-				utils::vector::_VectorCopy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 4);
+				utils::vector::copy(framefog_color_stock, dvars::r_fogTweaksColor->current.vector, 4);
+				utils::vector::copy(dvars::r_fogTweaksColor->current.vector, dvars::r_fogTweaksColor->latched.vector, 4);
 			}
 
 			else

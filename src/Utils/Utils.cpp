@@ -274,23 +274,23 @@ namespace utils
 
 	void replace_all(std::string& source, const std::string& from, const std::string& to)
 	{
-		std::string newString;
-		newString.reserve(source.length());  // avoids a few memory allocations
+		std::string new_string;
+		new_string.reserve(source.length());  // avoids a few memory allocations
 
-		std::string::size_type lastPos = 0;
+		std::string::size_type last_pos = 0;
 		std::string::size_type findPos;
 
-		while (std::string::npos != (findPos = source.find(from, lastPos)))
+		while (std::string::npos != (findPos = source.find(from, last_pos)))
 		{
-			newString.append(source, lastPos, findPos - lastPos);
-			newString += to;
-			lastPos = findPos + from.length();
+			new_string.append(source, last_pos, findPos - last_pos);
+			new_string += to;
+			last_pos = findPos + from.length();
 		}
 
 		// Care for the rest after last occurrence
-		newString += source.substr(lastPos);
+		new_string += source.substr(last_pos);
 
-		source.swap(newString);
+		source.swap(new_string);
 	}
 
 	void erase_substring(std::string& base, std::string replace)
@@ -327,10 +327,10 @@ namespace utils
 	std::string& rtrim(std::string& s)
 	{
 		s.erase(std::find_if(s.rbegin(), s.rend(), [](int val)
-			{
-				return !is_space(val);
+		{
+			return !is_space(val);
 
-			}).base(), s.end());
+		}).base(), s.end());
 
 		return s;
 	}
@@ -536,7 +536,7 @@ namespace utils
 	{
 		for (auto i = 0; i < 3; i++)
 		{
-			double pack = (float)(255.0 * from[i]) + 9.313225746154785e-10;
+			double pack = (float)(255.0 * static_cast<double>(from[i])) + 9.313225746154785e-10;
 
 			if ((signed int)pack < 0) {
 				pack = 0.0;
@@ -554,7 +554,7 @@ namespace utils
 	{
 		for (auto i = 0; i < 4; i++)
 		{
-			double pack = (float)(255.0 * from[i]) + 9.313225746154785e-10;
+			double pack = (float)(255.0 * static_cast<double>(from[i])) + 9.313225746154785e-10;
 			
 			if ((signed int)pack < 0) {
 				pack = 0.0;

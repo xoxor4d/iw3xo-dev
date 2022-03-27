@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		_renderer();
-		const char* getName() override { return "_renderer"; };
+		const char* get_name() override { return "_renderer"; };
 
 		static void register_dvars();
 

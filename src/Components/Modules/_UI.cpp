@@ -313,7 +313,7 @@ namespace components
 	void _ui::redraw_cursor()
 	{
 		// get material handle
-		void* cur_material = Game::Material_RegisterHandle("ui_cursor", 3);
+		const auto cur_material = Game::Material_RegisterHandle("ui_cursor", 3);
 
 		float cur_w = (32.0f * Game::scrPlace->scaleVirtualToReal[0]) / Game::scrPlace->scaleVirtualToFull[0];
 		float cur_h = (32.0f * Game::scrPlace->scaleVirtualToReal[1]) / Game::scrPlace->scaleVirtualToFull[1];

@@ -67,16 +67,16 @@ namespace components
 			// check if window position has changed and update dvar
 			if (menu.position[0] != savedpos[0] || menu.position[1] != savedpos[1])
 			{
-				utils::vector::_VectorCopy(menu.position, dvars::_imgui_devgui_pos->current.vector, 2);
-				utils::vector::_VectorCopy(menu.position, dvars::_imgui_devgui_pos->latched.vector, 2);
+				utils::vector::copy(menu.position, dvars::_imgui_devgui_pos->current.vector, 2);
+				utils::vector::copy(menu.position, dvars::_imgui_devgui_pos->latched.vector, 2);
 				dvars::_imgui_devgui_pos->modified = true;
 			}
 
 			// check if window size has changed and update dvar
 			if (menu.size[0] != savedsize[0] || menu.size[1] != savedsize[1])
 			{
-				utils::vector::_VectorCopy(menu.size, dvars::_imgui_devgui_size->current.vector, 2);
-				utils::vector::_VectorCopy(menu.size, dvars::_imgui_devgui_size->latched.vector, 2);
+				utils::vector::copy(menu.size, dvars::_imgui_devgui_size->current.vector, 2);
+				utils::vector::copy(menu.size, dvars::_imgui_devgui_size->latched.vector, 2);
 				dvars::_imgui_devgui_size->modified = true;
 			}
 		}
@@ -113,7 +113,7 @@ namespace components
 					ImGui::EndTabItem();
 				}
 
-				if (components::active.RB_ShaderOverlays && ImGui::BeginTabItem("Shaders"))
+				if (components::active.postfx_shaders && ImGui::BeginTabItem("Shaders"))
 				{
 					gui_devgui::menu_tab_shaders(menu);
 					ImGui::EndTabItem();

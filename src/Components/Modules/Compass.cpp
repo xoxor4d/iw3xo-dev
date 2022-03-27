@@ -19,7 +19,7 @@ namespace components
 
 		s.pm_ps = Game::cgs->predictedPlayerState;
 
-		const float yaw = utils::vector::_DegreesToRadians(s.pm_ps.viewangles[YAW]);
+		const float yaw = utils::vector::deg_to_rad(s.pm_ps.viewangles[YAW]);
 		float y, w, h;
 
 		// draw quadrants

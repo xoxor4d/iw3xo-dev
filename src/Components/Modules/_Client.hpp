@@ -6,6 +6,6 @@ namespace components
 	{
 	public:
 		_client();
-		const char* getName() override { return "_client"; };
+		const char* get_name() override { return "_client"; };
 	};
 }

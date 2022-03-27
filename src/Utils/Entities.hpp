@@ -2,26 +2,26 @@
 
 namespace utils
 {
-	class Entities
+	class entities
 	{
 	public:
-		Entities() {};
-		Entities(const char* string, size_t lenPlusOne) : Entities(std::string(string, lenPlusOne - 1)) {}
-		Entities(std::string buffer) : Entities() { this->parse(buffer); };
-		Entities(const Entities &obj) : entities(obj.entities) {};
+		entities() {};
+		entities(const char* string, size_t lenPlusOne) : entities(std::string(string, lenPlusOne - 1)) {}
+		entities(std::string buffer) : entities() { this->parse(buffer); };
+		entities(const entities &obj) : entities_(obj.entities_) {};
 
-		std::string buildAll();
-		std::string buildAll_FixBrushmodels(const std::vector<Game::brushmodel_entity_s>& bModelList);
-		std::string buildSelection_FixBrushmodels(const Game::boundingbox_s* box, const std::vector<Game::brushmodel_entity_s>& bModelList);
-		std::string buildAll_script_structs();
-		std::string buildWorldspawnKeys();
+		std::string build_all();
+		std::string buildAll_FixBrushmodels(const std::vector<Game::brushmodel_entity_s>& bmodel_list);
+		std::string buildSelection_FixBrushmodels(const Game::boundingbox_s* sbox, const std::vector<Game::brushmodel_entity_s>& bmodel_list);
+		std::string build_all_script_structs();
+		std::string build_worldspawn();
 
-		std::vector<std::string> getModels();
-		std::vector<Game::brushmodel_entity_s> getBrushModels();
+		std::vector<std::string> get_models();
+		std::vector<Game::brushmodel_entity_s> get_brushmodels();
 
-		void deleteWorldspawn();
-		void deleteTriggers();
-		void deleteWeapons(bool keepTurrets);
+		void delete_worldspawn();
+		void delete_triggers();
+		void delete_weapons(bool keepTurrets);
 
 	private:
 		enum
@@ -32,7 +32,7 @@ namespace utils
 			PARSE_READ_VALUE,
 		};
 
-		std::vector<std::unordered_map<std::string, std::string>> entities;
+		std::vector<std::unordered_map<std::string, std::string>> entities_;
 		void parse(std::string buffer);
 	};
 }

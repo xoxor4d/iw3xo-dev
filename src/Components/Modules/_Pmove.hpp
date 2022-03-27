@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		_pmove();
-		const char* getName() override { return "_pmove"; };
+		const char* get_name() override { return "_pmove"; };
 
 		static void draw_debug();
 	};

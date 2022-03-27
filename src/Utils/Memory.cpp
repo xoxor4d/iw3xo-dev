@@ -2,9 +2,9 @@
 
 namespace utils
 {
-	utils::Memory::Allocator Memory::MemAllocator;
+	utils::memory::Allocator memory::MemAllocator;
 
-	void* Memory::AllocateAlign(size_t length, size_t alignment)
+	void* memory::AllocateAlign(size_t length, size_t alignment)
 	{
 		void* data = _aligned_malloc(length, alignment);
 		assert(data != nullptr);
@@ -12,21 +12,21 @@ namespace utils
 		return data;
 	}
 
-	void* Memory::Allocate(size_t length)
+	void* memory::Allocate(size_t length)
 	{
 		void* data = calloc(length, 1);
 		assert(data != nullptr);
 		return data;
 	}
 
-	char* Memory::DuplicateString(const std::string& string)
+	char* memory::DuplicateString(const std::string& string)
 	{
-		char* newString = Memory::AllocateArray<char>(string.size() + 1);
+		char* newString = memory::AllocateArray<char>(string.size() + 1);
 		std::memcpy(newString, string.data(), string.size());
 		return newString;
 	}
 
-	void Memory::Free(void* data)
+	void memory::Free(void* data)
 	{
 		if (data)
 		{
@@ -34,12 +34,12 @@ namespace utils
 		}
 	}
 
-	void Memory::Free(const void* data)
+	void memory::Free(const void* data)
 	{
-		Memory::Free(const_cast<void*>(data));
+		memory::Free(const_cast<void*>(data));
 	}
 
-	void Memory::FreeAlign(void* data)
+	void memory::FreeAlign(void* data)
 	{
 		if (data)
 		{
@@ -47,13 +47,13 @@ namespace utils
 		}
 	}
 
-	void Memory::FreeAlign(const void* data)
+	void memory::FreeAlign(const void* data)
 	{
-		Memory::FreeAlign(const_cast<void*>(data));
+		memory::FreeAlign(const_cast<void*>(data));
 	}
 
 	// Complementary function for memset, which checks if memory is filled with a char
-	bool Memory::IsSet(void* mem, char chr, size_t length)
+	bool memory::IsSet(void* mem, char chr, size_t length)
 	{
 		char* memArr = reinterpret_cast<char*>(mem);
 
@@ -68,7 +68,7 @@ namespace utils
 		return true;
 	}
 
-	bool Memory::IsBadReadPtr(const void* ptr)
+	bool memory::IsBadReadPtr(const void* ptr)
 	{
 		MEMORY_BASIC_INFORMATION mbi = { nullptr };
 		if (VirtualQuery(ptr, &mbi, sizeof(mbi)))
@@ -83,7 +83,7 @@ namespace utils
 		return true;
 	}
 
-	bool Memory::IsBadCodePtr(const void* ptr)
+	bool memory::IsBadCodePtr(const void* ptr)
 	{
 		MEMORY_BASIC_INFORMATION mbi = { nullptr };
 		if (VirtualQuery(ptr, &mbi, sizeof(mbi)))
@@ -98,8 +98,8 @@ namespace utils
 		return true;
 	}
 
-	utils::Memory::Allocator* Memory::GetAllocator()
+	utils::memory::Allocator* memory::GetAllocator()
 	{
-		return &Memory::MemAllocator;
+		return &memory::MemAllocator;
 	}
 }

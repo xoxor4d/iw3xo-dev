@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		mvm();
-		const char* getName() override { return "mvm"; };
+		const char* get_name() override { return "mvm"; };
         
 		static void avidemo_streams();
 	};

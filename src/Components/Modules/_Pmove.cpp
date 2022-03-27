@@ -26,24 +26,24 @@ namespace components
 			return;
 		}
 
-		const glm::vec3 velocity = glm::toVec3(pm->ps->velocity);
+		const glm::vec3 velocity = glm::to_vec3(pm->ps->velocity);
 		if (velocity.x + velocity.y + velocity.z == 0.0f) 
 		{
 			return;
 		}
 
-		glm::vec4 color = glm::toVec4(dvars::pm_debug_lineColor->current.vector);
+		glm::vec4 color = glm::to_vec4(dvars::pm_debug_lineColor->current.vector);
 		color.r = glm::clamp(abs(velocity.x * 0.25f) * 0.01f, 0.0f, 1.0f);
 		color.g = glm::clamp(abs(velocity.y * 0.25f) * 0.01f, 0.0f, 1.0f);
 		color.b = glm::clamp(abs(velocity.z * 0.25f) * 0.01f, 0.0f, 1.0f);
 
-		line_trace_velocity.ptFrom = glm::toVec3(pm->ps->origin);
+		line_trace_velocity.ptFrom = glm::to_vec3(pm->ps->origin);
 		
 		// realtime trace
 		if (trace_type == 3)
 		{ 
 			line_trace_velocity.ptTo = line_trace_velocity.ptFrom + velocity;
-			_debug::add_debug_line_client(line_trace_velocity.ptFrom, line_trace_velocity.ptTo, glm::toVec4(dvars::pm_debug_lineColor->current.vector), dvars::pm_debug_lineDepth->current.enabled, frame_time);
+			_debug::add_debug_line_client(line_trace_velocity.ptFrom, line_trace_velocity.ptTo, glm::to_vec4(dvars::pm_debug_lineColor->current.vector), dvars::pm_debug_lineDepth->current.enabled, frame_time);
 		}
 
 		else // trace with duration + scale down the length of velocity
@@ -62,7 +62,7 @@ namespace components
 			return;
 		}
 
-		line_trace_origin.ptTo = glm::toVec3(pm->ps->origin);
+		line_trace_origin.ptTo = glm::to_vec3(pm->ps->origin);
 
 		// only trace when not on the ground but keep the last pos active
 		if (dvars::pm_debug_traceOrigin->current.integer == 2 && on_ground) 
@@ -77,7 +77,7 @@ namespace components
 			return;
 		}
 
-		_debug::add_debug_line_client(line_trace_origin.ptFrom, line_trace_origin.ptTo, glm::toVec4(dvars::pm_debug_lineColor->current.vector), dvars::pm_debug_lineDepth->current.enabled, dvars::pm_debug_lineDuration->current.integer);
+		_debug::add_debug_line_client(line_trace_origin.ptFrom, line_trace_origin.ptTo, glm::to_vec4(dvars::pm_debug_lineColor->current.vector), dvars::pm_debug_lineDepth->current.enabled, dvars::pm_debug_lineDuration->current.integer);
 		line_trace_origin.ptFrom = line_trace_origin.ptTo;
 	}
 
@@ -85,7 +85,7 @@ namespace components
 	glm::vec3 circle_get_coord_for_angle(const glm::vec3& center, const float radius, const float angle)
 	{
 		// sin / cos uses radians ...
-		const float radians = utils::vector::_DegreesToRadians(angle + 90);
+		const float radians = utils::vector::deg_to_rad(angle + 90);
 
 		glm::vec3 coord;
 		coord.x = radius * sinf(radians) + center.x;
@@ -98,7 +98,7 @@ namespace components
 	// render directly
 	void draw_world_axis()
 	{
-		const auto origin = glm::toVec3(Game::cgs->lastVieworg);
+		const auto origin = glm::to_vec3(Game::cgs->lastVieworg);
 		const auto radius = dvars::pm_debug_drawAxis_radius->current.value;
 		const auto height = dvars::pm_debug_drawAxis_height->current.value;
 		const auto center = glm::vec3(origin.x, origin.y, height + origin.z);
@@ -385,7 +385,7 @@ namespace components
 						}*/
 
 						// compare last frames origin/viewpos with the current origin/viewpos
-						if (!utils::vector::_VectorCompareInt(pm->cmd.angles, pm->oldcmd.angles) || !utils::vector::_VectorCompare(temp_camera_origin, Game::Globals::cgs_addons.radiant_camera_origin_old))
+						if (!utils::vector::compare_int3(pm->cmd.angles, pm->oldcmd.angles) || !utils::vector::compare3(temp_camera_origin, Game::Globals::cgs_addons.radiant_camera_origin_old))
 						{
 							memcpy(&Game::Globals::cgs_addons.radiant_camera_origin_old, temp_camera_origin, sizeof(int[3]));
 

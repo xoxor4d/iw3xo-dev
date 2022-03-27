@@ -8,7 +8,7 @@ namespace components
 	public:
 
 		compass();
-		const char* getName() override { return "compass"; };
+		const char* get_name() override { return "compass"; };
 
 		static void main();
 	};

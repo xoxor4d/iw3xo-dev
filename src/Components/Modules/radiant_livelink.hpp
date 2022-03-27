@@ -8,7 +8,7 @@ namespace components
 	{
 	public:
 		radiant_livelink();
-		const char* getName() override { return "radiant_livelink"; };
+		const char* get_name() override { return "radiant_livelink"; };
 
 		static void		init();
 		static void		shutdown_livelink();

@@ -6,7 +6,7 @@
 
 namespace components
 {
-	namespace fonts
+	namespace imgui_fonts
     {
         const unsigned int opensans_regular_compressed_size = 75360;
         const unsigned int opensans_regular_compressed_data[75360 / 4] =

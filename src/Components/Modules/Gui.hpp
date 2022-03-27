@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		gui();
-		const char* getName() override { return "gui"; };
+		const char* get_name() override { return "gui"; };
 
 		static void imgui_init();
 		static void reset();
@@ -80,7 +80,7 @@ namespace components
 				}
 
 				// vectors here
-				utils::vector::_VectorCopy(dvar->current.vector, dvar->latched.vector, vecSize);
+				utils::vector::copy(dvar->current.vector, dvar->latched.vector, vecSize);
 				dvar->modified = true;
 				return reinterpret_cast<T>(dvar->current.vector);
 			}

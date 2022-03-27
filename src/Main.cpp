@@ -36,7 +36,7 @@ void load_addon_libaries()
 	}
 
 	// delay-load
-	components::Scheduler::once([]()
+	components::scheduler::once([]()
 	{
 		if (dvars::load_iw3mvm && dvars::load_iw3mvm->current.enabled)
 		{

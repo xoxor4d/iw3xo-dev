@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		_map(); ~_map() override;
-		const char* getName() override { return "_map"; };
+		const char* get_name() override { return "_map"; };
 
 		static	void on_load();
 		static	void on_unload();

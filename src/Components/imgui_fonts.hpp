@@ -11,7 +11,7 @@ namespace components
 		REGULAR			= 4,
 	};
 
-	namespace fonts
+	namespace imgui_fonts
     {
         extern const unsigned int opensans_regular_compressed_size;
 		extern const unsigned int opensans_regular_compressed_data[75360 / 4];

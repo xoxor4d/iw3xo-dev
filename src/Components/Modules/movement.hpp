@@ -6,6 +6,6 @@ namespace components
 	{
 	public:
 		movement();
-		const char* getName() override { return "movement"; };
+		const char* get_name() override { return "movement"; };
 	};
 }

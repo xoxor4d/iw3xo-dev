@@ -133,7 +133,7 @@ namespace Game
 		int elSize = DB_GetXAssetSizeHandlers[type]();
 		
 		XAssetHeader poolEntry = { 
-			utils::Memory::GetAllocator()->allocate(newSize * elSize) 
+			utils::memory::GetAllocator()->allocate(newSize * elSize) 
 		};
 
 		DB_XAssetPool[type] = poolEntry;
@@ -373,7 +373,7 @@ namespace Game
 	}
 
 	// fails after a few seconds
-	void RB_StandardDrawCommands(Game::GfxViewInfo *viewInfo)
+	void RB_StandardDrawCommands(Game::GfxViewInfo* viewInfo)
 	{
 		const static uint32_t RB_StandardDrawCommands_Func = 0x64AFB0;
 		__asm
@@ -383,7 +383,7 @@ namespace Game
 		}
 	}
 
-	void R_AddCmdDrawStretchPic(void *material, float x, float y, float w, float h, float null1, float null2, float null3, float null4, float *color)
+	void R_AddCmdDrawStretchPic(Game::Material* material, float x, float y, float w, float h, float null1, float null2, float null3, float null4, float* color)
 	{
 		const static uint32_t R_AddCmdDrawStretchPic_Func = 0x5F65F0;
 		__asm
@@ -1485,7 +1485,7 @@ namespace Game
 
 	void ConDraw_Box(float *color, float x, float y, float width, float height)
 	{
-		const static uint32_t ConDraw_Box_Func = 0x45F540;
+		const static uint32_t ConDraw_Box_func = 0x45F540;
 		__asm
 		{
 			pushad;
@@ -1505,7 +1505,7 @@ namespace Game
 			fld		x;
 			fstp	[esp];
 
-			call	ConDraw_Box_Func;
+			call	ConDraw_Box_func;
 			add		esp, 10h;
 
 			popad;
@@ -1787,7 +1787,7 @@ namespace Game
 
 		CG_AdjustFrom640(&x, &y, &w, &h);
 
-		void* material = Material_RegisterHandle("white", 3);
+		const auto material = Material_RegisterHandle("white", 3);
 		Game::R_AddCmdDrawStretchPic(material, x, y, w, h, 0.0f, 0.0f, 0.0f, 0.0f, color);
 	}
 
@@ -1831,8 +1831,8 @@ namespace Game
 
 		bool split = end > start;
 
-		start	= utils::vector::_AngleNormalizePI(start - yaw);
-		end		= utils::vector::_AngleNormalizePI(end - yaw);
+		start	= utils::vector::angle_normalize_pi(start - yaw);
+		end		= utils::vector::angle_normalize_pi(end - yaw);
 
 		if (end > start)
 		{
@@ -1863,7 +1863,7 @@ namespace Game
 
 	void CG_DrawLineYaw(float angle, float yaw, float y, float w, float h, float color[4])
 	{
-		angle = utils::vector::_AngleNormalizePI(angle - yaw);
+		angle = utils::vector::angle_normalize_pi(angle - yaw);
 		if (!AngleInFov(angle))
 		{
 			return;

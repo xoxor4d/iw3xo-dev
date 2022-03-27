@@ -6,7 +6,7 @@ namespace components
 	{
 	public:
 		cgaz();
-		const char* getName() override { return "cgaz"; };
+		const char* get_name() override { return "cgaz"; };
 
 		static void main();
 	

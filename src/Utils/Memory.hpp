@@ -2,7 +2,7 @@
 
 namespace utils
 {
-	class Memory
+	class memory
 	{
 	public:
 		class Allocator
@@ -36,7 +36,7 @@ namespace utils
 
 				for (auto& data : this->pool)
 				{
-					Memory::Free(data);
+					memory::Free(data);
 				}
 
 				this->pool.clear();
@@ -56,7 +56,7 @@ namespace utils
 				auto j = std::find(this->pool.begin(), this->pool.end(), data);
 				if (j != this->pool.end())
 				{
-					Memory::Free(data);
+					memory::Free(data);
 					this->pool.erase(j);
 				}
 			}
@@ -77,7 +77,7 @@ namespace utils
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
-				void* data = Memory::Allocate(length);
+				void* data = memory::Allocate(length);
 				this->pool.push_back(data);
 				return data;
 			}
@@ -99,7 +99,7 @@ namespace utils
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
-				char* data = Memory::DuplicateString(string);
+				char* data = memory::DuplicateString(string);
 				this->pool.push_back(data);
 				return data;
 			}
@@ -155,9 +155,9 @@ namespace utils
 		static bool IsBadReadPtr(const void* ptr);
 		static bool IsBadCodePtr(const void* ptr);
 
-		static utils::Memory::Allocator* GetAllocator();
+		static utils::memory::Allocator* GetAllocator();
 
 	private:
-		static utils::Memory::Allocator MemAllocator;
+		static utils::memory::Allocator MemAllocator;
 	};
 }

@@ -29,19 +29,19 @@ namespace utils
 		void* getAddress();
 		void quick();
 
-		template <typename T> static std::function<T> Call(DWORD function)
+		template <typename T> static std::function<T> call(DWORD function)
 		{
 			return std::function<T>(reinterpret_cast<T*>(function));
 		}
 
-		template <typename T> static std::function<T> Call(FARPROC function)
+		template <typename T> static std::function<T> call(FARPROC function)
 		{
-			return Call<T>(reinterpret_cast<DWORD>(function));
+			return call<T>(reinterpret_cast<DWORD>(function));
 		}
 
-		template <typename T> static std::function<T> Call(void* function)
+		template <typename T> static std::function<T> call(void* function)
 		{
-			return Call<T>(reinterpret_cast<DWORD>(function));
+			return call<T>(reinterpret_cast<DWORD>(function));
 		}
 
 		static void set_string(void* place, const char* string, size_t length);
