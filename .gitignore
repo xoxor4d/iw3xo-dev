@@ -65,6 +65,7 @@ verpatch.exe
 user*.bat
 *.zip
 submodules.txt
+Resource.aps
 
 # IDA
 # =========================
