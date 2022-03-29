@@ -308,6 +308,13 @@ namespace utils
 			out[3] = v1[3] * scalar;
 		}
 
+		void set3(vec3_t set, const float x, const float y, const float z)
+		{
+			set[0] = x;
+			set[1] = y;
+			set[2] = z;
+		}
+
 		// calculating trace->endpos (T5)
 		// endpos = start + fraction * (end - start)
 		void lerp3(const float* start, const float* end, const float fraction, float* endpos)

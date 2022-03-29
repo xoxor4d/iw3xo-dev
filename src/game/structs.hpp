@@ -2817,7 +2817,7 @@ namespace game
 	//		};
 	//#pragma pack(pop)
 
-					/* 861 */
+	/* 861 */
 #pragma pack(push, 16)
 	struct cbrush_t
 	{
@@ -2836,8 +2836,9 @@ namespace game
 		__int16 cmSubmodelIndex;
 		bool isSubmodel;
 		bool pad;
-	};
+	}; STATIC_ASSERT_SIZE(cbrush_t, 0x50);
 #pragma pack(pop)
+
 	//
 	//		/* 861 */
 	//#pragma pack(push, 16)
@@ -6921,6 +6922,7 @@ namespace game
 		gentity_s* ent;
 		int radBrushIndexForDyn;
 		float originalOrigin[3];
+		bool is_custom;
 	};
 
 	struct dynBrushModelsArray_t

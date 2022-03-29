@@ -162,7 +162,18 @@ namespace components
 		glm::set_float3(bModel->cmodel->leaf.maxs, (localMaxs - 0.875f));
 
 		// brush index from leafbrushnode ~ (T5 :: CM_TestPointInBrushModel)
-		const int brush_index = (int)*game::cm->leafbrushNodes[bModel->cmodel->leaf.leafBrushNode].data.leaf.brushes;
+		//const int brush_index = (int)*game::cm->leafbrushNodes[bModel->cmodel->leaf.leafBrushNode].data.leaf.brushes;
+
+		int brush_index;
+		if(bModel->is_custom)
+		{
+			brush_index = game::cm->numBrushes - 1;
+		}
+		else
+		{
+			brush_index = (int)*game::cm->leafbrushNodes[bModel->cmodel->leaf.leafBrushNode].data.leaf.brushes;
+		}
+
 
 		// clipmap brush : local bounds ~ https://github.com/id-Software/Quake-III-Arena/blob/dbe4ddb10315479fc00086f08e25d968b4b43c49/code/qcommon/cm_load.c#L146
 		glm::set_float3(game::cm->brushes[brush_index].mins, (localMins + 1.0f));

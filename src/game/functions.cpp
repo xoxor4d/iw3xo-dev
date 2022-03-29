@@ -608,6 +608,7 @@ namespace game
 
 	game::gentity_s*		scr_g_entities	= reinterpret_cast<game::gentity_s*>(0x1288500);
 	game::level_locals_t*	level_locals	= reinterpret_cast<game::level_locals_t*>(0x13EB6A8);
+	game::centity_s*		cg_entities		= reinterpret_cast<game::centity_s*>(0x84F2D8);
 
 	void G_SetOrigin(game::gentity_s* ent, const float* origin)
 	{

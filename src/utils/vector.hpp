@@ -78,6 +78,7 @@ namespace utils
 		void	subtract3(const vec3_t v1, const vec3_t v2, vec3_t out);
 		void	scale3(const vec3_t v1, float scalar, vec3_t out);
 		void	scale4(const vec4_t v1, vec_t scalar, vec4_t out);
+		void	set3(vec3_t set, const float x, const float y, const float z);
 		void	lerp3(const float *start, const float *end, const float fraction, float *endpos);
 		void	unpack_unit_vec3(game::PackedUnitVec v, float *out);
 

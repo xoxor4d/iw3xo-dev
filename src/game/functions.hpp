@@ -262,6 +262,7 @@ namespace game
 
 	extern game::gentity_s*	scr_g_entities;
 	extern game::level_locals_t* level_locals;
+	extern game::centity_s* cg_entities;
 
 	static utils::function<void()> Scr_Error_Internal = 0x51D1F0;
 	void Scr_AddBool(bool value);

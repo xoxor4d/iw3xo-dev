@@ -161,6 +161,8 @@ namespace components
 			}
 
 			game::Com_PrintMessage(0, utils::va("|-> found %d/%d cmodels!\n", mapped_cmodels.size(), DYN_COLL_BMODEL_AMOUNT), 0);
+
+			_map::create_debug_collision();
 		}
 
 		else
@@ -187,6 +189,10 @@ namespace components
 		// ~ relink this entity, because it may have moved out of the current leaf
 		// Update the clipmap leafs and absolute world bounds
 		game::SV_LinkEntity(bmodel->ent);
+
+		game::cgs->nextSnap->numEntities;
+		auto x = game::cg_entities;
+		auto asd = game::cg_entities[game::glob::dynamic_brush_models.brushes[1].entityIndex];
 	}
 
 	// *
@@ -382,7 +388,7 @@ namespace components
 					
 				}
 
-				if (b >= game::glob::dynamic_brush_models.mapped_bmodels - 1)
+				if (b > game::glob::dynamic_brush_models.mapped_bmodels - 1)
 				{
 					// if we ran out of avail. brushmodels, stop updating collision and notify the user
 					if (game::glob::radiant_saved_brushes.was_modified)
