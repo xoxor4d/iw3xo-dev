@@ -2113,34 +2113,34 @@ CON_MATCH_PREFIX_ONLY:
 		command::add("condump", "", "dump console contents to root/iw3xo/condump", [&](auto)
 		{
 				
-				if (const auto& base_path = game::Dvar_FindVar("fs_basepath"); 
-								base_path)
+			if (const auto& base_path = game::Dvar_FindVar("fs_basepath"); 
+							base_path)
+			{
+				const std::string file_path = base_path->current.string + "\\iw3xo\\condump\\"s;
+				if(!std::filesystem::exists(file_path))
 				{
-					const std::string file_path = base_path->current.string + "\\iw3xo\\condump\\"s;
-					if(!std::filesystem::exists(file_path))
-					{
-						std::filesystem::create_directories(file_path);
-					}
-
-					std::ofstream condump;
-					const std::string file_name = file_path + "condump_";
-
-					for (auto i = 0; i < 1024; i++) // clean your f'in folder
-					{
-						if(std::filesystem::exists(file_name + std::to_string(i)))
-						{
-							continue;
-						}
-
-						condump.open((file_name + std::to_string(i) + ".txt").c_str());
-
-						std::string line;
-						condump << game::con->consoleText;
-						condump.close();
-
-						break;
-					}
+					std::filesystem::create_directories(file_path);
 				}
+
+				std::ofstream condump;
+				const std::string file_name = file_path + "condump_";
+
+				for (auto i = 0; i < 1024; i++)
+				{
+					if(std::filesystem::exists(file_name + std::to_string(i) + ".txt"))
+					{
+						continue;
+					}
+
+					condump.open((file_name + std::to_string(i) + ".txt").c_str());
+
+					std::string line;
+					condump << game::con->consoleText;
+					condump.close();
+
+					break;
+				}
+			}
 		});
 	}
 }

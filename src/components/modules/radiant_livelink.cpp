@@ -35,132 +35,132 @@ namespace components
 		// if map is loaded
 		if (game::cm->name && game::cm->isInUse)
 		{
-			bool ent_found_bb_model = false;
-			game::Com_PrintMessage(0, "CM_FindDynamicBrushModels :: start ...\n", 0);
+			//bool ent_found_bb_model = false;
+			//game::Com_PrintMessage(0, "CM_FindDynamicBrushModels :: start ...\n", 0);
 
-			// search the base brush model
-			for (auto ent = 0; ent < 1024; ent++)
-			{
-				if (!game::scr_g_entities[ent].r.bmodel)
-				{
-					continue;
-				}
+			//// search the base brush model
+			//for (auto ent = 0; ent < 1024; ent++)
+			//{
+			//	if (!game::scr_g_entities[ent].r.bmodel)
+			//	{
+			//		continue;
+			//	}
 
-				// compare brushmodel targetname
-				if (utils::q_stricmp(_ggame::ent_get_gscr_string(game::scr_g_entities[ent].targetname), "dynbrush01"))
-				{
-					continue;
-				}
+			//	// compare brushmodel targetname
+			//	if (utils::q_stricmp(_ggame::ent_get_gscr_string(game::scr_g_entities[ent].targetname), "dynbrush01"))
+			//	{
+			//		continue;
+			//	}
 
-				// found it
-				ent_found_bb_model = true;
-				game::glob::dynamic_brush_models.brushes[0].entityIndex = ent;
-				game::glob::dynamic_brush_models.brushes[0].ent = &game::scr_g_entities[ent];
+			//	// found it
+			//	ent_found_bb_model = true;
+			//	game::glob::dynamic_brush_models.brushes[0].entityIndex = ent;
+			//	game::glob::dynamic_brush_models.brushes[0].ent = &game::scr_g_entities[ent];
 
-				// save the original origin
-				glm::set_float3(game::glob::dynamic_brush_models.brushes[0].originalOrigin, glm::to_vec3(game::glob::dynamic_brush_models.brushes[0].ent->r.currentOrigin));
+			//	// save the original origin
+			//	glm::set_float3(game::glob::dynamic_brush_models.brushes[0].originalOrigin, glm::to_vec3(game::glob::dynamic_brush_models.brushes[0].ent->r.currentOrigin));
 
-				game::Com_PrintMessage(0, utils::va("|-> found base-brushmodel @ g_entities[%d]\n", ent), 0);
-				game::glob::dynamic_brush_models.mapped_bmodels++;
+			//	game::Com_PrintMessage(0, utils::va("|-> found base-brushmodel @ g_entities[%d]\n", ent), 0);
+			//	game::glob::dynamic_brush_models.mapped_bmodels++;
 
-				break;
-			}
+			//	break;
+			//}
 
-			// could not find the base model
-			if (!ent_found_bb_model)
-			{
-				game::Com_PrintMessage(0, "|-> couldnt find the base-brushmodel!\n", 0);
-				return;
-			}
+			//// could not find the base model
+			//if (!ent_found_bb_model)
+			//{
+			//	game::Com_PrintMessage(0, "|-> couldnt find the base-brushmodel!\n", 0);
+			//	return;
+			//}
 
-			std::vector<int> mapped_children;
+			//std::vector<int> mapped_children;
 
-			// look for its children
-			for (auto child = 1; child < DYN_COLL_BMODEL_AMOUNT; child++)
-			{
-				for (auto ent = 0; ent < 1024; ent++)
-				{
-					// if we already mapped the current entity
-					if (std::find(mapped_children.begin(), mapped_children.end(), ent) != mapped_children.end())
-					{
-						continue;
-					}
-						
-					// if entity is not a brush model
-					if (!game::scr_g_entities[ent].r.bmodel)
-					{
-						continue;
-					}
+			//// look for its children
+			//for (auto child = 1; child < DYN_COLL_BMODEL_AMOUNT; child++)
+			//{
+			//	for (auto ent = 0; ent < 1024; ent++)
+			//	{
+			//		// if we already mapped the current entity
+			//		if (std::find(mapped_children.begin(), mapped_children.end(), ent) != mapped_children.end())
+			//		{
+			//			continue;
+			//		}
+			//			
+			//		// if entity is not a brush model
+			//		if (!game::scr_g_entities[ent].r.bmodel)
+			//		{
+			//			continue;
+			//		}
 
-					if (game::scr_g_entities[ent].target != game::glob::dynamic_brush_models.brushes[0].ent->targetname)
-					{
-						continue;
-					}	
+			//		if (game::scr_g_entities[ent].target != game::glob::dynamic_brush_models.brushes[0].ent->targetname)
+			//		{
+			//			continue;
+			//		}	
 
-					// found a child
-					game::glob::dynamic_brush_models.brushes[child].entityIndex = ent;
-					game::glob::dynamic_brush_models.brushes[child].ent = &game::scr_g_entities[ent];
+			//		// found a child
+			//		game::glob::dynamic_brush_models.brushes[child].entityIndex = ent;
+			//		game::glob::dynamic_brush_models.brushes[child].ent = &game::scr_g_entities[ent];
 
-					// save the original origin
-					glm::set_float3(game::glob::dynamic_brush_models.brushes[child].originalOrigin, glm::to_vec3(game::glob::dynamic_brush_models.brushes[child].ent->r.currentOrigin));
+			//		// save the original origin
+			//		glm::set_float3(game::glob::dynamic_brush_models.brushes[child].originalOrigin, glm::to_vec3(game::glob::dynamic_brush_models.brushes[child].ent->r.currentOrigin));
 
-					mapped_children.push_back(ent);
+			//		mapped_children.push_back(ent);
 
-					game::Com_PrintMessage(0, utils::va("|-> found child @ g_entities[%d]\n", ent), 0);
-					game::glob::dynamic_brush_models.mapped_bmodels++;
+			//		game::Com_PrintMessage(0, utils::va("|-> found child @ g_entities[%d]\n", ent), 0);
+			//		game::glob::dynamic_brush_models.mapped_bmodels++;
 
-					break;
-				}
-			}
+			//		break;
+			//	}
+			//}
 
-			game::Com_PrintMessage(0, utils::va("|-> found %d/%d brushmodel entities!\n", mapped_children.size() + 1, DYN_COLL_BMODEL_AMOUNT), 0);
+			//game::Com_PrintMessage(0, utils::va("|-> found %d/%d brushmodel entities!\n", mapped_children.size() + 1, DYN_COLL_BMODEL_AMOUNT), 0);
 
-			std::vector<int> mapped_cmodels;
+			//std::vector<int> mapped_cmodels;
 
-			// find the corrosponding cmodels in the clipmap
-			for (auto bModel = 0; bModel < game::glob::dynamic_brush_models.mapped_bmodels; bModel++)
-			{
-				// should not happen
-				if (bModel > (int)game::cm->numSubModels)
-				{
-					game::Com_PrintMessage(0, "|-> ^1mapped brushmodels > clipMap->numSubModels[%d]\n", 0);
-					return;
-				}
+			//// find the corrosponding cmodels in the clipmap
+			//for (auto bModel = 0; bModel < game::glob::dynamic_brush_models.mapped_bmodels; bModel++)
+			//{
+			//	// should not happen
+			//	if (bModel > (int)game::cm->numSubModels)
+			//	{
+			//		game::Com_PrintMessage(0, "|-> ^1mapped brushmodels > clipMap->numSubModels[%d]\n", 0);
+			//		return;
+			//	}
 
-				// for each clipMap->cmodel
-				for (auto cmod = 0; cmod < (int)game::cm->numSubModels; cmod++)
-				{
-					// if we already mapped the current cmodel
-					if (std::find(mapped_cmodels.begin(), mapped_cmodels.end(), cmod) != mapped_cmodels.end())
-					{
-						continue;
-					}
+			//	// for each clipMap->cmodel
+			//	for (auto cmod = 0; cmod < (int)game::cm->numSubModels; cmod++)
+			//	{
+			//		// if we already mapped the current cmodel
+			//		if (std::find(mapped_cmodels.begin(), mapped_cmodels.end(), cmod) != mapped_cmodels.end())
+			//		{
+			//			continue;
+			//		}
 
-					// compare mins
-					if (!utils::vector::compare3(game::cm->cmodels[cmod].mins, game::glob::dynamic_brush_models.brushes[bModel].ent->r.mins))
-					{
-						continue;
-					}	
+			//		// compare mins
+			//		if (!utils::vector::compare3(game::cm->cmodels[cmod].mins, game::glob::dynamic_brush_models.brushes[bModel].ent->r.mins))
+			//		{
+			//			continue;
+			//		}	
 
-					// compare maxs
-					if (!utils::vector::compare3(game::cm->cmodels[cmod].maxs, game::glob::dynamic_brush_models.brushes[bModel].ent->r.maxs))
-					{
-						continue;
-					}	
+			//		// compare maxs
+			//		if (!utils::vector::compare3(game::cm->cmodels[cmod].maxs, game::glob::dynamic_brush_models.brushes[bModel].ent->r.maxs))
+			//		{
+			//			continue;
+			//		}	
 
-					// found it
-					game::glob::dynamic_brush_models.brushes[bModel].cmodelIndex = cmod;
-					game::glob::dynamic_brush_models.brushes[bModel].cmodel = &game::cm->cmodels[cmod];
+			//		// found it
+			//		game::glob::dynamic_brush_models.brushes[bModel].cmodelIndex = cmod;
+			//		game::glob::dynamic_brush_models.brushes[bModel].cmodel = &game::cm->cmodels[cmod];
 
-					mapped_cmodels.push_back(cmod);
+			//		mapped_cmodels.push_back(cmod);
 
-					game::Com_PrintMessage(0, utils::va("|-> dynBrushModels.brushes[%d] :: cm->cmodel[%d] == g_entities[%d]\n", bModel, cmod, game::glob::dynamic_brush_models.brushes[bModel].entityIndex), 0);
-					
-					break;
-				}
-			}
+			//		game::Com_PrintMessage(0, utils::va("|-> dynBrushModels.brushes[%d] :: cm->cmodel[%d] == g_entities[%d]\n", bModel, cmod, game::glob::dynamic_brush_models.brushes[bModel].entityIndex), 0);
+			//		
+			//		break;
+			//	}
+			//}
 
-			game::Com_PrintMessage(0, utils::va("|-> found %d/%d cmodels!\n", mapped_cmodels.size(), DYN_COLL_BMODEL_AMOUNT), 0);
+			//game::Com_PrintMessage(0, utils::va("|-> found %d/%d cmodels!\n", mapped_cmodels.size(), DYN_COLL_BMODEL_AMOUNT), 0);
 
 			_map::create_debug_collision();
 		}

@@ -56,8 +56,8 @@ namespace components
 
 	struct brushside_test_s
 	{
-		game::cbrushside_t brush_side[6];
-		game::cplane_s brushside_plane[6];
+		game::cbrushside_t brush_side[7];
+		game::cplane_s brushside_plane[7];
 	};
 
 	static brushside_test_s addon_brushsides = {};
@@ -308,22 +308,212 @@ namespace components
 
 	// --------
 
+	struct scr_const_t
+	{
+		unsigned __int16 _;
+		unsigned __int16 active;
+		unsigned __int16 aim_bone;
+		unsigned __int16 aim_highest_bone;
+		unsigned __int16 aim_vis_bone;
+		unsigned __int16 all;
+		unsigned __int16 allies;
+		unsigned __int16 axis;
+		unsigned __int16 bad_path;
+		unsigned __int16 begin_firing;
+		unsigned __int16 cancel_location;
+		unsigned __int16 confirm_location;
+		unsigned __int16 crouch;
+		unsigned __int16 current;
+		unsigned __int16 damage;
+		unsigned __int16 dead;
+		unsigned __int16 death;
+		unsigned __int16 detonate;
+		unsigned __int16 direct;
+		unsigned __int16 dlight;
+		unsigned __int16 done;
+		unsigned __int16 empty;
+		unsigned __int16 end_firing;
+		unsigned __int16 entity;
+		unsigned __int16 explode;
+		unsigned __int16 failed;
+		unsigned __int16 free;
+		unsigned __int16 fraction;
+		unsigned __int16 goal;
+		unsigned __int16 goal_changed;
+		unsigned __int16 goal_yaw;
+		unsigned __int16 grenade;
+		unsigned __int16 grenadedanger;
+		unsigned __int16 grenade_fire;
+		unsigned __int16 grenade_pullback;
+		unsigned __int16 info_notnull;
+		unsigned __int16 invisible;
+		unsigned __int16 key1;
+		unsigned __int16 key2;
+		unsigned __int16 killanimscript;
+		unsigned __int16 left;
+		unsigned __int16 light;
+		unsigned __int16 movedone;
+		unsigned __int16 noclass;
+		unsigned __int16 none;
+		unsigned __int16 normal;
+		unsigned __int16 player;
+		unsigned __int16 position;
+		unsigned __int16 projectile_impact;
+		unsigned __int16 prone;
+		unsigned __int16 right;
+		unsigned __int16 reload;
+		unsigned __int16 reload_start;
+		unsigned __int16 rocket;
+		unsigned __int16 rotatedone;
+		unsigned __int16 script_brushmodel;
+		unsigned __int16 script_model;
+		unsigned __int16 script_origin;
+		unsigned __int16 snd_enveffectsprio_level;
+		unsigned __int16 snd_enveffectsprio_shellshock;
+		unsigned __int16 snd_channelvolprio_holdbreath;
+		unsigned __int16 snd_channelvolprio_pain;
+		unsigned __int16 snd_channelvolprio_shellshock;
+		unsigned __int16 stand;
+		unsigned __int16 suppression;
+		unsigned __int16 suppression_end;
+		unsigned __int16 surfacetype;
+		unsigned __int16 tag_aim;
+		unsigned __int16 tag_aim_animated;
+		unsigned __int16 tag_brass;
+		unsigned __int16 tag_butt;
+		unsigned __int16 tag_clip;
+		unsigned __int16 tag_flash;
+		unsigned __int16 tag_flash_11;
+		unsigned __int16 tag_flash_2;
+		unsigned __int16 tag_flash_22;
+		unsigned __int16 tag_flash_3;
+		unsigned __int16 tag_fx;
+		unsigned __int16 tag_inhand;
+		unsigned __int16 tag_knife_attach;
+		unsigned __int16 tag_knife_fx;
+		unsigned __int16 tag_laser;
+		unsigned __int16 tag_origin;
+		unsigned __int16 tag_weapon;
+		unsigned __int16 tag_player;
+		unsigned __int16 tag_camera;
+		unsigned __int16 tag_weapon_right;
+		unsigned __int16 tag_gasmask;
+		unsigned __int16 tag_gasmask2;
+		unsigned __int16 tag_sync;
+		unsigned __int16 target_script_trigger;
+		unsigned __int16 tempEntity;
+		unsigned __int16 top;
+		unsigned __int16 touch;
+		unsigned __int16 trigger;
+		unsigned __int16 trigger_use;
+		unsigned __int16 trigger_use_touch;
+		unsigned __int16 trigger_damage;
+		unsigned __int16 trigger_lookat;
+		unsigned __int16 truck_cam;
+		unsigned __int16 weapon_change;
+		unsigned __int16 weapon_fired;
+		unsigned __int16 worldspawn;
+		unsigned __int16 flashbang;
+		unsigned __int16 flash;
+		unsigned __int16 smoke;
+		unsigned __int16 night_vision_on;
+		unsigned __int16 night_vision_off;
+		unsigned __int16 mod_unknown;
+		unsigned __int16 mod_pistol_bullet;
+		unsigned __int16 mod_rifle_bullet;
+		unsigned __int16 mod_grenade;
+		unsigned __int16 mod_grenade_splash;
+		unsigned __int16 mod_projectile;
+		unsigned __int16 mod_projectile_splash;
+		unsigned __int16 mod_melee;
+		unsigned __int16 mod_head_shot;
+		unsigned __int16 mod_crush;
+		unsigned __int16 mod_telefrag;
+		unsigned __int16 mod_falling;
+		unsigned __int16 mod_suicide;
+		unsigned __int16 mod_trigger_hurt;
+		unsigned __int16 mod_explosive;
+		unsigned __int16 mod_impact;
+		unsigned __int16 script_vehicle;
+		unsigned __int16 script_vehicle_collision;
+		unsigned __int16 script_vehicle_collmap;
+		unsigned __int16 script_vehicle_corpse;
+		unsigned __int16 turret_fire;
+		unsigned __int16 turret_on_target;
+		unsigned __int16 turret_not_on_target;
+		unsigned __int16 turret_on_vistarget;
+		unsigned __int16 turret_no_vis;
+		unsigned __int16 turret_rotate_stopped;
+		unsigned __int16 turret_deactivate;
+		unsigned __int16 turretstatechange;
+		unsigned __int16 turretownerchange;
+		unsigned __int16 reached_end_node;
+		unsigned __int16 reached_wait_node;
+		unsigned __int16 reached_wait_speed;
+		unsigned __int16 near_goal;
+		unsigned __int16 veh_collision;
+		unsigned __int16 veh_predictedcollision;
+		unsigned __int16 auto_change;
+		unsigned __int16 back_low;
+		unsigned __int16 back_mid;
+		unsigned __int16 back_up;
+		unsigned __int16 begin;
+		unsigned __int16 call_vote;
+		unsigned __int16 freelook;
+		unsigned __int16 head;
+		unsigned __int16 intermission;
+		unsigned __int16 j_head;
+		unsigned __int16 manual_change;
+		unsigned __int16 menuresponse;
+		unsigned __int16 neck;
+		unsigned __int16 pelvis;
+		unsigned __int16 pistol;
+		unsigned __int16 plane_waypoint;
+		unsigned __int16 playing;
+		unsigned __int16 spectator;
+		unsigned __int16 vote;
+		unsigned __int16 sprint_begin;
+		unsigned __int16 sprint_end;
+		unsigned __int16 tag_driver;
+		unsigned __int16 tag_passenger;
+		unsigned __int16 tag_gunner;
+		unsigned __int16 tag_wheel_front_left;
+		unsigned __int16 tag_wheel_front_right;
+		unsigned __int16 tag_wheel_back_left;
+		unsigned __int16 tag_wheel_back_right;
+		unsigned __int16 tag_wheel_middle_left;
+		unsigned __int16 tag_wheel_middle_right;
+		unsigned __int16 tag_detach;
+		unsigned __int16 tag_popout;
+		unsigned __int16 tag_body;
+		unsigned __int16 tag_turret;
+		unsigned __int16 tag_turret_base;
+		unsigned __int16 tag_barrel;
+		unsigned __int16 tag_engine_left;
+		unsigned __int16 tag_engine_right;
+		unsigned __int16 front_left;
+		unsigned __int16 front_right;
+		unsigned __int16 back_left;
+		unsigned __int16 back_right;
+		unsigned __int16 tag_gunner_pov;
+	};
+
+
 	void _map::create_debug_collision()
 	{
 		int dynb_index = game::glob::dynamic_brush_models.mapped_bmodels;
 
 		auto cmodel = &reloc_cm_cmodels[game::cm->numSubModels];
 
-		utils::vector::set3(cmodel->mins, -4.80011272f, -16.5f, -33.0f);
-		utils::vector::set3(cmodel->maxs, 5.19986343f, 15.5f, 33.0f);
-		cmodel->radius = 37.2597466f;
+		utils::vector::set3(cmodel->mins, -17.00000f, -19.18193f, -34.14550f);
+		utils::vector::set3(cmodel->maxs, 17.72730f, 18.83999f, 34.02410f);
+		cmodel->radius = 42.98976f;
 
-		utils::vector::set3(cmodel->leaf.mins, -3.92510986f, -15.625f, -32.125f);
-		utils::vector::set3(cmodel->leaf.maxs, 4.3248291f, 14.625f, 32.125f);
-		cmodel->leaf.brushContents = 0x8000001;
+		utils::vector::set3(cmodel->leaf.mins, -16.12500f, -18.30693f, -33.27051f);
+		utils::vector::set3(cmodel->leaf.maxs, 16.85230f, 17.96499f, 33.14909f);
+		cmodel->leaf.brushContents = 134217729;
 
 		game::glob::dynamic_brush_models.brushes[dynb_index].is_custom = true;
-
 		game::glob::dynamic_brush_models.brushes[dynb_index].cmodelIndex = game::cm->numSubModels;
 		game::glob::dynamic_brush_models.brushes[dynb_index].cmodel = cmodel;
 
@@ -340,8 +530,8 @@ namespace components
 		ent->r.contents = cmodel->leaf.brushContents;
 		ent->flags = 4096;
 		ent->handler = 5;
-		ent->model = 1;
-		ent->s.index = 1;
+		ent->model = 0;
+		ent->s.index = 0;
 
 		game::cgs->nextSnap->numEntities;
 		auto x = game::cg_entities;
@@ -354,13 +544,14 @@ namespace components
 
 		game::SV_LinkEntity(ent);
 
-		utils::vector::set3(ent->r.currentOrigin, -634.0f, -165.0f, 992.0f);
+		utils::vector::set3(ent->r.currentOrigin, -1104.00f, -1008.00f, -832.00f);
 		utils::vector::copy(ent->r.currentOrigin, game::glob::dynamic_brush_models.brushes[dynb_index].originalOrigin, 3);
 
 		game::G_SetOrigin(ent, ent->r.currentOrigin);
 		game::G_CallSpawnEntity(ent);
 
-		auto classname = _ggame::ent_get_gscr_string(ent->classname);
+		const auto scr_const = reinterpret_cast<scr_const_t*>(0x1406E90);
+		auto classname = scr_const->script_brushmodel; //_ggame::ent_get_gscr_string(ent->classname);
 
 		game::glob::dynamic_brush_models.brushes[dynb_index].ent = ent;
 		game::glob::dynamic_brush_models.brushes[dynb_index].entityIndex = ent->s.number;
@@ -375,7 +566,7 @@ namespace components
 		utils::vector::copy(cmodel->mins, b->mins, 3);
 		utils::vector::copy(cmodel->mins, b->maxs, 3);
 		b->contents = 0x8000001;
-		b->numsides = 6;
+		b->numsides = 7;
 		b->baseAdjacentSide = (char*)test;
 		b->sides = addon_brushsides.brush_side;
 
@@ -387,8 +578,8 @@ namespace components
 		bside = &addon_brushsides.brush_side[0];
 		bside->edgeCount = 4;
 		bside->plane = &addon_brushsides.brushside_plane[0];
-		utils::vector::set3(bside->plane->normal, -0.141421348f, -0.989949465f, 0.0f);
-		bside->plane->dist = 14.7502594f;
+		utils::vector::set3(bside->plane->normal, -0.24254, -0.97014, 0.00000);
+		bside->plane->dist = 13.58209f;
 		bside->plane->type = 3;
 		bside->plane->signbits = 3;
 
@@ -396,8 +587,8 @@ namespace components
 		bside = &addon_brushsides.brush_side[1];
 		bside->edgeCount = 4;
 		bside->plane = &addon_brushsides.brushside_plane[1];
-		utils::vector::set3(bside->plane->normal, 0.999444902f, 0.0333148278f, 0.0f);
-		bside->plane->dist = 3.68115234f;
+		utils::vector::set3(bside->plane->normal, 0.94471, 0.30727, 0.11451);
+		bside->plane->dist = 6.42019f;
 		bside->plane->type = 3;
 		bside->plane->signbits = 0;
 
@@ -405,8 +596,8 @@ namespace components
 		bside = &addon_brushsides.brush_side[2];
 		bside->edgeCount = 4;
 		bside->plane = &addon_brushsides.brushside_plane[2];
-		utils::vector::set3(bside->plane->normal, -0.141421363f, 0.989949465f, 0.0f);
-		bside->plane->dist = 13.9017105f;
+		utils::vector::set3(bside->plane->normal, -0.49614, 0.86824, 0.00000);
+		bside->plane->dist = 13.14767f;
 		bside->plane->type = 3;
 		bside->plane->signbits = 1;
 
@@ -414,8 +605,8 @@ namespace components
 		bside = &addon_brushsides.brush_side[3];
 		bside->edgeCount = 4;
 		bside->plane = &addon_brushsides.brushside_plane[3];
-		utils::vector::set3(bside->plane->normal, 0.999362826f, 0.035691529f, 0.0f);
-		bside->plane->dist = 3.31585693f;
+		utils::vector::set3(bside->plane->normal, -0.91381, -0.40614, 0.00000);
+		bside->plane->dist = 12.18421f;
 		bside->plane->type = 3;
 		bside->plane->signbits = 3;
 
@@ -423,19 +614,28 @@ namespace components
 		bside = &addon_brushsides.brush_side[4];
 		bside->edgeCount = 4;
 		bside->plane = &addon_brushsides.brushside_plane[4];
-		utils::vector::set3(bside->plane->normal, -0.124034733f, 0.0f, 0.992277861f);
-		bside->plane->dist = 31.2319336f;
+		utils::vector::set3(bside->plane->normal, -0.36466, -0.05882, 0.92928);
+		bside->plane->dist = 28.71365f;
 		bside->plane->type = 3;
-		bside->plane->signbits = 1;
+		bside->plane->signbits = 3;
 
 		// 5
 		bside = &addon_brushsides.brush_side[5];
 		bside->edgeCount = 4;
 		bside->plane = &addon_brushsides.brushside_plane[5];
-		utils::vector::set3(bside->plane->normal, -0.124034733f, 0.0f, 0.992277861f);
-		bside->plane->dist = 31.2318726f;
+		utils::vector::set3(bside->plane->normal, -0.02158, 0.05934, -0.99800);
+		bside->plane->dist = 31.63948f;
 		bside->plane->type = 3;
 		bside->plane->signbits = 5;
+
+		// 6
+		bside = &addon_brushsides.brush_side[6];
+		bside->edgeCount = 4;
+		bside->plane = &addon_brushsides.brushside_plane[6];
+		utils::vector::set3(bside->plane->normal, 0.94868, 0.31623, -0.00000);
+		bside->plane->dist = 10.11929f;
+		bside->plane->type = 3;
+		bside->plane->signbits = 0;
 	}
 
 	void relocate_struct_ref(const std::uintptr_t code_addr, const void* target_addr, const std::uintptr_t base_addr = 0, const std::uintptr_t dest_addr = 0)
@@ -453,6 +653,148 @@ namespace components
 		for(auto i = 0; i < patch_amount; i++)
 		{
 			utils::hook::set<std::uintptr_t>(code_addr[i], struct_final_addr);
+		}
+	}
+
+
+	void write_clipmap()
+	{
+		if (const auto& base_path = game::Dvar_FindVar("fs_basepath");
+						base_path)
+		{
+			const std::string file_path = base_path->current.string + "\\iw3xo\\clipmap\\"s;
+			if (!std::filesystem::exists(file_path))
+			{
+				std::filesystem::create_directories(file_path);
+			}
+
+			std::ofstream o;
+			const std::string file_name = file_path + "clipmap_";
+
+			for (auto i = 0; i < 1024; i++)
+			{
+				if (std::filesystem::exists(file_name + std::to_string(i) + ".txt"s))
+				{
+					//continue;
+				}
+
+#define FMT_VEC " [ %.5f ]"
+#define FMT_VEC3 " [ %.5f, %.5f, %.5f ]"
+#define ARG_VEC3(arg) (arg)[0], (arg)[1], (arg)[2]
+#define LGAP " ---- "
+#define ENDL std::endl
+
+				o.open((file_name + std::to_string(i) + ".txt").c_str());
+				const auto cm = game::cm;
+
+				o << "name: " << cm->name << ENDL << ENDL;
+
+				o << "---- planes ---- count [ " << cm->planeCount << " ] -------" << ENDL;
+
+				for (auto p = 0u; p < cm->planeCount; p++)
+				{
+					o << "plane [ " << p << " ] :: ";
+					o << utils::va("normal" FMT_VEC3, ARG_VEC3(cm->planes[p].normal)) << LGAP;
+					o << utils::va("dist" FMT_VEC, cm->planes[p].dist) << LGAP;
+					o << utils::va("type [ %d ] ---- signbits [ %d ]", cm->planes[p].type, cm->planes[p].signbits) << ENDL;
+				}
+
+				o << ENDL;
+				o << "---- brushsides ---- count [ " << cm->numBrushSides << " ] -------" << ENDL;
+
+				for (auto p = 0u; p < cm->numBrushSides; p++)
+				{
+					const int plane_num = ((DWORD)cm->brushsides[p].plane - (DWORD)cm->planes) / sizeof(game::cplane_s);
+					o << "brushside [ " << p << " ] :: ";
+					o << "using plane [ " << plane_num << " ]" << LGAP;
+					o << utils::va("materialnum [ %d ] ---- first adjacent side offset [ %d ] ---- edgecount [ %d ]", cm->brushsides[p].materialNum, cm->brushsides[p].firstAdjacentSideOffset, cm->brushsides[p].edgeCount) << ENDL;
+				}
+
+				o << ENDL;
+				o << "---- brush edges ---- count [ " << cm->numBrushEdges << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- nodes ---- count [ " << cm->numNodes << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- leafs ---- count [ " << cm->numLeafs << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- leafbrush nodes ---- count [ " << cm->leafbrushNodesCount << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- leafbrushes ---- count [ " << cm->numLeafBrushes << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- leafsurfaces ---- count [ " << cm->numLeafSurfaces << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- partitions ---- count [ " << cm->partitionCount << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- aabb trees ---- count [ " << cm->aabbTreeCount << " ] -------" << ENDL;
+
+				o << ENDL;
+				o << "---- submodels ---- count [ " << cm->numSubModels << " ] -------" << ENDL;
+
+				for (auto p = 0u; p < cm->numSubModels; p++)
+				{
+					o << "submodel [ " << p << " ] :: ";
+					o << utils::va("mins" FMT_VEC3, ARG_VEC3(cm->cmodels[p].mins)) << LGAP;
+					o << utils::va("maxs" FMT_VEC3, ARG_VEC3(cm->cmodels[p].maxs)) << LGAP;
+					o << utils::va("radius" FMT_VEC, cm->cmodels[p].radius) << ENDL;
+					o << ">>> leaf :: " << LGAP;
+					o << utils::va("mins" FMT_VEC3, ARG_VEC3(cm->cmodels[p].leaf.mins)) << LGAP;
+					o << utils::va("maxs" FMT_VEC3, ARG_VEC3(cm->cmodels[p].leaf.maxs)) << LGAP;
+					o << utils::va("brush contents [ %d ] ---- leaf brush node [ %d ] ---- cluster [ %d ]", 
+						cm->cmodels[p].leaf.brushContents,
+						cm->cmodels[p].leaf.leafBrushNode,
+						cm->cmodels[p].leaf.cluster ) << ENDL;
+				}
+				
+				o << ENDL;
+				o << "---- brushes ---- count [ " << cm->numBrushes << " ] -------" << ENDL;
+
+				for (auto p = 0u; p < cm->numBrushes; p++)
+				{
+					o << "brush [ " << p << " ] :: ";
+					o << utils::va("mins" FMT_VEC3, ARG_VEC3(cm->brushes[p].mins)) << LGAP;
+					o << utils::va("maxs" FMT_VEC3, ARG_VEC3(cm->brushes[p].maxs)) << LGAP;
+					o << utils::va("brush contents [ %d ] ---- num sides [ %d ]", 
+						cm->brushes[p].contents,
+						cm->brushes[p].numsides) << ENDL;
+
+					o << utils::va(">> first adj side offsets [ %d, %d, %d, %d, %d, %d ]",
+							cm->brushes[p].firstAdjacentSideOffsets[0][0], cm->brushes[p].firstAdjacentSideOffsets[0][1], cm->brushes[p].firstAdjacentSideOffsets[0][2],
+							cm->brushes[p].firstAdjacentSideOffsets[1][0], cm->brushes[p].firstAdjacentSideOffsets[1][1], cm->brushes[p].firstAdjacentSideOffsets[1][2]) << ENDL;
+
+					o << utils::va(">> edge count [ %d, %d, %d, %d, %d, %d ]",
+						cm->brushes[p].edgeCount[0][0], cm->brushes[p].edgeCount[0][1], cm->brushes[p].edgeCount[0][2],
+						cm->brushes[p].edgeCount[1][0], cm->brushes[p].edgeCount[1][1], cm->brushes[p].edgeCount[1][2]) << ENDL;
+
+					if(cm->brushes[p].numsides)
+					{
+						o << "using brushsides [ ";
+
+						for (auto s = 0u; s < cm->brushes[p].numsides; s++)
+						{
+							const int brushside_num = ((DWORD)&cm->brushes[p].sides[s] - (DWORD)cm->brushsides) / sizeof(game::cbrushside_t);
+							o << brushside_num << ", ";
+						}
+
+						o << " ]" << ENDL;
+					}
+
+					o << ENDL;
+				}
+
+				o << ENDL;
+				o << "---- clusters ---- count [ " << cm->numClusters << " ] -------" << ENDL;
+
+				o.close();
+
+				break;
+			}
 		}
 	}
 
@@ -520,6 +862,11 @@ namespace components
 			/* desc		*/ "enabled: load spmod map gsc's (mostly fx)",
 			/* default	*/ true,
 			/* flags	*/ game::dvar_flags::saved);
+
+		command::add("dump_clipmap", "", "dump clipmap into human readable format to iw3xo/clipmap", [this](command::params)
+		{
+			write_clipmap();
+		});
 	}
 
 	_map::~_map()
