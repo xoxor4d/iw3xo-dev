@@ -435,13 +435,13 @@ namespace components
 
 	mvm::mvm()
 	{
-#if 0
-		dvars::load_iw3mvm = Game::Dvar_RegisterBool(
+		dvars::load_iw3mvm = game::Dvar_RegisterBool(
 			/* name		*/ "load_iw3mvm",
 			/* desc		*/ "load iw3mvm on startup",
 			/* default	*/ false,
-			/* flags	*/ Game::dvar_flags::saved);
+			/* flags	*/ game::dvar_flags::saved);
 
+#if 0
 		dvars::cl_avidemo_streams = Game::Dvar_RegisterIntWrapper(
 			/* name		*/ "cl_avidemo_streams",
 			/* desc		*/ "just like mvm_streams",
