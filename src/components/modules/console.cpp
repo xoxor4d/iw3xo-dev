@@ -879,7 +879,7 @@ namespace components
 
 	void draw_output_version(float x, float y, float height)
 	{
-		std::string build = utils::va(IW3XO_BUILDSTRING);
+		std::string build = VERSION;
 
 		if (DEBUG) 
 		{

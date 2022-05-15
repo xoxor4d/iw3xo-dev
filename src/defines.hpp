@@ -41,9 +41,9 @@
 // *
 // Changelog (avoid tabs (will result in dots); empty strings "." + large y offset to move them out of visible space)
 #if DEBUG
-	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s :: ^1DEBUG\n"
+	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %s :: %s :: ^1DEBUG\n"
 #else
-	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %.lf :: %s\n"
+	#define IW3XO_CHANGELOG_TITLE_FMT	"IW3XO :: %s :: %s\n"
 #endif
 
 

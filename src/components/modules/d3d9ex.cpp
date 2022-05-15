@@ -243,11 +243,6 @@ namespace components
 
 	HRESULT d3d9ex::D3D9Device::BeginScene()
 	{
-		if (components::active.mvm)
-		{
-			mvm::avidemo_streams();
-		}
-
 		return m_pIDirect3DDevice9->BeginScene();
 	}
 

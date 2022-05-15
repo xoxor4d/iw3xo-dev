@@ -70,7 +70,7 @@ namespace components
 	void print_build_on_init() 
 	{
 		game::Com_PrintMessage(0, "\n-------- Game Initialization ----------\n", 0);
-		game::Com_PrintMessage(0, utils::va("> Build: IW3xo %0.0lf :: %s\n", IW3X_BUILDNUMBER, __TIMESTAMP__), 0);
+		game::Com_PrintMessage(0, utils::va("> Build: iw3xo %s :: %s\n", VERSION, __TIMESTAMP__), 0);
 	}
 
 	// game init + game name and version

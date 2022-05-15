@@ -1172,8 +1172,7 @@ namespace components
 		cmd.type = game::SERVER_STRING_MSG;
 
 		const std::string build_date = IW3XO_BUILDVERSION_DATE;
-		const std::string build_num = std::to_string((int)IW3X_BUILDNUMBER);
-		sprintf_s(cmd.command, utils::va("(IW3XO::%s::%s) accepted request", build_num.c_str(), build_date.c_str()));
+		sprintf_s(cmd.command, utils::va("(IW3XO::%s::%s) accepted request", VERSION, build_date.c_str()));
 
 		radiant_livelink::send_packet(&cmd);
 
