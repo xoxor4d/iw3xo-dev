@@ -25,15 +25,17 @@ A compatible Radiant, built for use with IW3xo, that enables a live-link between
 
 <br>
 
-### Project Page (Guide / In-Depth)
+### > Features / Guides / In-Depth <
 https://xoxor4d.github.io/projects/iw3xo/
 
 </div>
 
 <br>
 
-<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
-<img src="https://xoxor4d.github.io/assets/img/iw3xo/gif/feat_daynight.gif"/>
+<div align="center">
+	<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
+	<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
+</div>
 
 <br>
 <br>
@@ -122,9 +124,9 @@ ___
 <br>
 
 <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg"/>
-<img src="https://xoxor4d.github.io/assets/img/iw3xo/gif/feat_daynight_clouds.gif"/>
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/mainmenu.jpg"/>
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/feat_spmap.jpg"/>
 
-<br>
 <br>
 
 ## Disclaimer
