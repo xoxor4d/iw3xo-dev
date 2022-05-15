@@ -6,7 +6,7 @@ on:
       - "develop"
 jobs:
   build:
-    name: Build release binary
+    name: Build binary
     runs-on: windows-2022
     strategy:
       matrix:
@@ -38,12 +38,12 @@ jobs:
         uses: ammaraskar/msvc-problem-matcher@master
 
       - name: Build ${{matrix.configuration}} binaries
-        run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw3xo-radiant.sln
+        run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw3xo-dev.sln
 
       - name: Upload ${{matrix.configuration}} binaries
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.configuration}} binaries
           path: |
-            build/bin/${{matrix.configuration}}/iw3r.dll
-            build/bin/${{matrix.configuration}}/iw3r.pdb
+            build/bin/${{matrix.configuration}}/iw3x.dll
+            build/bin/${{matrix.configuration}}/iw3x.pdb
