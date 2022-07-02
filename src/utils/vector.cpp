@@ -205,7 +205,7 @@ namespace utils
 		// returns length of input vector
 		vec_t normalize3(vec3_t v)
 		{
-			zero3(v);
+			//zero3(v);
 
 			const float length = length3(v);
 			if (length != 0.0f) 
@@ -222,7 +222,7 @@ namespace utils
 		// glm 
 		float normalize3_glm(glm::vec3 &v)
 		{
-			v.x = 0.0f; v.y = 0.0f; v.z = 0.0f;
+			//v.x = 0.0f; v.y = 0.0f; v.z = 0.0f;
 
 			const float length = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 			if (length != 0.0f) 
