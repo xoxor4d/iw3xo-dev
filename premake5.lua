@@ -310,6 +310,13 @@ workspace "iw3xo-dev"
             "/Zm100 -Zm100" 
         }
 
+		if(os.getenv("COD4_ROOT")) then
+			print ("Setup paths using environment variable 'COD4_ROOT' :: '" .. os.getenv("COD4_ROOT") .. "'")
+			targetdir(os.getenv("COD4_ROOT") .. "/")
+			debugdir (os.getenv("COD4_ROOT") .. "/")
+			debugcommand (os.getenv("COD4_ROOT") .. "/" .. "iw3xo.exe")
+		end
+
 		-- Specific configurations
 		flags { "UndefinedIdentifiers" }
 		warnings "Extra"
