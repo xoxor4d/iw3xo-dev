@@ -483,7 +483,7 @@ namespace components
 		dvars::_imgui_window_alpha = game::Dvar_RegisterFloat(
 			/* name		*/ "_imgui_window_alpha",
 			/* desc		*/ "imgui window alpha",
-			/* default	*/ 0.8f,
+			/* default	*/ 0.9f,
 			/* minVal	*/ 0.0f,
 			/* maxVal	*/ 1.0f,
 			/* flags	*/ game::dvar_flags::saved);

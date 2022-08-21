@@ -1,48 +1,101 @@
-## IW3xo - A Call of Duty 4 Modification
+
+<h1 align="center">IW3xo - A Call of Duty 4 Modification</h3>
+
+<p align="center">
 This project is aimed at developers and includes various modifications/additions.  
 IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
 A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
+</p>
 
+<br>
+<div align="center" markdown="1">
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/xoxor4d/iw3xo-dev?color=%2368BC71&logo=github)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
+![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/xoxor4d/iw3xo-dev/latest/develop?logo=github)&ensp;
+[![Downloads](https://img.shields.io/github/downloads/xoxor4d/iw3xo-dev/total?logo=github&label=total-downloads)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
+[![Discord](https://img.shields.io/discord/677574256678141973?label=Discord&logo=discord&logoColor=%23FFFF&)](https://discord.gg/t5jRGbj)&ensp;
 
-Pre-build binaries: https://github.com/xoxor4d/iw3xo-dev/releases  
-Changelog: https://github.com/xoxor4d/iw3xo-dev/wiki/Changelog  
-Project Page: https://xoxor4d.github.io/projects/iw3xo/
+<br>
 
+### nightly builds - develop branch
+( download and install the [latest release](https://github.com/xoxor4d/iw3xo-dev/releases) before using nightly's )
 
-<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
+[![build-develop](https://img.shields.io/github/workflow/status/xoxor4d/iw3xo-dev/Build-Debug/develop?logo=github&label=nightly-develop)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)&ensp;
+[![build-release](https://img.shields.io/github/workflow/status/xoxor4d/iw3xo-dev/Build-Release/develop?logo=github&label=nightly-release)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release%20binaries.zip)&ensp;
+
+<br>
+
+### > Features / Guides / In-Depth <
+https://xoxor4d.github.io/projects/iw3xo/
+
+</div>
+
+<br>
+
+<div align="center">
+	<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
+	<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
+</div>
+
+<br>
+<br>
 
 ___
+## Installation
 
-#### Building the project:
-1. Clone the repo (zip does not include deps)
-2. Hit "generate.bat" to build project files with premake
-3. Load the project in Visual Studio and open project->settings to setup paths (Debug/Release):
-   - General: output directory path -> "path-to-cod4-root\\"
-   - Debugging: command -> "path-to-cod4-root\iw3xo.exe"
-   - Debugging: working directory -> "path-to-cod4-root\\"
-   - You may need to change the Toolset of both glm and iw3x if you do not have v142 installed. For each go to General -> Platform Toolset -> set to your installed version
-4. Build -> Build Solution
-   
-#### Generating the exe:   
-1. Copy a non-steam (1.7) "iw3mp.exe" into the "\assets\\" folder
-2. Install required resource tools by running "\res\res-tools.ps1"
-3. "\res\generate-exe.ps1" will generate and place "iw3xo.exe" into the project root
-4. Copy the generated exe into your cod4-root
-5. You only need to do this once
+<br>
+
+1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases)
+2. Copy the `.zip` contents into your cod4 root folder
+3. Start __IW3xo.exe__
+
+- [NIGHTLY]&ensp; unpack and replace `iw3x.dll` with the one found in your cod4 root folder
+
+<br>
 
 ___
+## Requirements:
 
-Requires:
+<br>
+
 1. CoD4 1.7
 2. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
 3. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
 4. English localization (other languages work when renamed:)
-  - __root/localization.txt__ -> change first line to "english"
-  - __root/main/__ -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
-  - __root/zone/__ -> rename folder "yourlanguage" to "english"
+> - __root/localization.txt__ &ensp; -> change first line to "english"
+> - __root/main/__ &ensp; -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
+> - __root/zone/__ &ensp; -> rename folder "yourlanguage" to "english"
+
+<br>
 
 ___
+## Build / Compile
+
+<br>
+
+### > How to build / compile the project using Visual Studio
+1. Clone the repo! __(zip does not include deps!)__
+2. Use __generate-buildfiles.bat__ to build project files with premake
+3. Load the solution `(build/iw3xo-dev.sln)` and open the iw3x project-settings to setup paths:
+> - General &ensp; &ensp; &ensp; output directory path -> `path-to-cod4-root\`
+> - Debugging &ensp; command -> `path-to-cod4-root\IW3xo.exe`
+> - Debugging &ensp; working directory -> `path-to-cod4-root`
+4. Build -> Build Solution or run with debugger
+   
+<br>
+
+### > Generating the exe:  
+1. Copy a non-steam (1.7) `iw3mp.exe` into the `\assets\\` folder
+2. Install required resource tools by running `\res\res-tools.ps1`
+3. `\res\generate-exe.ps1` will generate and place `iw3xo.exe` into the project root
+4. Copy the generated exe into your cod4-root
+5. You only need to do this once
+
+<br>
+
+___
+
+<br>
 
 Optional:  
 https://github.com/xoxor4d/iw3xo-radiant
@@ -53,21 +106,27 @@ https://xoxor4d.github.io/projects/iw3xo/
 Discord:  
 https://discord.gg/t5jRGbj
 
-<p float="left">
-  <img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg" width="47%" />
-  <img src="https://xoxor4d.github.io/assets/img/iw3xo/originVelocity.jpg" width="47%" align="right" /> 
-</p>
 <br>
 
-## Credits / Dependencies
-- The IW4x Team
-- The Plutonium Project Team
-- Nukem
-- https://github.com/ocornut/imgui
-- https://github.com/g-truc/glm/
-- https://github.com/devKlausS/dxsdk
-- https://github.com/Goblenus/WinHttpClient
-- https://github.com/Jelvan1/cgame_proxymod
+## Credits
+- [X Labs](https://github.com/XLabsProject) (especially [Snake](https://github.com/momo5502))
+- [The Plutonium Project Team](https://plutonium.pw/) (especially [Rektinator](https://github.com/RektInator))
+- [Nukem9 - LinkerMod](https://github.com/Nukem9/LinkerMod)
+- [g-truc - glm](https://github.com/g-truc/glm/)
+- [ocornut - Dear ImGui](https://github.com/ocornut/imgui)
+- [Jelvan1 - cgame proxymod](https://github.com/Jelvan1/cgame_proxymod)
+
+<br>
+
+___
+## Images
+
+<br>
+
+<img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg"/>
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/mainmenu.jpg"/>
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/feat_spmap.jpg"/>
+
 <br>
 
 ## Disclaimer

@@ -1,0 +1,76 @@
+name: Build-Release
+
+on:
+  push:
+    branches:
+      - "develop"
+jobs:
+  build:
+    name: Build binary
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        configuration:
+          - Release
+    steps:
+      - name: Wait for previous workflows
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out files
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+          lfs: false
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Generate project files
+        run: tools/premake5 vs2022
+
+      - name: Set up problem matching
+        uses: ammaraskar/msvc-problem-matcher@master
+
+      - name: Build ${{matrix.configuration}} binaries
+        run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw3xo-dev.sln
+
+      - name: Upload ${{matrix.configuration}} binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{matrix.configuration}} binaries
+          path: |
+            build/bin/${{matrix.configuration}}/iw3x.dll
+            build/bin/${{matrix.configuration}}/iw3x.pdb
+
+  webbook:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Tag String
+        id: tag
+        run: |
+            echo "GIT_TAG=`echo $(git describe --tags --dirty --always)`" >> $GITHUB_ENV
+          
+            git describe --tags --dirty --always
+            # …
+        
+      - uses: tsickert/discord-webhook@v4.0.0
+        with:
+          webhook-url: ${{ secrets.WEBHOOK_URL }}
+          username: "GitHub Workflow"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          embed-author-icon-url: "https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo.png"
+          embed-author-name: "iw3xo-dev"
+          embed-author-url: "https://github.com/xoxor4d/iw3xo-dev"
+          embed-title: "Successful build (release)"
+          embed-color: 0x82ff80
+          embed-description: "${{ env.GIT_TAG }} [nightly link](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release%20binaries.zip)"

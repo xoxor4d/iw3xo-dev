@@ -569,7 +569,7 @@ R"(
 		dvars::ui_main_title = game::Dvar_RegisterString(
 			/* name		*/ "ui_changelog_title",
 			/* desc		*/ "menu helper",
-			/* value	*/ utils::va(IW3XO_CHANGELOG_TITLE_FMT, IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE),
+			/* value	*/ utils::va(IW3XO_CHANGELOG_TITLE_FMT, VERSION, IW3XO_BUILDVERSION_DATE),
 			/* flags	*/ game::dvar_flags::read_only);
 	}
 
@@ -626,13 +626,13 @@ R"(
 		// place container
 		_ui::scrplace_apply_rect(&offs_x, &scale_x, &offs_y, &scale_y, HORIZONTAL_ALIGN_LEFT, VERTICAL_ALIGN_BOTTOM);
 
-		const char* text_foreground = utils::va("IW3xo :: %.lf :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE);
+		const char* text_foreground = utils::va("IW3xo :: %s :: %s", VERSION, IW3XO_BUILDVERSION_DATE);
 		const char* text_background = text_foreground;
 
 		if (DEBUG)
 		{
-			text_foreground = utils::va("IW3xo :: %.lf :: %s :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE, "^1DEBUG");
-			text_background = utils::va("IW3xo :: %.lf :: %s :: %s", IW3X_BUILDNUMBER, IW3XO_BUILDVERSION_DATE, "DEBUG");
+			text_foreground = utils::va("IW3xo :: %s :: %s :: %s", VERSION, IW3XO_BUILDVERSION_DATE, "^1DEBUG");
+			text_background = utils::va("IW3xo :: %s :: %s :: %s", VERSION, IW3XO_BUILDVERSION_DATE, "DEBUG");
 		}
 
 		// Background String

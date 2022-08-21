@@ -609,10 +609,10 @@ namespace components
 #ifdef DEVGUI_XO_BLUR
 		SPACING(0.0f, 4.0f);
 
-		ImGui::DragFloat("xo_blur_directions", &Game::Globals::xo_blur_directions, 0.25, -2000.0f, 2000.0f, "%.1f");
-		ImGui::DragFloat("xo_blur_quality", &Game::Globals::xo_blur_quality, 0.25, 0.0001f, 50.0f, "%.1f");
-		ImGui::DragFloat("xo_blur_size", &Game::Globals::xo_blur_size, 0.25, 0.0001f, 50.0f, "%.1f");
-		ImGui::DragFloat("xo_blur_alpha", &Game::Globals::xo_blur_alpha, 0.25, -50.0f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_directions", &game::glob::xo_blur_directions, 0.25, -2000.0f, 2000.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_quality", &game::glob::xo_blur_quality, 0.25, 0.0001f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_size", &game::glob::xo_blur_size, 0.25, 0.0001f, 50.0f, "%.1f");
+		ImGui::DragFloat("xo_blur_alpha", &game::glob::xo_blur_alpha, 0.25, -50.0f, 50.0f, "%.1f");
 #endif
 		SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 	}

@@ -1,3 +1,185 @@
+-- stealy wheely :* https://github.com/XLabsProject/s1x-client/blob/develop/premake5.lua
+
+gitVersioningCommand = "git describe --tags --dirty --always"
+gitCurrentBranchCommand = "git symbolic-ref -q --short HEAD"
+
+-- Quote the given string input as a C string
+function cstrquote(value)
+	if value == nil then
+		return "\"\""
+	end
+	result = value:gsub("\\", "\\\\")
+	result = result:gsub("\"", "\\\"")
+	result = result:gsub("\n", "\\n")
+	result = result:gsub("\t", "\\t")
+	result = result:gsub("\r", "\\r")
+	result = result:gsub("\a", "\\a")
+	result = result:gsub("\b", "\\b")
+	result = "\"" .. result .. "\""
+	return result
+end
+
+-- Converts tags in "vX.X.X" format and given revision number Y to an array of numbers {X,X,X,Y}.
+-- In the case where the format does not work fall back to padding with zeroes and just ending with the revision number.
+-- partscount can be either 3 or 4.
+function vertonumarr(value, vernumber, partscount)
+	vernum = {}
+	for num in string.gmatch(value or "", "%d+") do
+		if #vernum < 3 then
+			table.insert(vernum, tonumber(num))
+		end
+	end
+	while #vernum < 3 do
+		table.insert(vernum, 0)
+	end
+	if #vernum < partscount then
+		table.insert(vernum, tonumber(vernumber))
+	end
+	return vernum
+end
+
+newaction {
+	trigger = "version",
+	description = "Returns the version string for the current commit of the source code.",
+	onWorkspace = function(wks)
+		-- get current version via git
+		local proc = assert(io.popen(gitVersioningCommand, "r"))
+		local gitDescribeOutput = assert(proc:read('*a')):gsub("%s+", "")
+		proc:close()
+		local version = gitDescribeOutput
+
+		proc = assert(io.popen(gitCurrentBranchCommand, "r"))
+		local gitCurrentBranchOutput = assert(proc:read('*a')):gsub("%s+", "")
+		local gitCurrentBranchSuccess = proc:close()
+		if gitCurrentBranchSuccess then
+			-- We got a branch name, check if it is a feature branch
+			if gitCurrentBranchOutput ~= "develop" and gitCurrentBranchOutput ~= "master" then
+				version = version .. "-" .. gitCurrentBranchOutput
+			end
+		end
+
+		print(version)
+		os.exit(0)
+	end
+}
+
+newaction {
+	trigger = "generate-buildinfo",
+	description = "Sets up build information file like version.h.",
+	onWorkspace = function(wks)
+		-- get old version number from version.hpp if any
+		local oldVersion = "(none)"
+		local oldVersionHeader = io.open(wks.location .. "/src/version.h", "r")
+		if oldVersionHeader ~= nil then
+			local oldVersionHeaderContent = assert(oldVersionHeader:read('*l'))
+			while oldVersionHeaderContent do
+				m = string.match(oldVersionHeaderContent, "#define GIT_DESCRIBE (.+)%s*$")
+				if m ~= nil then
+						oldVersion = m
+				end
+
+				oldVersionHeaderContent = oldVersionHeader:read('*l')
+			end
+		end
+
+		-- get current version via git
+		local proc = assert(io.popen(gitVersioningCommand, "r"))
+		local gitDescribeOutput = assert(proc:read('*a')):gsub("%s+", "")
+		proc:close()
+
+		-- generate version.hpp with a revision number if not equal
+		gitDescribeOutputQuoted = cstrquote(gitDescribeOutput)
+		if oldVersion ~= gitDescribeOutputQuoted then
+			-- get current git hash and write to version.txt (used by the preliminary updater)
+			-- TODO - remove once proper updater and release versioning exists
+			local proc = assert(io.popen("git rev-parse HEAD", "r"))
+			local gitCommitHash = assert(proc:read('*a')):gsub("%s+", "")
+			proc:close()
+
+			-- get whether this is a clean revision (no uncommitted changes)
+			proc = assert(io.popen("git status --porcelain", "r"))
+			local revDirty = (assert(proc:read('*a')) ~= "")
+			if revDirty then revDirty = 1 else revDirty = 0 end
+			proc:close()
+
+			-- get current tag name
+			proc = assert(io.popen("git describe --tags --abbrev=0"))
+			local tagName = proc:read('*l')
+
+			-- get current branch name
+			proc = assert(io.popen("git branch --show-current"))
+			local branchName = proc:read('*l')
+
+			-- branch for ci
+			if branchName == nil or branchName == '' then
+				proc = assert(io.popen("git show -s --pretty=%d HEAD"))
+				local branchInfo = proc:read('*l')
+				m = string.match(branchInfo, ".+,.+, ([^)]+)")
+				if m ~= nil then
+					branchName = m
+				end
+			end
+
+			if branchName == nil then
+				branchName = "develop"
+			end
+
+			print("Detected branch: " .. branchName)
+
+			-- get revision number via git
+			local proc = assert(io.popen("git rev-list --count HEAD", "r"))
+			local revNumber = assert(proc:read('*a')):gsub("%s+", "")
+
+			print ("Update " .. oldVersion .. " -> " .. gitDescribeOutputQuoted)
+
+			-- write to version.txt for preliminary updater
+			-- NOTE - remove this once we have a proper updater and proper release versioning
+			local versionFile = assert(io.open(wks.location .. "/version.txt", "w"))
+			versionFile:write(gitCommitHash)
+			versionFile:close()
+
+			-- write version header
+			local versionHeader = assert(io.open(wks.location .. "/src/version.h", "w"))
+			versionHeader:write("/*\n")
+			versionHeader:write(" * Automatically generated by premake5.\n")
+			versionHeader:write(" * Do not touch!\n")
+			versionHeader:write(" */\n")
+			versionHeader:write("\n")
+			versionHeader:write("#define GIT_DESCRIBE " .. gitDescribeOutputQuoted .. "\n")
+			versionHeader:write("#define GIT_DIRTY " .. revDirty .. "\n")
+			versionHeader:write("#define GIT_HASH " .. cstrquote(gitCommitHash) .. "\n")
+			versionHeader:write("#define GIT_TAG " .. cstrquote(tagName) .. "\n")
+			versionHeader:write("#define GIT_BRANCH " .. cstrquote(branchName) .. "\n")
+			versionHeader:write("\n")
+			versionHeader:write("// Version transformed for RC files\n")
+			versionHeader:write("#define VERSION_PRODUCT_RC " .. table.concat(vertonumarr(tagName, revNumber, 3), ",") .. "\n")
+			versionHeader:write("#define VERSION_PRODUCT " .. cstrquote(table.concat(vertonumarr(tagName, revNumber, 3), ".")) .. "\n")
+			versionHeader:write("#define VERSION_FILE_RC " .. table.concat(vertonumarr(tagName, revNumber, 4), ",") .. "\n")
+			versionHeader:write("#define VERSION_FILE " .. cstrquote(table.concat(vertonumarr(tagName, revNumber, 4), ".")) .. "\n")
+			versionHeader:write("\n")
+			versionHeader:write("// Alias definitions\n")
+			versionHeader:write("#define VERSION GIT_DESCRIBE\n")
+			versionHeader:write("#define SHORTVERSION VERSION_PRODUCT\n")
+			versionHeader:close()
+			local versionHeader = assert(io.open(wks.location .. "/src/version.hpp", "w"))
+			versionHeader:write("/*\n")
+			versionHeader:write(" * Automatically generated by premake5.\n")
+			versionHeader:write(" * Do not touch!\n")
+			versionHeader:write(" *\n")
+			versionHeader:write(" * This file exists for reasons of complying with our coding standards.\n")
+			versionHeader:write(" *\n")
+			versionHeader:write(" * The Resource Compiler will ignore any content from C++ header files if they're not from STDInclude.hpp.\n")
+			versionHeader:write(" * That's the reason why we now place all version info in version.h instead.\n")
+			versionHeader:write(" */\n")
+			versionHeader:write("\n")
+			versionHeader:write("#include \".\\version.h\"\n")
+			versionHeader:close()
+		end
+	end
+}
+
+-----------------------------------------------------------------------------
+
 dependencies = {
 	basePath = "./deps"
 }
@@ -28,36 +210,11 @@ function dependencies.projects()
 	end
 end
 
-newaction {
-	trigger = "generate-buildinfo",
-	description = "Sets up build information file like version.h.",
-	onWorkspace = function(wks)
-
-		local oldRevNumber = "(none)"
-		print ("Reading :: " .. path.getdirectory(wks.location) .. "/src/version.hpp")
-		local oldVersionHeader = io.open(path.getdirectory(wks.location) .. "/src/version.hpp", "r")
-		if oldVersionHeader ~=nil then
-			local oldVersionHeaderContent = assert(oldVersionHeader:read('*a'))
-			oldRevNumber = string.match(oldVersionHeaderContent, "#define IW3X_BUILDNUMBER (%d+)")
-			if oldRevNumber == nil then
-				oldRevNumber = 0
-			end
-		end
-
-		-- generate version.hpp with a revision number if not equal
-		local revNumber = oldRevNumber + 1
-			print ("Update " .. oldRevNumber .. " -> " .. revNumber)
-			local versionHeader = assert(io.open(path.getdirectory(wks.location) .. "/src/version.hpp", "w"))
-			versionHeader:write("/* Automatically generated by premake5. */\n")
-			versionHeader:write("\n")
-			versionHeader:write("#define IW3X_BUILDNUMBER " .. revNumber .. "\n")
-			versionHeader:close()
-	end
-}
-
 dependencies.load()
 
 workspace "iw3xo-dev"
+
+	startproject "iw3x"
 	location "./build"
 	objdir "%{wks.location}/obj"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}"
@@ -86,27 +243,30 @@ workspace "iw3xo-dev"
         "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" 
     }
 
-	configuration "windows"
-		defines { 
-            "_WINDOWS", 
-            "WIN32" 
-        }
-        
-	configuration "Release"
-        optimize "Full"
-		
-        defines { 
-            "NDEBUG" 
-        }
+	filter "platforms:Win*"
+		defines {"_WINDOWS", "WIN32"}
+	filter {}
 
+	-- Release
+
+	filter "configurations:Release"
+		optimize "Full"
+		buildoptions {"/GL"}
+		defines {"NDEBUG"}
+		
 		flags { 
             "MultiProcessorCompile", 
             "LinkTimeOptimization", 
-            "No64BitChecks" 
+            "No64BitChecks",
+			"FatalCompileWarnings"
         }
-		
-	configuration "Debug"
-        optimize "Debug"
+	filter {}
+
+	-- Debug
+
+	filter "configurations:Debug"
+		optimize "Debug"
+
 		defines { 
             "DEBUG", 
             "_DEBUG" 
@@ -116,13 +276,17 @@ workspace "iw3xo-dev"
             "MultiProcessorCompile", 
             "No64BitChecks" 
         }
-		
-    configuration {}
+	filter {}
 
-    startproject "iw3x"
+	-- Project
+    
 	project "iw3x"
 		kind "SharedLib"
 		language "C++"
+
+		linkoptions {
+			"/PDBCompress"
+		}
 
         pchheader "std_include.hpp"
 		pchsource "src/std_include.cpp"
@@ -146,35 +310,23 @@ workspace "iw3xo-dev"
             "/Zm100 -Zm100" 
         }
 
-		-- Virtual paths
-		--[[ if not _OPTIONS["no-new-structure"] then
-			vpaths {
-				["Headers/*"] = { "./src/**.hpp" },
-				["Sources/*"] = { "./src/**.cpp" },
-				["Resource/*"] = { "./src/**.rc" },
-			}
+		if(os.getenv("COD4_ROOT")) then
+			print ("Setup paths using environment variable 'COD4_ROOT' :: '" .. os.getenv("COD4_ROOT") .. "'")
+			targetdir(os.getenv("COD4_ROOT") .. "/")
+			debugdir (os.getenv("COD4_ROOT") .. "/")
+			debugcommand (os.getenv("COD4_ROOT") .. "/" .. "iw3xo.exe")
 		end
 
-		vpaths {
-			["Docs/*"] = { "**.txt","**.md" },
-		} ]]
-		
 		-- Specific configurations
 		flags { "UndefinedIdentifiers" }
 		warnings "Extra"
 
-		configuration "Release"
-			flags { 
-                "FatalCompileWarnings" 
-            }
-			
-			-- Pre-build
-			prebuildcommands {
-			"cd %{_MAIN_SCRIPT_DIR}",
-			"tools\\premake5 generate-buildinfo"
-			}
-            
-		configuration {}
+		-- Pre-build
+		prebuildcommands {
+			"pushd %{_MAIN_SCRIPT_DIR}",
+			"tools\\premake5 generate-buildinfo",
+			"popd",
+		}
 
         dependencies.imports()
 

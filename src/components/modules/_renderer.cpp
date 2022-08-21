@@ -1045,12 +1045,16 @@ namespace components
 
 #ifdef DEVGUI_XO_BLUR
 					// dev stuff
-					if (state->pass->pixelShader && !utils::q_stricmp(state->pass->pixelShader->name, "reticle_blur"))
+					if (state->pass->pixelShader && !utils::q_stricmp(state->pass->pixelShader->name, "sm2_blur"))
 					{
-						float constant[4] = { Game::Globals::xo_blur_directions, Game::Globals::xo_blur_quality, Game::Globals::xo_blur_size, Game::Globals::xo_blur_alpha };
+						float constant[4] = { game::glob::xo_blur_directions, game::glob::xo_blur_quality, game::glob::xo_blur_size, game::glob::xo_blur_alpha };
 
-						if (arg_def->u.codeConst.index == Game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
-							(*Game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
+							(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
+						}
+
+						if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR) {
+							(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 						}
 					}
 #endif

@@ -10,6 +10,7 @@
 
 // Version number
 #include <version.hpp>
+
 // Game definitions
 #include <defines.hpp>
 
