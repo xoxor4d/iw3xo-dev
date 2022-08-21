@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "develop"
+
 jobs:
   build:
     name: Build binary
@@ -47,3 +48,30 @@ jobs:
           path: |
             build/bin/${{matrix.configuration}}/iw3x.dll
             build/bin/${{matrix.configuration}}/iw3x.pdb
+
+  webbook:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Tag String
+        id: tag
+        run: |
+            echo "GIT_TAG=`echo $(git describe --tags --dirty --always)`" >> $GITHUB_ENV
+          
+            git describe --tags --dirty --always
+            # …
+        
+      - uses: tsickert/discord-webhook@v4.0.0
+        with:
+          webhook-url: ${{ secrets.WEBHOOK_URL }}
+          username: "GitHub Workflow"
+          avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          embed-author-icon-url: "https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo.png"
+          embed-author-name: "iw3xo-dev"
+          embed-author-url: "https://github.com/xoxor4d/iw3xo-dev"
+          embed-title: "Successful build (debug)"
+          embed-color: 0xc680ff
+          embed-description: "${{ env.GIT_TAG }} [nightly link](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)"
