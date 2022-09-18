@@ -219,22 +219,113 @@ namespace components
 				nodes << "// total nodes = " << sp->path.nodeCount << std::endl;
 				nodes << "// node num, origin, num links, links to" << std::endl;
 
-				for(auto n = 0u; n < sp->path.nodeCount; n++)
+				
+				for (auto n = 0u; n < sp->path.nodeCount; n++)
 				{
-					const auto num_links = static_cast<std::uint32_t>(sp->path.nodes[n].constant.totalLinkCount);
+					// check for additional link via target - targetname
+					int link_to = -1;
+					int link_from = -1;
+
+					{
+						// if current node has a target
+						if (sp->path.nodes[n].constant.target)
+						{
+							// search all nodes for fitting targetname
+							for (auto lx = 0u; lx < sp->path.nodeCount; lx++)
+							{
+								// check if node matches target
+								if (sp->path.nodes[lx].constant.targetname == sp->path.nodes[n].constant.target)
+								{
+									bool already_connected = false;
+
+									// check if node is not already linked because its nearby
+									for (auto link = 0u; link < static_cast<std::uint32_t>(sp->path.nodes[n].constant.totalLinkCount); link++)
+									{
+										if (sp->path.nodes[n].constant.Links[link].nodeNum == lx)
+										{
+											already_connected = true;
+											break;
+										}
+									}
+
+									if (!already_connected)
+									{
+										link_to = node_array_offset + static_cast<int>(lx);
+									}
+
+									break;
+								}
+							}
+						}
+
+						// if current node has a targetname
+						if (sp->path.nodes[n].constant.targetname)
+						{
+							// search all nodes for fitting target
+							for (auto lx = 0u; lx < sp->path.nodeCount; lx++)
+							{
+								// check if node matches targetname
+								if (sp->path.nodes[lx].constant.target == sp->path.nodes[n].constant.targetname)
+								{
+									bool already_connected = false;
+
+									// check if node is not already linked because its nearby
+									for (auto link = 0u; link < static_cast<std::uint32_t>(sp->path.nodes[n].constant.totalLinkCount); link++)
+									{
+										if (sp->path.nodes[n].constant.Links[link].nodeNum == lx)
+										{
+											already_connected = true;
+											break;
+										}
+									}
+
+									if (!already_connected)
+									{
+										link_from = node_array_offset + static_cast<int>(lx);
+									}
+
+									break;
+								}
+							}
+						}
+					}
+
+					const auto static_num_links = static_cast<std::uint32_t>(sp->path.nodes[n].constant.totalLinkCount);
+
+					// inc num links
+					int pp = 0;
+					if (link_from != -1) pp++;
+					if (link_to != -1) pp++;
+
+					const auto dynamic_num_links = static_num_links + pp;
+
 					nodes << n + node_array_offset << ", "
 						<< std::fixed
 						<< std::setprecision(2)
 						<< sp->path.nodes[n].constant.vOrigin[0] << " "
 						<< sp->path.nodes[n].constant.vOrigin[1] << " "
-						<< sp->path.nodes[n].constant.vOrigin[2] << ", " << num_links;
+						<< sp->path.nodes[n].constant.vOrigin[2] << ", " << dynamic_num_links;
 
 					nodes << ",";
 
-					for(auto link = 0u; link < num_links; link++)
+					for (auto link = 0u; link < static_num_links; link++)
 					{
 						nodes << " ";
 						nodes << sp->path.nodes[n].constant.Links[link].nodeNum + node_array_offset;
+					}
+
+					// add target-targetname link
+
+					if (link_to != -1)
+					{
+						nodes << " ";
+						nodes << link_to;
+					}
+
+					if (link_from != -1)
+					{
+						nodes << " ";
+						nodes << link_from;
 					}
 
 					nodes << std::endl;
