@@ -1318,7 +1318,7 @@ R"(
 					game::UiContext* ui = &game::ui_cg_dc[0];
 
 					game::Key_SetCatcher();
-					game::Menus_CloseAll(ui);
+					//game::Menus_CloseAll(ui); // why was this here
 					game::Menus_OpenByName(name, ui);
 				}
 				else
