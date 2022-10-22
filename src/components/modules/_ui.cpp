@@ -1308,13 +1308,31 @@ R"(
 		});
 
 
-		command::add("menu_open_ingame", "<menu_name>", "not even sure what i tried here", [](command::params params)
+		command::add("menu_open_ingame", "<menu_name>", "wip", [](command::params params)
 		{
-			if (params.length() < 2)
+			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); cl_ingame)
+			{
+				if (cl_ingame->current.enabled && game::ui_cg_dc)
+				{
+					const char* name = params[1];
+					game::UiContext* ui = &game::ui_cg_dc[0];
+
+					game::Key_SetCatcher();
+					game::Menus_CloseAll(ui);
+					game::Menus_OpenByName(name, ui);
+				}
+				else
+				{
+					game::Com_PrintMessage(0, "^1Not in-game\n", 0);
+				}
+			}
+
+			/*if (params.length() < 2)
 			{
 				game::Com_PrintMessage(0, "Usage :: menu_open_ingame <menu_name>\n", 0);
 				return;
 			}
+
 
 			if (!game::ui_context)
 			{
@@ -1327,7 +1345,7 @@ R"(
 
 			game::Key_SetCatcher();
 			game::Menus_CloseAll(ui);
-			game::Menus_OpenByName(name, ui);
+			game::Menus_OpenByName(name, ui);*/
 		});
 
 
@@ -1347,9 +1365,16 @@ R"(
 			}
 
 			const char* name = params[1];
-			game::UiContext* ui = &game::ui_context[0];
+			game::Menus_CloseByName(name, game::ui_context);
 
-			game::Menus_CloseByName(name, ui);
+
+			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); cl_ingame)
+			{
+				if (cl_ingame->current.enabled && game::ui_cg_dc)
+				{
+					game::Menus_CloseByName(name, game::ui_cg_dc);
+				}
+			}
 		});
 
 

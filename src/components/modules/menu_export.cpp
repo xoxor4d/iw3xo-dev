@@ -17,9 +17,26 @@ namespace components
 				return;
 			}
 
+			game::Com_PrintMessage(0, "^2menu list:\n", 0);
+
 			for (int i = 0; i < game::ui_context->menuCount; i++) 
 			{
-				game::Com_PrintMessage(0, utils::va("Menu: %s \n", game::ui_context->Menus[i]->window.name), 0);
+				game::Com_PrintMessage(0, utils::va("|> %s \n", game::ui_context->Menus[i]->window.name), 0);
+			}
+
+			// # in-game menus
+
+			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); cl_ingame)
+			{
+				if (cl_ingame->current.enabled && game::ui_cg_dc)
+				{
+					game::Com_PrintMessage(0, "^2in-game menu list:\n", 0);
+
+					for (int i = 0; i < game::ui_cg_dc->menuCount; i++)
+					{
+						game::Com_PrintMessage(0, utils::va("|> %s \n", game::ui_cg_dc->Menus[i]->window.name), 0);
+					}
+				}
 			}
 		});
 
@@ -45,6 +62,23 @@ namespace components
 				}
 			}
 
+			// # in-game menus
+
+			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); cl_ingame)
+			{
+				if (cl_ingame->current.enabled && game::ui_cg_dc)
+				{
+					for (int i = 0; i < game::ui_cg_dc->menuCount; i++)
+					{
+						if (strcmp(game::ui_cg_dc->Menus[i]->window.name, params[1]) == 0)
+						{
+							export_menu(game::ui_cg_dc->Menus[i], params.length() == 2 ? "" : params[2]);
+							return;
+						}
+					}
+				}
+			}
+
 			game::Com_PrintMessage(0, utils::va("^1WARNING: ^7Menu %s was not found.\n", params[1]), 0);
 		});
 
@@ -56,7 +90,8 @@ namespace components
 				return;
 			}
 
-			if (!game::ui_context || !*game::ui_context->Menus) {
+			if (!game::ui_context || !*game::ui_context->Menus) 
+			{
 				return;
 			}
 
@@ -66,6 +101,23 @@ namespace components
 				{
 					export_menu_itemdefs(game::ui_context->Menus[i], params.length() == 2 ? "" : params[2]);
 					return;
+				}
+			}
+
+			// # in-game menus
+
+			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); cl_ingame)
+			{
+				if (cl_ingame->current.enabled && game::ui_cg_dc)
+				{
+					for (int i = 0; i < game::ui_cg_dc->menuCount; i++)
+					{
+						if (strcmp(game::ui_cg_dc->Menus[i]->window.name, params[1]) == 0)
+						{
+							export_menu_itemdefs(game::ui_cg_dc->Menus[i], params.length() == 2 ? "" : params[2]);
+							return;
+						}
+					}
 				}
 			}
 
