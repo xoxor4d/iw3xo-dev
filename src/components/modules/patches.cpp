@@ -5,6 +5,9 @@ namespace components
 	// on renderer initialization
 	void print_loaded_modules()
 	{
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
+
+
 		game::Com_PrintMessage(0, utils::va("-------------- Loaded Modules -------------- \n%s\n", game::glob::loaded_modules.c_str()), 0);
 
 		// add FS Path output print

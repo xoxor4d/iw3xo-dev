@@ -44,29 +44,31 @@ namespace components
 
 	// FILTER_TAP_0 
 	game::vec3_t outscatter_color01 = { 0.859f, 0.654f, 0.362f };	// xyz
-	float		 outscatter_scale01 = 0.61f;						// w
+	float		 outscatter_scale01 = 0.70f;						// w
 
 	// FILTER_TAP_1
 	game::vec3_t outscatter_color02 = { 1.0f, 1.00f, 1.00f };		// xyz
 	float		 outscatter_scale02 = 15.0f;						// w
 
 	// FILTER_TAP_2
-	float		 dn_skydome_scale		= 80.0f; // x
-	float		 dn_cloud_coverage		= 0.55f; // y
-	float		 dn_cloud_thickness		= 10.0f; // z
-	float		 dn_cloud_absorbtion	= 0.36f; // w
+	float		 dn_skydome_scale		= 60.0f;	// x
+	float		 dn_cloud_coverage		= 0.55f;	// y
+	float		 dn_cloud_thickness		= 7.5f;		// z
+	float		 dn_cloud_absorbtion	= 0.31f;	// w
 
 	// FILTER_TAP_3
 	float		 dn_star_scale				= 0.02f;	// x
-	float		 dn_cloud_step_distance_xz	= 150.0f;	// y
-	float		 dn_cloud_exposure			= 0.65f;	// w
+	float		 dn_cloud_step_distance_xz	= 80.0f;	// y
+	float		 dn_cloud_exposure			= 0.45f;	// w
 
 	// FILTER_TAP_4
-	game::vec3_t dn_cloud_wind_vec		= { 0.01f, 0.00f, 0.01f };	// xyz
-	float		 dn_cloud_wind_speed	= 1.3f;						// w
+	float		 dn_cloud_lighting_steps	 = 4.0f;	// x   //game::vec3_t dn_cloud_wind_vec		= { 0.01f, 0.00f, 0.01f };	// xyz
+	float		 dn_cloud_step_distance_fade = 6.0f;	// y
+	float		 dn_cloud_wind_angle		 = 1.0f;	// z
+	float		 dn_cloud_wind_speed		 = 0.05f;	// w
 
 	// FILTER_TAP_5
-	float		 dn_sky_sun_intensity	= 22.0f;					// x
+	float		 dn_sky_sun_intensity	= 26.0f;					// x
 	game::vec3_t dn_sky_rayleigh_coeff	= { 7.52f, 13.0f, 22.4f };	// yzw
 
 	// FILTER_TAP_6
@@ -76,7 +78,7 @@ namespace components
 	float		 dn_sky_mie_scatter_dir = 0.99f;	// w
 
 	
-	const int	 CLOUD_VAR_AMOUNT = 21;
+	const int	 CLOUD_VAR_AMOUNT = 23;
 	
 	// amount of variables ^
 	// *******************************************************************************
@@ -216,7 +218,11 @@ namespace components
 			cfg << "// dn_cloud_exposure" << std::endl << dn_cloud_exposure << std::endl << std::endl;
 
 			// FILTER_TAP_4
-			cfg << "// dn_cloud_wind_vec" << std::endl << dn_cloud_wind_vec[0] << " " << dn_cloud_wind_vec[1] << " " << dn_cloud_wind_vec[2] << std::endl << std::endl;
+
+			// cfg << "// dn_cloud_wind_vec" << std::endl << dn_cloud_wind_vec[0] << " " << dn_cloud_wind_vec[1] << " " << dn_cloud_wind_vec[2] << std::endl << std::endl;
+			cfg << "// dn_cloud_lighting_steps" << std::endl << dn_cloud_lighting_steps << std::endl << std::endl;
+			cfg << "// dn_cloud_step_distance_fade" << std::endl << dn_cloud_step_distance_fade << std::endl << std::endl;
+			cfg << "// dn_cloud_wind_angle" << std::endl << dn_cloud_wind_angle << std::endl << std::endl;
 			cfg << "// dn_cloud_wind_speed" << std::endl << dn_cloud_wind_speed << std::endl << std::endl;
 
 			// FILTER_TAP_5
@@ -341,7 +347,12 @@ namespace components
 				config_set_var(&dn_star_scale, v[x++]);
 				config_set_var(&dn_cloud_step_distance_xz, v[x++]);
 				config_set_var(&dn_cloud_exposure, v[x++]);
-				config_set_var( dn_cloud_wind_vec, v[x++]);
+
+
+				//config_set_var( dn_cloud_wind_vec, v[x++]);
+				config_set_var(&dn_cloud_lighting_steps, v[x++]);
+				config_set_var(&dn_cloud_step_distance_fade, v[x++]);
+				config_set_var(&dn_cloud_wind_angle, v[x++]);
 
 				config_set_var(&dn_cloud_wind_speed, v[x++]);
 				config_set_var(&dn_sky_sun_intensity, v[x++]);
@@ -740,10 +751,14 @@ namespace components
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
 #if DEBUG
+		ImGui::TextUnformatted("Debug Only:");
 		if (ImGui::Button("Reload xcommon_iw3xo_addon"))
 		{
 			game::Cbuf_AddText("loadzone xcommon_iw3xo_addon\n", 0);
 		}
+
+		SPACING(0.0f, 4.0f);
+		ImGui::Separator();
 		SPACING(0.0f, 4.0f);
 #endif
 		
@@ -791,6 +806,81 @@ namespace components
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
+			ImGui::TextUnformatted("Cloud Quality Presets:");
+
+			if (ImGui::Button("Ultra Performance"))
+			{
+				outscatter_scale01 = 0.48f;
+
+				dn_cloud_thickness = 11.84f;
+				dn_cloud_absorbtion	= 0.28f;
+
+				dn_cloud_exposure = 0.24f;
+
+				dn_cloud_lighting_steps = 0.0f; // fakelight
+				dn_cloud_step_distance_fade = 8.05f;
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Low"))
+			{
+				outscatter_scale01 = 0.51f;
+
+				dn_cloud_thickness = 11.5f;
+				dn_cloud_absorbtion = 0.28f;
+
+				dn_cloud_exposure = 0.35f;
+
+				dn_cloud_lighting_steps = 2.0f;
+				dn_cloud_step_distance_fade = 6.6f;
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Med"))
+			{
+				outscatter_scale01 = 0.58f;
+
+				dn_cloud_thickness = 11.5f;
+				dn_cloud_absorbtion = 0.27f;
+
+				dn_cloud_exposure = 0.36f;
+
+				dn_cloud_lighting_steps = 3.0f;
+				dn_cloud_step_distance_fade = 7.6f;
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("High"))
+			{
+				outscatter_scale01 = 0.63f;
+
+				dn_cloud_thickness = 12.5f;
+				dn_cloud_absorbtion = 0.25f;
+
+				dn_cloud_exposure = 0.36f;
+
+				dn_cloud_lighting_steps = 4.0f;
+				dn_cloud_step_distance_fade = 6.1f;
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Quality"))
+			{
+				outscatter_scale01 = 0.68f;
+
+				dn_cloud_thickness = 13.4f;
+				dn_cloud_absorbtion = 0.21f;
+
+				dn_cloud_exposure = 0.23f;
+
+				dn_cloud_lighting_steps = 5.0f;
+				dn_cloud_step_distance_fade = 6.2f;
+			}
+
+			SPACING(0.0f, 4.0f);
+			ImGui::Separator();
+			SPACING(0.0f, 4.0f);
+
 			ImGui::Text("FilterTap[0]");
 			ImGui::ColorEdit3("Cloud Sunset Color", outscatter_color01, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel);
 			ImGui::DragFloat("Extinction Scale", &outscatter_scale01, SLIDER_SPEED, 0.0f, 100.0f, "%.4f");
@@ -820,7 +910,12 @@ namespace components
 			SPACING(0.0f, 4.0f);
 
 			ImGui::Text("FilterTap[4]");
-			ImGui::DragFloat3("Cloud Wind Direction", dn_cloud_wind_vec, SLIDER_SPEED, 0.0f, 10.0f, "%.4f");
+
+			//ImGui::DragFloat3("Cloud Wind Direction", dn_cloud_wind_vec, SLIDER_SPEED, 0.0f, 10.0f, "%.4f");
+
+			ImGui::DragFloat("Cloud Lighting Steps", &dn_cloud_lighting_steps, 0.1f, 0.0f, 18.0f, "%.0f");
+			ImGui::DragFloat("Cloud Step Distance Fade", &dn_cloud_step_distance_fade, SLIDER_SPEED, 0.0f, 20.0f, "%.2f");
+			ImGui::DragFloat("Cloud Wind Angle", &dn_cloud_wind_angle, SLIDER_SPEED, 0.0f, 360.0f, "%.2f");
 			ImGui::DragFloat("Cloud Wind Speed",	 &dn_cloud_wind_speed, SLIDER_SPEED, 0.0f, 10.0f, "%.4f");
 
 			SPACING(0.0f, 4.0f);
@@ -1119,7 +1214,7 @@ namespace components
 
 			if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4)
 			{
-				const float constant[4] = { dn_cloud_wind_vec[0], dn_cloud_wind_vec[1], dn_cloud_wind_vec[2], dn_cloud_wind_speed };
+				const float constant[4] = { dn_cloud_lighting_steps, dn_cloud_step_distance_fade, dn_cloud_wind_angle, dn_cloud_wind_speed };
 				(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
 			}
 
