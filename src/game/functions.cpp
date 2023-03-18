@@ -1493,14 +1493,14 @@ namespace game
 		}
 	}
 
-	void Byte4UnpackRgba(const char* from, float* to)
+	void Byte4UnpackRgba(unsigned __int8* from, float* to)
 	{
 		if (from && to)
 		{
-			to[0] = static_cast<float>(from[0]) * 0.0039215689f;
-			to[1] = static_cast<float>(from[1]) * 0.0039215689f;
-			to[2] = static_cast<float>(from[2]) * 0.0039215689f;
-			to[3] = static_cast<float>(from[3]) * 0.0039215689f;
+			to[0] = static_cast<float>((double)from[0] * 0.003921568859368563);
+			to[1] = static_cast<float>((double)from[1] * 0.003921568859368563);
+			to[2] = static_cast<float>((double)from[2] * 0.003921568859368563);
+			to[3] = static_cast<float>((double)from[3] * 0.003921568859368563);
 		}
 	}
 

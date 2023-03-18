@@ -567,7 +567,7 @@ namespace game
 	game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
 	void Vec3UnpackUnitVec(game::PackedUnitVec in, const float *out);
 
-	void Byte4UnpackRgba(const char* from, float* to);
+	void Byte4UnpackRgba(unsigned __int8* from, float* to);
 	char Byte1PackClamp(const float from);
 	void Byte4PackRgba(const float* from, char* to);
 	void Byte4PackPixelColor(const float* from, char* to);

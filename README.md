@@ -20,8 +20,8 @@ A compatible Radiant, built for use with IW3xo, that enables a live-link between
 ### nightly builds - develop branch
 ( download and install the [latest release](https://github.com/xoxor4d/iw3xo-dev/releases) before using nightly's )
 
-[![build-develop](https://img.shields.io/github/workflow/status/xoxor4d/iw3xo-dev/Build-Debug/develop?logo=github&label=nightly-develop)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)&ensp;
-[![build-release](https://img.shields.io/github/workflow/status/xoxor4d/iw3xo-dev/Build-Release/develop?logo=github&label=nightly-release)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release%20binaries.zip)&ensp;
+[![build-develop](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-debug.yml?branch=develop&label=nightly-debug&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)&ensp;
+[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=develop&label=nightly-release&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release%20binaries.zip)&ensp;
 
 <br>
 
