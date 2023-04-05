@@ -1046,7 +1046,51 @@ namespace components
 				game::conDrawInputGlob->y += game::conDrawInputGlob->fontHeight;
 				game::conDrawInputGlob->x = game::conDrawInputGlob->leftX;
 
-				// skip autocomplete for cmds
+				// filelist autocomplete for cmds (demos)
+				if (game::cmd_args->argc[game::cmd_args->nesting] == 2)
+				{
+					// Cmd_GetAutoCompleteFileList@<eax>(_DWORD *fileCount@<edi>, const char *cmdName@<esi>)
+					// 0x4F9A70
+
+					const char** file_list;
+					std::uint32_t file_count = 0;
+					const auto cmd_name = cmd->name;
+
+					// only need this once ... dont judge
+					const static uint32_t Cmd_GetAutoCompleteFileList_func = 0x4F9A70;
+					__asm
+					{
+						pushad;
+						lea		edi, [file_count];
+						mov		esi, cmd_name;
+						call	Cmd_GetAutoCompleteFileList_func;
+						mov		file_list, eax;
+						popad;
+					}
+
+					if (file_count)
+					{
+						// modify box position with conDrawInputGlob.leftX & con.screenMin[1]
+						//const auto saved_leftX = game::conDrawInputGlob->leftX;
+						const auto saved_screenMin_y = game::con->screenMin[1];
+
+						if (!game::con->outputVisible)
+						{
+							game::con->screenMin[1] += console_addon_.items.s_con.output_box.h;
+						}
+
+						//ConDrawInput_AutoCompleteArg(file_list, file_count);
+						utils::hook::call<void(__cdecl)(const char**, int)>(0x45FC30)(file_list, file_count);
+						
+						if (file_list)
+						{
+							game::FS_FreeFileList((LPVOID) * (file_list - 1));
+						}
+
+						// restore values
+						game::con->screenMin[1] = saved_screenMin_y;
+					}
+				}
 			}
 		}
 	}
@@ -1517,7 +1561,7 @@ CON_MATCH_PREFIX_ONLY:
 			if (!cmd_or_dvar) 
 			{
 				game::Cmd_ForEach_PassCmd(draw_detailed_cmd_match);
-				//Game::Cmd_ForEachXO(Game::ConDrawInput_DetailedCmdMatch);
+				//game::Cmd_ForEachXO(game::ConDrawInput_DetailedCmdMatch);
 			}
 		}
 
@@ -2102,7 +2146,7 @@ CON_MATCH_PREFIX_ONLY:
 		utils::hook(0x460133, matchbox_offset_values_stub_04, HOOK_JUMP).install()->quick();
 		
 		// fully disable cmd autocomplete box with dir searching
-		utils::hook::nop(0x4603FC, 6); utils::hook(0x4603FC, disable_autocomplete_box_stub, HOOK_JUMP).install()->quick();
+		//utils::hook::nop(0x4603FC, 6); utils::hook(0x4603FC, disable_autocomplete_box_stub, HOOK_JUMP).install()->quick();
 		
 		//// devmap autocomplete :: change extentsion to .autocomplete and place nullfiles in main/maps/mp/mp_mapname.autocomplete
 		//utils::hook(0x528F8C, con_devmap_autocompl_stub, HOOK_JUMP).install()->quick();
