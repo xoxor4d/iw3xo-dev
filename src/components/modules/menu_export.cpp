@@ -387,13 +387,13 @@ namespace components
 
 			for (int i = 0; i < itemDef.typeData.multi->count; i++) 
 			{
-				if (itemDef.typeData.multi->strDef == 1) 
+				if (itemDef.typeData.multi->strDef == 1)
 				{
-					menu_file_ << itemDef.typeData.multi->dvarList[i] << " " << itemDef.typeData.multi->dvarStr[i] << " ";
+					menu_file_ << '"' << itemDef.typeData.multi->dvarList[i] << '"' << ", " << '"' << itemDef.typeData.multi->dvarStr[i] << '"' << "; ";
 				}
-				else 
+				else
 				{
-					menu_file_ << itemDef.typeData.multi->dvarList[i] << " " << itemDef.typeData.multi->dvarValue[i] << " ";
+					menu_file_ << '"' << itemDef.typeData.multi->dvarList[i] << '"' << " " << itemDef.typeData.multi->dvarValue[i] << " ";
 				}
 			}
 
