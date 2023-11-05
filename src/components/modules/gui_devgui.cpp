@@ -112,6 +112,8 @@ namespace components
 					ImGui::DragFloat("Light Falloff", &dev_vec_02[0], 0.25f);
 					ImGui::DragFloat("Light Radius", &dev_vec_02[2], 0.25f);
 					ImGui::DragFloat3("Light Color", dev_vec_04, 0.25f);
+					ImGui::DragFloat3("Light Direction", dev_light_direction, 0.15f);
+					
 
 					ImGui::Indent(-8.0f);
 					ImGui::EndTabItem();

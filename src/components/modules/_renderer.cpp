@@ -487,7 +487,7 @@ namespace components
 
 	/* ---------------------------------------------------------- */
 
-#if 0 // disabled for now
+#if 1 // disabled for now
 	// R_AddWorldSurfacesPortalWalk
 	__declspec(naked) void r_cull_world_stub_01()
 	{
@@ -501,8 +501,9 @@ namespace components
 
 			pushad;
 			push	eax;
-			mov		eax, dvars::r_cullWorld;
-			cmp		byte ptr[eax + 12], 1;
+			mov		eax, 0; //dvars::r_cullWorld;
+			//cmp		byte ptr[eax + 12], 1;
+			cmp		eax, 1;
 			pop		eax;
 
 			// jump if not culling world
@@ -530,8 +531,9 @@ namespace components
 
 			pushad;
 			push	eax;
-			mov		eax, dvars::r_cullWorld;
-			cmp		byte ptr[eax + 12], 1;
+			mov		eax, 0; //dvars::r_cullWorld;
+			//cmp		byte ptr[eax + 12], 1;
+			cmp		eax, 1;
 			pop		eax;
 
 			// jump if not culling world
@@ -559,8 +561,9 @@ namespace components
 
 			pushad;
 			push	eax;
-			mov		eax, dvars::r_cullWorld;
-			cmp		byte ptr[eax + 12], 1;
+			mov		eax, 0; //dvars::r_cullWorld;
+			//cmp		byte ptr[eax + 12], 1;
+			cmp		eax, 1;
 			pop		eax;
 
 			// jump if not culling world
@@ -588,8 +591,9 @@ namespace components
 
 			pushad;
 			push	eax;
-			mov		eax, dvars::r_cullEntities;
-			cmp		byte ptr[eax + 12], 1;
+			mov		eax, 0; //dvars::r_cullEntities;
+			//cmp		byte ptr[eax + 12], 1;
+			cmp		eax, 1;
 			pop		eax;
 
 			// jump if not culling world
@@ -1293,7 +1297,7 @@ namespace components
 		// Note that many lights may be active at a time (but each one slows down
 		// the rendering of our scene). However, here we are just using one. Also,
 		// we need to set the D3DRS_LIGHTING renderstate to enable lighting
-		D3DXVECTOR3 vecDir;
+		
 		D3DLIGHT9 light;
 		ZeroMemory(&light, sizeof(D3DLIGHT9));
 		light.Type = D3DLIGHT_POINT;
@@ -1305,19 +1309,31 @@ namespace components
 		light.Position.y = gui_devgui::dev_vec_03[1];
 		light.Position.z = gui_devgui::dev_vec_03[2];
 
-		/*vecDir = D3DXVECTOR3(cosf(timeGetTime() / 350.0f),
-			1.0f,
-			sinf(timeGetTime() / 350.0f));
-		D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);*/
-
 		light.Falloff = gui_devgui::dev_vec_02[0];
 		light.Range = gui_devgui::dev_vec_02[2]; //400.0f;
+
+
+		D3DLIGHT9 spot;
+		ZeroMemory(&spot, sizeof(D3DLIGHT9));
+		spot.Type = D3DLIGHT_POINT;
+		spot.Diffuse.r = gui_devgui::dev_vec_04[0] + 300.0f;;
+		spot.Diffuse.g = gui_devgui::dev_vec_04[1];
+		spot.Diffuse.b = gui_devgui::dev_vec_04[2];
+		spot.Diffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
+		spot.Ambient = D3DXCOLOR(0.0f, 1.0f, 1.0f, 1.0f);
+		spot.Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		spot.Range = 1000.0f;
+
+
 		game::glob::d3d9_device->SetLight(0, &light);
+		game::glob::d3d9_device->SetLight(1, &spot);
 		game::glob::d3d9_device->LightEnable(0, TRUE);
+		game::glob::d3d9_device->LightEnable(1, TRUE);
+
 		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
 
 		// Finally, turn on some ambient light.
-		//game::glob::d3d9_device->SetRenderState(D3DRS_AMBIENT, 0x00202020);
+		//game::glob::d3d9_device->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_COLORVALUE(0.25, 0.25, 0.25, 1.0));
 	}
 
 	LPDIRECT3DTEXTURE9      g_pTexture = NULL; // Our texture
@@ -1373,6 +1389,19 @@ namespace components
 			mtx[3][2] = mtx[3][2] - state->eyeOffset[2];
 		}
 	}
+
+	// culling patches
+	//> gfx_d3d_x86_s.dll
+	//	00006C2F:0F->E9
+	//	00006C30 : 8E->A2
+	//	00006C31 : A1->01
+	//	00006C32 : 01->00
+	//	00006C34 : 00->90
+	//	00007DEA : 75->EB
+	//	00009321 : 74->EB // R_AddCellSurfacesAndCullGroupsInFrustumDelayed
+	//	0000AA22 : 04->00
+	//	000247E4 : 7D->90
+	//	000247E5 : 5C->90
 
 	void fixed_drawing_test()
 	{
@@ -1526,6 +1555,36 @@ namespace components
 		}
 	}
 
+	void setup_mtx_test()
+	{
+		const auto dev = game::glob::d3d9_device;
+		const auto data = game::get_backenddata();
+
+		game::gfxCmdBufSourceState->viewParms3D = &data->viewInfo->viewParms;
+		r_set_3d();
+
+		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->matrices.matrix[0].m));
+		dev->SetTransform(D3DTS_VIEW, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.viewMatrix.m));
+		dev->SetTransform(D3DTS_PROJECTION, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.projectionMatrix.m));
+
+		SetupLights();
+	}
+
+	__declspec(naked) void fixed_drawing_test_stub3()
+	{
+		const static uint32_t og_func = 0x6155B0;
+		const static uint32_t retn_addr = 0x5F6307;
+		__asm
+		{
+			pushad;
+			call	setup_mtx_test;
+			popad;
+
+			call	og_func;
+			jmp		retn_addr;
+		}
+	}
+
 	_renderer::_renderer()
 	{
 		// fixed function test
@@ -1538,7 +1597,9 @@ namespace components
 
 		//utils::hook(0x64B7CB, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick();
 		//utils::hook(0x64B1F9, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick(); // works kinda because of depth prepass
-		utils::hook(0x64B208, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick();
+		//utils::hook(0x64B208, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick(); // works with textures replaces decals
+
+		utils::hook(0x5F6302, fixed_drawing_test_stub3, HOOK_JUMP).install()->quick();
 
 		/*
 		* Increase the amount of skinned vertices (bone controlled meshes) per frame.
@@ -1580,14 +1641,14 @@ namespace components
 
 		// R_AddWorldSurfacesPortalWalk :: less culling
 		// 0x60B02E -> jl to jmp // 0x7C -> 0xEB //utils::hook::set<BYTE>(0x60B02E, 0xEB);
-		//utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
+		utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
 
 		// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps)
 		// 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
-		//utils::hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
+		utils::hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
 
 		// 0x643B39 -> jmp ^ // 0x74 -> 0xEB //utils::hook::set<BYTE>(0x643B39, 0xEB);
-		//utils::hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
+		utils::hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
 
 		// R_AddCellSceneEntSurfacesInFrustumCmd :: active ents like destructible cars / players (disable all culling)
 		// 0x64D17A -> nop // 2 bytes //utils::hook::nop(0x64D17A, 2);
