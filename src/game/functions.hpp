@@ -164,7 +164,12 @@ namespace game
 
 	extern game::materialCommands_t* tess;
 	extern game::GfxBackEndData* _frontEndDataOut;
-	extern game::GfxBackEndData* _backEndData;
+	//extern game::GfxBackEndData* _backEndData;
+
+	static DWORD* backEndDataOut_ptr = (DWORD*)(0xD0704BC);  // backendEndDataOut pointer
+	extern game::GfxBackEndData* get_backenddata();
+
+	extern game::r_globals_t* rg;
 	extern game::r_global_permanent_t* rgp;
 
 	extern game::clientDebugLineInfo_t* clientDebugLineInfo_client;

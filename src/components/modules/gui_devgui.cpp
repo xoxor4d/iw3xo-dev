@@ -101,6 +101,22 @@ namespace components
 			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); 
 							cl_ingame && cl_ingame->current.enabled)
 			{
+				if (ImGui::BeginTabItem("Dev"))
+				{
+					ImGui::Indent(8.0f);
+
+					ImGui::DragFloat3("Tri Position", dev_vec_01, 0.5f);
+					ImGui::DragFloat("Tri Size", &dev_vec_02[1], 0.25f);
+
+					ImGui::DragFloat3("Light Pos", dev_vec_03, 0.25f);
+					ImGui::DragFloat("Light Falloff", &dev_vec_02[0], 0.25f);
+					ImGui::DragFloat("Light Radius", &dev_vec_02[2], 0.25f);
+					ImGui::DragFloat3("Light Color", dev_vec_04, 0.25f);
+
+					ImGui::Indent(-8.0f);
+					ImGui::EndTabItem();
+				}
+
 				if ((components::active.cgaz || components::active.compass || components::active.movement || components::active._cg || components::active._pmove) && ImGui::BeginTabItem("Movement"))
 				{
 					gui_devgui::menu_tab_movement(menu);

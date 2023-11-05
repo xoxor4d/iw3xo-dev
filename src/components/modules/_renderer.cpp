@@ -1265,8 +1265,281 @@ namespace components
 		}
 	}
 
+	#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
+	// D3DCOLOR_XRGB(255, 255, 255) is white(full colour)
+	struct CUSTOMVERTEX {
+
+		D3DXVECTOR3 position; // The transformed position for the vertex.
+		//DWORD colour; // The vertex colour.
+		D3DXVECTOR3 normal;
+		FLOAT tu, tv;
+	};
+
+
+
+	VOID SetupLights()
+	{
+		// Set up a material. The material here just has the diffuse and ambient
+		// colors set to yellow. Note that only one material can be used at a time.
+		D3DMATERIAL9 mtrl;
+		ZeroMemory(&mtrl, sizeof(D3DMATERIAL9));
+		mtrl.Diffuse.r = mtrl.Ambient.r = 1.0f;
+		mtrl.Diffuse.g = mtrl.Ambient.g = 1.0f;
+		mtrl.Diffuse.b = mtrl.Ambient.b = 0.0f;
+		mtrl.Diffuse.a = mtrl.Ambient.a = 1.0f;
+		//game::glob::d3d9_device->SetMaterial(&mtrl);
+
+		// Set up a white, directional light, with an oscillating direction.
+		// Note that many lights may be active at a time (but each one slows down
+		// the rendering of our scene). However, here we are just using one. Also,
+		// we need to set the D3DRS_LIGHTING renderstate to enable lighting
+		D3DXVECTOR3 vecDir;
+		D3DLIGHT9 light;
+		ZeroMemory(&light, sizeof(D3DLIGHT9));
+		light.Type = D3DLIGHT_POINT;
+		light.Diffuse.r = gui_devgui::dev_vec_04[0];
+		light.Diffuse.g = gui_devgui::dev_vec_04[1];
+		light.Diffuse.b = gui_devgui::dev_vec_04[2];
+
+		light.Position.x = gui_devgui::dev_vec_03[0] /*+ cosf(timeGetTime() / 350.0f)*/;
+		light.Position.y = gui_devgui::dev_vec_03[1];
+		light.Position.z = gui_devgui::dev_vec_03[2];
+
+		/*vecDir = D3DXVECTOR3(cosf(timeGetTime() / 350.0f),
+			1.0f,
+			sinf(timeGetTime() / 350.0f));
+		D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);*/
+
+		light.Falloff = gui_devgui::dev_vec_02[0];
+		light.Range = gui_devgui::dev_vec_02[2]; //400.0f;
+		game::glob::d3d9_device->SetLight(0, &light);
+		game::glob::d3d9_device->LightEnable(0, TRUE);
+		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
+
+		// Finally, turn on some ambient light.
+		//game::glob::d3d9_device->SetRenderState(D3DRS_AMBIENT, 0x00202020);
+	}
+
+	LPDIRECT3DTEXTURE9      g_pTexture = NULL; // Our texture
+	bool init_once_test = false;
+
+	void r_set_3d()
+	{
+		const auto state = game::gfxCmdBufSourceState;
+		float v1;
+		game::GfxViewParms* v2;
+
+		if (state->viewMode != game::VIEW_MODE_3D)
+		{
+			v1 = 0.0f;
+			v2 = state->viewParms3D;
+			state->viewMode = game::VIEW_MODE_3D;
+			memcpy(&state->viewParms, v2, sizeof(state->viewParms));
+
+			if (0.0f == state->viewParms.origin[3])
+			{
+				state->eyeOffset[0] = 0.0f;
+				state->eyeOffset[1] = 0.0f;
+			}
+			else
+			{
+				state->eyeOffset[0] = state->viewParms.origin[0];
+				state->eyeOffset[1] = state->viewParms.origin[1];
+				v1 = state->viewParms.origin[2];
+			}
+			state->eyeOffset[2] = v1;
+			state->eyeOffset[3] = 1.0f;
+
+			//R_CmdBufSet3D(a1);
+
+			++state->matrixVersions[0];
+			++state->matrixVersions[1];
+			++state->matrixVersions[2];
+			++state->matrixVersions[4];
+			++state->matrixVersions[3];
+			++state->matrixVersions[5];
+			++state->matrixVersions[7];
+			state->constVersions[58] = state->matrixVersions[0];
+
+			//memcpy(state, &identity_matrix, 0x40u);
+			const auto mtx = state->matrices.matrix[0].m;
+			mtx[0][0] = 1.0f;  mtx[0][1] = 0.0f; mtx[0][2] = 0.0f; mtx[0][3] = 0.0f;
+			mtx[1][0] = 0.0f;  mtx[1][1] = 1.0f; mtx[1][2] = 0.0f; mtx[1][3] = 0.0f;
+			mtx[2][0] = 0.0f;  mtx[2][1] = 0.0f; mtx[2][2] = 1.0f; mtx[2][3] = 0.0f;
+			mtx[3][0] = 0.0f;  mtx[3][1] = 0.0f; mtx[3][2] = 0.0f; mtx[3][3] = 1.0f;
+
+			mtx[3][0] = mtx[3][0] - state->eyeOffset[0];
+			mtx[3][1] = mtx[3][1] - state->eyeOffset[1];
+			mtx[3][2] = mtx[3][2] - state->eyeOffset[2];
+		}
+	}
+
+	void fixed_drawing_test()
+	{
+		const auto dev = game::glob::d3d9_device;
+		const auto data = game::get_backenddata();
+		// R_CheckLostDevice
+		//if (utils::hook::call<bool(__cdecl)()>(0x5F5530)())
+		{
+			// rg.inFrame
+			//game::rg->inFrame;
+			//if (SUCCEEDED(dev->BeginScene()) && data->viewInfoCount)
+			{
+				//game::R_SetRenderTarget(game::R_RENDERTARGET_SCENE);
+
+				//game::glob::d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET /*| D3DCLEAR_ZBUFFER*/,
+				//	D3DCOLOR_XRGB(0, 0, 255), 1.0f, 0);
+
+				//dev->Clear(0, NULL, D3DCLEAR_TARGET /*| D3DCLEAR_ZBUFFER*/,
+				//	D3DCOLOR_XRGB(0, 0, 255), 1.0f, 0);
+
+				//game::R_Set3D();
+				game::gfxCmdBufSourceState->viewParms3D = &data->viewInfo->viewParms;
+				r_set_3d();
+
+				//game::gfxCmdBufSourceState;
+				//D3DMATRIX viewMtx = {};
+				//memcpy(&viewMtx.m, game::gfxCmdBufSourceState->viewParms.viewMatrix.m)
+
+				//D3DXMATRIXA16 matWorld;
+				//D3DXMatrixIdentity(&matWorld);
+				//dev->SetTransform(D3DTS_WORLD, &matWorld);
+
+
+
+				// part of R_DrawLit
+				// R_InitCmdBufSourceState
+				/*game::GfxCmdBufSourceState source;
+				utils::hook::call<void(__cdecl)(game::GfxCmdBufSourceState*, game::GfxCmdBufInput*, int)>(0x633430)(&source, &data->viewInfo->input, 1);
+				source.renderTargetWidth = data->viewInfo->displayViewport.width;
+				source.sceneViewport.x = data->viewInfo->sceneViewport.x;
+				source.sceneViewport.width = data->viewInfo->sceneViewport.width;
+				source.renderTargetHeight = data->viewInfo->displayViewport.height;
+				source.sceneViewport.y = data->viewInfo->sceneViewport.y;
+				source.viewportBehavior = game::GFX_USE_VIEWPORT_FOR_VIEW;
+				source.sceneViewport.height = data->viewInfo->sceneViewport.height;
+				source.viewMode = game::VIEW_MODE_NONE;
+				source.viewportIsDirty = true;*/
+
+				// part of R_DrawCall
+
+
+				// -------------------------
+
+				dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->matrices.matrix[0].m));
+				dev->SetTransform(D3DTS_VIEW, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.viewMatrix.m));
+				dev->SetTransform(D3DTS_PROJECTION, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.projectionMatrix.m));
+
+				if (!init_once_test)
+				{
+					init_once_test = true;
+
+					if (FAILED(D3DXCreateTextureFromFile(dev, L"banana.bmp", &g_pTexture)))
+					{
+						// If texture is not in current folder, try parent folder
+						if (FAILED(D3DXCreateTextureFromFile(dev, L"..\\banana.bmp", &g_pTexture)))
+						{
+							MessageBox(NULL, L"Could not find banana.bmp", L"dx9textures.exe", MB_OK);
+						}
+					}
+				}
+
+				const float multi = gui_devgui::dev_vec_02[1]; //5.0f;
+
+				const float x_offset = gui_devgui::dev_vec_01[0];
+				const float y_offset = gui_devgui::dev_vec_01[1];
+				const float z_offset = gui_devgui::dev_vec_01[2]; //150.0f;
+
+				//CUSTOMVERTEX cvVertices[] = 
+				//{
+				//	{-100.0f * multi, -100.0f * multi, z_offset, 1.0f, 0xffff0000,}, //Vertex 1 – Red (250, 100)
+				//	{ 100.0f * multi, -100.0f * multi, z_offset, 1.0f, 0xff00ff00,}, //Vertex 2 – Green (400, 350)
+				//	{  50.0f,          100.0f * multi, z_offset, 1.0f, 0xff00ffff,}, //Vertex 3 – Blue (100, 350) D3DCOLOR_XRGB(0, 0, 255)
+				//};
+
+				CUSTOMVERTEX cvVertices[3] = {};
+				cvVertices[0].position = D3DXVECTOR3(-100.0f * multi + x_offset, -100.0f * multi + y_offset, z_offset);
+				cvVertices[0].normal = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+				cvVertices[0].tu = 0.0f;
+				cvVertices[0].tv = 0.0f;
+
+				cvVertices[1].position = D3DXVECTOR3(100.0f * multi + x_offset, -100.0f * multi + y_offset, z_offset);
+				cvVertices[1].normal = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+				cvVertices[1].tu = 0.0f;
+				cvVertices[0].tv = 1.0f;
+
+				cvVertices[2].position = D3DXVECTOR3(50.0f + x_offset, 100.0f * multi + y_offset, z_offset);
+				cvVertices[2].normal = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+				cvVertices[1].tu = 1.0f;
+				cvVertices[0].tv = 0.5f;
+
+				SetupLights();
+
+				dev->SetTexture(0, g_pTexture);
+				dev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+				dev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+				dev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+				dev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
+
+				dev->SetFVF(D3DFVF_CUSTOMVERTEX);
+				dev->DrawPrimitiveUP(D3DPT_TRIANGLELIST, 1, &cvVertices, sizeof(CUSTOMVERTEX));
+
+				//dev->EndScene();
+
+				/*utils::hook::call<void(__cdecl)(game::GfxCmdBufInput*, game::GfxViewInfo*, game::GfxCmdBufSourceState*, game::GfxCmdBufState*)>(0x6495A0)
+					(&data->viewInfo->input, data->viewInfo, game::gfxCmdBufSourceState, game::gfxCmdBufState);*/
+			}
+
+			//dev->Present(NULL, NULL, NULL, NULL);
+
+			/*game::glob::d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
+				D3DCOLOR_XRGB(0, 0, 255), 1.0f, 0);*/
+		}
+	}
+
+	__declspec(naked) void fixed_drawing_test_stub()
+	{
+		const static uint32_t retn_addr = 0x655621;
+		__asm
+		{
+			mov     ecx, [esp + 0x10];
+			movzx   eax, word ptr[ecx];
+
+			pushad;
+			call	fixed_drawing_test;
+			popad;
+
+			jmp		retn_addr;
+		}
+	}
+
+	__declspec(naked) void fixed_drawing_test_stub2()
+	{
+		const static uint32_t retn_addr = 0x64B20D;
+		__asm
+		{
+			pushad;
+			call	fixed_drawing_test;
+			popad;
+
+			jmp		retn_addr;
+		}
+	}
+
 	_renderer::_renderer()
-	{ 
+	{
+		// fixed function test
+
+		//utils::hook::nop(0x655604, 22); // nop DrawIndexedPrimitive call (+ stack pushes) in R_DrawBspDrawSurfsLitPreTess (general world)
+
+		// 65561A
+		//utils::hook::nop(0x65561A, 7);
+		//utils::hook(0x65561A, fixed_drawing_test_stub, HOOK_JUMP).install()->quick();
+
+		//utils::hook(0x64B7CB, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick();
+		//utils::hook(0x64B1F9, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick(); // works kinda because of depth prepass
+		utils::hook(0x64B208, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick();
+
 		/*
 		* Increase the amount of skinned vertices (bone controlled meshes) per frame.
 		*      (R_MAX_SKINNED_CACHE_VERTICES | TEMP_SKIN_BUF_SIZE) Warnings
