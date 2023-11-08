@@ -158,6 +158,8 @@ namespace dvars
 	extern game::dvar_s* r_debugShaderTexcoord;
 	extern game::dvar_s* r_dayAndNight;
 
+	extern game::dvar_s* rtx_hacks;
+
 	extern game::dvar_s* r_fogTweaks;
 	extern game::dvar_s* r_fogTweaksColor;
 	extern game::dvar_s* r_fogTweaksStart;

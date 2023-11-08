@@ -151,6 +151,8 @@ namespace dvars
 	game::dvar_s* r_debugShaderTexcoord = nullptr;
 	game::dvar_s* r_dayAndNight = nullptr;
 
+	game::dvar_s* rtx_hacks = nullptr;
+
 	game::dvar_s* r_fogTweaks = nullptr;
 	game::dvar_s* r_fogTweaksColor = nullptr;
 	game::dvar_s* r_fogTweaksStart = nullptr;

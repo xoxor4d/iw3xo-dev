@@ -756,6 +756,33 @@ namespace components
 				daynight_cycle::overwrite_sky_material(&mat);
 			}
 
+			// # RTX
+			if (dvars::rtx_hacks && dvars::rtx_hacks->current.enabled)
+			{
+				if (utils::starts_with(mat.current_material->info.name, "wc/sky_"))
+				{
+					mat.technique_type = game::TECHNIQUE_UNLIT;
+					_renderer::switch_material(&mat, "xo_ultrareflective");
+				}
+
+				// set r_znear_depthhack to 4 to make gun visible
+
+				if (utils::starts_with(mat.current_material->info.name, "mc/"))
+				{
+					disable_prepass = true;
+					mat.technique_type = game::TECHNIQUE_UNLIT;//game::TECHNIQUE_UNLIT;
+					//_renderer::switch_material(&mat, "wetwork_water");
+				}
+
+				const auto r_znear_depthhack = game::Dvar_FindVar("r_znear_depthhack");
+				if (r_znear_depthhack && r_znear_depthhack->current.value != 4.0f)
+				{
+					//game::dvar_set_value_dirty(r_znear_depthhack, 4.0f);
+					game::Cmd_ExecuteSingleCommand(0, 0, "r_znear_depthhack 4\n");
+				}
+			}
+
+
 			// wireframe xmodels
 			if (dvars::r_wireframe_xmodels && dvars::r_wireframe_xmodels->current.integer)
 			{
@@ -1326,9 +1353,9 @@ namespace components
 
 
 		game::glob::d3d9_device->SetLight(0, &light);
-		game::glob::d3d9_device->SetLight(1, &spot);
+		//game::glob::d3d9_device->SetLight(1, &spot);
 		game::glob::d3d9_device->LightEnable(0, TRUE);
-		game::glob::d3d9_device->LightEnable(1, TRUE);
+		//game::glob::d3d9_device->LightEnable(1, TRUE);
 
 		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
 
@@ -1555,6 +1582,10 @@ namespace components
 		}
 	}
 
+	// rtx hacks
+	// r_z_near_depthhack to 4
+	// r_smp_backend 1 fixes viewmodel bumping
+
 	void setup_mtx_test()
 	{
 		const auto dev = game::glob::d3d9_device;
@@ -1570,10 +1601,26 @@ namespace components
 		SetupLights();
 	}
 
+	// not active when r_smp_backend is enabled - change hook spot
 	__declspec(naked) void fixed_drawing_test_stub3()
 	{
 		const static uint32_t og_func = 0x6155B0;
 		const static uint32_t retn_addr = 0x5F6307;
+		__asm
+		{
+			pushad;
+			call	setup_mtx_test;
+			popad;
+
+			call	og_func;
+			jmp		retn_addr;
+		}
+	}
+
+	__declspec(naked) void fixed_drawing_test_stub4()
+	{
+		const static uint32_t og_func = 0x64AFB0;
+		const static uint32_t retn_addr = 0x64B7D0;
 		__asm
 		{
 			pushad;
@@ -1599,7 +1646,10 @@ namespace components
 		//utils::hook(0x64B1F9, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick(); // works kinda because of depth prepass
 		//utils::hook(0x64B208, fixed_drawing_test_stub2, HOOK_JUMP).install()->quick(); // works with textures replaces decals
 
-		utils::hook(0x5F6302, fixed_drawing_test_stub3, HOOK_JUMP).install()->quick();
+		// not active when r_smp_backend is enabled - change hook spot
+		//utils::hook(0x5F6302, fixed_drawing_test_stub3, HOOK_JUMP).install()->quick();
+
+		utils::hook(0x64B7CB, fixed_drawing_test_stub4, HOOK_JUMP).install()->quick();
 
 		/*
 		* Increase the amount of skinned vertices (bone controlled meshes) per frame.
@@ -1737,6 +1787,12 @@ namespace components
 			/* default	*/ 65.0f,
 			/* minVal	*/ 20.0f,
 			/* maxVal	*/ 160.0f,
+			/* flags	*/ game::dvar_flags::saved);
+
+		dvars::rtx_hacks = game::Dvar_RegisterBool(
+			/* name		*/ "rtx_hacks",
+			/* desc		*/ "Enables various hacks and tweaks to make nvidia rtx work",
+			/* default	*/ false,
 			/* flags	*/ game::dvar_flags::saved);
 
 
