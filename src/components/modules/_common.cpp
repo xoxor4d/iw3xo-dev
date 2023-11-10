@@ -62,22 +62,25 @@ namespace components
 				game::Cmd_ExecuteSingleCommand(0, 0, "sv_punkbuster 0\n");
 			}
 
-			// force depthbuffer
-			if (r_zFeather && !r_zFeather->current.enabled)
+			if (!components::active.rtx || !dvars::rtx_hacks->current.enabled)
 			{
-				game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
-			}
+				// force depthbuffer
+				if (r_zFeather && !r_zFeather->current.enabled)
+				{
+					game::Cmd_ExecuteSingleCommand(0, 0, "r_zFeather 1\n");
+				}
 
-			// enable distortion (it creates a rendertarget thats needed)
-			if (r_distortion && !r_distortion->current.enabled)
-			{
-				game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
-			}
+				// enable distortion (it creates a rendertarget thats needed)
+				if (r_distortion && !r_distortion->current.enabled)
+				{
+					game::Cmd_ExecuteSingleCommand(0, 0, "r_distortion 1\n");
+				}
 
-			// disable r_fastSkin in-case someone increased renderbuffers
-			if (r_fastSkin && r_fastSkin->current.enabled)
-			{
-				game::Cmd_ExecuteSingleCommand(0, 0, "r_fastSkin 0\n");
+				// disable r_fastSkin in-case someone increased renderbuffers
+				if (r_fastSkin && r_fastSkin->current.enabled)
+				{
+					game::Cmd_ExecuteSingleCommand(0, 0, "r_fastSkin 0\n");
+				}
 			}
 		}
 
@@ -252,6 +255,17 @@ namespace components
 			else
 			{
 				game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found (optional user addon)\n", FF_ADDON_OPT_NAME), 0);
+			}
+		}
+
+		if (components::active.rtx)
+		{
+			if (game::DB_FileExists("xcommon_rtx", game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
+			{
+				xzone_info_stack[i].name = "xcommon_rtx";
+				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_COMMON;
+				xzone_info_stack[i].freeFlags = game::XZONE_FLAGS::XZONE_ZERO;
+				++i;
 			}
 		}
 

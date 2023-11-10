@@ -105,17 +105,39 @@ namespace components
 				{
 					ImGui::Indent(8.0f);
 
-					ImGui::DragFloat3("Tri Position", dev_vec_01, 0.5f);
-					ImGui::DragFloat("Tri Size", &dev_vec_02[1], 0.25f);
-
-					ImGui::DragFloat3("Light Pos", dev_vec_03, 0.25f);
-					ImGui::DragFloat("Light Falloff", &dev_vec_02[0], 0.25f);
-					ImGui::DragFloat("Light Radius", &dev_vec_02[2], 0.25f);
-					ImGui::DragFloat3("Light Color", dev_vec_04, 0.25f);
-					ImGui::DragFloat3("Light Direction", dev_light_direction, 0.15f);
-					
+					const auto& fx_enable = game::Dvar_FindVar("fx_enable");
+					ImGui::Checkbox("Enable FX", &fx_enable->current.enabled);
 
 					ImGui::Indent(-8.0f);
+
+					if (ImGui::CollapsingHeader("Debug Light", ImGuiTreeNodeFlags_DefaultOpen))
+					{
+						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+						ImGui::Checkbox("Spawn sphere light", &rtx_spawn_light);
+						ImGui::DragFloat3("Light Pos", rtx_debug_light_origin, 0.25f);
+						ImGui::DragFloat("Light Range", &rtx_debug_light_range, 0.25f);
+						ImGui::DragFloat3("Light Color", rtx_debug_light_color, 0.25f);
+
+						ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
+					}
+
+					if (ImGui::CollapsingHeader("LOD", ImGuiTreeNodeFlags_DefaultOpen))
+					{
+						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+						const auto& r_lodScaleRigid = game::Dvar_FindVar("r_lodScaleRigid");
+						const auto& r_lodBiasRigid = game::Dvar_FindVar("r_lodBiasRigid");
+						const auto& r_lodScaleSkinned = game::Dvar_FindVar("r_lodScaleSkinned");
+						const auto& r_lodBiasSkinned = game::Dvar_FindVar("r_lodBiasSkinned");
+						ImGui::DragFloat("r_lodScaleRigid", &r_lodScaleRigid->current.value, 0.1f);
+						ImGui::DragFloat("r_lodBiasRigid", &r_lodBiasRigid->current.value, 0.1f);
+						ImGui::DragFloat("r_lodScaleSkinned", &r_lodScaleSkinned->current.value, 0.1f);
+						ImGui::DragFloat("r_lodBiasSkinned", &r_lodBiasSkinned->current.value, 0.1f);
+
+						ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
+					}
+
 					ImGui::EndTabItem();
 				}
 

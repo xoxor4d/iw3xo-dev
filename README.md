@@ -1,9 +1,9 @@
 
-<h1 align="center">IW3xo - A Call of Duty 4 Modification</h3>
+<h1 align="center">iw3xo - a Call of Duty 4 modification</h3>
 
 <p align="center">
 This project is aimed at developers and includes various modifications/additions.  
-IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
+iw3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
 A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
 </p>
 
@@ -47,9 +47,23 @@ ___
 
 1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases)
 2. Copy the `.zip` contents into your cod4 root folder
-3. Start __IW3xo.exe__
+3. Start __iw3xo.exe__
 
 - [NIGHTLY]&ensp; unpack and replace `iw3x.dll` with the one found in your cod4 root folder
+
+<br>
+
+## nvidia-remix-branch (rtx)
+1. grab files from `assets-remix` and put them into your cod4 root folder  
+2. use in-game console command `/exec rtx` to setup dvars  
+3. restart the game
+
+- disable all culling: use commandline argument `disable_culling`.  
+eg: &ensp;`c:\path\iw3xo.exe -disable_culling` 
+
+- additional settings (in-game): use console command `/devgui` and go to the __dev__ tab
+
+- set `r_lodScaleRigid` to 0 to always force LOD0 (stable hashes)
 
 <br>
 
@@ -81,15 +95,6 @@ ___
 > - Debugging &ensp; command -> `path-to-cod4-root\IW3xo.exe`
 > - Debugging &ensp; working directory -> `path-to-cod4-root`
 4. Build -> Build Solution or run with debugger
-   
-<br>
-
-### > Generating the exe:  
-1. Copy a non-steam (1.7) `iw3mp.exe` into the `\assets\\` folder
-2. Install required resource tools by running `\res\res-tools.ps1`
-3. `\res\generate-exe.ps1` will generate and place `iw3xo.exe` into the project root
-4. Copy the generated exe into your cod4-root
-5. You only need to do this once
 
 <br>
 

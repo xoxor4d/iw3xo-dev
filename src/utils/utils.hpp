@@ -23,6 +23,7 @@ namespace utils
 	const char *va(const char *fmt, ...);
 	std::string convert_to_string(char* a, int size);
 	std::string convert_to_string(const char* a, int size);
+	std::string convert_wstring(const std::wstring& wstr);
 	bool string_equals(const char* s1, const char* s2);
 	bool contains(std::string haystack, std::string needle);
 	bool has_suffix(const std::string &str, const std::string &suffix);

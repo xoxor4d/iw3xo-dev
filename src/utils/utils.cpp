@@ -228,6 +228,19 @@ namespace utils
 		return s;
 	}
 
+	std::string convert_wstring(const std::wstring& wstr)
+	{
+		std::string result;
+		result.reserve(wstr.size());
+
+		for (const auto& chr : wstr)
+		{
+			result.push_back(static_cast<char>(chr));
+		}
+
+		return result;
+	}
+
 	bool string_equals(const char* s1, const char* s2)
 	{
 		return !q_stricmp(s1, s2);
