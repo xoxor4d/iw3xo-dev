@@ -64,6 +64,8 @@ eg: &ensp;`c:\path\iw3xo.exe -disable_culling`
 - additional settings (in-game): use console command `/devgui` and go to the __dev__ tab
 
 - set `r_lodScaleRigid` to 0 to always force LOD0 (stable hashes)
+- reimplemented `r_forceLod`
+- use dvar `rtx_hacks` to replace the skybox with a white texture
 
 <br>
 

@@ -7164,6 +7164,13 @@ namespace game
 		game::MaterialTechniqueType technique_type;
 	};
 
+	struct TestLod
+	{
+		bool enabled;
+		float dist;
+	};
+
+
 #ifdef __cplusplus
 }
 #endif

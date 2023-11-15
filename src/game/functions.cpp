@@ -56,6 +56,7 @@ namespace game
 #endif
 	}
 
+	game::TestLod g_testLods[4] = {};
 
 	// *
 	// general structs

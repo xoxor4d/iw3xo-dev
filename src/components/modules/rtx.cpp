@@ -7,24 +7,30 @@
 // r_smp_backend >> 1 fixes viewmodel bumping
 // r_zfeather >> 0 fixes remix freaking out turning half of all textures white + makes fx work to some extend (note: 'R_SkinStaticModelsCamera' @ 0x63B024 or 0x0063AB00)
 
-// ISSUE >> mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
-// ISSUE >> removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash? - still present - LOD related so most likely a specific object/shader that is causing that
-// ISSUE >> moving infront of the construction spotlight on mp_crash (bottom hardware) with cg_drawgun enabled will completly turn off remix rendering
+// FIXED ISSUE 1 >> mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
+// ISSUE 2 >> removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash? - still present - LOD related so most likely a specific object/shader that is causing that
+// ISSUE 3 >> moving infront of the construction spotlight on mp_crash (bottom hardware) with cg_drawgun enabled will completly turn off remix rendering
 
-// ISSUE >> viewmodel hands and animated parts on gun have unstable hashes
-// ISSUE >> "dynamic" entities like explodable cars can have unstable hashes
+// ISSUE 4 >> viewmodel hands and animated parts on gun have unstable hashes
+// ISSUE 5 >> "dynamic" entities like explodable cars can have unstable hashes
 
 // FPS >> disable stock rendering functions that are not useful for remix
 
+// IDEA >> Rewrite 'R_SetupPass' and 'R_SetPassShaderStableArguments' and implement fixed-function
+// ^ BSP rendering = 'R_TessTrianglesPreTessList' -> 'R_DrawBspDrawSurfsLitPreTess'
+// ^ Texture set in 'R_SetPassShaderObjectArguments'
 namespace components
 {
 	bool rtx::r_set_material_stub(game::switch_material_t* swm)
 	{
-		if (utils::starts_with(swm->current_material->info.name, "wc/sky_"))
+		if (dvars::rtx_hacks->current.enabled)
 		{
-			swm->technique_type = game::TECHNIQUE_UNLIT;
-			_renderer::switch_material(swm, "rtx_sky"); //"rgb");
-			return false;
+			if (utils::starts_with(swm->current_material->info.name, "wc/sky_"))
+			{
+				swm->technique_type = game::TECHNIQUE_UNLIT;
+				_renderer::switch_material(swm, "rtx_sky"); //"rgb");
+				return false;
+			}
 		}
 
 		// 
@@ -209,12 +215,6 @@ namespace components
 
 	void register_rtx_dvars()
 	{
-		dvars::rtx_hacks = game::Dvar_RegisterBool(
-			/* name		*/ "rtx_hacks",
-			/* desc		*/ "Enables various hacks and tweaks to make nvidia rtx work",
-			/* default	*/ false,
-			/* flags	*/ game::dvar_flags::saved);
-
 		// 
 		// register LOD related dvars
 
@@ -284,6 +284,145 @@ namespace components
 			popad;
 
 			call	stock_func;
+			jmp		retn_addr;
+		}
+	}
+
+	void xmodel_set_test_lods(int lod_level, float dist)
+	{
+		game::g_testLods[lod_level].dist = dist;
+		game::g_testLods[lod_level].enabled = dist >= 0.0f;
+	}
+
+	void r_set_test_lods()
+	{
+		const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
+		if (r_forceLod && r_forceLod->current.integer == r_forceLod->reset.integer)
+		{
+			const auto& r_highLodDist = game::Dvar_FindVar("r_highLodDist");
+			const auto& r_mediumLodDist = game::Dvar_FindVar("r_mediumLodDist");
+			const auto& r_lowLodDist = game::Dvar_FindVar("r_lowLodDist");
+			const auto& r_lowestLodDist = game::Dvar_FindVar("r_lowestLodDist");
+
+			xmodel_set_test_lods(0, r_highLodDist->current.value);
+			xmodel_set_test_lods(1, r_mediumLodDist->current.value);
+			xmodel_set_test_lods(2, r_lowLodDist->current.value);
+			xmodel_set_test_lods(3, r_lowestLodDist->current.value);
+		}
+		else
+		{
+			float dist;
+			for (auto i = 0; i < 4; ++i)
+			{
+				if (i == r_forceLod->current.integer)
+				{
+					dist = 0.0f;
+				}
+				else
+				{
+					dist = 0.001f;
+				}
+
+				xmodel_set_test_lods(i, dist);
+			}
+		}
+	}
+
+	__declspec(naked) void r_set_test_lods_stub()
+	{
+		const static uint32_t retn_addr = 0x5F7515;
+		__asm
+		{
+			pushad;
+			call	r_set_test_lods;
+			popad;
+
+			// og instructions
+			mov     eax, [eax + 0xC];
+			shl     eax, 4;
+			jmp		retn_addr;
+		}
+	}
+
+	// -------
+
+	float xmodel_lodinfo_get_dist(const game::XModelLodInfo* lod_info, const int lod_index)
+	{
+		auto dist = lod_info->dist;
+
+		if (game::g_testLods[lod_index].enabled)
+		{
+			dist = game::g_testLods[lod_index].dist;
+		}
+		
+		return dist;
+	}
+
+	int xmodel_get_lod_for_dist(const game::XModel* model, const float* base_dist)
+	{
+		const auto lod_count = model->numLods;
+
+		for (auto lod_index = 0; lod_index < lod_count; ++lod_index)
+		{
+			const auto lod_dist = xmodel_lodinfo_get_dist(&model->lodInfo[lod_index], lod_index);
+
+			if (lod_dist == 0.0f || lod_dist > *base_dist)
+			{
+				return lod_index;
+			}
+		}
+		return -1;
+	}
+
+	int xmodel_get_lod_for_dist_global = 0;
+	__declspec(naked) void xmodel_get_lod_for_dist_detour()
+	{
+		const static uint32_t retn_addr = 0x5911F0;
+		__asm
+		{
+			pushad;
+			lea		ecx, [eax + 0x28];
+			push	ecx; // base_dist
+			push	eax; // model
+			call	xmodel_get_lod_for_dist;
+			add		esp, 8;
+			mov     xmodel_get_lod_for_dist_global, eax;
+			popad;
+
+			mov     eax, xmodel_get_lod_for_dist_global;
+			jmp		retn_addr;
+		}
+	}
+
+	// ouch ... this was inlined
+	__declspec(naked) void xmodel_get_lod_for_dist_inlined()
+	{
+		const static uint32_t break_addr = 0x63AF27;
+		const static uint32_t retn_addr = 0x63AF14;
+		__asm
+		{
+			pushad;
+			push	esi; // index
+			push	edx; // lodinfo
+			call	xmodel_lodinfo_get_dist; // returns lod_dist in st0
+			add		esp, 8;
+			popad;
+
+			
+			fldz;		// st0 = 0
+						// st1 = lod_dist
+			fcompp;		// compare and pop both floats
+			fstsw ax;	// move fpu status word into ax
+			sahf;		// move into eflags to we can check with conditional jumps
+
+			jnz	CONTINUE;
+			jmp break_addr;
+
+		CONTINUE:
+			// og instructions
+			add     esi, 1;
+			add     edx, 0x1C;
+
 			jmp		retn_addr;
 		}
 	}
@@ -490,5 +629,43 @@ namespace components
 
 		// un-cheat + saved flag for fx_enable
 		utils::hook::set<BYTE>(0x4993EC + 1, 0x01); // was 0x80
+
+
+		//
+		// LOD
+
+		// check if testlods are active and overwrite lod-dist
+		utils::hook(0x5911C0, xmodel_get_lod_for_dist_detour, HOOK_JUMP).install()->quick();
+
+		// ^ but inlined ..... (R_AddAllStaticModelSurfacesCamera)
+		utils::hook::nop(0x63AF0E, 6);  utils::hook(0x63AF0E, xmodel_get_lod_for_dist_inlined, HOOK_JUMP).install()->quick();
+
+		// update testlods via 'r_forceLod' dvar
+		utils::hook::nop(0x5F750F, 6); utils::hook(0x5F750F, r_set_test_lods_stub, HOOK_JUMP).install()->quick();
+
+		// TODO - fix test lods for inlined stuff .. not working
+
+		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
+		// jnz -> jmp (0x75 -> 0xEB) instead of jnz at 0x63AF49 (boolean check on return val from 'R_AllocStaticModelLighting')
+
+		// TODO - create dvar for that ^
+
+		dvars::rtx_hacks = game::Dvar_RegisterBool(
+			/* name		*/ "rtx_hacks",
+			/* desc		*/ "Enables various hacks and tweaks to make nvidia rtx work",
+			/* default	*/ false,
+			/* flags	*/ game::dvar_flags::saved);
+
+
+		// doesnt help
+		//if (flags::has_flag("disable_unused_rendering"))
+		//{
+			// DynEntPieces_AddDrawSurfs - nop call @ 0x5F9F89
+			// R_DrawAllDynEnt - nop call @ 5F9FA8
+			// R_AddAllBspDrawSurfacesSunShadow - nop call @ 0x5F9FF5
+			// R_AddAllStaticModelSurfacesRangeSunShadow - nop calls @ 0x0x5FA006 && 0x5FA012
+			// R_DrawShadowCookies - nop call @ 0x5FA20F
+			// DynEntCl_ProcessEntities - nop call @ 0x5FA38D
+		//}
 	}
 }

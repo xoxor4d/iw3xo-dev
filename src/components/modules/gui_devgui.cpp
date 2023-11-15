@@ -110,7 +110,7 @@ namespace components
 
 					ImGui::Indent(-8.0f);
 
-					if (ImGui::CollapsingHeader("Debug Light", ImGuiTreeNodeFlags_DefaultOpen))
+					if (ImGui::CollapsingHeader("Debug Light", ImGuiTreeNodeFlags_None))
 					{
 						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -130,10 +130,26 @@ namespace components
 						const auto& r_lodBiasRigid = game::Dvar_FindVar("r_lodBiasRigid");
 						const auto& r_lodScaleSkinned = game::Dvar_FindVar("r_lodScaleSkinned");
 						const auto& r_lodBiasSkinned = game::Dvar_FindVar("r_lodBiasSkinned");
-						ImGui::DragFloat("r_lodScaleRigid", &r_lodScaleRigid->current.value, 0.1f);
-						ImGui::DragFloat("r_lodBiasRigid", &r_lodBiasRigid->current.value, 0.1f);
+						ImGui::DragFloat("r_lodScaleRigid", &r_lodScaleRigid->current.value, 0.1f, 0.0f);
+						ImGui::DragFloat("r_lodBiasRigid", &r_lodBiasRigid->current.value, 0.1f, 0.0f);
 						ImGui::DragFloat("r_lodScaleSkinned", &r_lodScaleSkinned->current.value, 0.1f);
 						ImGui::DragFloat("r_lodBiasSkinned", &r_lodBiasSkinned->current.value, 0.1f);
+
+						//
+
+						const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
+						const auto& r_highLodDist = game::Dvar_FindVar("r_highLodDist");
+						const auto& r_mediumLodDist = game::Dvar_FindVar("r_mediumLodDist");
+						const auto& r_lowLodDist = game::Dvar_FindVar("r_lowLodDist");
+						const auto& r_lowestLodDist = game::Dvar_FindVar("r_lowestLodDist");
+						//ImGui::Checkbox("Force LOD", &r_forceLod->current.enabled);
+
+						const char* force_lod_strings[] = { "High", "Medium", "Low", "Lowest", "None"};
+						ImGui::SliderInt("Force LOD", &r_forceLod->current.integer, 0, 4, force_lod_strings[r_forceLod->current.integer]);
+						ImGui::DragFloat("r_highLodDist", &r_highLodDist->current.value, 0.1f, 0.0f);
+						ImGui::DragFloat("r_mediumLodDist", &r_mediumLodDist->current.value, 0.1f, 0.0f);
+						ImGui::DragFloat("r_lowLodDist", &r_lowLodDist->current.value, 0.1f);
+						ImGui::DragFloat("r_lowestLodDist", &r_lowestLodDist->current.value, 0.1f);
 
 						ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
 					}
