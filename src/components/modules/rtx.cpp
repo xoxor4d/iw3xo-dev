@@ -417,7 +417,44 @@ namespace components
 		}
 	}
 
-	/* ---------------------------------------------------------- */
+	// ----------------------------------------------------
+
+	/*
+	0063AF3F call    R_AllocStaticModelLighting
+	0063AF44 add     esp, 8
+	0063AF47 test    al, al
+	0063AF49 jnz     short loc_63AF62
+	*/
+
+	__declspec(naked) void alloc_smodel_lighting_stub()
+	{
+		const static uint32_t retn_addr = 0x63AF49;
+		const static uint32_t draw_model_addr = 0x63AF62;
+		__asm
+		{
+			pushad;
+			push	eax;
+			mov		eax, dvars::rtx_extend_smodel_drawing;
+			cmp		byte ptr [eax + 12], 1;
+			pop		eax;
+
+			jne		OG_LOGIC;
+			popad;
+
+			add     esp, 8 // og instruction overwritten by hook
+			jmp		draw_model_addr;
+
+		OG_LOGIC:
+			popad;
+
+			// og instructions
+			add     esp, 8;
+			test    al, al;
+			jmp		retn_addr;
+		}
+	}
+
+	// ----------------------------------------------------
 
 #if 1 // disabled for now
 	// R_AddWorldSurfacesPortalWalk
@@ -574,8 +611,7 @@ namespace components
 		// hook 'RB_StandardDrawCommands' call in 'RB_Draw3DInternal'
 		utils::hook(0x64B7CB, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();
 
-		/* ---------------------------------------------------------- */
-
+		// ----------------------------------------------------
 
 #ifdef DISABLE_CULLING
 
@@ -602,10 +638,19 @@ namespace components
 		utils::hook::nop(0x629328, 5); //utils::hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
 
 		// removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash?
-		//utils::hook::nop(0x5F9E65, 5);
+		// ^ also "fixes" black cars - same behaviour as enabling r_fullbright (without the worldmatrix - rotating sky - distant light issue)
+		// NOTE: this also disables a ground-terrain patch on my testmap?
+		// TODO: dvar?
+		utils::hook::nop(0x5F9E65, 5);
 
-		// stub after 'R_RegisterDvars' to register our own or re-register stock dvars
-		utils::hook(0x5F4EFA, register_dvars_stub, HOOK_JUMP).install()->quick();
+		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
+		utils::hook::nop(0x63AF44, 5); utils::hook(0x63AF44, alloc_smodel_lighting_stub, HOOK_JUMP).install()->quick();
+
+		// un-cheat + saved flag for fx_enable
+		utils::hook::set<BYTE>(0x4993EC + 1, 0x01); // was 0x80
+
+		//
+		// LOD
 
 		// skip original lod dvar registration
 		utils::hook::nop(0x62A2A1, 5); // r_lodScaleRigid
@@ -613,27 +658,25 @@ namespace components
 		utils::hook::nop(0x62A34F, 5); // r_lodScaleSkinned
 		utils::hook::nop(0x62A3A6, 5); // r_lodBiasSkinned
 
-		// un-cheat + saved flag for fx_enable
-		utils::hook::set<BYTE>(0x4993EC + 1, 0x01); // was 0x80
-
-
-		//
-		// LOD
-
 		// check if r_forceLod is enabled and force LOD's accordingly (only scene entities, dynamic entities and static models affected by sun shadows?)
 		utils::hook(0x5911C0, xmodel_get_lod_for_dist_detour, HOOK_JUMP).install()->quick();
 
 		// ^ but inlined ..... for all other static models (R_AddAllStaticModelSurfacesCamera)
 		utils::hook::nop(0x63AF03, 6);  utils::hook(0x63AF03, xmodel_get_lod_for_dist_inlined, HOOK_JUMP).install()->quick();
-		
 
-		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
-		// jnz -> jmp (0x75 -> 0xEB) instead of jnz at 0x63AF49 (boolean check on return val from 'R_AllocStaticModelLighting')
-		// TODO - create dvar for that ^
+		// stub after 'R_RegisterDvars' to re-register stock dvars
+		utils::hook(0x5F4EFA, register_dvars_stub, HOOK_JUMP).install()->quick();
 
 		dvars::rtx_hacks = game::Dvar_RegisterBool(
 			/* name		*/ "rtx_hacks",
 			/* desc		*/ "Enables various hacks and tweaks to make nvidia rtx work",
+			/* default	*/ false,
+			/* flags	*/ game::dvar_flags::saved);
+
+		dvars::rtx_extend_smodel_drawing = game::Dvar_RegisterBool(
+			/* name		*/ "rtx_extend_smodel_drawing",
+			/* desc		*/ "IW3 has a limit on how many static models it can drawn at the same time. Forcing lods and drawdistances can exceed that limit pretty fast.\n"
+					       "Enabling this will force the game to still render them (at the cost of wrong lighting - rasterized only tho)",
 			/* default	*/ false,
 			/* flags	*/ game::dvar_flags::saved);
 
