@@ -101,7 +101,7 @@ namespace components
 			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); 
 							cl_ingame && cl_ingame->current.enabled)
 			{
-				if (ImGui::BeginTabItem("Dev"))
+				if (ImGui::BeginTabItem("RTX"))
 				{
 					ImGui::Indent(8.0f);
 
@@ -114,10 +114,25 @@ namespace components
 					{
 						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-						ImGui::Checkbox("Spawn sphere light", &rtx_spawn_light);
-						ImGui::DragFloat3("Light Pos", rtx_debug_light_origin, 0.25f);
-						ImGui::DragFloat("Light Range", &rtx_debug_light_range, 0.25f);
-						ImGui::DragFloat3("Light Color", rtx_debug_light_color, 0.25f);
+						for (auto i = 0; i < 8; i++)
+						{
+							ImGui::PushID(i);
+
+							if (ImGui::CollapsingHeader(utils::va("Light %d", i), !i ? ImGuiTreeNodeFlags_DefaultOpen : ImGuiTreeNodeFlags_None))
+							{
+								ImGui::Checkbox("Spawn sphere light", &rtx_spawn_light[i]);
+								ImGui::DragFloat3("Light Pos", rtx_debug_light_origin[i], 0.25f);
+								ImGui::DragFloat("Light Range", &rtx_debug_light_range[i], 0.25f);
+								ImGui::DragFloat3("Light Color", rtx_debug_light_color[i], 0.25f);
+
+								if (ImGui::Button("Move light to player"))
+								{
+									utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx_debug_light_origin[i], 3);
+									rtx_debug_light_origin[i][2] += 60.0f;
+								}
+							}
+							ImGui::PopID();
+						}
 
 						ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
 					}
@@ -138,18 +153,19 @@ namespace components
 						//
 
 						const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
-						const auto& r_highLodDist = game::Dvar_FindVar("r_highLodDist");
-						const auto& r_mediumLodDist = game::Dvar_FindVar("r_mediumLodDist");
-						const auto& r_lowLodDist = game::Dvar_FindVar("r_lowLodDist");
-						const auto& r_lowestLodDist = game::Dvar_FindVar("r_lowestLodDist");
-						//ImGui::Checkbox("Force LOD", &r_forceLod->current.enabled);
-
 						const char* force_lod_strings[] = { "High", "Medium", "Low", "Lowest", "None"};
 						ImGui::SliderInt("Force LOD", &r_forceLod->current.integer, 0, 4, force_lod_strings[r_forceLod->current.integer]);
-						ImGui::DragFloat("r_highLodDist", &r_highLodDist->current.value, 0.1f, 0.0f);
-						ImGui::DragFloat("r_mediumLodDist", &r_mediumLodDist->current.value, 0.1f, 0.0f);
-						ImGui::DragFloat("r_lowLodDist", &r_lowLodDist->current.value, 0.1f);
-						ImGui::DragFloat("r_lowestLodDist", &r_lowestLodDist->current.value, 0.1f);
+						ImGui::Checkbox("Force second lowest LOD", &dvars::r_forceLod_second_lowest->current.enabled); TT(dvars::r_forceLod_second_lowest->description);
+
+						// no longer used
+						//const auto& r_highLodDist = game::Dvar_FindVar("r_highLodDist");
+						//const auto& r_mediumLodDist = game::Dvar_FindVar("r_mediumLodDist");
+						//const auto& r_lowLodDist = game::Dvar_FindVar("r_lowLodDist");
+						//const auto& r_lowestLodDist = game::Dvar_FindVar("r_lowestLodDist");
+						//ImGui::DragFloat("r_highLodDist", &r_highLodDist->current.value, 0.1f, 0.0f);
+						//ImGui::DragFloat("r_mediumLodDist", &r_mediumLodDist->current.value, 0.1f, 0.0f);
+						//ImGui::DragFloat("r_lowLodDist", &r_lowLodDist->current.value, 0.1f);
+						//ImGui::DragFloat("r_lowestLodDist", &r_lowestLodDist->current.value, 0.1f);
 
 						ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
 					}

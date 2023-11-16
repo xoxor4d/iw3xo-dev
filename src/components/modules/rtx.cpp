@@ -108,18 +108,29 @@ namespace components
 		ZeroMemory(&light, sizeof(D3DLIGHT9));
 
 		light.Type = D3DLIGHT_POINT;
-		light.Diffuse.r = gui_devgui::rtx_debug_light_color[0];
-		light.Diffuse.g = gui_devgui::rtx_debug_light_color[1];
-		light.Diffuse.b = gui_devgui::rtx_debug_light_color[2];
 
-		light.Position.x = gui_devgui::rtx_debug_light_origin[0];
-		light.Position.y = gui_devgui::rtx_debug_light_origin[1];
-		light.Position.z = gui_devgui::rtx_debug_light_origin[2];
+		for (auto i = 0; i < 8; i++)
+		{
+			if (gui_devgui::rtx_spawn_light[i])
+			{
+				light.Diffuse.r = gui_devgui::rtx_debug_light_color[i][0];
+				light.Diffuse.g = gui_devgui::rtx_debug_light_color[i][1];
+				light.Diffuse.b = gui_devgui::rtx_debug_light_color[i][2];
 
-		light.Range = gui_devgui::rtx_debug_light_range;
+				light.Position.x = gui_devgui::rtx_debug_light_origin[i][0];
+				light.Position.y = gui_devgui::rtx_debug_light_origin[i][1];
+				light.Position.z = gui_devgui::rtx_debug_light_origin[i][2];
 
-		game::glob::d3d9_device->SetLight(0, &light);
-		game::glob::d3d9_device->LightEnable(0, TRUE);
+				light.Range = gui_devgui::rtx_debug_light_range[i];
+
+				light.Attenuation0 = 0.0f;    // no constant inverse attenuation
+				light.Attenuation1 = 0.125f;    // only .125 inverse attenuation
+				light.Attenuation2 = 0.0f;    // no square inverse attenuation
+
+				game::glob::d3d9_device->SetLight(i, &light);
+				game::glob::d3d9_device->LightEnable(i, TRUE);
+			}
+		}
 
 		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
 	}
@@ -190,10 +201,10 @@ namespace components
 		dev->SetTransform(D3DTS_VIEW, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.viewMatrix.m));
 		dev->SetTransform(D3DTS_PROJECTION, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.projectionMatrix.m));
 
-		if (gui_devgui::rtx_spawn_light)
-		{
+		//if (gui_devgui::rtx_spawn_light)
+		//{
 			spawn_light();
-		}
+		//}
 		
 		setup_dvars_rtx();
 	}
@@ -288,89 +299,39 @@ namespace components
 		}
 	}
 
-	void xmodel_set_test_lods(int lod_level, float dist)
-	{
-		game::g_testLods[lod_level].dist = dist;
-		game::g_testLods[lod_level].enabled = dist >= 0.0f;
-	}
-
-	void r_set_test_lods()
-	{
-		const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
-		if (r_forceLod && r_forceLod->current.integer == r_forceLod->reset.integer)
-		{
-			const auto& r_highLodDist = game::Dvar_FindVar("r_highLodDist");
-			const auto& r_mediumLodDist = game::Dvar_FindVar("r_mediumLodDist");
-			const auto& r_lowLodDist = game::Dvar_FindVar("r_lowLodDist");
-			const auto& r_lowestLodDist = game::Dvar_FindVar("r_lowestLodDist");
-
-			xmodel_set_test_lods(0, r_highLodDist->current.value);
-			xmodel_set_test_lods(1, r_mediumLodDist->current.value);
-			xmodel_set_test_lods(2, r_lowLodDist->current.value);
-			xmodel_set_test_lods(3, r_lowestLodDist->current.value);
-		}
-		else
-		{
-			float dist;
-			for (auto i = 0; i < 4; ++i)
-			{
-				if (i == r_forceLod->current.integer)
-				{
-					dist = 0.0f;
-				}
-				else
-				{
-					dist = 0.001f;
-				}
-
-				xmodel_set_test_lods(i, dist);
-			}
-		}
-	}
-
-	__declspec(naked) void r_set_test_lods_stub()
-	{
-		const static uint32_t retn_addr = 0x5F7515;
-		__asm
-		{
-			pushad;
-			call	r_set_test_lods;
-			popad;
-
-			// og instructions
-			mov     eax, [eax + 0xC];
-			shl     eax, 4;
-			jmp		retn_addr;
-		}
-	}
-
-	// -------
-
-	float xmodel_lodinfo_get_dist(const game::XModelLodInfo* lod_info, const int lod_index)
-	{
-		auto dist = lod_info->dist;
-
-		if (game::g_testLods[lod_index].enabled)
-		{
-			dist = game::g_testLods[lod_index].dist;
-		}
-		
-		return dist;
-	}
+	// -----
+	// altered forceLod logic to actually force a SPECIFIC LOD at ALL times
 
 	int xmodel_get_lod_for_dist(const game::XModel* model, const float* base_dist)
 	{
 		const auto lod_count = model->numLods;
+		const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
 
-		for (auto lod_index = 0; lod_index < lod_count; ++lod_index)
+		// 4 = none - disabled
+		if (r_forceLod->current.integer == r_forceLod->reset.integer)
 		{
-			const auto lod_dist = xmodel_lodinfo_get_dist(&model->lodInfo[lod_index], lod_index);
-
-			if (lod_dist == 0.0f || lod_dist > *base_dist)
+			for (auto lod_index = 0; lod_index < lod_count; ++lod_index)
 			{
-				return lod_index;
+				const auto lod_dist = model->lodInfo[lod_index].dist;
+
+				if (lod_dist == 0.0f || lod_dist > *base_dist)
+				{
+					return lod_index;
+				}
 			}
 		}
+		// r_forcelod enabled
+		else
+		{
+			if (r_forceLod->current.integer > lod_count // force lowest possible LOD
+				|| (dvars::r_forceLod_second_lowest->current.enabled && r_forceLod->current.integer >= lod_count)) // force second lowest possible LOD
+			{
+				return lod_count - 1 >= 0 ? lod_count - 1 : 0;
+			}
+
+			return r_forceLod->current.integer;
+		}
+
 		return -1;
 	}
 
@@ -380,8 +341,8 @@ namespace components
 		const static uint32_t retn_addr = 0x5911F0;
 		__asm
 		{
+			lea		ecx, [esp + 4];
 			pushad;
-			lea		ecx, [eax + 0x28];
 			push	ecx; // base_dist
 			push	eax; // model
 			call	xmodel_get_lod_for_dist;
@@ -394,36 +355,65 @@ namespace components
 		}
 	}
 
-	// ouch ... this was inlined
+	// -----
+
+	int forcelod_get_lod(const int lod_count)
+	{
+		const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
+
+		if (r_forceLod->current.integer > lod_count // force lowest possible LOD
+			|| (dvars::r_forceLod_second_lowest->current.enabled && r_forceLod->current.integer >= lod_count)) // force second lowest possible LOD
+		{
+			return lod_count - 1 >= 0 ? lod_count - 1 : 0;
+		}
+
+		return r_forceLod->current.integer;
+	}
+
+	int forcelod_is_enabled()
+	{
+		const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
+
+		// 4 = none - disabled
+		if (r_forceLod->current.integer == r_forceLod->reset.integer)
+		{
+			return 0;
+		}
+
+		return 1;
+	}
+
+	int xmodel_get_lod_for_dist_global_2 = 0;
 	__declspec(naked) void xmodel_get_lod_for_dist_inlined()
 	{
 		const static uint32_t break_addr = 0x63AF27;
-		const static uint32_t retn_addr = 0x63AF14;
+		const static uint32_t og_logic_addr = 0x63AF09;
 		__asm
 		{
 			pushad;
-			push	esi; // index
-			push	edx; // lodinfo
-			call	xmodel_lodinfo_get_dist; // returns lod_dist in st0
-			add		esp, 8;
+
+			push	ecx;					// save ecx
+			call	forcelod_is_enabled;
+			cmp		eax, 1;
+			pop		ecx;					// restore ecx
+			jne		OG_LOGIC;				// if r_forceLod != 1
+
+			push	ecx;					// holds model->numLods
+			call	forcelod_get_lod;
+			add		esp, 4;
+			mov		xmodel_get_lod_for_dist_global_2, eax;
 			popad;
 
-			
-			fldz;		// st0 = 0
-						// st1 = lod_dist
-			fcompp;		// compare and pop both floats
-			fstsw ax;	// move fpu status word into ax
-			sahf;		// move into eflags to we can check with conditional jumps
+			mov		esi, xmodel_get_lod_for_dist_global_2; // move returned lodindex into the register the game expects it to be
+			jmp		break_addr;
 
-			jnz	CONTINUE;
-			jmp break_addr;
 
-		CONTINUE:
-			// og instructions
-			add     esi, 1;
-			add     edx, 0x1C;
-
-			jmp		retn_addr;
+			OG_LOGIC:
+			popad;
+			fld     dword ptr [edx];
+			fcomp   st(1);
+			fnstsw  ax;
+			jmp		og_logic_addr;
 		}
 	}
 
@@ -611,10 +601,6 @@ namespace components
 		// R_AddWorkerCmd :: disable dynEnt models // 0x629328 -> nop
 		utils::hook::nop(0x629328, 5); //utils::hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
 
-		// nop calls to 'R_UpdateLodParms'
-		//utils::hook::nop(0x5FAEB3, 5);
-		//utils::hook::nop(0x5FAFCE, 5);
-
 		// removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash?
 		//utils::hook::nop(0x5F9E65, 5);
 
@@ -634,25 +620,26 @@ namespace components
 		//
 		// LOD
 
-		// check if testlods are active and overwrite lod-dist
+		// check if r_forceLod is enabled and force LOD's accordingly (only scene entities, dynamic entities and static models affected by sun shadows?)
 		utils::hook(0x5911C0, xmodel_get_lod_for_dist_detour, HOOK_JUMP).install()->quick();
 
-		// ^ but inlined ..... (R_AddAllStaticModelSurfacesCamera)
-		utils::hook::nop(0x63AF0E, 6);  utils::hook(0x63AF0E, xmodel_get_lod_for_dist_inlined, HOOK_JUMP).install()->quick();
-
-		// update testlods via 'r_forceLod' dvar
-		utils::hook::nop(0x5F750F, 6); utils::hook(0x5F750F, r_set_test_lods_stub, HOOK_JUMP).install()->quick();
-
-		// TODO - fix test lods for inlined stuff .. not working
+		// ^ but inlined ..... for all other static models (R_AddAllStaticModelSurfacesCamera)
+		utils::hook::nop(0x63AF03, 6);  utils::hook(0x63AF03, xmodel_get_lod_for_dist_inlined, HOOK_JUMP).install()->quick();
+		
 
 		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
 		// jnz -> jmp (0x75 -> 0xEB) instead of jnz at 0x63AF49 (boolean check on return val from 'R_AllocStaticModelLighting')
-
 		// TODO - create dvar for that ^
 
 		dvars::rtx_hacks = game::Dvar_RegisterBool(
 			/* name		*/ "rtx_hacks",
 			/* desc		*/ "Enables various hacks and tweaks to make nvidia rtx work",
+			/* default	*/ false,
+			/* flags	*/ game::dvar_flags::saved);
+
+		dvars::r_forceLod_second_lowest = game::Dvar_RegisterBool(
+			/* name		*/ "r_forceLod_second_lowest",
+			/* desc		*/ "Force LOD of static models to the second lowest LOD (should keep grass, rocks, trees ... visible)\nSet r_forceLod to anything but none for this to work",
 			/* default	*/ false,
 			/* flags	*/ game::dvar_flags::saved);
 
