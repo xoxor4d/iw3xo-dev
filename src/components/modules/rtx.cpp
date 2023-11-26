@@ -8,8 +8,8 @@
 // r_zfeather >> 0 fixes remix freaking out turning half of all textures white + makes fx work to some extend (note: 'R_SkinStaticModelsCamera' @ 0x63B024 or 0x0063AB00)
 
 // FIXED ISSUE 1 >> mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
-// ISSUE 2 >> removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash? - still present - LOD related so most likely a specific object/shader that is causing that
-// ISSUE 3 >> moving infront of the construction spotlight on mp_crash (bottom hardware) with cg_drawgun enabled will completly turn off remix rendering
+// IMPLEMENTED 2 >> removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash? - still present - LOD related so most likely a specific object/shader that is causing that
+// FIXED ISSUE 3 >> moving infront of the construction spotlight on mp_crash (bottom hardware) with cg_drawgun enabled will completly turn off remix rendering (caused
 
 // ISSUE 4 >> viewmodel hands and animated parts on gun have unstable hashes
 // ISSUE 5 >> "dynamic" entities like explodable cars can have unstable hashes
@@ -130,6 +130,11 @@ namespace components
 				game::glob::d3d9_device->SetLight(i, &light);
 				game::glob::d3d9_device->LightEnable(i, TRUE);
 			}
+			else
+			{
+				// only updates if raytracing is turned off and on again
+				game::glob::d3d9_device->LightEnable(i, FALSE);
+			}
 		}
 
 		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
@@ -156,6 +161,27 @@ namespace components
 			var && !var->current.enabled)
 		{
 			game::Cmd_ExecuteSingleCommand(0, 0, "r_smp_backend 1\n");
+		}
+
+		// fix flickering static meshes
+		if (const auto var = game::Dvar_FindVar("r_smc_enable");
+			var && !var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_smc_enable 1\n");
+		}
+
+		// remix does not like this
+		if (const auto var = game::Dvar_FindVar("r_depthPrepass");
+			var && !var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_depthPrepass 0\n");
+		}
+
+		// ++ fps
+		if (const auto var = game::Dvar_FindVar("r_multiGpu");
+			var && !var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 0\n");
 		}
 
 		// fix effects or other zfeathered materials to cause remix to freak out (turning everything white)
@@ -201,25 +227,22 @@ namespace components
 		dev->SetTransform(D3DTS_VIEW, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.viewMatrix.m));
 		dev->SetTransform(D3DTS_PROJECTION, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.projectionMatrix.m));
 
-		//if (gui_devgui::rtx_spawn_light)
-		//{
-			spawn_light();
-		//}
-		
+		spawn_light();
 		setup_dvars_rtx();
 	}
 
 	__declspec(naked) void rb_standard_drawcommands_stub()
 	{
-		const static uint32_t rb_standard_drawcommands_func = 0x64AFB0;
-		const static uint32_t retn_addr = 0x64B7D0;
+		const static uint32_t retn_addr = 0x64B7B6;
 		__asm
 		{
 			pushad;
 			call	setup_rtx;
 			popad;
 
-			call	rb_standard_drawcommands_func;
+			// og instructions
+			mov     ebp, esp;
+			and		esp, 0xFFFFFFF8;
 			jmp		retn_addr;
 		}
 	}
@@ -456,7 +479,7 @@ namespace components
 
 	// ----------------------------------------------------
 
-#if 1 // disabled for now
+#if 1
 	// R_AddWorldSurfacesPortalWalk
 	__declspec(naked) void r_cull_world_stub_01()
 	{
@@ -576,44 +599,24 @@ namespace components
 			jmp		retn_skip;
 		}
 	}
-
-	// R_AddWorkerCmd
-	__declspec(naked) void r_draw_dynents_stub()
-	{
-		const static uint32_t R_AddCellDynModelSurfacesInFrustumCmd_func = 0x64D4C0;
-		const static uint32_t retn_stock = 0x62932D;
-		__asm
-		{
-			pushad;
-			push	eax;
-			mov		eax, 0; //dvars::r_drawDynents;
-			//cmp		byte ptr[eax + 12], 1;
-			cmp		eax, 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			call	R_AddCellDynModelSurfacesInFrustumCmd_func;
-
-		SKIP:
-			popad;
-			jmp		retn_stock;
-		}
-	}
 #endif
 
-#define DISABLE_CULLING
+	// ----------------------------------------------------
 
 	rtx::rtx()
 	{
-		// hook 'RB_StandardDrawCommands' call in 'RB_Draw3DInternal'
-		utils::hook(0x64B7CB, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();
+		// set debug light defaults
+		for (auto i = 0u; i < 8; i++)
+		{
+			gui_devgui::rtx_debug_light_color[i][0] = 1.0f;
+			gui_devgui::rtx_debug_light_color[i][1] = 1.0f;
+			gui_devgui::rtx_debug_light_color[i][2] = 1.0f;
+		}
+
+		// hook beginning of 'RB_Draw3DInternal' to setup general stuff required for rtx-remix
+		utils::hook(0x64B7B1, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();
 
 		// ----------------------------------------------------
-
-#ifdef DISABLE_CULLING
 
 		if (flags::has_flag("disable_culling"))
 		{
@@ -632,16 +635,15 @@ namespace components
 			// 0x64D17A -> nop // 2 bytes //utils::hook::nop(0x64D17A, 2);
 			utils::hook::nop(0x64D172, 8); utils::hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
 		}
-#endif
 
-		// R_AddWorkerCmd :: disable dynEnt models // 0x629328 -> nop
-		utils::hook::nop(0x629328, 5); //utils::hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
+		// R_AddWorkerCmd :: disable dynEnt models
+		utils::hook::nop(0x629328, 5);
 
 		// removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash?
-		// ^ also "fixes" black cars - same behaviour as enabling r_fullbright (without the worldmatrix - rotating sky - distant light issue)
-		// NOTE: this also disables a ground-terrain patch on my testmap?
+		// ^ also "fixes" black cars - same behaviour as enabling r_fullbright (also disables "hdr" tool-texture drawing)
+		// NOTE: this might be needed for decals to work
 		// TODO: dvar?
-		utils::hook::nop(0x5F9E65, 5);
+		utils::hook::nop(0x5F9E65, 5); 
 
 		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
 		utils::hook::nop(0x63AF44, 5); utils::hook(0x63AF44, alloc_smodel_lighting_stub, HOOK_JUMP).install()->quick();
