@@ -10,11 +10,6 @@ namespace components
 
 		static void create_devgui(game::gui_menus_t& menu);
 
-		static inline bool  rtx_spawn_light[8] = {};
-		static inline float rtx_debug_light_origin[8][3] = {};
-		static inline float rtx_debug_light_range[8] = { 500, 500, 500, 500, 500, 500, 500, 500 };
-		static inline float rtx_debug_light_color[8][3] = {};
-
 	private:
 		static void menu_tab_movement(game::gui_menus_t& menu);
 		static void menu_tab_collision(game::gui_menus_t& menu);

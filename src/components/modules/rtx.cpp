@@ -21,6 +21,129 @@
 // ^ Texture set in 'R_SetPassShaderObjectArguments'
 namespace components
 {
+	
+
+	// hide with
+	// rtx_skysphere_model->r.svFlags = 0x01;
+
+	// show with
+	// rtx_skysphere_model->r.svFlags = 0x04;
+
+	// called from r_set_frame_fog > daynight
+	void rtx::skysphere_frame()
+	{
+		if (rtx::skysphere_is_model_valid())
+		{
+			if (skysphere_auto_rotation)
+			{
+				if (skysphere_model_rotation[1] >= 360.0f)
+				{
+					skysphere_model_rotation[1] = 0.0f;
+				}
+
+				const auto timescale = game::Dvar_FindVar("timescale")->current.value;
+
+				skysphere_model_rotation[1] += (float)game::glob::lpmove_server_frame_time * 0.0001f * skysphere_auto_rotation_speed * timescale;
+				game::G_SetAngles(skysphere_model, skysphere_model_rotation);
+			}
+		}
+	}
+
+	const char* rtx::skysphere_get_name_for_variant(int variant)
+	{
+		switch (variant)
+		{
+		default:
+		case 0: return "rtx_skysphere_oceanrock";
+		case 1: return "rtx_skysphere_desert";
+		case 2: return "rtx_skysphere_overcast_city";
+		case 3: return "rtx_skysphere_night";
+		}
+	}
+
+	bool rtx::skysphere_is_model_valid()
+	{
+		// if not spawned an entity yet
+		if (!skysphere_spawned)
+		{
+			return false;
+		}
+
+		// check if the entity is valid (player changed level etc.)
+		if (skysphere_model == nullptr || skysphere_model->classname == 0 
+			|| skysphere_model->model != game::G_ModelIndex(skysphere_get_name_for_variant(skysphere_variant)))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	void rtx::skysphere_update_pos()
+	{
+		if (skysphere_spawned)
+		{
+			skysphere_model->r.svFlags = 0x04; // visible
+			game::G_SetOrigin(skysphere_model, skysphere_model_origin);
+			game::G_SetAngles(skysphere_model, skysphere_model_rotation);
+		}
+	}
+
+	void rtx::skysphere_toggle_vis()
+	{
+		if (rtx::skysphere_is_model_valid())
+		{
+			skysphere_model->r.svFlags = skysphere_model->r.svFlags == 0x04 ? 0x01 : 0x04;
+			game::G_SetOrigin(skysphere_model, skysphere_model_origin);
+		}
+	}
+
+	void rtx::skysphere_change_model(int variant)
+	{
+		const std::int16_t model_index = game::G_ModelIndex(skysphere_get_name_for_variant(variant));
+
+		skysphere_model->model = model_index;
+		skysphere_model->s.index = model_index;
+
+		skysphere_variant = variant;
+	}
+
+	void rtx::skysphere_spawn(int variant)
+	{
+		if (rtx::skysphere_is_model_valid())
+		{
+			skysphere_change_model(variant);
+			return;
+		}
+
+		// needs :: 
+		// s->index = modelIndex
+		// linked = 0x1;
+		// svFlags = 0x04; // even = visible, uneven = hidden
+
+		const std::int16_t model_index = game::G_ModelIndex(skysphere_get_name_for_variant(variant));
+
+		skysphere_model = game::G_Spawn();
+		skysphere_model->model = model_index;
+		skysphere_model->s.index = model_index;
+		skysphere_model->r.svFlags = 0x04;
+		skysphere_model->r.linked = 0x1;
+
+		game::G_SetOrigin(skysphere_model, skysphere_model_origin);
+		game::G_SetAngles(skysphere_model, skysphere_model_rotation);
+
+		game::G_CallSpawnEntity(skysphere_model);
+
+		skysphere_spawned = true;
+		skysphere_variant = variant;
+	}
+
+
+	// ---------------------------------------------------------------------
+	// #####################################################################
+	// ---------------------------------------------------------------------
+
+
 	bool rtx::r_set_material_stub(game::switch_material_t* swm)
 	{
 		if (dvars::rtx_hacks->current.enabled)
@@ -32,22 +155,6 @@ namespace components
 				return false;
 			}
 		}
-
-		// 
-		/*if (utils::starts_with(swm->current_material->techniqueSet->name, "mc_effect_falloff"))
-		{
-			swm->technique_type = game::TECHNIQUE_WIREFRAME_SOLID;
-			swm->technique = swm->material->techniqueSet->remappedTechniqueSet->techniques[28];
-			//_renderer::switch_technique(swm, "rgb");
-			return false;
-		}*/
-
-		// mc/mtl_floodlight_on
-		// wc/utility_light_godray
-		// wc/utility_light_hotspot
-		// wc/hdrportal_lighten
-		// mc/gfx_floodlight_tightglow
-		// mc/gfx_floodlight_beam_godray75
 
 		return true;
 	}
@@ -109,22 +216,25 @@ namespace components
 
 		light.Type = D3DLIGHT_POINT;
 
-		for (auto i = 0; i < 8; i++)
+		for (auto i = 0; i < rtx::RTX_DEBUGLIGHT_AMOUNT; i++)
 		{
-			if (gui_devgui::rtx_spawn_light[i])
+			if (rtx::rtx_lights[i].enable)
 			{
-				light.Diffuse.r = gui_devgui::rtx_debug_light_color[i][0];
-				light.Diffuse.g = gui_devgui::rtx_debug_light_color[i][1];
-				light.Diffuse.b = gui_devgui::rtx_debug_light_color[i][2];
+				// used to turn off the light once rtx_lights[i].enable gets set to false
+				rtx::rtx_lights[i].disable_hack = 0;
 
-				light.Position.x = gui_devgui::rtx_debug_light_origin[i][0];
-				light.Position.y = gui_devgui::rtx_debug_light_origin[i][1];
-				light.Position.z = gui_devgui::rtx_debug_light_origin[i][2];
+				light.Diffuse.r = rtx::rtx_lights[i].color[0] * rtx::rtx_lights[i].color_scale;
+				light.Diffuse.g = rtx::rtx_lights[i].color[1] * rtx::rtx_lights[i].color_scale;
+				light.Diffuse.b = rtx::rtx_lights[i].color[2] * rtx::rtx_lights[i].color_scale;
 
-				light.Range = gui_devgui::rtx_debug_light_range[i];
+				light.Position.x = rtx::rtx_lights[i].origin[0];
+				light.Position.y = rtx::rtx_lights[i].origin[1];
+				light.Position.z = rtx::rtx_lights[i].origin[2];
+
+				light.Range = rtx::rtx_lights[i].range;
 
 				light.Attenuation0 = 0.0f;    // no constant inverse attenuation
-				light.Attenuation1 = 0.125f;    // only .125 inverse attenuation
+				light.Attenuation1 = 0.125f;  // only .125 inverse attenuation
 				light.Attenuation2 = 0.0f;    // no square inverse attenuation
 
 				game::glob::d3d9_device->SetLight(i, &light);
@@ -132,8 +242,36 @@ namespace components
 			}
 			else
 			{
-				// only updates if raytracing is turned off and on again
-				game::glob::d3d9_device->LightEnable(i, FALSE);
+				// slightly change position over the next 10 frames so that remix realizes that the light was updated
+				// we have to use almost the exact same parameters for this to work
+				// fun fact: remix duplicates a light when offsetting the light position by a huge amount within 1 frame
+				if (rtx::rtx_lights[i].disable_hack < 10)
+				{
+					light.Diffuse.r = 0.0f;
+					light.Diffuse.g = 0.0f;
+					light.Diffuse.b = 0.0f;
+
+					rtx::rtx_lights[i].origin[2] += 0.0001f;
+					light.Position.x = rtx::rtx_lights[i].origin[0];
+					light.Position.y = rtx::rtx_lights[i].origin[1];
+					light.Position.z = rtx::rtx_lights[i].origin[2];
+
+					light.Range = rtx::rtx_lights[i].range;
+
+					light.Attenuation0 = 0.0f;
+					light.Attenuation1 = 0.125f;
+					light.Attenuation2 = 0.0f;
+
+					game::glob::d3d9_device->SetLight(i, &light);
+					game::glob::d3d9_device->LightEnable(i, TRUE);
+
+					rtx::rtx_lights[i].disable_hack++;
+				}
+				else
+				{
+					// only updates if raytracing is turned off and on again
+					game::glob::d3d9_device->LightEnable(i, FALSE);
+				}
 			}
 		}
 
@@ -172,16 +310,22 @@ namespace components
 
 		// remix does not like this
 		if (const auto var = game::Dvar_FindVar("r_depthPrepass");
-			var && !var->current.enabled)
+			var && var->current.enabled)
 		{
 			game::Cmd_ExecuteSingleCommand(0, 0, "r_depthPrepass 0\n");
 		}
 
 		// ++ fps
 		if (const auto var = game::Dvar_FindVar("r_multiGpu");
-			var && !var->current.enabled)
+			var && var->current.enabled)
 		{
 			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 0\n");
+		}
+
+		if (const auto var = game::Dvar_FindVar("r_dof_enable");
+			var && var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_dof_enable 0\n");
 		}
 
 		// fix effects or other zfeathered materials to cause remix to freak out (turning everything white)
@@ -605,13 +749,25 @@ namespace components
 
 	rtx::rtx()
 	{
+		// 4k hacks
+
+		// set img alloc size from 0x600000 to 0x1000000
+		utils::hook::set<BYTE>(0x641CC7 + 3, 0x00);
+		utils::hook::set<BYTE>(0x641CC7 + 4, 0x01);
+
+		// ^ cmp -> error if image larger
+		utils::hook::set<BYTE>(0x641C89 + 3, 0x00);
+		utils::hook::set<BYTE>(0x641C89 + 4, 0x01);
+
+
 		// set debug light defaults
-		for (auto i = 0u; i < 8; i++)
+		/*for (auto i = 0u; i < gui_devgui::RTX_DEBUGLIGHT_AMOUNT; i++)
 		{
+			gui_devgui::rtx_debug_light_range[i] = 500.0f;
 			gui_devgui::rtx_debug_light_color[i][0] = 1.0f;
 			gui_devgui::rtx_debug_light_color[i][1] = 1.0f;
 			gui_devgui::rtx_debug_light_color[i][2] = 1.0f;
-		}
+		}*/
 
 		// hook beginning of 'RB_Draw3DInternal' to setup general stuff required for rtx-remix
 		utils::hook(0x64B7B1, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();

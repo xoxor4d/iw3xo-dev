@@ -1255,6 +1255,11 @@ namespace components
 
 	void r_set_frame_fog(game::GfxCmdBufInput* input)
 	{
+		if (components::active.rtx)
+		{
+			rtx::skysphere_frame();
+		}
+
 		if (input)
 		{
 			if (!dvars::r_fogTweaks->current.enabled && !framefog_tweaks_overwrite)

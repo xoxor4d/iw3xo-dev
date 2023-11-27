@@ -88,8 +88,6 @@ namespace components
 			return;
 		}
 
-		
-
 		if (ImGui::BeginTabBar("devgui_tabs"))
 		{
 			// save current window parms
@@ -108,27 +106,86 @@ namespace components
 					const auto& fx_enable = game::Dvar_FindVar("fx_enable");
 					ImGui::Checkbox("Enable FX", &fx_enable->current.enabled);
 
+					ImGui::Separator();
+
+					if (ImGui::Button("Hill"))
+					{
+						rtx::skysphere_spawn(0);
+					}
+
+					ImGui::SameLine();
+					if (ImGui::Button("Desert"))
+					{
+						rtx::skysphere_spawn(1);
+					}
+
+					ImGui::SameLine();
+					if (ImGui::Button("Overcast City"))
+					{
+						rtx::skysphere_spawn(2);
+					}
+
+					ImGui::SameLine();
+					if (ImGui::Button("Night"))
+					{
+						rtx::skysphere_spawn(3);
+					}
+
+					if (rtx::skysphere_is_model_valid())
+					{
+						/*ImGui::SameLine();
+						if (ImGui::Button("Toggle Skysphere"))
+						{
+							rtx::skysphere_toggle_vis();
+						}*/
+
+						ImGui::Checkbox("Auto Rotation", &rtx::skysphere_auto_rotation);
+						ImGui::SameLine();
+
+						ImGui::PushItemWidth(90.0f);
+						ImGui::DragFloat("Speed", &rtx::skysphere_auto_rotation_speed, 0.01f, 0.01f, 10.0f, "%.2f");
+						ImGui::PopItemWidth();
+
+						/*if (ImGui::DragFloat3("Sphere Origin", rtx::skysphere_model_origin, 1.0f, -360.0f, 360.0f, "%.2f"))
+						{
+							rtx::skysphere_update_pos();
+						}*/
+
+						if (ImGui::DragFloat3("Sphere Rotation", rtx::skysphere_model_rotation, 0.25f, -360.0f, 360.0f, "%.2f"))
+						{
+							rtx::skysphere_update_pos();
+						}
+					}
+
 					ImGui::Indent(-8.0f);
 
 					if (ImGui::CollapsingHeader("Debug Light", ImGuiTreeNodeFlags_None))
 					{
 						ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-						for (auto i = 0; i < 8; i++)
+						for (auto i = 0; i < rtx::RTX_DEBUGLIGHT_AMOUNT; i++)
 						{
 							ImGui::PushID(i);
 
 							if (ImGui::CollapsingHeader(utils::va("Light %d", i), !i ? ImGuiTreeNodeFlags_DefaultOpen : ImGuiTreeNodeFlags_None))
 							{
-								ImGui::Checkbox("Spawn sphere light", &rtx_spawn_light[i]);
-								ImGui::DragFloat3("Light Pos", rtx_debug_light_origin[i], 0.25f);
-								ImGui::DragFloat("Light Range", &rtx_debug_light_range[i], 0.25f);
-								ImGui::DragFloat3("Light Color", rtx_debug_light_color[i], 0.25f);
+								bool on_edit = false;
+
+								ImGui::Checkbox("Spawn sphere light", &rtx::rtx_lights[i].enable);
+								ImGui::DragFloat3("Light Pos", rtx::rtx_lights[i].origin, 0.25f);
+								on_edit = ImGui::DragFloat("Light Range", &rtx::rtx_lights[i].range, 0.25f) ? true : on_edit;
+								on_edit = ImGui::ColorEdit3("Light Color", rtx::rtx_lights[i].color, ImGuiColorEditFlags_Float) ? true : on_edit;
+								on_edit = ImGui::DragFloat("Color Scale", &rtx::rtx_lights[i].color_scale, 0.1f) ? true : on_edit;
+
+								if (on_edit)
+								{
+									rtx::rtx_lights[i].origin[2] += 0.0001f;
+								}
 
 								if (ImGui::Button("Move light to player"))
 								{
-									utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx_debug_light_origin[i], 3);
-									rtx_debug_light_origin[i][2] += 60.0f;
+									utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx::rtx_lights[i].origin, 3);
+									rtx::rtx_lights[i].origin[2] += 60.0f;
 								}
 							}
 							ImGui::PopID();

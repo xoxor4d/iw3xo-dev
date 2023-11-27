@@ -54,18 +54,38 @@ ___
 <br>
 
 ## nvidia-remix-branch (rtx)
-1. grab files from `assets-remix` and put them into your cod4 root folder  
-2. use in-game console command `/exec rtx` to setup dvars  
-3. restart the game
+1. All of the above
 
-- disable all culling: use commandline argument `disable_culling`.  
-eg: &ensp;`c:\path\iw3xo.exe -disable_culling` 
+2. Open [Github Actions](https://github.com/xoxor4d/iw3xo-dev/actions), select the latest `rtx` branch build, grab the `Release-binaries-rtx` artifacts and extract it into your cod4 root folder.
 
-- additional settings (in-game): use console command `/devgui` and go to the __dev__ tab
+2. Grab files from `assets-remix` and put them into your cod4 root folder (download repo as zip) 
 
-- set `r_lodScaleRigid` to 0 to always force LOD0 (stable hashes)
-- reimplemented `r_forceLod`
-- use dvar `rtx_hacks` to replace the skybox with a white texture
+3. Open the in-game console and type `/exec rtx` to setup dvars  
+
+4. Restart the game
+
+<br>
+
+- Disable all culling: use commandline argument `-disable_culling`.  
+eg: &ensp;`"c:\path\iw3xo.exe" -disable_culling` 
+
+- Additional settings (in-game): use console command `/devgui` and go to the __rtx__ tab
+
+- Use dvar `r_forceLod` to force a specific LOD
+- Use dvar `r_forceLod_second_lowest` to hinder the game from using the lowest possible LOD (lowest LOD is sometimes used to hide the model)
+- Use dvar `r_lodScaleRigid` to adjust model LOD distance - a value of 0 will force LOD0
+- Use dvar `rtx_hacks` to replace the skybox with a blue-gray texture
+
+<br>
+
+### General tips
+
+- You might need to assign the sky category manually (if your map is black).   
+Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your mouse to select the sky (in the world) and assign the sky category
+
+- If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
+
+- Spawning lights with the devgui should be pretty self explanatory. Just note that lights only update (color, radius) when you change the position afterwards.
 
 <br>
 
@@ -94,7 +114,7 @@ ___
 2. Use __generate-buildfiles.bat__ to build project files with premake
 3. Load the solution `(build/iw3xo-dev.sln)` and open the iw3x project-settings to setup paths:
 > - General &ensp; &ensp; &ensp; output directory path -> `path-to-cod4-root\`
-> - Debugging &ensp; command -> `path-to-cod4-root\IW3xo.exe`
+> - Debugging &ensp; command -> `path-to-cod4-root\iw3xo.exe`
 > - Debugging &ensp; working directory -> `path-to-cod4-root`
 4. Build -> Build Solution or run with debugger
 
