@@ -1,9 +1,12 @@
 name: Build-RTX-Release
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
-      - "rtx"
+      - 'rtx'
+    paths:
+      - 'src/**'
 jobs:
   build:
     name: Build binary
