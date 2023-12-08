@@ -144,14 +144,23 @@ namespace components
 	// ---------------------------------------------------------------------
 
 
-	bool rtx::r_set_material_stub(game::switch_material_t* swm)
+	bool rtx::r_set_material_stub(game::switch_material_t* swm, const game::GfxCmdBufState* state)
 	{
 		if (dvars::rtx_hacks->current.enabled)
 		{
 			if (utils::starts_with(swm->current_material->info.name, "wc/sky_"))
 			{
 				swm->technique_type = game::TECHNIQUE_UNLIT;
-				_renderer::switch_material(swm, "rtx_sky"); //"rgb");
+				_renderer::switch_material(swm, "rtx_sky");
+				return false;
+			}
+
+			// fix remix normals for viewmodels - needs the material string check because the weapon is in both depth-ranges for some reason
+			if (state->depthRangeType == game::GFX_DEPTH_RANGE_VIEWMODEL || utils::starts_with(swm->current_material->info.name, "mc/mtl_weapon_"))
+			{
+				swm->technique_type = game::TECHNIQUE_LIT;
+				swm->switch_technique_type = true;
+
 				return false;
 			}
 		}
@@ -214,53 +223,101 @@ namespace components
 		D3DLIGHT9 light;
 		ZeroMemory(&light, sizeof(D3DLIGHT9));
 
-		light.Type = D3DLIGHT_POINT;
+
+		const auto setup_light_settings = [](D3DLIGHT9* ff_light, rtx::rtx_debug_light* setting)
+		{
+			if (!ff_light || !setting)
+			{
+				game::Com_Error(game::ERR_DISCONNECT, "spawn_light::setup_light_settings (!ff_light || !setting)");
+				return;
+			}
+
+			ff_light->Type = setting->type;
+
+			if (setting->enable)
+			{
+				// used to turn off the light once rtx_lights[i].enable gets set to false
+				setting->disable_hack = 0;
+
+				ff_light->Diffuse.r = setting->color[0] * setting->color_scale;
+				ff_light->Diffuse.g = setting->color[1] * setting->color_scale;
+				ff_light->Diffuse.b = setting->color[2] * setting->color_scale;
+			}
+			else
+			{
+				if (setting->type == D3DLIGHT_DIRECTIONAL && setting->disable_hack && setting->disable_hack < 9)
+				{
+					const float p = setting->color_scale * 0.5f;
+
+					ff_light->Diffuse.r = setting->color[0] * setting->color_scale / (p * (float)setting->disable_hack);
+					ff_light->Diffuse.g = setting->color[1] * setting->color_scale / (p * (float)setting->disable_hack);
+					ff_light->Diffuse.b = setting->color[2] * setting->color_scale / (p * (float)setting->disable_hack);
+				}
+				else
+				{
+					ff_light->Diffuse.r = 0.0f;
+					ff_light->Diffuse.g = 0.0f;
+					ff_light->Diffuse.b = 0.0f;
+				}
+			}
+
+			utils::vector::copy(setting->origin, &ff_light->Position.x, 3);
+
+			ff_light->Range = setting->range;
+
+			ff_light->Attenuation0 = 0.0f;    // no constant inverse attenuation
+			ff_light->Attenuation1 = 0.125f;  // only .125 inverse attenuation
+			ff_light->Attenuation2 = 0.0f;    // no square inverse attenuation
+
+			// if not a pointlight
+			if (setting->type > D3DLIGHT_POINT)
+			{
+				utils::vector::normalize_to(setting->dir, &ff_light->Direction.x);
+				ff_light->Phi = 3.14f / 4.0f;
+				ff_light->Theta = 3.14f / 8.0f;
+			}
+
+			if (setting->attach && setting->enable)
+			{
+				game::vec3_t fwd, rt, up = {};
+				utils::vector::angle_vectors(game::cgs->predictedPlayerState.viewangles, fwd, rt, up);
+
+				setting->origin[0] = game::glob::lpmove_camera_origin.x + (utils::vector::dot3(fwd, setting->dir_offset));
+				setting->origin[1] = game::glob::lpmove_camera_origin.y + (utils::vector::dot3(rt,  setting->dir_offset));
+				setting->origin[2] = game::glob::lpmove_camera_origin.z + (utils::vector::dot3(up,  setting->dir_offset));
+
+				utils::vector::copy(setting->origin, &ff_light->Position.x, 3);
+
+				ff_light->Direction.x = fwd[0];
+				ff_light->Direction.y = fwd[1];
+				ff_light->Direction.z = fwd[2];
+
+				// update gui settings
+				utils::vector::copy(fwd, setting->dir, 3);
+			}
+		};
+
 
 		for (auto i = 0; i < rtx::RTX_DEBUGLIGHT_AMOUNT; i++)
 		{
 			if (rtx::rtx_lights[i].enable)
 			{
-				// used to turn off the light once rtx_lights[i].enable gets set to false
-				rtx::rtx_lights[i].disable_hack = 0;
-
-				light.Diffuse.r = rtx::rtx_lights[i].color[0] * rtx::rtx_lights[i].color_scale;
-				light.Diffuse.g = rtx::rtx_lights[i].color[1] * rtx::rtx_lights[i].color_scale;
-				light.Diffuse.b = rtx::rtx_lights[i].color[2] * rtx::rtx_lights[i].color_scale;
-
-				light.Position.x = rtx::rtx_lights[i].origin[0];
-				light.Position.y = rtx::rtx_lights[i].origin[1];
-				light.Position.z = rtx::rtx_lights[i].origin[2];
-
-				light.Range = rtx::rtx_lights[i].range;
-
-				light.Attenuation0 = 0.0f;    // no constant inverse attenuation
-				light.Attenuation1 = 0.125f;  // only .125 inverse attenuation
-				light.Attenuation2 = 0.0f;    // no square inverse attenuation
+				setup_light_settings(&light, &rtx::rtx_lights[i]);
 
 				game::glob::d3d9_device->SetLight(i, &light);
 				game::glob::d3d9_device->LightEnable(i, TRUE);
 			}
 			else
 			{
-				// slightly change position over the next 10 frames so that remix realizes that the light was updated
+				// slightly change position/dir over the next 10 frames so that remix realizes that the light was updated
 				// we have to use almost the exact same parameters for this to work
 				// fun fact: remix duplicates a light when offsetting the light position by a huge amount within 1 frame
 				if (rtx::rtx_lights[i].disable_hack < 10)
 				{
-					light.Diffuse.r = 0.0f;
-					light.Diffuse.g = 0.0f;
-					light.Diffuse.b = 0.0f;
+					setup_light_settings(&light, &rtx::rtx_lights[i]);
 
-					rtx::rtx_lights[i].origin[2] += 0.0001f;
-					light.Position.x = rtx::rtx_lights[i].origin[0];
-					light.Position.y = rtx::rtx_lights[i].origin[1];
-					light.Position.z = rtx::rtx_lights[i].origin[2];
-
-					light.Range = rtx::rtx_lights[i].range;
-
-					light.Attenuation0 = 0.0f;
-					light.Attenuation1 = 0.125f;
-					light.Attenuation2 = 0.0f;
+					light.Position.z += 0.001f;
+					light.Direction.z += 0.001f;
 
 					game::glob::d3d9_device->SetLight(i, &light);
 					game::glob::d3d9_device->LightEnable(i, TRUE);
@@ -278,6 +335,215 @@ namespace components
 		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
 	}
 
+	void rtx::gui()
+	{
+		ImGui::Indent(8.0f);
+
+		if (ImGui::CollapsingHeader("General Settings", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			const auto& fx_enable = game::Dvar_FindVar("fx_enable");
+			ImGui::Checkbox("Enable FX", &fx_enable->current.enabled);
+
+			ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			if (ImGui::Button("Hill"))
+			{
+				rtx::skysphere_spawn(0);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Desert"))
+			{
+				rtx::skysphere_spawn(1);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Overcast City"))
+			{
+				rtx::skysphere_spawn(2);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Night"))
+			{
+				rtx::skysphere_spawn(3);
+			}
+
+			if (rtx::skysphere_is_model_valid())
+			{
+				/*ImGui::SameLine();
+				if (ImGui::Button("Toggle Skysphere"))
+				{
+					rtx::skysphere_toggle_vis();
+				}*/
+
+				ImGui::Checkbox("Auto Rotation", &rtx::skysphere_auto_rotation);
+				ImGui::SameLine();
+
+				ImGui::PushItemWidth(90.0f);
+				ImGui::DragFloat("Speed", &rtx::skysphere_auto_rotation_speed, 0.01f, 0.01f, 10.0f, "%.2f");
+				ImGui::PopItemWidth();
+
+				/*if (ImGui::DragFloat3("Sphere Origin", rtx::skysphere_model_origin, 1.0f, -360.0f, 360.0f, "%.2f"))
+				{
+					rtx::skysphere_update_pos();
+				}*/
+
+				if (ImGui::DragFloat3("Sphere Rotation", rtx::skysphere_model_rotation, 0.25f, -360.0f, 360.0f, "%.2f"))
+				{
+					rtx::skysphere_update_pos();
+				}
+			}
+
+			ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Debug Light", ImGuiTreeNodeFlags_None))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			for (auto i = 0; i < rtx::RTX_DEBUGLIGHT_AMOUNT; i++)
+			{
+				ImGui::PushID(i);
+
+				if (ImGui::CollapsingHeader(utils::va("Light %d", i), !i ? ImGuiTreeNodeFlags_DefaultOpen : ImGuiTreeNodeFlags_None))
+				{
+					bool on_edit = false;
+
+					if (ImGui::Checkbox("Spawn light", &rtx::rtx_lights[i].enable))
+					{
+						on_edit = true;
+
+						// default light settings (spawn on player when untouched)
+						if (rtx::rtx_lights[i].virgin)
+						{
+							rtx::rtx_lights[i].color_scale = 3.0f;
+							rtx::rtx_lights[i].range = 500.0f;
+
+							utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx::rtx_lights[i].origin, 3);
+							rtx::rtx_lights[i].origin[2] += 60.0f;
+
+							if (rtx::rtx_lights[i].type == D3DLIGHT_SPOT)
+							{
+								utils::vector::angle_to_forward(game::cgs->predictedPlayerState.viewangles, rtx::rtx_lights[i].dir);
+							}
+						}
+
+						// it was ... touched
+						rtx::rtx_lights[i].virgin = false;
+					}
+
+					if (!rtx::rtx_lights[i].enable)
+					{
+						const char* LIGHT_TYPES[4] = { "None", "Point", "Spot", "Directional" };
+						if (ImGui::SliderInt("Type", (int*)&rtx::rtx_lights[i].type, 1, 3, LIGHT_TYPES[rtx::rtx_lights[i].type]))
+						{
+							rtx::rtx_lights[i].virgin = true;
+							on_edit = true;
+						}
+					}
+					else
+					{
+						ImGui::SameLine();
+						ImGui::TextUnformatted("  Turn off the light to change the light type.");
+					}
+
+					if (rtx::rtx_lights[i].enable)
+					{
+						if (rtx::rtx_lights[i].type != D3DLIGHT_DIRECTIONAL)
+						{
+							ImGui::DragFloat3("Position", rtx::rtx_lights[i].origin, 0.25f);
+						}
+
+						if (rtx::rtx_lights[i].type > D3DLIGHT_POINT)
+						{
+							on_edit = ImGui::DragFloat3("Direction", rtx::rtx_lights[i].dir, 0.05f) ? true : on_edit;
+
+							if (rtx::rtx_lights[i].attach)
+							{
+								ImGui::DragFloat3("Direction Offset", rtx::rtx_lights[i].dir_offset, 0.05f);
+							}
+						}
+
+						if (rtx::rtx_lights[i].type != D3DLIGHT_DIRECTIONAL)
+						{
+							on_edit = ImGui::DragFloat("Range", &rtx::rtx_lights[i].range, 0.25f) ? true : on_edit;
+						}
+						
+						on_edit = ImGui::ColorEdit3("Color", rtx::rtx_lights[i].color, ImGuiColorEditFlags_Float) ? true : on_edit;
+						on_edit = ImGui::DragFloat("Color Scale", &rtx::rtx_lights[i].color_scale, 0.1f) ? true : on_edit;
+
+						if (rtx::rtx_lights[i].type != D3DLIGHT_DIRECTIONAL)
+						{
+							ImGui::Checkbox("Attach light to head", &rtx::rtx_lights[i].attach);
+
+							if (ImGui::Button("Move light to player"))
+							{
+								utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx::rtx_lights[i].origin, 3);
+								rtx::rtx_lights[i].origin[2] += 60.0f;
+
+								if (rtx::rtx_lights[i].type > D3DLIGHT_POINT)
+								{
+									utils::vector::angle_to_forward(game::cgs->predictedPlayerState.viewangles, rtx::rtx_lights[i].dir);
+								}
+							}
+						}
+
+						if (on_edit)
+						{
+							rtx::rtx_lights[i].type == D3DLIGHT_DIRECTIONAL
+								? rtx::rtx_lights[i].dir[2] += 0.0001f
+								: rtx::rtx_lights[i].origin[2] += 0.0001f;
+						}
+					}
+				}
+				ImGui::PopID();
+			}
+
+			ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
+		}
+
+		if (ImGui::CollapsingHeader("LOD", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+			const auto& r_lodScaleRigid = game::Dvar_FindVar("r_lodScaleRigid");
+			const auto& r_lodBiasRigid = game::Dvar_FindVar("r_lodBiasRigid");
+			const auto& r_lodScaleSkinned = game::Dvar_FindVar("r_lodScaleSkinned");
+			const auto& r_lodBiasSkinned = game::Dvar_FindVar("r_lodBiasSkinned");
+			ImGui::DragFloat("r_lodScaleRigid", &r_lodScaleRigid->current.value, 0.1f, 0.0f);
+			ImGui::DragFloat("r_lodBiasRigid", &r_lodBiasRigid->current.value, 0.1f, 0.0f);
+			ImGui::DragFloat("r_lodScaleSkinned", &r_lodScaleSkinned->current.value, 0.1f);
+			ImGui::DragFloat("r_lodBiasSkinned", &r_lodBiasSkinned->current.value, 0.1f);
+
+			//
+
+			const auto& r_forceLod = game::Dvar_FindVar("r_forceLod");
+			const char* force_lod_strings[] = { "High", "Medium", "Low", "Lowest", "None" };
+			ImGui::SliderInt("Force LOD", &r_forceLod->current.integer, 0, 4, force_lod_strings[r_forceLod->current.integer]);
+			ImGui::Checkbox("Force second lowest LOD", &dvars::r_forceLod_second_lowest->current.enabled); TT(dvars::r_forceLod_second_lowest->description);
+
+			// no longer used
+			//const auto& r_highLodDist = game::Dvar_FindVar("r_highLodDist");
+			//const auto& r_mediumLodDist = game::Dvar_FindVar("r_mediumLodDist");
+			//const auto& r_lowLodDist = game::Dvar_FindVar("r_lowLodDist");
+			//const auto& r_lowestLodDist = game::Dvar_FindVar("r_lowestLodDist");
+			//ImGui::DragFloat("r_highLodDist", &r_highLodDist->current.value, 0.1f, 0.0f);
+			//ImGui::DragFloat("r_mediumLodDist", &r_mediumLodDist->current.value, 0.1f, 0.0f);
+			//ImGui::DragFloat("r_lowLodDist", &r_lowLodDist->current.value, 0.1f);
+			//ImGui::DragFloat("r_lowestLodDist", &r_lowestLodDist->current.value, 0.1f);
+
+			ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
+		}
+	}
+
 	void setup_dvars_rtx()
 	{
 		// show viewmodel
@@ -289,9 +555,9 @@ namespace components
 
 		// r_znear around 4 pushes viewmodel away the further from 0 0 0 we are - 4.002 fixes that
 		if (const auto var = game::Dvar_FindVar("r_znear");
-			var && var->current.value != 4.002f)
+			var && var->current.value != 4.00195f)
 		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_znear 4.002\n");
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_znear 4.00195\n");
 		}
 
 		// fix viewmodel bumping
@@ -759,15 +1025,17 @@ namespace components
 		utils::hook::set<BYTE>(0x641C89 + 3, 0x00);
 		utils::hook::set<BYTE>(0x641C89 + 4, 0x01);
 
+		// force fullbright (switching to fullbright in-game will result in wrong surface normals)
+		utils::hook::nop(0x633259, 2);
 
-		// set debug light defaults
-		/*for (auto i = 0u; i < gui_devgui::RTX_DEBUGLIGHT_AMOUNT; i++)
-		{
-			gui_devgui::rtx_debug_light_range[i] = 500.0f;
-			gui_devgui::rtx_debug_light_color[i][0] = 1.0f;
-			gui_devgui::rtx_debug_light_color[i][1] = 1.0f;
-			gui_devgui::rtx_debug_light_color[i][2] = 1.0f;
-		}*/
+		// set default technique to fakelight normal
+		//utils::hook::set<BYTE>(0x633265 + 1, 0x18);
+
+		// enable techniqueset loading
+		//utils::hook::set<BYTE>(0x6AFBB4 + 24, 0x1); // fakelight normal
+		//utils::hook::set<BYTE>(0x6AFBB4 + 25, 0x1); // fakelight view
+		//utils::hook::set<BYTE>(0x6AFBB4 + 26, 0x1); // sunlight preview
+		//utils::hook::set<BYTE>(0x6AFBB4 + 27, 0x1); // case texture
 
 		// hook beginning of 'RB_Draw3DInternal' to setup general stuff required for rtx-remix
 		utils::hook(0x64B7B1, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();
@@ -792,14 +1060,11 @@ namespace components
 			utils::hook::nop(0x64D172, 8); utils::hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
 		}
 
-		// R_AddWorkerCmd :: disable dynEnt models
-		utils::hook::nop(0x629328, 5);
+		// R_AddWorkerCmd :: disable dynEnt models (not needed)
+		//utils::hook::nop(0x629328, 5);
 
-		// removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash?
-		// ^ also "fixes" black cars - same behaviour as enabling r_fullbright (also disables "hdr" tool-texture drawing)
-		// NOTE: this might be needed for decals to work
-		// TODO: dvar?
-		utils::hook::nop(0x5F9E65, 5); 
+		// removing 'R_AddAllBspDrawSurfacesRangeCamera' (decals) call @ 0x5F9E65 fixes cold/warm light transition on mp_crash (not needed with forced fullbright)
+		//utils::hook::nop(0x5F9E65, 5); 
 
 		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
 		utils::hook::nop(0x63AF44, 5); utils::hook(0x63AF44, alloc_smodel_lighting_stub, HOOK_JUMP).install()->quick();

@@ -8,7 +8,7 @@ namespace components
 		rtx();
 		const char* get_name() override { return "rtx"; };
 
-		static bool r_set_material_stub(game::switch_material_t* swm);
+		static bool r_set_material_stub(game::switch_material_t* swm, const game::GfxCmdBufState* state);
 
 		static void skysphere_frame();
 		
@@ -17,6 +17,8 @@ namespace components
 		static void skysphere_toggle_vis();
 		static void skysphere_change_model(int variant);
 		static void skysphere_spawn(int variant = 0);
+
+		static void gui();
 
 		static inline game::vec3_t skysphere_model_origin = {};
 		static inline game::vec3_t skysphere_model_rotation = {};
@@ -28,11 +30,19 @@ namespace components
 		struct rtx_debug_light
 		{
 			bool enable = false;
+			bool attach = false;
+			bool virgin = true;
+			int disable_hack = 10;
+
+			D3DLIGHTTYPE type = D3DLIGHT_POINT;
 			game::vec3_t origin = {};
 			game::vec3_t color = { 1.0f, 1.0f, 1.0f };
 			float color_scale = 1.0f;
 			float range = 500.0f;
-			int disable_hack = 10;
+
+			// spot
+			game::vec3_t dir = { 0.0f, 1.0f, 0.0f };
+			game::vec3_t dir_offset = {};
 		};
 
 		static inline rtx_debug_light rtx_lights[RTX_DEBUGLIGHT_AMOUNT] = {};

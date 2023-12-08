@@ -2,13 +2,6 @@
 
 #define GET_UIMATERIAL(ptr) (game::Material*) *(DWORD*)(ptr)
 
-// spacing dummy
-#define SPACING(x, y) ImGui::Dummy(ImVec2(x, y)) 
-
-// seperator with spacing
-#define SEPERATORV(spacing, enabled) SPACING(0.0f, spacing); \
-	if(enabled) { ImGui::Separator(); SPACING(0.0f, spacing); }
-
 // fade from black into main menu on first start 
 #define MAINMENU_INIT_FADE_TIME 50.0f
 

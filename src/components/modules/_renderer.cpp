@@ -593,7 +593,7 @@ namespace components
 
 			if (components::active.rtx)
 			{
-				if (!rtx::r_set_material_stub(&mat))
+				if (!rtx::r_set_material_stub(&mat, state))
 				{
 					disable_prepass = true;
 				}
