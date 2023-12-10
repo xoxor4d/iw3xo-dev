@@ -2,6 +2,8 @@
 
 namespace utils
 {
+	bool	world_to_screen(const game::vec3_t world_location, game::vec2_t xy);
+
 	int		try_stoi(const std::string& str, bool quite);
 	float	try_stof(const std::string& str, bool quite);
 

@@ -43,6 +43,8 @@ namespace components
 			// spot
 			game::vec3_t dir = { 0.0f, 1.0f, 0.0f };
 			game::vec3_t dir_offset = {};
+			float inner_angle = 20.0f;
+			float outer_angle = 45.0f;
 		};
 
 		static inline rtx_debug_light rtx_lights[RTX_DEBUGLIGHT_AMOUNT] = {};

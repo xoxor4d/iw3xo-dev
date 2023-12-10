@@ -5,6 +5,42 @@
 
 namespace utils
 {
+	// kej
+	bool world_to_screen(const game::vec3_t world_location, game::vec2_t xy)
+	{
+		if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame");
+						cl_ingame && cl_ingame->current.enabled)
+		{
+			const auto cgs = game::cgs;
+			const auto ref = &cgs->refdef;
+
+			const auto center_x = cgs->refdef.width / 2u;
+			const auto center_y = cgs->refdef.height / 2u;
+
+			game::vec3_t local, transform;
+			vector::subtract3(world_location, cgs->refdef.vieworg, local);
+
+			transform[0] = vector::dot3(local, ref->viewaxis[1]);
+			transform[1] = vector::dot3(local, ref->viewaxis[2]);
+			transform[2] = vector::dot3(local, ref->viewaxis[0]);
+
+			if (transform[2] < 0.01f)
+			{
+				return false;
+			}
+
+			if (xy)
+			{
+				xy[0] = static_cast<float>(center_x) * (1.0f - (transform[0] / ref->tanHalfFovX / transform[2]));
+				xy[1] = static_cast<float>(center_y) * (1.0f - (transform[1] / ref->tanHalfFovY / transform[2]));
+			}
+
+			return transform[2] > 0;
+		}
+
+		return false;
+	}
+
 	int try_stoi(const std::string& str, bool quite)
 	{
 		int ret = 0;

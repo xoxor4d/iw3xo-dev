@@ -84,10 +84,13 @@ namespace components
 			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); 
 							cl_ingame && cl_ingame->current.enabled)
 			{
-				if (ImGui::BeginTabItem("RTX"))
+				if (components::active.rtx)
 				{
-					rtx::gui();
-					ImGui::EndTabItem();
+					if (ImGui::BeginTabItem("RTX"))
+					{
+						rtx::gui();
+						ImGui::EndTabItem();
+					}
 				}
 
 				if ((components::active.cgaz || components::active.compass || components::active.movement || components::active._cg || components::active._pmove) && ImGui::BeginTabItem("Movement"))

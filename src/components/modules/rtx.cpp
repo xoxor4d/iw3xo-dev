@@ -273,8 +273,14 @@ namespace components
 			if (setting->type > D3DLIGHT_POINT)
 			{
 				utils::vector::normalize_to(setting->dir, &ff_light->Direction.x);
-				ff_light->Phi = 3.14f / 4.0f;
-				ff_light->Theta = 3.14f / 8.0f;
+
+				if (setting->inner_angle > setting->outer_angle)
+				{
+					setting->inner_angle = setting->outer_angle;
+				}
+
+				ff_light->Phi = utils::vector::deg_to_rad(setting->outer_angle); // 3.14f / 4.0f;
+				ff_light->Theta = utils::vector::deg_to_rad(setting->inner_angle); // 3.14f / 8.0f;
 			}
 
 			if (setting->attach && setting->enable)
@@ -419,7 +425,7 @@ namespace components
 
 					if (ImGui::Checkbox("Spawn light", &rtx::rtx_lights[i].enable))
 					{
-						on_edit = true;
+						on_edit = true; 
 
 						// default light settings (spawn on player when untouched)
 						if (rtx::rtx_lights[i].virgin)
@@ -460,6 +466,63 @@ namespace components
 						if (rtx::rtx_lights[i].type != D3DLIGHT_DIRECTIONAL)
 						{
 							ImGui::DragFloat3("Position", rtx::rtx_lights[i].origin, 0.25f);
+
+							game::vec2_t screen_pos = {};
+							if (utils::world_to_screen(rtx::rtx_lights[i].origin, screen_pos))
+							{
+								ImGui::GetOverlayDrawList()->AddCircle(ImVec2(screen_pos[0], screen_pos[1]), 6.0f, IM_COL32(0, 255, 0, 255), 8, 4.0f);
+
+								if (rtx::rtx_lights[i].type == D3DLIGHT_SPOT)
+								{
+									game::vec3_t dir_normalized = {};
+									game::vec2_t screen_pos_dir = {};
+									game::vec3_t pos_in_direction = {};
+
+									utils::vector::normalize_to(rtx_lights[i].dir, dir_normalized);
+									utils::vector::multiply_add(rtx_lights[i].origin, 20.0f, dir_normalized, pos_in_direction);
+
+									if (utils::world_to_screen(pos_in_direction, screen_pos_dir))
+									{
+										ImGui::GetOverlayDrawList()->AddLine(
+											ImVec2(screen_pos[0], screen_pos[1]),
+											ImVec2(screen_pos_dir[0], screen_pos_dir[1]),
+											IM_COL32(0, 128, 255, 255), 4.0f);
+									}
+
+									const auto draw_spotlight_debug_circle = [](const rtx_debug_light* light, const float distance, std::uint8_t r, std::uint8_t g, std::uint8_t b, const bool draw_inner = true)
+									{
+										game::vec3_t dn = {};
+										game::vec3_t pos = {};
+
+										utils::vector::normalize_to(light->dir, dn);
+										utils::vector::multiply_add(light->origin, distance, dn, pos);
+
+										game::vec2_t screen_pos = {};
+										if (utils::world_to_screen(pos, screen_pos))
+										{
+											const float lenx = utils::vector::distance3(game::cgs->predictedPlayerState.origin, pos);
+
+											if (draw_inner)
+											{
+												// inner angle
+												ImGui::GetOverlayDrawList()->AddCircle(
+													ImVec2(screen_pos[0], screen_pos[1]),
+													((distance * 5.0f * tanf(utils::vector::deg_to_rad(light->inner_angle * 0.5f))) / (lenx * 0.0055f)),
+													IM_COL32(255, 128, 0, 255), 8, 4.0f);
+											}
+
+											// outer angle
+											ImGui::GetOverlayDrawList()->AddCircle(
+												ImVec2(screen_pos[0], screen_pos[1]),
+												((distance * 5.0f * tanf(utils::vector::deg_to_rad(light->outer_angle * 0.5f))) / (lenx * 0.0055f)),
+												IM_COL32(r, g, b, 255), 8, 4.0f);
+										}
+									};
+
+									draw_spotlight_debug_circle(&rtx_lights[i], 20.0f * 1.00f, 0, 255, 0, true);
+									//draw_spotlight_debug_circle(&rtx_lights[i], 20.0f * 0.95f, 0, 200, 0, false);
+								}
+							}
 						}
 
 						if (rtx::rtx_lights[i].type > D3DLIGHT_POINT)
@@ -468,12 +531,18 @@ namespace components
 
 							if (rtx::rtx_lights[i].attach)
 							{
-								ImGui::DragFloat3("Direction Offset", rtx::rtx_lights[i].dir_offset, 0.05f);
+								on_edit = ImGui::DragFloat3("Direction Offset", rtx::rtx_lights[i].dir_offset, 0.05f) ? true : on_edit;
 							}
 						}
 
 						if (rtx::rtx_lights[i].type != D3DLIGHT_DIRECTIONAL)
 						{
+							if (rtx::rtx_lights[i].type == D3DLIGHT_SPOT)
+							{
+								on_edit = ImGui::DragFloat("Inner Angle", &rtx::rtx_lights[i].inner_angle, 0.25f) ? true : on_edit;
+								on_edit = ImGui::DragFloat("Outer Angle", &rtx::rtx_lights[i].outer_angle, 0.25f) ? true : on_edit;
+							}
+
 							on_edit = ImGui::DragFloat("Range", &rtx::rtx_lights[i].range, 0.25f) ? true : on_edit;
 						}
 						
@@ -498,9 +567,18 @@ namespace components
 
 						if (on_edit)
 						{
-							rtx::rtx_lights[i].type == D3DLIGHT_DIRECTIONAL
-								? rtx::rtx_lights[i].dir[2] += 0.0001f
-								: rtx::rtx_lights[i].origin[2] += 0.0001f;
+							switch (rtx::rtx_lights[i].type)
+							{
+							default:
+							case D3DLIGHT_POINT: 
+								rtx::rtx_lights[i].origin[2] += 0.0001f; break;
+
+							case D3DLIGHT_SPOT:
+								rtx::rtx_lights[i].outer_angle += 0.0001f; break;
+
+							case D3DLIGHT_DIRECTIONAL:
+								rtx::rtx_lights[i].dir[2] += 0.0001f; break;
+							}
 						}
 					}
 				}
@@ -606,6 +684,20 @@ namespace components
 			var && var->current.value != 0.0f)
 		{
 			game::Cmd_ExecuteSingleCommand(0, 0, "cg_tracerlength 0\n");
+		}
+
+		// ------------- one time only --------------------
+
+		// disable decals once but dont force it off the whole time
+		if (static bool disable_decals_once = false; !disable_decals_once)
+		{
+			if (const auto var = game::Dvar_FindVar("r_drawdecals");
+				var && var->current.enabled)
+			{
+				game::Cmd_ExecuteSingleCommand(0, 0, "r_drawdecals 0\n");
+			}
+
+			disable_decals_once = true;
 		}
 
 		// disable fx once but dont force it off the whole time
