@@ -1132,6 +1132,19 @@ namespace components
 		// hook beginning of 'RB_Draw3DInternal' to setup general stuff required for rtx-remix
 		utils::hook(0x64B7B1, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();
 
+		// render third person model in first person
+		utils::hook::nop(0x42E187, 6); // CG_DrawFriendlyNames: do not disable name drawing
+		utils::hook::nop(0x42E2BA, 6); // CG_DrawCrosshairNames: ^
+		utils::hook::nop(0x4311AE, 6); // CG_DrawCrosshair: do not disable crosshair
+		utils::hook::nop(0x443007, 2); // CG_UpdateCursorHints: do not disable cursor hints
+		utils::hook::nop(0x45083C, 2); // CG_CalcTurretViewValues: calculate first person viewangles
+		utils::hook::nop(0x4508C1, 6); // CG_ApplyViewAnimation: first person anims
+		utils::hook::nop(0x451C70, 2); // CG_CalcViewValues: always call CG_OffsetFirstPersonView
+		utils::hook::set<BYTE>(0x451C9E, 0xEB); // CG_CalcViewValues: do not call CG_OffsetThirdPersonView
+		utils::hook::set<BYTE>(0x456D36, 0xEB); // CG_AddPlayerWeapon: do not disable bolt effects
+		utils::hook::nop(0x457054, 6); // CG_AddViewWeapon: do not disable viewmodel
+		utils::hook::nop(0x451D8E, 2); // CG_UpdateThirdPerson: always enable "thirdperson"
+
 		// ----------------------------------------------------
 
 		if (flags::has_flag("disable_culling"))
