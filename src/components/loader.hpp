@@ -36,6 +36,9 @@ namespace components
 		bool postfx_shaders;
 		bool radiant_livelink;
 		bool rtx;
+		bool rtx_fixed_function;
+		bool rtx_gui;
+		bool rtx_lights;
 	};
 
 	extern activeModules_s active;
@@ -98,6 +101,9 @@ namespace components
 #include "modules/postfx_shaders.hpp"
 #include "modules/radiant_livelink.hpp"
 #include "modules/rtx.hpp"
+#include "modules/rtx_fixed_function.hpp"
+#include "modules/rtx_gui.hpp"
+#include "modules/rtx_lights.hpp"
 #include "modules/window.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading

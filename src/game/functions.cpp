@@ -1488,20 +1488,30 @@ namespace game
 		}
 	}
 
-	__declspec(naked) void Vec3UnpackUnitVec(game::PackedUnitVec, const float*)
+	void Vec3UnpackUnitVec(unsigned int packed, float* texcoord_out /*ecx*/)
 	{
 		const static uint32_t func_addr = 0x5647D0;
 		__asm
 		{
-			push	ecx;
-			mov		ecx, [esp + 0Ch];
-			push	[esp + 08h];
+			mov		ecx, texcoord_out;
+			push	packed;
 			call	func_addr;
-			add		esp, 4h;
-			pop		ecx;
-			retn;
+			add		esp, 4;
 		}
 	}
+
+	void Vec2UnpackTexCoords(unsigned int packed, float* texcoord_out /*ecx*/)
+	{
+		const static uint32_t func_addr = 0x5648E0;
+		__asm
+		{
+			mov		ecx, texcoord_out;
+			push	packed;
+			call	func_addr;
+			add		esp, 4;
+		}
+	}
+
 
 	void Byte4UnpackRgba(unsigned __int8* from, float* to)
 	{

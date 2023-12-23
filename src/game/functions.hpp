@@ -571,7 +571,8 @@ namespace game
 	const char* SL_ConvertToString(int idx);
 
 	game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
-	void Vec3UnpackUnitVec(game::PackedUnitVec in, const float *out);
+	void Vec3UnpackUnitVec(unsigned int packed, float* texcoord_out /*ecx*/);
+	void Vec2UnpackTexCoords(unsigned int packed, float* texcoord_out /*ecx*/);
 
 	void Byte4UnpackRgba(unsigned __int8* from, float* to);
 	char Byte1PackClamp(const float from);

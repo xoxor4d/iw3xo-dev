@@ -1257,7 +1257,7 @@ namespace components
 	{
 		if (components::active.rtx)
 		{
-			rtx::skysphere_frame();
+			rtx_gui::skysphere_frame();
 		}
 
 		if (input)
