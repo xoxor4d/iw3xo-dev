@@ -13,6 +13,16 @@ namespace components
 			const auto& fx_enable = game::Dvar_FindVar("fx_enable");
 			ImGui::Checkbox("Enable FX", &fx_enable->current.enabled);
 
+			const auto& rtx_hacks = game::Dvar_FindVar("rtx_hacks");
+			ImGui::Checkbox("Skybox hack", &rtx_hacks->current.enabled);
+			TT("Replaces the skybox with a placeholder texture that can be set as sky.\n"
+			   "It`s recommended to keep this enabled!");
+
+			const auto& rtx_extend_smodel_drawing = game::Dvar_FindVar("rtx_extend_smodel_drawing");
+			ImGui::Checkbox("Increase static model limit", &rtx_extend_smodel_drawing->current.enabled);
+			TT("The game has a hard limit on how many static models it can draw at once (warning print in console).\n"
+			   "Enabling this setting will disable that limit but might cause instability.");
+
 			ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
 		}
 

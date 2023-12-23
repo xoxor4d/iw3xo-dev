@@ -66,11 +66,15 @@ ___
 
 <br>
 
-- Disable all culling: use commandline argument `-disable_culling`.  
-eg: &ensp;`"c:\path\iw3xo.exe" -disable_culling` 
+### Commandline Arguments:
+  - `-disable_culling` - disable all culling 
+  - `-fixed_function`- fixed-function rendering (static models, fps ++)
+  
+> eg: &ensp;`"c:\path\iw3xo.exe" -disable_culling -fixed_function` 
 
-- Additional settings (in-game): use console command `/devgui` and go to the __rtx__ tab
+<br>
 
+### Additional settings (console command `/devgui` - __rtx__ tab)
 - Use dvar `r_forceLod` to force a specific LOD
 - Use dvar `r_forceLod_second_lowest` to hinder the game from using the lowest possible LOD (lowest LOD is sometimes used to hide the model)
 - Use dvar `r_lodScaleRigid` to adjust model LOD distance - a value of 0 will force LOD0

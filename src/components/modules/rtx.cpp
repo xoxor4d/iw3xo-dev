@@ -3,8 +3,7 @@
 // Notes:
 // * skinned meshes have unstable hashes
 // * motion vectors are broken (flickering static meshes) (seems to be r_znear related)
-
-// TODO - force 'rtx_extend_smodel_drawing' ??
+// * running the game with a debug build of remix will throw an assert
 
 namespace components
 {
