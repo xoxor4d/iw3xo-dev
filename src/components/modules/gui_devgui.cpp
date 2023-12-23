@@ -84,11 +84,11 @@ namespace components
 			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); 
 							cl_ingame && cl_ingame->current.enabled)
 			{
-				if (components::active.rtx)
+				if (components::active.rtx && components::active.rtx_gui && components::active.rtx_lights)
 				{
 					if (ImGui::BeginTabItem("RTX"))
 					{
-						rtx::gui();
+						rtx_gui::gui();
 						ImGui::EndTabItem();
 					}
 				}

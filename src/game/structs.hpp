@@ -1740,7 +1740,7 @@ namespace game
 		XSurfaceCollisionTree* collisionTree;
 	};
 
-	struct XSurface
+	/*struct XSurface
 	{
 		char tileMode;
 		bool deformed;
@@ -1755,7 +1755,26 @@ namespace game
 		unsigned int vertListCount;
 		XRigidVertList* vertList;
 		int partBits[4];
-	};
+	};*/
+
+	struct XSurface
+	{
+		char tileMode;
+		bool deformed;
+		unsigned __int16 vertCount;
+		unsigned __int16 triCount;
+		char zoneHandle;
+		unsigned __int16 baseTriIndex;
+		unsigned __int16 baseVertIndex;
+		unsigned __int16* triIndices;
+		XSurfaceVertexInfo vertInfo;
+		GfxPackedVertex* verts0;
+		unsigned int vertListCount;
+		XRigidVertList* vertList;
+		int partBits[2]; // was 4
+		IDirect3DVertexBuffer9* custom_vertexbuffer;
+		IDirect3DIndexBuffer9* custom_indexbuffer;
+	}; STATIC_ASSERT_SIZE(XSurface, 0x38);
 
 	struct BrushWrapper
 	{
@@ -2611,6 +2630,31 @@ namespace game
 		unsigned __int16 lightingHandle;
 		char flags;
 	};
+
+	struct GfxStaticModelDrawStream
+	{
+		const unsigned int* primDrawSurfPos;
+		GfxTexture* reflectionProbeTexture;
+		unsigned int customSamplerFlags;
+		XSurface* localSurf;
+		unsigned int smodelCount;
+		const unsigned __int16* smodelList;
+		unsigned int reflectionProbeIndex;
+	};
+
+	// custom struct for fixed-function rendering
+	/*struct __declspec(align(4)) GfxStaticModelDrawInst
+	{
+		float cullDist;
+		GfxPackedPlacement placement;
+		XModel* model;
+		IDirect3DVertexBuffer9* custom_vertexbuffer;
+		IDirect3DIndexBuffer9* custom_indexbuffer;
+		char reflectionProbeIndex;
+		char primaryLightIndex;
+		unsigned __int16 lightingHandle;
+		char flags;
+	}; STATIC_ASSERT_SIZE(GfxStaticModelDrawInst, 0x4C);*/
 
 	struct GfxWorldDpvsStatic
 	{
@@ -5261,7 +5305,7 @@ namespace game
 	struct gfxVertexSteamsUnk
 	{
 		unsigned int stride;
-		int* vb; // IDirect3DVertexBuffer9
+		IDirect3DVertexBuffer9* vb; // IDirect3DVertexBuffer9
 		unsigned int offset;
 	};
 
@@ -5296,7 +5340,7 @@ namespace game
 	struct GfxCmdBufPrimState
 	{
 		IDirect3DDevice9* device; // IDirect3DDevice9
-		int* indexBuffer; // IDirect3DIndexBuffer9
+		IDirect3DIndexBuffer9* indexBuffer; // IDirect3DIndexBuffer9
 		MaterialVertexDeclType vertDeclType;
 		gfxVertexSteamsUnk streams[2];
 		int* vertexDecl; // IDirect3DVertexDeclaration9

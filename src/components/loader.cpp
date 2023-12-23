@@ -44,7 +44,11 @@ namespace components
 		active.ocean			= true;
 		active.postfx_shaders	= true;
 		active.radiant_livelink	= true;
-		active.rtx				= true;
+
+		active.rtx					= true;
+		active.rtx_fixed_function	= true;
+		active.rtx_gui				= true;
+		active.rtx_lights			= true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_cg);
@@ -78,6 +82,9 @@ namespace components
 		REGISTER_MODULE(postfx_shaders);
 		REGISTER_MODULE(radiant_livelink);
 		REGISTER_MODULE(rtx);
+		REGISTER_MODULE(rtx_fixed_function);
+		REGISTER_MODULE(rtx_gui);
+		REGISTER_MODULE(rtx_lights);
 	}
 
 	void loader::uninitialize_()
