@@ -50,6 +50,7 @@ jobs:
           path: |
             build/bin/${{matrix.configuration}}/iw3x.dll
             build/bin/${{matrix.configuration}}/iw3x.pdb
+            ./assets-remix/*
 
   webbook:
     needs: build
