@@ -317,6 +317,233 @@ namespace components
 		}
 	}
 
+	// *
+	// ------------------------------------
+
+	IDirect3DVertexBuffer9* gfx_world_vertexbuffer = nullptr;
+
+	unsigned int R_ReadPrimDrawSurfInt(game::GfxReadCmdBuf* cmdBuf)
+	{
+		return *cmdBuf->primDrawSurfPos++;
+	}
+
+	const unsigned int* R_ReadPrimDrawSurfData(game::GfxReadCmdBuf* cmdBuf, unsigned int count)
+	{
+		const auto pos = cmdBuf->primDrawSurfPos;
+		cmdBuf->primDrawSurfPos += count;
+		return pos;
+	}
+
+	int R_ReadBspPreTessDrawSurfs(game::GfxReadCmdBuf* cmdBuf, game::GfxBspPreTessDrawSurf** list, unsigned int* count, unsigned int* baseIndex)
+	{
+		*count = R_ReadPrimDrawSurfInt(cmdBuf);
+		if (!*count)
+		{
+			return 0;
+		}
+		*baseIndex = R_ReadPrimDrawSurfInt(cmdBuf);
+		*list = (game::GfxBspPreTessDrawSurf*)R_ReadPrimDrawSurfData(cmdBuf, *count);
+		return 1;
+	}
+
+	void R_DrawPreTessTris(game::GfxCmdBufSourceState* src, game::GfxCmdBufPrimState* state, game::srfTriangles_t* tris, unsigned int baseIndex, unsigned int triCount)
+	{
+		const auto dev = game::glob::d3d9_device;
+
+		src->matrices.matrix[0].m[3][0] = 0.0f;
+		src->matrices.matrix[0].m[3][1] = 0.0f;
+		src->matrices.matrix[0].m[3][2] = 0.0f;
+		src->matrices.matrix[0].m[3][3] = 1.0f;
+		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&src->matrices.matrix[0].m));
+
+		dev->SetStreamSource(0, gfx_world_vertexbuffer, 32 * tris->firstVertex, 32);
+		state->device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, tris->vertexCount, baseIndex, triCount);
+	}
+
+	void R_DrawBspDrawSurfsPreTess(const unsigned int* primDrawSurfPos, game::GfxCmdBufSourceState* src, game::GfxCmdBufState* state)
+	{
+		unsigned int baseIndex; // [esp+0h] [ebp-2Ch] BYREF
+		unsigned int surfIndex; // [esp+4h] [ebp-28h]
+		game::GfxReadCmdBuf cmdBuf; // [esp+8h] [ebp-24h] BYREF
+		game::srfTriangles_t* tris; // [esp+Ch] [ebp-20h]
+		game::srfTriangles_t* prevTris; // [esp+10h] [ebp-1Ch]
+		game::GfxBspPreTessDrawSurf* list; // [esp+14h] [ebp-18h] BYREF
+		unsigned int triCount; // [esp+18h] [ebp-14h]
+		game::GfxSurface* bspSurf; // [esp+1Ch] [ebp-10h]
+		unsigned int index; // [esp+20h] [ebp-Ch]
+		unsigned int count; // [esp+24h] [ebp-8h] BYREF
+		int baseVertex; // [esp+28h] [ebp-4h]
+
+		const auto dev = game::glob::d3d9_device;
+		
+		// #
+		// setup fixed-function
+
+		// vertex format
+		dev->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
+
+		// save shaders
+		IDirect3DVertexShader9* og_vertex_shader;
+		dev->GetVertexShader(&og_vertex_shader);
+
+		IDirect3DPixelShader9* og_pixel_shader;
+		dev->GetPixelShader(&og_pixel_shader);
+
+		// def. needed or the game will render the mesh using shaders
+		dev->SetVertexShader(nullptr);
+		dev->SetPixelShader(nullptr);
+
+
+		cmdBuf.primDrawSurfPos = primDrawSurfPos;
+
+		while (R_ReadBspPreTessDrawSurfs(&cmdBuf, &list, &count, &baseIndex))
+		{
+			prevTris = 0;
+			triCount = 0;
+			baseVertex = -1;
+
+			for (index = 0; index < count; ++index)
+			{
+				surfIndex = list[index].baseSurfIndex;
+				if (surfIndex >= (unsigned)game::rgp->world->surfaceCount)
+				{
+					__debugbreak();
+				}
+
+				bspSurf = &game::rgp->world->dpvs.surfaces[surfIndex];
+				tris = &bspSurf->tris;
+
+				if (baseVertex != bspSurf->tris.firstVertex)
+				{
+					if (triCount)
+					{
+						R_DrawPreTessTris(src, &state->prim, prevTris, baseIndex, triCount);
+						baseIndex += 3 * triCount;
+						triCount = 0;
+					}
+
+					prevTris = tris;
+					baseVertex = tris->firstVertex;
+				}
+
+				triCount += list[index].totalTriCount;
+			}
+
+			R_DrawPreTessTris(src, &state->prim, prevTris, baseIndex, triCount);
+		}
+
+		// #
+		// restore everything for following meshes rendered via shaders
+
+		dev->SetVertexShader(og_vertex_shader);
+		dev->SetPixelShader(og_pixel_shader);
+
+		// restore world matrix
+		rtx::r_set_3d();
+		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->matrices.matrix[0].m));
+
+		dev->SetFVF(0);
+	}
+
+
+	// *
+	// ------------------------------------
+
+	void build_gfxworld_buffers()
+	{
+		/*	struct GfxWorldVertex = 44 bytes
+		{
+		  float xyz[3];
+		  float binormalSign;
+		  GfxColor color;
+		  float texCoord[2];
+		  float lmapCoord[2];
+		  PackedUnitVec normal;
+		  PackedUnitVec tangent;
+		};*/
+
+		// R_TessTrianglesPreTessList -> R_DrawBspDrawSurfsPreTess
+		// GfxWorld->vd.worldVb
+
+		// lost device:
+
+		//									int sizeInBytes,	 IDirect3DVertexBuffer9 **vb,  char *srcData
+		// R_CreateWorldVertexBuffer(44 * gfxWorld.vertexCount,  &gfxWorld.vd.worldVb,		   gfxWorld.vd.vertices);
+		// ----> R_AllocStaticVertexBuffer
+
+		// actual:
+		//0x4854B0 - Alloc GfxWorld Vertexbuffer - Load_GfxWorldVertexData
+
+		const auto dev = game::glob::d3d9_device;
+
+		if (game::gfx_world)
+		{
+			if (gfx_world_vertexbuffer)
+			{
+				__debugbreak();
+				gfx_world_vertexbuffer->Release();
+				gfx_world_vertexbuffer = nullptr;
+			}
+
+			void* vertex_buffer_data = nullptr;
+
+			// new stride = 32 // pos-xyz ; normal-xyz ; texcoords uv = 32 byte
+			if (auto hr = dev->CreateVertexBuffer(32 * game::gfx_world->vertexCount, D3DUSAGE_WRITEONLY, (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1), D3DPOOL_DEFAULT, &gfx_world_vertexbuffer, nullptr);
+				hr >= 0)
+			{
+				if (hr = gfx_world_vertexbuffer->Lock(0, 0, &vertex_buffer_data, 0);
+					hr >= 0)
+				{
+					/*	struct GfxWorldVertex = 44 bytes
+					{
+						float xyz[3];
+						float binormalSign;
+						GfxColor color;
+						float texCoord[2];
+						float lmapCoord[2];
+						PackedUnitVec normal;
+						PackedUnitVec tangent;
+					};*/
+
+					struct unpacked_vert
+					{
+						game::vec3_t pos;
+						game::vec3_t normal;
+						game::vec2_t texcoord;
+					};
+
+					for (auto i = 0; i < game::gfx_world->vertexCount; i++)
+					{
+						// packed source vertex
+						const auto src_vert = game::gfx_world->vd.vertices[i];
+
+						// position of our unpacked vert within the vertex buffer
+						const auto v_pos_in_buffer = i * 32; // pos-xyz ; normal-xyz ; texcoords uv = 32 byte 
+						const auto v = reinterpret_cast<unpacked_vert*>(((DWORD)vertex_buffer_data + v_pos_in_buffer));
+
+						// assign pos and unpack normal and texcoords
+						v->pos[0] = src_vert.xyz[0];
+						v->pos[1] = src_vert.xyz[1];
+						v->pos[2] = src_vert.xyz[2];
+
+						utils::vector::unpack_unit_vec3(src_vert.normal, v->normal);
+
+						v->texcoord[0] = src_vert.texCoord[0];
+						v->texcoord[1] = src_vert.texCoord[1];
+					}
+
+					gfx_world_vertexbuffer->Unlock();
+				}
+				else
+				{
+					gfx_world_vertexbuffer->Release();
+					gfx_world_vertexbuffer = nullptr;
+				}
+			}
+		}
+	}
+
+	// *
 	// ------------------------------------
 
 	void warm_static_models_on_map_load()
@@ -342,6 +569,7 @@ namespace components
 		{
 			pushad;
 			call	warm_static_models_on_map_load;
+			call	build_gfxworld_buffers;
 			popad;
 
 			call	stock_func;
@@ -353,6 +581,16 @@ namespace components
 
 	void free_custom_xmodel_buffers()
 	{
+		// gfx world
+
+		if (gfx_world_vertexbuffer)
+		{
+			gfx_world_vertexbuffer->Release();
+			gfx_world_vertexbuffer = nullptr;
+		}
+
+		// ---------
+
 		game::DB_EnumXAssets_FastFile(game::XAssetType::ASSET_TYPE_XMODEL, [](game::XAssetHeader header, [[maybe_unused]] void* data)
 		{
 			const auto dev = game::glob::d3d9_device;
@@ -421,6 +659,10 @@ namespace components
 			//utils::hook::nop(0x647D8F, 5); // R_SetPassShaderObjectArguments - this sets a sampler (SetTexture -> needed)
 
 			utils::hook(0x655A10, R_DrawStaticModelDrawSurfNonOptimized, HOOK_CALL).install()->quick();
+			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
+
+			// 1st DrawIndexedPrimitive
+			//utils::hook::nop(0x655780, 18);
 
 			// ----
 
@@ -435,7 +677,33 @@ namespace components
 
 			// ----
 
+			// release custom vertex and index buffers
 			utils::hook(0x5F5052, free_custom_xmodel_buffers_stub).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
+
+			// ----
+
+			/*	struct GfxWorldVertex = 44 bytes
+				{
+				  float xyz[3];
+				  float binormalSign;
+				  GfxColor color;
+				  float texCoord[2];
+				  float lmapCoord[2];
+				  PackedUnitVec normal;
+				  PackedUnitVec tangent;
+				};*/
+
+			// R_TessTrianglesPreTessList -> R_DrawBspDrawSurfsPreTess
+			// GfxWorld->vd.worldVb
+
+			// lost device:
+
+			//									int sizeInBytes,	 IDirect3DVertexBuffer9 **vb,  char *srcData
+			// R_CreateWorldVertexBuffer(44 * gfxWorld.vertexCount,  &gfxWorld.vd.worldVb,		   gfxWorld.vd.vertices);
+			// ----> R_AllocStaticVertexBuffer
+
+			// actual:
+			//0x4854B0 - Alloc GfxWorld Vertexbuffer - Load_GfxWorldVertexData
 		}
 	}
 }

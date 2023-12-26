@@ -2044,6 +2044,24 @@ namespace game
 		float maxs[3];
 	};
 
+	struct GfxDrawPrimArgs
+	{
+		int vertexCount;
+		int triCount;
+		int baseIndex;
+	};
+
+	struct GfxBspPreTessDrawSurf
+	{
+		unsigned __int16 baseSurfIndex;
+		unsigned __int16 totalTriCount;
+	};
+
+	struct GfxReadCmdBuf
+	{
+		const unsigned int* primDrawSurfPos;
+	};
+
 	struct GfxWorldStreamInfo
 	{
 		int aabbTreeCount;
