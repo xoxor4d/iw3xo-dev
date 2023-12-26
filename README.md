@@ -40,25 +40,18 @@ https://xoxor4d.github.io/projects/iw3xo/
 <br>
 <br>
 
-<!-- ## Installation > nvidia-remix-branch (rtx)  -->
-<div markdown="1" >
+## Installation > nvidia-remix-branch (rtx) 
 
-<h2 style="width: 80%; float:left" align="left"> Installation > nvidia-remix-branch (rtx)</h2> 
-<div markdown="1" style="margin-top: 10px; width: 20%; float:left">
+<div align="right" markdown="1">
 
 [![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-rtx-release.yml?branch=rtx&label=nightly-rtx&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)
 </div>
-</div>
-
-<br>
-<br>
-<br>
 
 1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases) and copy the contents of the `.zip` file into your cod4 root folder (a full release is required as it comes with additional files)
 
 2. Open [Github Actions](https://github.com/xoxor4d/iw3xo-dev/actions) and select the latest successful `rtx` build 
 
-3. Download the `Release-binaries-rtx` artifact and extract it`s contents into your cod4 root folder and replace all files when prompted. 
+3. Download the `Release-binaries-rtx` artifact. Files within `assets-remix` go into your cod4 root folder. The same goes for `iw3x.dll`. Replace all files when prompted. 
 
 4. Run `iw3xo.exe`
 > `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
