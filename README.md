@@ -3,8 +3,8 @@
 
 <p align="center">
 This project is aimed at developers and includes various modifications/additions.  
-iw3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
-A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
+iw3xo is not compatible with CoD4x, so make sure you uninstall it first.  
+A compatible radiant modification that can create a live-link between iw3xo and iw3xo-radiant can be found below.
 </p>
 
 <br>
@@ -33,52 +33,58 @@ https://xoxor4d.github.io/projects/iw3xo/
 <br>
 
 <div align="center">
-	<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
-	<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
+	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/4cb3fd26-1a58-468f-9c60-49b2aba63235"/>
+	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/8fca51c8-3642-4ddf-84d9-9324e7798093"/>
 </div>
 
 <br>
 <br>
 
-___
-## Installation
+<!-- ## Installation > nvidia-remix-branch (rtx)  -->
+<div markdown="1" >
+
+<h2 style="width: 80%; float:left" align="left"> Installation > nvidia-remix-branch (rtx)</h2> 
+<div markdown="1" style="margin-top: 10px; width: 20%; float:left">
+
+[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-rtx-release.yml?branch=rtx&label=nightly-rtx&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)
+</div>
+</div>
 
 <br>
-
-1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases)
-2. Copy the `.zip` contents into your cod4 root folder
-3. Start __iw3xo.exe__
-
-- [NIGHTLY]&ensp; unpack and replace `iw3x.dll` with the one found in your cod4 root folder
-
+<br>
 <br>
 
-## nvidia-remix-branch (rtx)
-1. All of the above
+1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases) and copy the contents of the `.zip` file into your cod4 root folder (a full release is required as it comes with additional files)
 
-2. Open [Github Actions](https://github.com/xoxor4d/iw3xo-dev/actions), select the latest `rtx` branch build, grab the `Release-binaries-rtx` artifacts and extract it into your cod4 root folder.
+2. Open [Github Actions](https://github.com/xoxor4d/iw3xo-dev/actions) and select the latest successful `rtx` build 
 
-2. Grab files from `assets-remix` and put them into your cod4 root folder (download repo as zip) 
+3. Download the `Release-binaries-rtx` artifact and extract it`s contents into your cod4 root folder and replace all files when prompted. 
 
-3. Open the in-game console and type `/exec rtx` to setup dvars  
+4. Run `iw3xo.exe`
+> `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
+> | -> `iw3x.dll` (a proxy d3d9.dll) will then load the remix runtime d3d9 proxy dll :]  
+> | -> if you want to use the original `iw3mp.exe` then you have to find other ways of chain-loading the dll's 
 
-4. Restart the game
+5. Open the in-game console and type `/exec rtx` and restart the game
 
 <br>
 
 ### Commandline Arguments:
-  - `-disable_culling` - disable all culling 
-  - `-fixed_function`- fixed-function rendering (static models, fps ++)
+  - `-disable_culling` &ensp; :: disables all culling __(!RECOMMENDED)__
+  - `-fixed_function` &ensp; &ensp;:: use the fixed-function pipeline to render static models __(!RECOMMENDED)__
   
 > eg: &ensp;`"c:\path\iw3xo.exe" -disable_culling -fixed_function` 
 
 <br>
 
 ### Additional settings (console command `/devgui` - __rtx__ tab)
-- Use dvar `r_forceLod` to force a specific LOD
-- Use dvar `r_forceLod_second_lowest` to hinder the game from using the lowest possible LOD (lowest LOD is sometimes used to hide the model)
-- Use dvar `r_lodScaleRigid` to adjust model LOD distance - a value of 0 will force LOD0
-- Use dvar `rtx_hacks` to replace the skybox with a blue-gray texture
+- I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
+- `r_forceLod` :: force a specific LOD
+- `r_forceLod_second_lowest` :: prevent game from using the lowest LOD (sometimes used to hide the model)
+- `r_lodScaleRigid` :: adjust model LOD distance - a value of 0 will force LOD0
+- `rtx_hacks` :: replace the skybox with a blue-gray texture _(enabled by default)_
+- `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
+- `rtx_warm_smodels` :: build model buffers on map load _(fixed-function only - enabled by default)_
 
 <br>
 
@@ -89,14 +95,19 @@ Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your
 
 - If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
 
-- Spawning lights with the devgui should be pretty self explanatory. Just note that lights only update (color, radius) when you change the position afterwards.
+- Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
+
+<br>
+
+### Questions? 
+- join the [rtx-remix showcase](https://discord.gg/j6sh7JD3v9) discord and check out the cod4 thread within the `remix-projects` channel.
+- join the [iw3xo](https://discord.gg/t5jRGbj) discord if you have questions related to iw3xo
+- rtx-remix: https://github.com/NVIDIAGameWorks/rtx-remix  
 
 <br>
 
 ___
 ## Requirements:
-
-<br>
 
 1. CoD4 1.7
 2. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
@@ -111,12 +122,11 @@ ___
 ___
 ## Build / Compile
 
-<br>
-
 ### > How to build / compile the project using Visual Studio
 1. Clone the repo! __(zip does not include deps!)__
+2. Setup a `COD4_ROOT` environment variable with a path to your cod4 directory (optional)
 2. Use __generate-buildfiles.bat__ to build project files with premake
-3. Load the solution `(build/iw3xo-dev.sln)` and open the iw3x project-settings to setup paths:
+3. Open `(build/iw3xo-dev.sln)` and setup paths for the iw3x project (not needed if Step #2)
 > - General &ensp; &ensp; &ensp; output directory path -> `path-to-cod4-root\`
 > - Debugging &ensp; command -> `path-to-cod4-root\iw3xo.exe`
 > - Debugging &ensp; working directory -> `path-to-cod4-root`
@@ -146,6 +156,7 @@ https://discord.gg/t5jRGbj
 - [g-truc - glm](https://github.com/g-truc/glm/)
 - [ocornut - Dear ImGui](https://github.com/ocornut/imgui)
 - [Jelvan1 - cgame proxymod](https://github.com/Jelvan1/cgame_proxymod)
+- [Nvidia - rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix)
 
 <br>
 
@@ -154,10 +165,11 @@ ___
 
 <br>
 
-<img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg"/>
+<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/edf972dc-0a63-4d3d-8bfb-4987c3dc6115"/>
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
 <img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/mainmenu.jpg"/>
-<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/feat_spmap.jpg"/>
 
+<br>
 <br>
 
 ## Disclaimer

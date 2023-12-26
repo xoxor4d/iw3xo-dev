@@ -235,7 +235,7 @@ namespace components
 			popad;
 
 			add     esp, 8 // og instruction overwritten by hook
-				jmp		draw_model_addr;
+			jmp		draw_model_addr;
 
 		OG_LOGIC:
 			popad;

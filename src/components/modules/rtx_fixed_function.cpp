@@ -2,9 +2,11 @@
 
 namespace components
 {
-	void XSurfaceOptimize(game::XSurface* surf)
+	bool XSurfaceOptimize(game::XSurface* surf)
 	{
 		const auto dev = game::glob::d3d9_device;
+		bool allocated_any = false;
+
 
 		// setup indexbuffer
 		if (!surf->custom_indexbuffer)
@@ -29,6 +31,8 @@ namespace components
 				{
 					surf->custom_indexbuffer->Release();
 				}
+
+				allocated_any = true;
 			}
 		}
 
@@ -94,9 +98,13 @@ namespace components
 					{
 						surf->custom_vertexbuffer->Release();
 					}
+
+					allocated_any = true;
 				}
 			}
 		}
+
+		return allocated_any;
 	}
 
 	int XModelGetSurfaces(const game::XModel* model, game::XSurface** surfaces, const int submodel)
@@ -105,7 +113,7 @@ namespace components
 		return model->lodInfo[submodel].numsurfs;
 	}
 
-	void XModelOptimize(const game::XModel* model)
+	void XModelOptimize(const game::XModel* model, bool is_loading_map = false)
 	{
 		game::XSurface* surfaces;
 
@@ -115,7 +123,14 @@ namespace components
 			const auto surfCount = XModelGetSurfaces(model, &surfaces, lodIndex);
 			for (auto surfIndex = 0; surfIndex < surfCount; ++surfIndex)
 			{
-				XSurfaceOptimize(&surfaces[surfIndex]);
+				const bool allocated_any = XSurfaceOptimize(&surfaces[surfIndex]);
+
+#if DEBUG
+				if (!is_loading_map && allocated_any)
+				{
+					game::Com_PrintMessage(0, utils::va("Allocated buffers for smodel '%s'\n", model->name), 0);
+				}
+#endif
 			}
 		}
 	}
@@ -195,6 +210,7 @@ namespace components
 		const auto draw_inst = game::rgp->world->dpvs.smodelDrawInsts;
 		const auto dev = game::glob::d3d9_device;
 
+
 		// create buffers for all surfaces of the model (including LODs)
 		for (auto index = 0u; index < smodel_count; index++)
 		{
@@ -202,18 +218,33 @@ namespace components
 			XModelOptimize(inst->model);
 		}
 
+		// #
+		// set streams
+
+		IDirect3DIndexBuffer9* og_index_buffer = nullptr;
+		IDirect3DVertexBuffer9* og_vertex_buffer = nullptr;
+		std::uint32_t og_vertex_buffer_offset = 0;
+		std::uint32_t og_vertex_buffer_stride = 0;
+
 		if (drawstream->localSurf->custom_indexbuffer)
 		{
 			if (cmd->prim.indexBuffer != drawstream->localSurf->custom_indexbuffer)
 			{
+				// backup
+				og_index_buffer = cmd->prim.indexBuffer;
+
 				cmd->prim.indexBuffer = drawstream->localSurf->custom_indexbuffer;
 				dev->SetIndices(drawstream->localSurf->custom_indexbuffer);
 			}
 		} //else __debugbreak();
 
-
 		if (drawstream->localSurf->custom_vertexbuffer)
 		{
+			// backup
+			og_vertex_buffer = cmd->prim.streams[0].vb;
+			og_vertex_buffer_offset = cmd->prim.streams[0].offset;
+			og_vertex_buffer_stride = cmd->prim.streams[0].stride;
+
 			cmd->prim.streams[0].vb = drawstream->localSurf->custom_vertexbuffer;
 			cmd->prim.streams[0].offset = 0;
 			cmd->prim.streams[0].stride = 32; // pos-xyz ; normal-xyz ; texcoords uv = 32 byte 
@@ -222,25 +253,150 @@ namespace components
 		} //else __debugbreak();
 
 
+		// #
+		// setup fixed-function
+
+		// vertex format
+		dev->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
+
+		// save shaders
+		IDirect3DVertexShader9* og_vertex_shader;
+		dev->GetVertexShader(&og_vertex_shader);
+
+		IDirect3DPixelShader9* og_pixel_shader;
+		dev->GetPixelShader(&og_pixel_shader);
+
+		// def. needed or the game will render the mesh using shaders
+		dev->SetVertexShader(nullptr);
+		dev->SetPixelShader(nullptr);
+
+		// not needed I think
+		//dev->SetRenderState(D3DRS_ZENABLE, TRUE);
+		//dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+		//dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+
 		for (auto index = 0u; index < smodel_count; index++)
 		{
 			const auto inst = &draw_inst[*((std::uint16_t*)&smodel_list->primDrawSurfPos + index)];
 
 			// transform model into the scene by updating the worldmatrix
 			R_DrawStaticModelDrawSurfPlacement(scr, inst);
-
 			dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&scr->matrices.matrix[0].m));
-			dev->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
 
-			// def. needed or the game will render the mesh using shaders
-			dev->SetVertexShader(nullptr);
-			dev->SetPixelShader(nullptr);
-
-			dev->SetRenderState(D3DRS_ZENABLE, TRUE);
-			dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-			dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-
+			// draw the prim
 			cmd->prim.device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, drawstream->localSurf->vertCount, 0, drawstream->localSurf->triCount);
+		}
+
+		// #
+		// restore everything for following meshes rendered via shaders
+
+		dev->SetVertexShader(og_vertex_shader);
+		dev->SetPixelShader(og_pixel_shader);
+
+		// restore world matrix
+		rtx::r_set_3d();
+		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->matrices.matrix[0].m));
+
+		dev->SetFVF(0);
+
+		// restor streams
+		if (og_index_buffer)
+		{
+			cmd->prim.indexBuffer = og_index_buffer;
+			dev->SetIndices(og_index_buffer);
+		}
+
+		if (og_vertex_buffer)
+		{
+			cmd->prim.streams[0].vb = og_vertex_buffer;
+			cmd->prim.streams[0].offset = og_vertex_buffer_offset;
+			cmd->prim.streams[0].stride = og_vertex_buffer_stride;
+
+			dev->SetStreamSource(0, og_vertex_buffer, og_vertex_buffer_offset, og_vertex_buffer_stride);
+		}
+	}
+
+	// ------------------------------------
+
+	void warm_static_models_on_map_load()
+	{
+		if (dvars::rtx_warm_smodels && dvars::rtx_warm_smodels->current.enabled)
+		{
+			game::DB_EnumXAssets_FastFile(game::XAssetType::ASSET_TYPE_XMODEL, [](game::XAssetHeader header, [[maybe_unused]] void* data)
+			{
+				// HACK - ignore deformed (animated) models because they might use more then 2 partBits (partBit 3-4 are used for custom buffers)
+				if (!header.model->surfs->deformed /*&& !header.model->surfs->custom_vertexbuffer && !header.model->surfs->custom_indexbuffer*/)
+				{
+					XModelOptimize(header.model, true);
+				}
+			}, nullptr, false);
+		}
+	}
+
+	__declspec(naked) void warm_static_models_stub()
+	{
+		const static uint32_t stock_func = 0x431C80; // CG_NorthDirectionChanged
+		const static uint32_t retn_addr = 0x440320;
+		__asm
+		{
+			pushad;
+			call	warm_static_models_on_map_load;
+			popad;
+
+			call	stock_func;
+			jmp		retn_addr;
+		}
+	}
+
+	// ------------------------------------
+
+	void free_custom_xmodel_buffers()
+	{
+		game::DB_EnumXAssets_FastFile(game::XAssetType::ASSET_TYPE_XMODEL, [](game::XAssetHeader header, [[maybe_unused]] void* data)
+		{
+			const auto dev = game::glob::d3d9_device;
+
+			// HACK - ignore deformed (animated) models because they might use more then 2 partBits (partBit 3-4 are used for custom buffers)
+			if (dev && !header.model->surfs->deformed && (header.model->surfs->custom_vertexbuffer || header.model->surfs->custom_indexbuffer))
+			{
+				game::XSurface* surfaces;
+
+				const auto lodCount = header.model->numLods;
+				for (auto lodIndex = 0; lodIndex < lodCount; ++lodIndex)
+				{
+					const auto surfCount = XModelGetSurfaces(header.model, &surfaces, lodIndex);
+					for (auto surfIndex = 0; surfIndex < surfCount; ++surfIndex)
+					{
+						if (surfaces[surfIndex].custom_indexbuffer)
+						{
+							surfaces[surfIndex].custom_indexbuffer->Release();
+							surfaces[surfIndex].custom_indexbuffer = nullptr;
+						}
+
+						if (surfaces[surfIndex].custom_vertexbuffer)
+						{
+							surfaces[surfIndex].custom_vertexbuffer->Release();
+							surfaces[surfIndex].custom_vertexbuffer = nullptr;
+						}
+					}
+				}
+			}
+		}, nullptr, false);
+	}
+
+	__declspec(naked) void free_custom_xmodel_buffers_stub()
+	{
+		const static uint32_t stock_func = 0x62F550; // R_ResetModelLighting
+		const static uint32_t retn_addr = 0x5F5057;
+		__asm
+		{
+			pushad;
+			call	free_custom_xmodel_buffers;
+			popad;
+
+			call	stock_func;
+			jmp		retn_addr;
 		}
 	}
 
@@ -248,19 +404,38 @@ namespace components
 
 	rtx_fixed_function::rtx_fixed_function()
 	{
+		// todo - build buffers on map load?
+
 		// fixed function rendering of static models (R_TessStaticModelRigidDrawSurfList)
 		if (flags::has_flag("fixed_function"))
 		{
-			// disable functions used for the shader pipeline
-			utils::hook::nop(0x647BDF, 5); // R_SetPassPixelShaderStableArguments
-			utils::hook::nop(0x647C3B, 5); // R_UpdateVertexDecl
-			utils::hook::nop(0x647C91, 5); // R_SetPassPixelShaderStableArguments
-			utils::hook::nop(0x647CA3, 5); // R_UpdateVertexDecl
+			// R_TessStaticModelRigidDrawSurfList :: functions only useful for the shader pipeline
+			// - not drawing a viewmodel (mantle / cg_drawgun 0) after drawing a static model using fixed-function messes up world rendering
+			// - disabling these hooks and restoring the state of the shader pipeline (in R_DrawStaticModelDrawSurfNonOptimized) fixes that
+			// - here to stay for the time being
 
-			// this sets a sampler (SetTexture -> needed)
-			//utils::hook::nop(0x647D8F, 5); // R_SetPassShaderObjectArguments
+			//utils::hook::nop(0x647BDF, 5); // R_SetPassPixelShaderStableArguments
+			//utils::hook::nop(0x647C3B, 5); // R_UpdateVertexDecl
+			//utils::hook::nop(0x647C91, 5); // R_SetPassPixelShaderStableArguments
+			//utils::hook::nop(0x647CA3, 5); // R_UpdateVertexDecl
+			//utils::hook::nop(0x647D8F, 5); // R_SetPassShaderObjectArguments - this sets a sampler (SetTexture -> needed)
 
 			utils::hook(0x655A10, R_DrawStaticModelDrawSurfNonOptimized, HOOK_CALL).install()->quick();
+
+			// ----
+
+			// build custom index and vertex buffers for all xmodels on map load
+			utils::hook(0x44031B, warm_static_models_stub, HOOK_JUMP).install()->quick(); // CG_Init :: CG_NorthDirectionChanged call
+
+			dvars::rtx_warm_smodels = game::Dvar_RegisterBool(
+				/* name		*/ "rtx_warm_smodels",
+				/* desc		*/ "Build static model vertex buffers on map load (fixed-function rendering only)",
+				/* default	*/ true,
+				/* flags	*/ game::dvar_flags::saved);
+
+			// ----
+
+			utils::hook(0x5F5052, free_custom_xmodel_buffers_stub).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
 		}
 	}
 }

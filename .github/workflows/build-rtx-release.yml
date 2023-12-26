@@ -43,20 +43,25 @@ jobs:
       - name: Build ${{matrix.configuration}}-binaries-rtx
         run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw3xo-dev.sln
 
+      - name: Move build files 
+        run: |
+          move build/bin/${{matrix.configuration}}/iw3x.dll ./
+          move build/bin/${{matrix.configuration}}/iw3x.pdb ./
+
       - name: Upload ${{matrix.configuration}}-binaries-rtx
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.configuration}}-binaries-rtx
           path: |
-            build/bin/${{matrix.configuration}}/iw3x.dll
-            build/bin/${{matrix.configuration}}/iw3x.pdb
+            ./iw3x.dll
+            ./iw3x.pdb
             ./assets-remix/*
 
   webbook:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Tag String
@@ -73,8 +78,8 @@ jobs:
           username: "GitHub Workflow"
           avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
           embed-author-icon-url: "https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo.png"
-          embed-author-name: "iw3xo-dev"
-          embed-author-url: "https://github.com/xoxor4d/iw3xo-dev"
+          embed-author-name: "iw3xo-dev/rtx"
+          embed-author-url: "https://github.com/xoxor4d/iw3xo-dev/tree/rtx"
           embed-title: "RTX - Successful build (release)"
-          embed-color: 0x82ff80
+          embed-color: 0x76b900
           embed-description: "${{ env.GIT_TAG }} [nightly link](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)"
