@@ -4,6 +4,7 @@
 // * skinned meshes have unstable hashes
 // * motion vectors are broken (flickering static meshes) (seems to be r_znear related)
 // * running the game with a debug build of remix will throw an assert
+// * r_smp_backend (render backend in separate thread) = 1 results in random fps drops - disabling causes skinned meshes to lag behind
 
 namespace components
 {

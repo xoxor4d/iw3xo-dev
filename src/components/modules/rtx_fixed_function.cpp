@@ -7,8 +7,7 @@ namespace components
 		const auto dev = game::glob::d3d9_device;
 		bool allocated_any = false;
 
-
-		// setup indexbuffer
+		// setup indexbuffer - actually unnecessary because the original one should work just fine - cba
 		if (!surf->custom_indexbuffer)
 		{
 			void* index_buffer_data = nullptr;
@@ -23,13 +22,12 @@ namespace components
 				{
 					memcpy(index_buffer_data, surf->triIndices, raw_index_bytes);
 					memset((char*)index_buffer_data + raw_index_bytes, 0, index_bytes - raw_index_bytes);
-
-					//R_FinishStaticIndexBuffer(surf->custom_indexbuffer);
 					surf->custom_indexbuffer->Unlock();
 				}
 				else
 				{
 					surf->custom_indexbuffer->Release();
+					surf->custom_indexbuffer = nullptr;
 				}
 
 				allocated_any = true;
@@ -88,15 +86,12 @@ namespace components
 							game::Vec2UnpackTexCoords(src_vert.texCoord.packed, v->texcoord);
 						}
 
-						// og
-						//memcpy((char*)vertex_buffer_data, (char*)surf->verts0, vertex_bytes); 
-
-						//R_FinishStaticVertexBuffer(vb);
 						surf->custom_vertexbuffer->Unlock();
 					}
 					else
 					{
 						surf->custom_vertexbuffer->Release();
+						surf->custom_vertexbuffer = nullptr;
 					}
 
 					allocated_any = true;
@@ -226,6 +221,7 @@ namespace components
 		std::uint32_t og_vertex_buffer_offset = 0;
 		std::uint32_t og_vertex_buffer_stride = 0;
 
+		// modifying the prim streams is most certainly unnecessary
 		if (drawstream->localSurf->custom_indexbuffer)
 		{
 			if (cmd->prim.indexBuffer != drawstream->localSurf->custom_indexbuffer)
@@ -270,11 +266,13 @@ namespace components
 		dev->SetVertexShader(nullptr);
 		dev->SetPixelShader(nullptr);
 
-		// not needed I think
+		// not needed
 		//dev->SetRenderState(D3DRS_ZENABLE, TRUE);
 		//dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 		//dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
+		// #
+		// draw prim
 
 		for (auto index = 0u; index < smodel_count; index++)
 		{
@@ -300,7 +298,7 @@ namespace components
 
 		dev->SetFVF(0);
 
-		// restor streams
+		// restore streams
 		if (og_index_buffer)
 		{
 			cmd->prim.indexBuffer = og_index_buffer;
@@ -317,8 +315,9 @@ namespace components
 		}
 	}
 
+
 	// *
-	// ------------------------------------
+	// world (bsp/terrain) drawing
 
 	IDirect3DVertexBuffer9* gfx_world_vertexbuffer = nullptr;
 
@@ -331,19 +330,22 @@ namespace components
 	{
 		const auto pos = cmdBuf->primDrawSurfPos;
 		cmdBuf->primDrawSurfPos += count;
+
 		return pos;
 	}
 
-	int R_ReadBspPreTessDrawSurfs(game::GfxReadCmdBuf* cmdBuf, game::GfxBspPreTessDrawSurf** list, unsigned int* count, unsigned int* baseIndex)
+	bool R_ReadBspPreTessDrawSurfs(game::GfxReadCmdBuf* cmdBuf, game::GfxBspPreTessDrawSurf** list, unsigned int* count, unsigned int* baseIndex)
 	{
 		*count = R_ReadPrimDrawSurfInt(cmdBuf);
 		if (!*count)
 		{
-			return 0;
+			return false;
 		}
+
 		*baseIndex = R_ReadPrimDrawSurfInt(cmdBuf);
 		*list = (game::GfxBspPreTessDrawSurf*)R_ReadPrimDrawSurfData(cmdBuf, *count);
-		return 1;
+
+		return true;
 	}
 
 	void R_DrawPreTessTris(game::GfxCmdBufSourceState* src, game::GfxCmdBufPrimState* state, game::srfTriangles_t* tris, unsigned int baseIndex, unsigned int triCount)
@@ -360,20 +362,11 @@ namespace components
 		state->device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, tris->vertexCount, baseIndex, triCount);
 	}
 
+	/**
+	 * @brief completely rewritten R_DrawBspDrawSurfsPreTess to render bsp surfaces (world) using the fixed-function pipeline
+	 */
 	void R_DrawBspDrawSurfsPreTess(const unsigned int* primDrawSurfPos, game::GfxCmdBufSourceState* src, game::GfxCmdBufState* state)
 	{
-		unsigned int baseIndex; // [esp+0h] [ebp-2Ch] BYREF
-		unsigned int surfIndex; // [esp+4h] [ebp-28h]
-		game::GfxReadCmdBuf cmdBuf; // [esp+8h] [ebp-24h] BYREF
-		game::srfTriangles_t* tris; // [esp+Ch] [ebp-20h]
-		game::srfTriangles_t* prevTris; // [esp+10h] [ebp-1Ch]
-		game::GfxBspPreTessDrawSurf* list; // [esp+14h] [ebp-18h] BYREF
-		unsigned int triCount; // [esp+18h] [ebp-14h]
-		game::GfxSurface* bspSurf; // [esp+1Ch] [ebp-10h]
-		unsigned int index; // [esp+20h] [ebp-Ch]
-		unsigned int count; // [esp+24h] [ebp-8h] BYREF
-		int baseVertex; // [esp+28h] [ebp-4h]
-
 		const auto dev = game::glob::d3d9_device;
 		
 		// #
@@ -394,42 +387,48 @@ namespace components
 		dev->SetPixelShader(nullptr);
 
 
-		cmdBuf.primDrawSurfPos = primDrawSurfPos;
+		// #
+		// draw prims
 
-		while (R_ReadBspPreTessDrawSurfs(&cmdBuf, &list, &count, &baseIndex))
+		unsigned int base_index, count; game::GfxBspPreTessDrawSurf* list;
+		game::GfxReadCmdBuf cmd_buf = { primDrawSurfPos };
+
+		while (R_ReadBspPreTessDrawSurfs(&cmd_buf, &list, &count, &base_index))
 		{
-			prevTris = 0;
-			triCount = 0;
-			baseVertex = -1;
+			game::srfTriangles_t* prev_tris = nullptr;
+			auto tri_count = 0u;
+			auto base_vertex = -1;
 
-			for (index = 0; index < count; ++index)
+			for (auto index = 0u; index < count; ++index)
 			{
-				surfIndex = list[index].baseSurfIndex;
-				if (surfIndex >= (unsigned)game::rgp->world->surfaceCount)
+				const auto surf_index = static_cast<unsigned>(list[index].baseSurfIndex);
+				if (surf_index >= static_cast<unsigned>(game::rgp->world->surfaceCount))
 				{
 					__debugbreak();
+					game::Com_Error(game::ERR_DISCONNECT, "R_DrawBspDrawSurfsPreTess :: surf_index >= static_cast<unsigned>(game::rgp->world->surfaceCount)");
 				}
 
-				bspSurf = &game::rgp->world->dpvs.surfaces[surfIndex];
-				tris = &bspSurf->tris;
+				const auto bsp_surf = &game::rgp->world->dpvs.surfaces[surf_index];
+				const auto tris = &bsp_surf->tris;
 
-				if (baseVertex != bspSurf->tris.firstVertex)
+				if (base_vertex != bsp_surf->tris.firstVertex)
 				{
-					if (triCount)
+					// never triggers?
+					if (tri_count)
 					{
-						R_DrawPreTessTris(src, &state->prim, prevTris, baseIndex, triCount);
-						baseIndex += 3 * triCount;
-						triCount = 0;
+						R_DrawPreTessTris(src, &state->prim, prev_tris, base_index, tri_count);
+						base_index += 3 * tri_count;
+						tri_count = 0;
 					}
 
-					prevTris = tris;
-					baseVertex = tris->firstVertex;
+					prev_tris = tris;
+					base_vertex = tris->firstVertex;
 				}
 
-				triCount += list[index].totalTriCount;
+				tri_count += list[index].totalTriCount;
 			}
 
-			R_DrawPreTessTris(src, &state->prim, prevTris, baseIndex, triCount);
+			R_DrawPreTessTris(src, &state->prim, prev_tris, base_index, tri_count);
 		}
 
 		// #
@@ -447,50 +446,28 @@ namespace components
 
 
 	// *
-	// ------------------------------------
+	// build buffers
 
 	void build_gfxworld_buffers()
 	{
-		/*	struct GfxWorldVertex = 44 bytes
-		{
-		  float xyz[3];
-		  float binormalSign;
-		  GfxColor color;
-		  float texCoord[2];
-		  float lmapCoord[2];
-		  PackedUnitVec normal;
-		  PackedUnitVec tangent;
-		};*/
-
-		// R_TessTrianglesPreTessList -> R_DrawBspDrawSurfsPreTess
-		// GfxWorld->vd.worldVb
-
-		// lost device:
-
-		//									int sizeInBytes,	 IDirect3DVertexBuffer9 **vb,  char *srcData
-		// R_CreateWorldVertexBuffer(44 * gfxWorld.vertexCount,  &gfxWorld.vd.worldVb,		   gfxWorld.vd.vertices);
-		// ----> R_AllocStaticVertexBuffer
-
-		// actual:
-		//0x4854B0 - Alloc GfxWorld Vertexbuffer - Load_GfxWorldVertexData
-
 		const auto dev = game::glob::d3d9_device;
+		void* vertex_buffer_data = nullptr;
 
 		if (game::gfx_world)
 		{
 			if (gfx_world_vertexbuffer)
 			{
-				__debugbreak();
 				gfx_world_vertexbuffer->Release();
 				gfx_world_vertexbuffer = nullptr;
+
+				__debugbreak();
+				game::Com_Error(game::ERR_DISCONNECT, "build_gfxworld_buffers :: gfx_world_vertexbuffer != nullptr");
 			}
 
-			void* vertex_buffer_data = nullptr;
-
-			// new stride = 32 // pos-xyz ; normal-xyz ; texcoords uv = 32 byte
+			// stride = 32 :: pos-xyz ; normal-xyz ; texcoords uv = 32 byte
 			if (auto hr = dev->CreateVertexBuffer(32 * game::gfx_world->vertexCount, D3DUSAGE_WRITEONLY, (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1), D3DPOOL_DEFAULT, &gfx_world_vertexbuffer, nullptr);
 				hr >= 0)
-			{
+			{	
 				if (hr = gfx_world_vertexbuffer->Lock(0, 0, &vertex_buffer_data, 0);
 					hr >= 0)
 				{
@@ -512,7 +489,7 @@ namespace components
 						game::vec2_t texcoord;
 					};
 
-					for (auto i = 0; i < game::gfx_world->vertexCount; i++)
+					for (auto i = 0u; i < game::gfx_world->vertexCount; i++)
 					{
 						// packed source vertex
 						const auto src_vert = game::gfx_world->vd.vertices[i];
@@ -543,11 +520,9 @@ namespace components
 		}
 	}
 
-	// *
-	// ------------------------------------
-
-	void warm_static_models_on_map_load()
+	void build_static_model_buffers()
 	{
+		// builds buffers at runtime if 'rtx_warm_smodels' is disabled
 		if (dvars::rtx_warm_smodels && dvars::rtx_warm_smodels->current.enabled)
 		{
 			game::DB_EnumXAssets_FastFile(game::XAssetType::ASSET_TYPE_XMODEL, [](game::XAssetHeader header, [[maybe_unused]] void* data)
@@ -561,14 +536,15 @@ namespace components
 		}
 	}
 
-	__declspec(naked) void warm_static_models_stub()
+	// called on map load (cg_init)
+	__declspec(naked) void init_fixed_function_buffers_stub()
 	{
 		const static uint32_t stock_func = 0x431C80; // CG_NorthDirectionChanged
 		const static uint32_t retn_addr = 0x440320;
 		__asm
 		{
 			pushad;
-			call	warm_static_models_on_map_load;
+			call	build_static_model_buffers;
 			call	build_gfxworld_buffers;
 			popad;
 
@@ -577,11 +553,14 @@ namespace components
 		}
 	}
 
-	// ------------------------------------
 
-	void free_custom_xmodel_buffers()
+	// *
+	// cleanup buffers
+
+	void free_fixed_function_buffers()
 	{
-		// gfx world
+		// #
+		// cleanup world buffer
 
 		if (gfx_world_vertexbuffer)
 		{
@@ -589,7 +568,8 @@ namespace components
 			gfx_world_vertexbuffer = nullptr;
 		}
 
-		// ---------
+		// #
+		// cleanup model buffer
 
 		game::DB_EnumXAssets_FastFile(game::XAssetType::ASSET_TYPE_XMODEL, [](game::XAssetHeader header, [[maybe_unused]] void* data)
 		{
@@ -623,14 +603,15 @@ namespace components
 		}, nullptr, false);
 	}
 
-	__declspec(naked) void free_custom_xmodel_buffers_stub()
+	// called on renderer shutdown (R_Shutdown)
+	__declspec(naked) void free_fixed_function_buffers_stub()
 	{
 		const static uint32_t stock_func = 0x62F550; // R_ResetModelLighting
 		const static uint32_t retn_addr = 0x5F5057;
 		__asm
 		{
 			pushad;
-			call	free_custom_xmodel_buffers;
+			call	free_fixed_function_buffers;
 			popad;
 
 			call	stock_func;
@@ -638,12 +619,11 @@ namespace components
 		}
 	}
 
-	// ------------------------------------
+	// *
+	// *
 
 	rtx_fixed_function::rtx_fixed_function()
 	{
-		// todo - build buffers on map load?
-
 		// fixed function rendering of static models (R_TessStaticModelRigidDrawSurfList)
 		if (flags::has_flag("fixed_function"))
 		{
@@ -661,49 +641,19 @@ namespace components
 			utils::hook(0x655A10, R_DrawStaticModelDrawSurfNonOptimized, HOOK_CALL).install()->quick();
 			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
 
-			// 1st DrawIndexedPrimitive
-			//utils::hook::nop(0x655780, 18);
-
 			// ----
 
-			// build custom index and vertex buffers for all xmodels on map load
-			utils::hook(0x44031B, warm_static_models_stub, HOOK_JUMP).install()->quick(); // CG_Init :: CG_NorthDirectionChanged call
+			// on map load :: build custom buffers for fixed-function rendering
+			utils::hook(0x44031B, init_fixed_function_buffers_stub, HOOK_JUMP).install()->quick(); // CG_Init :: CG_NorthDirectionChanged call
+
+			// on renderer shutdown :: release custom buffers used by fixed-function rendering
+			utils::hook(0x5F5052, free_fixed_function_buffers_stub).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
 
 			dvars::rtx_warm_smodels = game::Dvar_RegisterBool(
 				/* name		*/ "rtx_warm_smodels",
 				/* desc		*/ "Build static model vertex buffers on map load (fixed-function rendering only)",
 				/* default	*/ true,
 				/* flags	*/ game::dvar_flags::saved);
-
-			// ----
-
-			// release custom vertex and index buffers
-			utils::hook(0x5F5052, free_custom_xmodel_buffers_stub).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
-
-			// ----
-
-			/*	struct GfxWorldVertex = 44 bytes
-				{
-				  float xyz[3];
-				  float binormalSign;
-				  GfxColor color;
-				  float texCoord[2];
-				  float lmapCoord[2];
-				  PackedUnitVec normal;
-				  PackedUnitVec tangent;
-				};*/
-
-			// R_TessTrianglesPreTessList -> R_DrawBspDrawSurfsPreTess
-			// GfxWorld->vd.worldVb
-
-			// lost device:
-
-			//									int sizeInBytes,	 IDirect3DVertexBuffer9 **vb,  char *srcData
-			// R_CreateWorldVertexBuffer(44 * gfxWorld.vertexCount,  &gfxWorld.vd.worldVb,		   gfxWorld.vd.vertices);
-			// ----> R_AllocStaticVertexBuffer
-
-			// actual:
-			//0x4854B0 - Alloc GfxWorld Vertexbuffer - Load_GfxWorldVertexData
 		}
 	}
 }
