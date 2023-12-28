@@ -86,7 +86,11 @@ namespace components
 							v->pos[1] = src_vert.xyz[1];
 							v->pos[2] = src_vert.xyz[2];
 
-							utils::vector::unpack_unit_vec3(src_vert.normal, v->normal);
+							const auto scale = static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[3])) * (1.0f / 255.0f) + 0.7529412f;
+							v->normal[0] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[0])) * (1.0f / 127.0f) + -1.0f) * scale;
+							v->normal[1] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[1])) * (1.0f / 127.0f) + -1.0f) * scale;
+							v->normal[2] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[2])) * (1.0f / 127.0f) + -1.0f) * scale;
+
 							game::Vec2UnpackTexCoords(src_vert.texCoord.packed, v->texcoord);
 						}
 
