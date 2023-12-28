@@ -2073,13 +2073,13 @@ namespace game
 	struct GfxWorldVertexData
 	{
 		GfxWorldVertex* vertices;
-		void/*IDirect3DVertexBuffer9*/* worldVb;
+		IDirect3DVertexBuffer9* worldVb;
 	};
 
 	struct GfxWorldVertexLayerData
 	{
 		char* data;
-		void/*IDirect3DVertexBuffer9*/* layerVb;
+		IDirect3DVertexBuffer9* layerVb;
 	};
 
 	struct SunLightParseParams
@@ -7064,6 +7064,19 @@ namespace game
 	{
 		float origin[3];
 		GfxLodRamp ramp[2];
+	};
+
+	struct GfxCmdBufContext
+	{
+		GfxCmdBufSourceState* source;
+		GfxCmdBufState* state;
+	};
+
+	struct GfxDrawSurfListArgs
+	{
+		GfxCmdBufContext context;
+		unsigned int firstDrawSurfIndex;
+		GfxDrawSurfListInfo* info;
 	};
 
 #pragma warning( push )

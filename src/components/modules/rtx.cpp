@@ -114,6 +114,8 @@ namespace components
 			game::Cmd_ExecuteSingleCommand(0, 0, "r_znear_depthhack 4\n");
 		}
 
+
+#if DEBUG != FALSE
 		// fix viewmodel bumping
 		if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && !var->current.enabled)
 		{
@@ -137,6 +139,13 @@ namespace components
 		{
 			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 0\n");
 		}
+
+		// needed for fixed-function
+		if (const auto var = game::Dvar_FindVar("r_pretess"); var && !var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_pretess 1\n");
+		}
+#endif
 
 		if (const auto var = game::Dvar_FindVar("r_dof_enable"); var && var->current.enabled)
 		{

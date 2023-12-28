@@ -1,5 +1,9 @@
 #include "std_include.hpp"
 
+// notes:
+// - r_pretess (surface batching) might cause some messed up normals (sometimes noticeable in water puddles)
+// - ^ surface batching is def. needed with fixed-function rendering (fps)
+
 namespace components
 {
 	bool XSurfaceOptimize(game::XSurface* surf)
@@ -319,6 +323,11 @@ namespace components
 	// *
 	// world (bsp/terrain) drawing
 
+	constexpr auto WORLD_VERTEX_STRIDE = 36u;
+	constexpr auto WORLD_VERTEX_FORMAT = (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1);
+	// (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1) = 32
+	// (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1) = 36
+
 	IDirect3DVertexBuffer9* gfx_world_vertexbuffer = nullptr;
 
 	unsigned int R_ReadPrimDrawSurfInt(game::GfxReadCmdBuf* cmdBuf)
@@ -358,7 +367,15 @@ namespace components
 		src->matrices.matrix[0].m[3][3] = 1.0f;
 		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&src->matrices.matrix[0].m));
 
-		dev->SetStreamSource(0, gfx_world_vertexbuffer, 32 * tris->firstVertex, 32);
+		dev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+		dev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+#if DEBUG
+		dev->SetTextureStageState(0, D3DTSS_ALPHAOP, rtx_gui::d3d_alpha_blend);
+#else
+		dev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+#endif
+
+		dev->SetStreamSource(0, gfx_world_vertexbuffer, WORLD_VERTEX_STRIDE * tris->firstVertex, WORLD_VERTEX_STRIDE);
 		state->device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, tris->vertexCount, baseIndex, triCount);
 	}
 
@@ -368,12 +385,12 @@ namespace components
 	void R_DrawBspDrawSurfsPreTess(const unsigned int* primDrawSurfPos, game::GfxCmdBufSourceState* src, game::GfxCmdBufState* state)
 	{
 		const auto dev = game::glob::d3d9_device;
-		
+
 		// #
 		// setup fixed-function
 
 		// vertex format
-		dev->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
+		dev->SetFVF(WORLD_VERTEX_FORMAT);
 
 		// save shaders
 		IDirect3DVertexShader9* og_vertex_shader;
@@ -445,6 +462,54 @@ namespace components
 	}
 
 
+#if DEBUG
+	/**
+	 * @brief stub that could be used to override renderstates / textureargs
+	 *		  - called after the games material-pass setup
+	 *		  - called before 'R_DrawBspDrawSurfsPreTess'
+	 *		  - 'cameraView' can be used to differentiate which drawlist (lit/decal/emissive) is being used
+	 */
+	void R_TessTrianglesPreTessList_begin(const game::GfxDrawSurfListArgs* context)
+	{
+		const auto dev = game::glob::d3d9_device;
+
+		// are we rendering decals?
+		if (context->info->cameraView == 2)
+		{
+			//dev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+			//dev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+
+			//dev->SetRenderState(D3DRS_DEPTHBIAS, (DWORD)1.0f);
+			//dev->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, (DWORD)1.0f);
+
+			//dev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+			//dev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+			//dev->SetTextureStageState(0, D3DTSS_ALPHAOP, rtx_gui::d3d_alpha_blend);
+
+			//context->info->cameraView = 1;
+		}
+	}
+
+	__declspec(naked) void R_TessTrianglesPreTessList_stub()
+	{
+		const static uint32_t retn_addr = 0x648595;
+		__asm
+		{
+			pushad;
+			push	edi;
+			call	R_TessTrianglesPreTessList_begin;
+			add		esp, 4;
+			popad;
+
+			// og ops
+			mov     eax, [edi + 0xC];
+			mov     esi, [edi + 4];
+			jmp		retn_addr;
+		}
+	}
+#endif
+
+
 	// *
 	// build buffers
 
@@ -465,7 +530,7 @@ namespace components
 			}
 
 			// stride = 32 :: pos-xyz ; normal-xyz ; texcoords uv = 32 byte
-			if (auto hr = dev->CreateVertexBuffer(32 * game::gfx_world->vertexCount, D3DUSAGE_WRITEONLY, (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1), D3DPOOL_DEFAULT, &gfx_world_vertexbuffer, nullptr);
+			if (auto hr = dev->CreateVertexBuffer(WORLD_VERTEX_STRIDE * game::gfx_world->vertexCount, D3DUSAGE_WRITEONLY, WORLD_VERTEX_FORMAT, D3DPOOL_DEFAULT, &gfx_world_vertexbuffer, nullptr);
 				hr >= 0)
 			{	
 				if (hr = gfx_world_vertexbuffer->Lock(0, 0, &vertex_buffer_data, 0);
@@ -486,6 +551,7 @@ namespace components
 					{
 						game::vec3_t pos;
 						game::vec3_t normal;
+						unsigned int color;
 						game::vec2_t texcoord;
 					};
 
@@ -495,16 +561,29 @@ namespace components
 						const auto src_vert = game::gfx_world->vd.vertices[i];
 
 						// position of our unpacked vert within the vertex buffer
-						const auto v_pos_in_buffer = i * 32; // pos-xyz ; normal-xyz ; texcoords uv = 32 byte 
+						const auto v_pos_in_buffer = i * WORLD_VERTEX_STRIDE; // pos-xyz ; normal-xyz ; texcoords uv = 32 byte 
 						const auto v = reinterpret_cast<unpacked_vert*>(((DWORD)vertex_buffer_data + v_pos_in_buffer));
 
-						// assign pos and unpack normal and texcoords
+						// vert pos
 						v->pos[0] = src_vert.xyz[0];
 						v->pos[1] = src_vert.xyz[1];
 						v->pos[2] = src_vert.xyz[2];
 
-						utils::vector::unpack_unit_vec3(src_vert.normal, v->normal);
+						// unpack and assign vert normal
 
+						// normal unpacking in a cod4 hlsl shader:
+						// temp0	 = i.normal * float4(0.007874016, 0.007874016, 0.007874016, 0.003921569) + float4(-1, -1, -1, 0.7529412);
+						// temp0.xyz = temp0.www * temp0;
+
+						const auto scale =  static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[3])) * (1.0f/255.0f) + 0.7529412f;
+						v->normal[0] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[0])) * (1.0f / 127.0f) + -1.0f) * scale;
+						v->normal[1] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[1])) * (1.0f / 127.0f) + -1.0f) * scale;
+						v->normal[2] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[2])) * (1.0f / 127.0f) + -1.0f) * scale;
+
+						// packed vertex color : used for alpha blending of decals
+						v->color = src_vert.color.packed;
+
+						// uv's
 						v->texcoord[0] = src_vert.texCoord[0];
 						v->texcoord[1] = src_vert.texCoord[1];
 					}
@@ -624,7 +703,7 @@ namespace components
 
 	rtx_fixed_function::rtx_fixed_function()
 	{
-		// fixed function rendering of static models (R_TessStaticModelRigidDrawSurfList)
+		// fixed function rendering of static models and world geometry
 		if (flags::has_flag("fixed_function"))
 		{
 			// R_TessStaticModelRigidDrawSurfList :: functions only useful for the shader pipeline
@@ -638,8 +717,16 @@ namespace components
 			//utils::hook::nop(0x647CA3, 5); // R_UpdateVertexDecl
 			//utils::hook::nop(0x647D8F, 5); // R_SetPassShaderObjectArguments - this sets a sampler (SetTexture -> needed)
 
+			// fixed-function rendering of static models
 			utils::hook(0x655A10, R_DrawStaticModelDrawSurfNonOptimized, HOOK_CALL).install()->quick();
+
+			// fixed-function rendering of world surfaces
 			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
+
+#if DEBUG
+			utils::hook::set<BYTE>(0x5FA486 + 6, 0x02); // R_RenderScene :: set viewInfo->decalInfo.cameraView to 2 so we know when we render decals
+			utils::hook::nop(0x64858F, 6); utils::hook(0x64858F, R_TessTrianglesPreTessList_stub, HOOK_JUMP).install()->quick();
+#endif
 
 			// ----
 
@@ -654,6 +741,15 @@ namespace components
 				/* desc		*/ "Build static model vertex buffers on map load (fixed-function rendering only)",
 				/* default	*/ true,
 				/* flags	*/ game::dvar_flags::saved);
+
+#if DEBUG
+			command::add("rtx_rebuild_world", "", "rebuilds the gfxworld vertex buffer (fixed-function)", [this](command::params)
+			{
+				gfx_world_vertexbuffer->Release();
+				gfx_world_vertexbuffer = nullptr;
+				build_gfxworld_buffers();
+			});
+#endif
 		}
 	}
 }

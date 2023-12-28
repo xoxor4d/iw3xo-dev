@@ -22,6 +22,8 @@ namespace components
 		static inline bool skysphere_auto_rotation = false;
 		static inline float skysphere_auto_rotation_speed = 1.0f;
 
+		static inline int d3d_alpha_blend = 4;
+
 	private:
 		static const char* skysphere_get_name_for_variant(int variant);
 		static inline bool skysphere_spawned = false;

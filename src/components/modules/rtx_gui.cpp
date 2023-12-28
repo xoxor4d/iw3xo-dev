@@ -13,6 +13,11 @@ namespace components
 			const auto& fx_enable = game::Dvar_FindVar("fx_enable");
 			ImGui::Checkbox("Enable FX", &fx_enable->current.enabled);
 
+			const auto& r_drawdecals = game::Dvar_FindVar("r_drawdecals");
+			ImGui::Checkbox("Enable Decals", &r_drawdecals->current.enabled);
+			TT("Assign material categories 'Decal' and 'Dynamic Decal' to all decal surfaces\n"
+			   "Tip: You can disable 'Stochachstic Alpha Blending' to select decals within the 'world'");
+
 			const auto& rtx_hacks = game::Dvar_FindVar("rtx_hacks");
 			ImGui::Checkbox("Skybox hack", &rtx_hacks->current.enabled);
 			TT("Replaces the skybox with a placeholder texture that can be set as sky.\n"
@@ -22,6 +27,10 @@ namespace components
 			ImGui::Checkbox("Increase static model limit", &rtx_extend_smodel_drawing->current.enabled);
 			TT("The game has a hard limit on how many static models it can draw at once (warning print in console).\n"
 			   "Enabling this setting will disable that limit but might cause instability.");
+
+#if DEBUG
+			ImGui::DragInt("D3D Alpha Blend Setting", &rtx_gui::d3d_alpha_blend, 0.025f, 0, 16);
+#endif
 
 			ImGui::Indent(-8.0f); SPACING(0.0f, 4.0f);
 		}
