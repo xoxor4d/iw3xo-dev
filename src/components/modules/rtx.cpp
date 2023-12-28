@@ -114,8 +114,7 @@ namespace components
 			game::Cmd_ExecuteSingleCommand(0, 0, "r_znear_depthhack 4\n");
 		}
 
-
-#if DEBUG != FALSE
+#if DEBUG == FALSE
 		// fix viewmodel bumping
 		if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && !var->current.enabled)
 		{
