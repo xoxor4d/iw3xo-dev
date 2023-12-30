@@ -2,9 +2,10 @@
 
 // Notes:
 // * skinned meshes have unstable hashes
-// * motion vectors are broken (flickering static meshes) (seems to be r_znear related)
+// * motion vectors are broken (flickering static meshes) (might be r_znear related)
 // * running the game with a debug build of remix will throw an assert
-// * r_smp_backend (render backend in separate thread) = 1 results in random fps drops - disabling causes skinned meshes to lag behind
+// * running the game will all culling disabled and quickly teleporting around (spawning counts as teleporting) can crash the runtime
+// * dynamic meshes (dynEnts, destr. cars and some other static meshes) are not 'static' (debug view) and create a smear effect (motion vectors)
 
 namespace components
 {
@@ -102,6 +103,36 @@ namespace components
 
 	void rtx::setup_dvars_rtx()
 	{
+		// update culling vars at the end of a frame (so we don't change culling behaviour mid-frame -> not safe)
+		{
+			// set world culling to 'less' once on start if culling is disabled completly
+			/*if (static bool set_less_culling_once = false; !set_less_culling_once)
+			{
+				if (dvars::rtx_disable_world_culling && dvars::rtx_disable_world_culling->current.integer > 1)
+				{
+					game::dvar_set_value_dirty(dvars::rtx_disable_world_culling, 1);
+				}
+				set_less_culling_once = true;
+			}*/
+
+			// update world culling
+			if (dvars::rtx_disable_world_culling)
+			{
+				loc_disable_world_culling = dvars::rtx_disable_world_culling->current.integer;
+				loc_disable_world_culling = loc_disable_world_culling < 0 ? 0 :
+					loc_disable_world_culling > 3 ? 3 : loc_disable_world_culling;
+			}
+
+			// update entity culling
+			if (dvars::rtx_disable_entity_culling)
+			{
+				loc_disable_entity_culling = dvars::rtx_disable_entity_culling->current.enabled ? 1 : 0;
+			}
+		}
+
+		// #
+		// #
+
 		// r_znear around 4 pushes viewmodel away the further from 0 0 0 we are - 4.002 fixes that
 		if (const auto var = game::Dvar_FindVar("r_znear"); var && var->current.value != 4.00195f)
 		{
@@ -115,11 +146,17 @@ namespace components
 		}
 
 #if DEBUG == FALSE
-		// fix viewmodel bumping
-		if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && !var->current.enabled)
+		// reduces lag-spikes and generally increases fps, wobbly / laggy animated meshes
+		if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && var->current.enabled)
 		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_smp_backend 1\n");
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_smp_backend 0\n");
 		}
+		// ^ fix wobbly viewmodels
+		if (const auto var = game::Dvar_FindVar("r_skinCache"); var && var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_skinCache 0\n");
+		}
+
 
 		// disable static model caching (stable hashes)
 		if (const auto var = game::Dvar_FindVar("r_smc_enable"); var && var->current.enabled)
@@ -134,9 +171,9 @@ namespace components
 		}
 
 		// fps ++
-		if (const auto var = game::Dvar_FindVar("r_multiGpu"); var && var->current.enabled)
+		if (const auto var = game::Dvar_FindVar("r_multiGpu"); var && !var->current.enabled)
 		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 0\n");
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 1\n");
 		}
 
 		// needed for fixed-function
@@ -166,14 +203,14 @@ namespace components
 		// ------------- one time only --------------------
 
 		// disable decals once but dont force it off the whole time
-		if (static bool disable_decals_once = false; !disable_decals_once)
+		/*if (static bool disable_decals_once = false; !disable_decals_once)
 		{
 			if (const auto var = game::Dvar_FindVar("r_drawdecals"); var && var->current.enabled)
 			{
 				game::Cmd_ExecuteSingleCommand(0, 0, "r_drawdecals 0\n");
 			}
 			disable_decals_once = true;
-		}
+		}*/
 
 		// disable fx once but dont force it off the whole time
 		if (static bool disable_fx_once = false; !disable_fx_once)
@@ -381,128 +418,146 @@ namespace components
 	// *
 	// Culling
 
-#if 1
-	// R_AddWorldSurfacesPortalWalk
-	__declspec(naked) void r_cull_world_stub_01()
+	namespace cull
 	{
-		const static uint32_t retn_skip = 0x60B095;
-		const static uint32_t retn_stock = 0x60B02E;
-		__asm
+		// R_AddWorldSurfacesPortalWalk
+		__declspec(naked) void world_stub_01()
 		{
-			// stock op's
-			cmp     esi, ebp;
-			mov		[esp + 0x10], eax;
+			const static uint32_t retn_skip = 0x60B095;
+			const static uint32_t retn_stock = 0x60B02E;
+			__asm
+			{
+				// jump if culling is less or disabled
+				cmp		rtx::loc_disable_world_culling, 1;
+				jge		SKIP;
 
-			pushad;
-			push	eax;
-			mov		eax, 0; //dvars::r_cullWorld;
-			//cmp		byte ptr[eax + 12], 1;
-			cmp		eax, 1;
-			pop		eax;
+				// og code
+				cmp     esi, ebp;
+				mov		[esp + 0x10], eax;
+				jmp		retn_stock;
 
-			// jump if not culling world
-			jne		SKIP;
+			SKIP:
+				mov		[esp + 0x10], eax;
+				jmp		retn_skip;
+			}
+		}
 
-			popad;
-			jmp		retn_stock;
+		int _skipped_cull = 0; // helper var
+		__declspec(naked) void world_stub_02_reset_helper()
+		{
+			const static uint32_t retn_stock = 0x643F6A;
+			__asm
+			{
+				mov		_skipped_cull, 0;
+				mov		[ecx + 0xC], edi;
+				mov		[ecx + 8], edx;
+				jmp		retn_stock;
+			}
+		}
 
-		SKIP:
-			popad;
-			jmp		retn_skip;
+		__declspec(naked) void world_stub_02_skip_static_model()
+		{
+			const static uint32_t retn_stock = 0x643B70;
+			const static uint32_t retn_stock_jumped = 0x643B8F;
+			__asm
+			{
+				// do we want to cull static models the way geo would be culled?
+				cmp		rtx::loc_disable_world_culling, 3;
+				jl		STOCK;
+
+				// did we skip the culling check in 'r_cull_world_stub_02'?
+				cmp		_skipped_cull, 1;
+				je		SKIP;
+
+			STOCK:		// og code
+				jz		loc_643B8F;
+				mov     esi, [edx + 0x24];
+				jmp		retn_stock;
+
+			loc_643B8F: // og code
+				jmp		retn_stock_jumped;
+
+
+			SKIP:		// skip static model rendering
+				mov     esi, [edx + 0x24];
+				jmp		retn_stock_jumped;
+			}
+		}
+
+		// R_AddAabbTreeSurfacesInFrustum_r
+		__declspec(naked) void world_stub_02()
+		{
+			const static uint32_t retn_skip = 0x643B0E;
+			const static uint32_t retn_stock = 0x643B08;
+			__asm
+			{
+				// jump if culling is disabled
+				cmp		rtx::loc_disable_world_culling, 2;
+				jge		SKIP;
+				
+				// og code
+				fnstsw  ax;
+				test    ah, 0x41;
+				jmp		retn_stock;
+
+			SKIP: // jumped here because culling is disabled 
+				fnstsw  ax;
+				test    ah, 0x41;
+				jnp		HACKED_CULLING;
+				jmp		retn_skip;
+
+			HACKED_CULLING: // jumped here because the game would have culled this object
+				mov		_skipped_cull, 1;
+				jmp		retn_skip;
+			}
+		}
+
+		// R_AddAabbTreeSurfacesInFrustum_r
+		__declspec(naked) void world_stub_03()
+		{
+			const static uint32_t retn_skip = 0x643B48;
+			const static uint32_t retn_stock = 0x643B39;
+			__asm
+			{
+				// jump if culling is less or disabled
+				cmp		rtx::loc_disable_world_culling, 1;
+				jge		SKIP;
+				
+				// og code
+				fnstsw  ax;
+				test    ah, 1;
+				jmp		retn_stock;
+
+			SKIP:
+				fnstsw  ax;
+				jmp		retn_skip;
+			}
+		}
+
+		// R_AddCellSceneEntSurfacesInFrustumCmd
+		__declspec(naked) void entities_stub()
+		{
+			const static uint32_t retn_skip = 0x64D17C;
+			const static uint32_t retn_stock = 0x64D17A;
+			__asm
+			{
+				//pushad;
+				cmp		rtx::loc_disable_entity_culling, 1;
+				je		SKIP;
+				//popad;
+
+				// stock op's
+				and		[esp + 0x18], edx;
+				cmp     byte ptr[esi + eax], 0;
+				jmp		retn_stock;
+
+			SKIP:
+				//popad;
+				and		[esp + 0x18], edx;
+				jmp		retn_skip;
+			}
 		}
 	}
-
-	// R_AddAabbTreeSurfacesInFrustum_r
-	__declspec(naked) void r_cull_world_stub_02()
-	{
-		const static uint32_t retn_skip = 0x643B0E;
-		const static uint32_t retn_stock = 0x643B08;
-		__asm
-		{
-			// stock op's
-			fnstsw  ax;
-			test    ah, 0x41;
-
-			pushad;
-			push	eax;
-			mov		eax, 0; //dvars::r_cullWorld;
-			//cmp		byte ptr[eax + 12], 1;
-			cmp		eax, 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		retn_stock;
-
-		SKIP:
-			popad;
-			jmp		retn_skip;
-		}
-	}
-
-	// R_AddAabbTreeSurfacesInFrustum_r
-	__declspec(naked) void r_cull_world_stub_03()
-	{
-		const static uint32_t retn_skip = 0x643B48;
-		const static uint32_t retn_stock = 0x643B39;
-		__asm
-		{
-			// stock op's
-			fnstsw  ax;
-			test    ah, 1;
-
-			pushad;
-			push	eax;
-			mov		eax, 0; //dvars::r_cullWorld;
-			//cmp		byte ptr[eax + 12], 1;
-			cmp		eax, 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		retn_stock;
-
-		SKIP:
-			popad;
-			jmp		retn_skip;
-		}
-	}
-
-	// R_AddCellSceneEntSurfacesInFrustumCmd
-	__declspec(naked) void r_cull_entities_stub()
-	{
-		const static uint32_t retn_skip = 0x64D17C;
-		const static uint32_t retn_stock = 0x64D17A;
-		__asm
-		{
-			// stock op's
-			and		[esp + 0x18], edx;
-			cmp     byte ptr[esi + eax], 0;
-
-			pushad;
-			push	eax;
-			mov		eax, 0; //dvars::r_cullEntities;
-			//cmp		byte ptr[eax + 12], 1;
-			cmp		eax, 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		retn_stock;
-
-		SKIP:
-			popad;
-			jmp		retn_skip;
-		}
-	}
-#endif
-
 
 
 	// *
@@ -593,6 +648,8 @@ namespace components
 
 		// un-cheat + saved flag for fx_enable
 		utils::hook::set<BYTE>(0x4993EC + 1, 0x01); // was 0x80
+		// un-cheat + saved flag for r_forceLod
+		utils::hook::set<BYTE>(0x62BB41 + 1, 0x01); // was 0x80
 
 		// mp_crash msg "too many static models ..." @ 0x63AF4D (disabled culling: the engine cant handle modellighting for so many static models, thus not drawing them)
 		utils::hook::nop(0x63AF44, 5); utils::hook(0x63AF44, alloc_smodel_lighting_stub, HOOK_JUMP).install()->quick();
@@ -600,6 +657,8 @@ namespace components
 		// R_AddWorkerCmd :: disable dynEnt models (not needed)
 		//utils::hook::nop(0x629328, 5);
 
+		// disable 'RB_DrawSun' call
+		utils::hook::nop(0x649BD8, 5);
 
 
 		// *
@@ -618,25 +677,48 @@ namespace components
 		// *
 		// culling
 
-		if (flags::has_flag("disable_culling"))
+		//if (flags::has_flag("disable_culling"))
 		{
-			// R_AddWorldSurfacesPortalWalk :: less culling
-			// 0x60B02E -> jl to jmp // 0x7C -> 0xEB //utils::hook::set<BYTE>(0x60B02E, 0xEB);
-			utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
+			// R_AddWorldSurfacesPortalWalk :: less culling .. // 0x60B02E -> jl to jmp // 0x7C -> 0xEB //utils::hook::set<BYTE>(0x60B02E, 0xEB);
+			utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, cull::world_stub_01, HOOK_JUMP).install()->quick();
 
-			// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps)
-			// 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
-			utils::hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
+			{
+				// note:
+				// using 'rtx_disable_world_culling' = 'less' results in unstable world geometry hashes (but stable static model hashes)
+				// -> using 'all-but-models' leaves culling logic for static models at 'less' but does not cull world geometry
+
+				// R_AddCellStaticSurfacesInFrustumCmd :: stub used to reset the skip model check from the stub below
+				utils::hook::nop(0x643F64, 6); utils::hook(0x643F64, cull::world_stub_02_reset_helper, HOOK_JUMP).install()->quick();
+				// R_AddAabbTreeSurfacesInFrustum_r :: check if culling mode 'all-but-models' is active - check note above
+				utils::hook(0x643B6B, cull::world_stub_02_skip_static_model, HOOK_JUMP).install()->quick();
+
+				// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps) .. // 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
+				utils::hook(0x643B03, cull::world_stub_02, HOOK_JUMP).install()->quick();
+			}
 
 			// 0x643B39 -> jmp ^ // 0x74 -> 0xEB //utils::hook::set<BYTE>(0x643B39, 0xEB);
-			utils::hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
+			utils::hook(0x643B34, cull::world_stub_03, HOOK_JUMP).install()->quick();
 
-			// R_AddCellSceneEntSurfacesInFrustumCmd :: active ents like destructible cars / players (disable all culling)
-			// 0x64D17A -> nop // 2 bytes //utils::hook::nop(0x64D17A, 2);
-			utils::hook::nop(0x64D172, 8); utils::hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
+			// R_AddCellSceneEntSurfacesInFrustumCmd :: active ents like destructible cars / players (disable all culling) .. // 0x64D17A -> nop // 2 bytes //utils::hook::nop(0x64D17A, 2);
+			utils::hook::nop(0x64D172, 8); utils::hook(0x64D172, cull::entities_stub, HOOK_JUMP).install()->quick();
+
+			dvars::rtx_disable_world_culling = game::Dvar_RegisterEnum(
+				/* name		*/ "rtx_disable_world_culling",
+				/* desc		*/ "Disable world culling. 'all' is needed for stable geometry hashes!\n"
+										 "- less: reduces culling to portals only (unstable world geo hashes!)\n"
+										 "- all: disable culling of all surfaces including models\n"
+										 "- all-but-models: disable culling of all surfaces excluding models",
+				/* default	*/ 3,
+				/* enumSize	*/ rtx::rtx_disable_world_culling_enum.size(),
+				/* enumData */ rtx::rtx_disable_world_culling_enum.data(),
+				/* flags	*/ game::dvar_flags::saved);
+
+			dvars::rtx_disable_entity_culling = game::Dvar_RegisterBool(
+				/* name		*/ "rtx_disable_entity_culling",
+				/* desc		*/ "Disable culling of game entities (script objects/destructible cars ...)",
+				/* default	*/ true,
+				/* flags	*/ game::dvar_flags::saved);
 		}
-
-
 
 		// *
 		// LOD
@@ -646,6 +728,10 @@ namespace components
 		utils::hook::nop(0x62A2F8, 5); // r_lodBiasRigid
 		utils::hook::nop(0x62A34F, 5); // r_lodScaleSkinned
 		utils::hook::nop(0x62A3A6, 5); // r_lodBiasSkinned
+
+		utils::hook::nop(0x5FAE5A, 4); // do not scale lodScaleRigid with fov
+		utils::hook::nop(0x5FAE67, 2); // do not scale lodBiasRigid with fov
+		
 
 		// check if r_forceLod is enabled and force LOD's accordingly
 		utils::hook(0x5911C0, xmodel_get_lod_for_dist_detour, HOOK_JUMP).install()->quick();

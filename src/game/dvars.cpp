@@ -144,10 +144,6 @@ namespace dvars
 	game::dvar_s* r_wireframe_world = nullptr;
 	game::dvar_s* r_wireframe_xmodels = nullptr;
 
-	game::dvar_s* r_cullWorld = nullptr;
-	game::dvar_s* r_cullEntities = nullptr;
-	game::dvar_s* r_drawDynents = nullptr;
-
 	game::dvar_s* r_debugShaderTexcoord = nullptr;
 	game::dvar_s* r_dayAndNight = nullptr;
 
@@ -155,6 +151,10 @@ namespace dvars
 	game::dvar_s* rtx_warm_smodels = nullptr;
 	game::dvar_s* rtx_extend_smodel_drawing = nullptr;
 	game::dvar_s* r_forceLod_second_lowest = nullptr;
+	game::dvar_s* rtx_disable_world_culling = nullptr;
+	game::dvar_s* rtx_disable_entity_culling = nullptr;
+	game::dvar_s* rtx_draw_dynents = nullptr;
+
 
 	game::dvar_s* r_fogTweaks = nullptr;
 	game::dvar_s* r_fogTweaksColor = nullptr;

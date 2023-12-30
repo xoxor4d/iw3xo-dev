@@ -6,7 +6,12 @@ namespace components
 	{
 	public:
 		rtx();
-		const char* get_name() override { return "rtx"; };
+		const char* get_name() override { return "rtx"; }
+
+		static inline auto loc_disable_world_culling = 0u;
+		static inline auto loc_disable_entity_culling = 0u;
+
+		static inline std::vector rtx_disable_world_culling_enum = { "default", "less", "all", "all-but-models" };
 
 		static void r_set_3d();
 		static void setup_dvars_rtx();

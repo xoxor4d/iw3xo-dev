@@ -28,6 +28,19 @@ namespace components
 			TT("The game has a hard limit on how many static models it can draw at once (warning print in console).\n"
 			   "Enabling this setting will disable that limit but might cause instability.");
 
+			if (dvars::rtx_disable_entity_culling)
+			{
+				ImGui::Checkbox("Disable Entity Culling", &dvars::rtx_disable_entity_culling->current.enabled);
+				TT(dvars::rtx_disable_entity_culling->description);
+			}
+
+			if (dvars::rtx_disable_world_culling)
+			{
+				ImGui::SliderInt("World Culling", &dvars::rtx_disable_world_culling->current.integer, 0, 3,
+												  rtx::rtx_disable_world_culling_enum[dvars::rtx_disable_world_culling->current.integer]);
+				TT(dvars::rtx_disable_world_culling->description);
+			}
+
 #if DEBUG
 			ImGui::DragInt("D3D Alpha Blend Setting", &rtx_gui::d3d_alpha_blend, 0.025f, 0, 16);
 #endif

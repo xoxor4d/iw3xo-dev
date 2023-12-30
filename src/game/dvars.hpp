@@ -151,10 +151,6 @@ namespace dvars
 	extern game::dvar_s* r_wireframe_world;
 	extern game::dvar_s* r_wireframe_xmodels;
 
-	extern game::dvar_s* r_cullWorld;
-	extern game::dvar_s* r_cullEntities;
-	extern game::dvar_s* r_drawDynents;
-
 	extern game::dvar_s* r_debugShaderTexcoord;
 	extern game::dvar_s* r_dayAndNight;
 
@@ -162,6 +158,9 @@ namespace dvars
 	extern game::dvar_s* rtx_warm_smodels;
 	extern game::dvar_s* rtx_extend_smodel_drawing;
 	extern game::dvar_s* r_forceLod_second_lowest;
+	extern game::dvar_s* rtx_disable_world_culling;
+	extern game::dvar_s* rtx_disable_entity_culling;
+	extern game::dvar_s* rtx_draw_dynents;
 
 	extern game::dvar_s* r_fogTweaks;
 	extern game::dvar_s* r_fogTweaksColor;

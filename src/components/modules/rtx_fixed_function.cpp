@@ -4,6 +4,9 @@
 // - r_pretess (surface batching) might cause some messed up normals (sometimes noticeable in water puddles)
 // - ^ surface batching is def. needed with fixed-function rendering (fps)
 
+// todo
+// - disable normal and specularmaps so that remix does not pick them up (less clutter in remix ui)
+
 namespace components
 {
 	bool XSurfaceOptimize(game::XSurface* surf)

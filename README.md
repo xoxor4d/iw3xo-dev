@@ -63,21 +63,24 @@ https://xoxor4d.github.io/projects/iw3xo/
 <br>
 
 ### Commandline Arguments:
-  - `-disable_culling` &ensp; :: disables all culling __(!RECOMMENDED)__
+  - ~~`-disable_culling` &ensp; :: disables all culling __(!RECOMMENDED)__~~
   - `-fixed_function` &ensp; &ensp;:: use the fixed-function pipeline to render static models __(!RECOMMENDED)__
   
-> eg: &ensp;`"c:\path\iw3xo.exe" -disable_culling -fixed_function` 
+> eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function` 
 
 <br>
 
 ### Additional settings (console command `/devgui` - __rtx__ tab)
 - I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
-- `r_forceLod` :: force a specific LOD
-- `r_forceLod_second_lowest` :: prevent game from using the lowest LOD (sometimes used to hide the model)
-- `r_lodScaleRigid` :: adjust model LOD distance - a value of 0 will force LOD0
+- `rtx_disable_world_culling` :: disable culling (__set to `all-but-models` (3)__) - _(3 by default)_
+- `rtx_disable_entity_culling` :: disable culling of script objects (game entities) - _(enabled by default)_
 - `rtx_hacks` :: replace the skybox with a blue-gray texture _(enabled by default)_
 - `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
 - `rtx_warm_smodels` :: build model buffers on map load _(fixed-function only - enabled by default)_
+- `r_forceLod` :: force a specific LOD
+- `r_forceLod_second_lowest` :: prevent game from using the lowest LOD (sometimes used to hide the model)
+- `r_lodScaleRigid` :: adjust model LOD distance - a value of 0 will force LOD0
+
 
 <br>
 
@@ -87,6 +90,11 @@ https://xoxor4d.github.io/projects/iw3xo/
 Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your mouse to select the sky (in the world) and assign the sky category
 
 - If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
+
+- Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all (3)` can or will crash the game eventually.
+  Set it to `less (2)` to make it more stable. Note: World geometry hashes wont be stable!
+
+- The above + having `r_lodScaleRigid` at a pretty low value (increases model draw distance) = more instability.
 
 - Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
 
