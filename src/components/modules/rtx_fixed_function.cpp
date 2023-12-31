@@ -469,6 +469,211 @@ namespace components
 	}
 
 
+	// *
+	// xmodels
+
+	void R_DrawXModelRigidModelSurf(game::GfxModelRigidSurface* model, game::GfxCmdBufSourceState* source, game::GfxCmdBufState* state)
+	{
+		const auto surf = model->surf.xsurf;
+
+		if (surf->deformed)
+		{
+			__debugbreak();
+		}
+
+		float model_axis[3][3] = {};
+		utils::vector::unit_quat_to_axis(model->placement.base.quat, model_axis);
+
+		//const auto mtx = source->matrices.matrix[0].m;
+		float mtx[4][4] = {};
+		const auto scale = model->placement.scale;
+
+		// inlined ikMatrixSet44
+		mtx[0][0] = model_axis[0][0] * scale;
+		mtx[0][1] = model_axis[0][1] * scale;
+		mtx[0][2] = model_axis[0][2] * scale;
+		mtx[0][3] = 0.0f;
+
+		mtx[1][0] = model_axis[1][0] * scale;
+		mtx[1][1] = model_axis[1][1] * scale;
+		mtx[1][2] = model_axis[1][2] * scale;
+		mtx[1][3] = 0.0f;
+
+		mtx[2][0] = model_axis[2][0] * scale;
+		mtx[2][1] = model_axis[2][1] * scale;
+		mtx[2][2] = model_axis[2][2] * scale;
+		mtx[2][3] = 0.0f;
+
+		mtx[3][0] = model->placement.base.origin[0];
+		mtx[3][1] = model->placement.base.origin[1];
+		mtx[3][2] = model->placement.base.origin[2];
+		mtx[3][3] = 1.0f;
+
+
+		// #
+		// get correct index buffer (our custom one is f'd up?)
+
+		const auto g_zones = reinterpret_cast<game::XZone*>(0xFFEFD0);
+		const auto mem = &g_zones[surf->zoneHandle].mem;
+
+		IDirect3DVertexBuffer9* og_vertex_buffer = nullptr;
+		std::uint32_t og_vertex_buffer_offset = 0;
+		std::uint32_t og_vertex_buffer_stride = 0;
+
+		const auto dev = game::glob::d3d9_device;
+		state->prim.indexBuffer = mem->indexBuffer;
+		dev->SetIndices(mem->indexBuffer); //dev->SetIndices(surf->custom_indexbuffer);
+
+		bool rendering_ff = false;
+
+		// save shaders
+		IDirect3DVertexShader9* og_vertex_shader;
+		dev->GetVertexShader(&og_vertex_shader);
+
+		IDirect3DPixelShader9* og_pixel_shader;
+		dev->GetPixelShader(&og_pixel_shader);
+
+		if (surf->custom_vertexbuffer)
+		{
+			// backup
+			//og_vertex_buffer = state->prim.streams[0].vb;
+			//og_vertex_buffer_offset = state->prim.streams[0].offset;
+			//og_vertex_buffer_stride = state->prim.streams[0].stride;
+
+			//state->prim.streams[0].vb = surf->custom_vertexbuffer;
+			//state->prim.streams[0].vb = mem->vertexBuffer;
+			//state->prim.streams[0].offset = 0;
+			//state->prim.streams[0].stride = 32;
+
+			dev->SetStreamSource(0, surf->custom_vertexbuffer, 0, 32);
+
+			if (state->prim.streams[1].vb || state->prim.streams[1].offset || state->prim.streams[1].stride)
+			{
+				state->prim.streams[1].vb = 0;
+				state->prim.streams[1].offset = 0;
+				state->prim.streams[1].stride = 0;
+				state->prim.device->SetStreamSource(1, 0, 0, 0);
+			}
+
+			dev->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
+
+			dev->SetVertexShader(nullptr);
+			dev->SetPixelShader(nullptr);
+
+			dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&mtx));
+
+			rendering_ff = true;
+		}
+		else
+		{
+			state->prim.streams[0].vb = mem->vertexBuffer;
+			state->prim.streams[0].offset = 0;
+			state->prim.streams[0].stride = 32;
+			dev->SetStreamSource(0, mem->vertexBuffer, (char*)surf->verts0 - mem->blocks[7].data, 32);
+
+			if (state->prim.streams[1].vb || state->prim.streams[1].offset || state->prim.streams[1].stride)
+			{
+				state->prim.streams[1].vb = 0;
+				state->prim.streams[1].offset = 0;
+				state->prim.streams[1].stride = 0;
+				state->prim.device->SetStreamSource(1, 0, 0, 0);
+			}
+		}
+
+		const auto primArgCount = static_cast<unsigned int>(state->pass->perPrimArgCount);
+		const auto materialArgs = state->pass->args;
+
+		if (primArgCount)
+		{
+			// R_SetupPassPerPrimArgs
+			const static uint32_t func_addr = 0x64BC50;
+			__asm
+			{
+				pushad;
+				push	state;
+				push	source;
+				push	primArgCount;
+				mov		eax, materialArgs;
+				call	func_addr;
+				add		esp, 12;
+				popad;
+			}
+		}
+
+		// #
+		// setup fixed-function
+
+		// vertex format
+		//dev->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
+
+		// def. needed or the game will render the mesh using shaders
+		//dev->SetVertexShader(nullptr);
+		//dev->SetPixelShader(nullptr);
+
+		// #
+		// draw prim
+
+		//dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&source->matrices.matrix[0].m));
+		//dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&mtx));
+
+		const auto offset = ((char*)surf->triIndices - mem->blocks[8].data) >> 1;
+
+		// draw the prim
+		state->prim.device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, surf->vertCount, offset, surf->triCount);
+
+
+		// #
+		// restore everything for following meshes rendered via shaders
+
+		/*if (og_vertex_buffer)
+		{
+			state->prim.streams[0].vb = og_vertex_buffer;
+			state->prim.streams[0].offset = og_vertex_buffer_offset;
+			state->prim.streams[0].stride = og_vertex_buffer_stride;
+			dev->SetStreamSource(0, og_vertex_buffer, og_vertex_buffer_offset, og_vertex_buffer_stride);
+		}
+		*/
+
+		if (rendering_ff)
+		{
+			dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&source->matrices.matrix[0].m));
+
+			dev->SetStreamSource(0, mem->vertexBuffer, (char*)surf->verts0 - mem->blocks[7].data, 32);
+
+			dev->SetFVF(NULL);
+			dev->SetVertexShader(og_vertex_shader);
+			dev->SetPixelShader(og_pixel_shader);
+		}
+	}
+
+	__declspec(naked) void R_DrawXModelRigidModelSurf1_stub()
+	{
+		const static uint32_t retn_addr = 0x657231;
+		__asm
+		{
+			// state pushed
+			// source pushed
+			push	eax; // GfxModelRigidSurface
+			call	R_DrawXModelRigidModelSurf;
+			add		esp, 4;
+			jmp		retn_addr;
+		}
+	}
+
+	__declspec(naked) void R_DrawXModelRigidModelSurf2_stub()
+	{
+		const static uint32_t retn_addr = 0x6575CA;
+		__asm
+		{
+			// state pushed
+			// source pushed
+			push	ecx; // GfxModelRigidSurface
+			call	R_DrawXModelRigidModelSurf;
+			add		esp, 4;
+			jmp		retn_addr;
+		}
+	}
+
 #if DEBUG
 	/**
 	 * @brief stub that could be used to override renderstates / textureargs
@@ -729,6 +934,12 @@ namespace components
 
 			// fixed-function rendering of world surfaces
 			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
+
+			// rigid xmodels - call 1
+			//utils::hook(0x65722C, R_DrawXModelRigidModelSurf1_stub, HOOK_JUMP).install()->quick();
+
+			// rigid xmodels - call 2
+			//utils::hook(0x6575C5, R_DrawXModelRigidModelSurf2_stub, HOOK_JUMP).install()->quick();
 
 #if DEBUG
 			utils::hook::set<BYTE>(0x5FA486 + 6, 0x02); // R_RenderScene :: set viewInfo->decalInfo.cameraView to 2 so we know when we render decals
