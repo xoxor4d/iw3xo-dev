@@ -65,12 +65,12 @@ https://xoxor4d.github.io/projects/iw3xo/
 ### Commandline Arguments:
   - ~~`-disable_culling` &ensp; :: disables all culling __(!RECOMMENDED)__~~
   - `-fixed_function` &ensp; &ensp;:: use the fixed-function pipeline to render static models __(!RECOMMENDED)__
-  
-> eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function` 
+  - `-thirdperson` &ensp; &ensp; &ensp; &ensp; :: render thirdperson model into firstperson view (General Tips)
+> eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function -thirdperson` 
 
 <br>
 
-### Additional settings (console command `/devgui` - __rtx__ tab)
+### Additional Settings (console command `/devgui` - __rtx__ tab)
 - I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
 - `rtx_disable_world_culling` :: disable culling (__set to `all-but-models` (3)__) - _(3 by default)_
 - `rtx_disable_entity_culling` :: disable culling of script objects (game entities) - _(enabled by default)_
@@ -84,7 +84,7 @@ https://xoxor4d.github.io/projects/iw3xo/
 
 <br>
 
-### General tips
+### General Tips
 
 - You might need to assign the sky category manually (if your map is black).   
 Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your mouse to select the sky (in the world) and assign the sky category
@@ -92,11 +92,15 @@ Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your
 - If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
 
 - Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all (3)` can or will crash the game eventually.
-  Set it to `less (2)` to make it more stable. Note: World geometry hashes wont be stable!
+  Set it to `less (2)` to make it more stable. Note: World geometry hashes wont be stable! (if that matters to you)
 
 - The above + having `r_lodScaleRigid` at a pretty low value (increases model draw distance) = more instability.
 
+- _Game Setup-> Parameter Tuning-> Fused World-View Mode_ set to `In View Transform` fixes motion vectors but rotates the fallback distant light (this is fixable by using a distantlight defined in your mod.usd)
+
 - Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
+
+- Using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows.
 
 <br>
 

@@ -3499,8 +3499,8 @@ namespace game
 		XBlock blocks[9];
 		char* lockedVertexData;
 		char* lockedIndexData;
-		void* vertexBuffer;
-		void* indexBuffer;
+		IDirect3DVertexBuffer9* vertexBuffer;
+		IDirect3DIndexBuffer9* indexBuffer;
 	};
 
 	struct XZone
@@ -4768,6 +4768,35 @@ namespace game
 	{
 		GfxPlacement base;
 		float scale;
+	};
+
+	struct __declspec(align(4)) GfxModelSurfaceInfo
+	{
+		DObjAnimMat* baseMat;
+		char boneIndex;
+		char boneCount;
+		unsigned __int16 gfxEntIndex;
+		unsigned __int16 lightingHandle;
+	};
+
+	union $178D1D161B34F636C03EBC0CA3007D75
+	{
+		GfxPackedVertex* skinnedVert;
+		int oldSkinnedCachedOffset;
+	};
+
+	struct GfxModelSkinnedSurface
+	{
+		int skinnedCachedOffset;
+		XSurface* xsurf;
+		GfxModelSurfaceInfo info;
+		$178D1D161B34F636C03EBC0CA3007D75 u;
+	};
+
+	struct GfxModelRigidSurface
+	{
+		GfxModelSkinnedSurface surf;
+		GfxScaledPlacement placement;
 	};
 
 	struct GfxParticleCloud
