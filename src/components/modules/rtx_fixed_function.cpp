@@ -724,7 +724,7 @@ namespace components
 			//utils::hook::nop(0x647CA3, 5); // R_UpdateVertexDecl
 			//utils::hook::nop(0x647D8F, 5); // R_SetPassShaderObjectArguments - this sets a sampler (SetTexture -> needed)
 
-			// fixed-function rendering of static models
+			// fixed-function rendering of static models (R_TessStaticModelRigidDrawSurfList)
 			utils::hook(0x655A10, R_DrawStaticModelDrawSurfNonOptimized, HOOK_CALL).install()->quick();
 
 			// fixed-function rendering of world surfaces
