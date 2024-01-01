@@ -10,8 +10,11 @@
 // * 'r_preTess' (surface batching) set to false + 'rtx_disable_world_culling' set to less (cull full portals only) = almost stable geo hashes
 // ^ bad performance when moving the camera -> all culling turned off is more stable
 
-// * Game Setup -> Parameter Tuning -> Fused World-View Mode set to 'In View Transform' fixes motion vectors but rotates the fallback distant light
-// ^ todo: change setting when skylight is placed via usd.mod
+// * Game Setup -> Parameter Tuning -> Fused World-View Mode set to 'In View Transform' fixes motion vectors but rotates the distant light
+// ^ same applies when distant light is placed via usd.mod
+
+
+//#define STATIC_MODEL_CACHE_TEST // can be ignored
 
 namespace components
 {
@@ -563,6 +566,47 @@ namespace components
 				jmp		retn_skip;
 			}
 		}
+
+#ifdef STATIC_MODEL_CACHE_TEST
+		int R_GetStaticModelId_test(int smodel_index)
+		{
+			if (const auto r_smc_enable = game::Dvar_FindVar("r_smc_enable"); r_smc_enable)
+			{
+				if (r_smc_enable->current.enabled)
+				{
+					if (utils::contains(game::rgp->world->dpvs.smodelDrawInsts[smodel_index].model->name, "grass"))
+					{
+						return 0;
+					}
+				}
+
+				return r_smc_enable->current.enabled;
+			}
+
+			return 0;
+		}
+
+		__declspec(naked) void R_GetStaticModelId_stub()
+		{
+			const static uint32_t disabled_addr = 0x63ABF7;
+			const static uint32_t enabled_addr = 0x63ABB9;
+			__asm
+			{
+				pushad;
+				push	ebx; // smodelIndex
+				call	R_GetStaticModelId_test;
+				add		esp, 4;
+				cmp     eax, 0;
+				jz		loc_63ABF7;
+				popad;
+				jmp		enabled_addr;
+
+			loc_63ABF7:
+				popad;
+				jmp		disabled_addr;
+			}
+		}
+#endif
 	}
 
 
@@ -727,6 +771,11 @@ namespace components
 				/* desc		*/ "Disable culling of game entities (script objects/destructible cars ...)",
 				/* default	*/ true,
 				/* flags	*/ game::dvar_flags::saved);
+
+#ifdef STATIC_MODEL_CACHE_TEST
+			// can be ignored
+			utils::hook(0x63ABAE, cull::R_GetStaticModelId_stub, HOOK_JUMP).install()->quick();
+#endif
 		}
 
 		// *
