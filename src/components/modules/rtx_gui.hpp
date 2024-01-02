@@ -21,6 +21,7 @@ namespace components
 		static inline game::vec3_t skysphere_model_rotation = {};
 		static inline bool skysphere_auto_rotation = false;
 		static inline float skysphere_auto_rotation_speed = 1.0f;
+		static inline float skysphere_scale = 1000.0f;
 
 		static inline int d3d_alpha_blend = 4;
 

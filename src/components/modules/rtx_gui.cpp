@@ -83,6 +83,12 @@ namespace components
 					skysphere_toggle_vis();
 				}
 
+				
+				ImGui::PushItemWidth(90.0f);
+				ImGui::DragFloat("Sky Scale", &skysphere_scale, 0.01f, 1.0f, 10000.0f, "%.0f");
+				ImGui::PopItemWidth();
+
+				//ImGui::SameLine();
 				ImGui::Checkbox("Auto Rotation", &skysphere_auto_rotation);
 				ImGui::SameLine();
 
