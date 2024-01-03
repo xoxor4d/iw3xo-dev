@@ -1771,9 +1771,8 @@ namespace game
 		GfxPackedVertex* verts0;
 		unsigned int vertListCount;
 		XRigidVertList* vertList;
-		int partBits[2]; // was 4
+		int partBits[3]; // was 4
 		IDirect3DVertexBuffer9* custom_vertexbuffer;
-		IDirect3DIndexBuffer9* custom_indexbuffer;
 	}; STATIC_ASSERT_SIZE(XSurface, 0x38);
 
 	struct BrushWrapper
@@ -4846,7 +4845,7 @@ namespace game
 
 	struct GfxVertexBufferState
 	{
-		volatile int used;
+		/*volatile*/ int used;
 		int total;
 		//int IDirect3DVertexBuffer9; // 
 		IDirect3DVertexBuffer9* buffer;
