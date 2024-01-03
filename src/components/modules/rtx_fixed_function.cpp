@@ -676,6 +676,207 @@ namespace components
 		}
 	}
 
+	// ------------------------
+
+	int R_SetIndexData(game::GfxCmdBufPrimState* state, const unsigned __int16* indices, int tri_count)
+	{
+		const auto gfxBuf = reinterpret_cast<game::GfxBuffers*>(0xD2B0840);
+		const auto index_count = 3 * tri_count;
+
+		if (index_count + gfxBuf->dynamicIndexBuffer->used > gfxBuf->dynamicIndexBuffer->total)
+		{
+			gfxBuf->dynamicIndexBuffer->used = 0;
+		}
+
+		if (!gfxBuf->dynamicIndexBuffer->used)
+		{
+			gfxBuf->dynamicIndexBuffer = gfxBuf->dynamicIndexBufferPool;
+		}
+
+		void* buffer_data;
+		if (const auto hr = gfxBuf->dynamicIndexBuffer->buffer->Lock(2 * gfxBuf->dynamicIndexBuffer->used, 6 * tri_count, &buffer_data, gfxBuf->dynamicIndexBuffer->used != 0 ? 0x1000 : 0x2000);
+			hr < 0)
+		{
+			//R_FatalLockError(hr);
+			game::Com_Error(game::ERR_DROP, "Fatal lock error :: R_SetIndexData");
+		}
+
+		memcpy(buffer_data, indices, 2 * index_count);
+		gfxBuf->dynamicIndexBuffer->buffer->Unlock();
+
+		if (state->indexBuffer != gfxBuf->dynamicIndexBuffer->buffer)
+		{
+			state->indexBuffer = gfxBuf->dynamicIndexBuffer->buffer;
+			state->device->SetIndices(gfxBuf->dynamicIndexBuffer->buffer);
+		}
+
+		const auto base_index = gfxBuf->dynamicIndexBuffer->used;
+		gfxBuf->dynamicIndexBuffer->used += index_count;
+
+		return base_index;
+	}
+
+	void R_DrawXModelSkinnedUncached(game::GfxModelSkinnedSurface* skinned_surf, game::GfxCmdBufSourceState* src, game::GfxCmdBufState* state)
+	{
+		const auto gfxBuf = reinterpret_cast<game::GfxBuffers*>(0xD2B0840);
+		const auto surf = skinned_surf->xsurf;
+		const auto stride = 32;
+
+		const auto start_index = R_SetIndexData(&state->prim, surf->triIndices, surf->triCount);
+		if (stride * surf->vertCount + gfxBuf->dynamicVertexBuffer->used > gfxBuf->dynamicVertexBuffer->total)
+		{
+			gfxBuf->dynamicVertexBuffer->used = 0;
+		}
+
+
+		//const auto offset = R_SetVertexData(surf->vertCount, skinned_surf);
+		void* buffer_data;
+		if (const auto hr = gfxBuf->dynamicVertexBuffer->buffer->Lock(gfxBuf->dynamicVertexBuffer->used, stride * surf->vertCount, &buffer_data, gfxBuf->dynamicVertexBuffer->used != 0 ? 0x1000 : 0x2000);
+			hr < 0)
+		{
+			//R_FatalLockError(hr);
+			game::Com_Error(game::ERR_DROP, "Fatal lock error :: R_DrawXModelSkinnedUncached");
+		}
+
+		const bool render_ff = true;
+
+		//Com_Memcpy(bufferData, (char*)data, totalSize);
+
+		if (!render_ff)
+		{
+			memcpy(buffer_data, skinned_surf->u.skinnedVert, stride * surf->vertCount);
+		}
+		else
+		{
+			struct unpacked_vert
+			{
+				game::vec3_t pos;
+				game::vec3_t normal;
+				game::vec2_t texcoord;
+			};
+
+			for (auto i = 0u; i < surf->vertCount; i++)
+			{
+				// packed source vertex
+				const auto src_vert = skinned_surf->u.skinnedVert[i];
+
+				// position of our unpacked vert within the vertex buffer
+				const auto v_pos_in_buffer = i * stride; // pos-xyz ; normal-xyz ; texcoords uv = 32 byte 
+				const auto v = reinterpret_cast<unpacked_vert*>(((DWORD)buffer_data + v_pos_in_buffer));
+
+				// vert pos
+				v->pos[0] = src_vert.xyz[0];
+				v->pos[1] = src_vert.xyz[1];
+				v->pos[2] = src_vert.xyz[2];
+
+				// unpack and assign vert normal
+
+				// normal unpacking in a cod4 hlsl shader:
+				// temp0	 = i.normal * float4(0.007874016, 0.007874016, 0.007874016, 0.003921569) + float4(-1, -1, -1, 0.7529412);
+				// temp0.xyz = temp0.www * temp0;
+
+				const auto scale = static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[3])) * (1.0f / 255.0f) + 0.7529412f;
+				v->normal[0] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[0])) * (1.0f / 127.0f) + -1.0f) * scale;
+				v->normal[1] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[1])) * (1.0f / 127.0f) + -1.0f) * scale;
+				v->normal[2] = (static_cast<float>(static_cast<std::uint8_t>(src_vert.normal.array[2])) * (1.0f / 127.0f) + -1.0f) * scale;
+
+				// uv's
+				game::Vec2UnpackTexCoords(src_vert.texCoord.packed, v->texcoord);
+			}
+
+		}
+
+		gfxBuf->dynamicVertexBuffer->buffer->Unlock();
+		const auto vert_offset = gfxBuf->dynamicVertexBuffer->used;
+		gfxBuf->dynamicVertexBuffer->used += (stride * surf->vertCount);
+
+
+		// #
+		// #
+
+		//R_SetStreamSource(32, gfxBuf->dynamicVertexBuffer->buffer, offset, prim);
+		if (state->prim.streams[0].vb != gfxBuf->dynamicVertexBuffer->buffer || state->prim.streams[0].offset != vert_offset || state->prim.streams[0].stride != stride)
+		{
+			state->prim.streams[0].vb = gfxBuf->dynamicVertexBuffer->buffer;
+			state->prim.streams[0].offset = vert_offset;
+			state->prim.streams[0].stride = stride;
+			state->prim.device->SetStreamSource(0, gfxBuf->dynamicVertexBuffer->buffer, vert_offset, stride);
+		}
+
+		IDirect3DVertexShader9* og_vertex_shader;
+		IDirect3DPixelShader9* og_pixel_shader;
+		if (render_ff)
+		{
+			
+			state->prim.device->GetVertexShader(&og_vertex_shader);
+			state->prim.device->GetPixelShader(&og_pixel_shader);
+
+			state->prim.device->SetVertexShader(nullptr);
+			state->prim.device->SetPixelShader(nullptr);
+
+			// vertex format
+			state->prim.device->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
+
+			// #
+			// build world matrix
+
+			float model_axis[3][3] = {};
+			utils::vector::unit_quat_to_axis(src->skinnedPlacement.base.quat, model_axis);
+
+			//const auto mtx = source->matrices.matrix[0].m;
+			float mtx[4][4] = {};
+			const auto scale = src->skinnedPlacement.scale;
+
+			// inlined ikMatrixSet44
+			mtx[0][0] = model_axis[0][0] * scale;
+			mtx[0][1] = model_axis[0][1] * scale;
+			mtx[0][2] = model_axis[0][2] * scale;
+			mtx[0][3] = 0.0f;
+
+			mtx[1][0] = model_axis[1][0] * scale;
+			mtx[1][1] = model_axis[1][1] * scale;
+			mtx[1][2] = model_axis[1][2] * scale;
+			mtx[1][3] = 0.0f;
+
+			mtx[2][0] = model_axis[2][0] * scale;
+			mtx[2][1] = model_axis[2][1] * scale;
+			mtx[2][2] = model_axis[2][2] * scale;
+			mtx[2][3] = 0.0f;
+
+			mtx[3][0] = src->skinnedPlacement.base.origin[0];
+			mtx[3][1] = src->skinnedPlacement.base.origin[1];
+			mtx[3][2] = src->skinnedPlacement.base.origin[2];
+			mtx[3][3] = 1.0f;
+
+			// set world matrix
+			state->prim.device->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&mtx));
+		}
+
+		state->prim.device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, surf->vertCount, start_index, surf->triCount);
+
+		if (render_ff)
+		{
+			state->prim.device->SetFVF(NULL);
+			state->prim.device->SetVertexShader(og_vertex_shader);
+			state->prim.device->SetPixelShader(og_pixel_shader);
+		}
+	}
+
+	__declspec(naked) void R_DrawXModelSkinnedUncached_stub()
+	{
+		const static uint32_t retn_addr = 0x646ED9;
+		__asm
+		{
+			// GfxPackedVertex (skinnedVert) pushed (we ignore that because we push GfxModelSkinnedSurface which holds it)
+			// state pushed
+			// source pushed
+			push	eax; // GfxModelSkinnedSurface
+			call	R_DrawXModelSkinnedUncached;
+			add		esp, 4;
+			jmp		retn_addr;
+		}
+	}
+
 #if DEBUG
 	/**
 	 * @brief stub that could be used to override renderstates / textureargs
@@ -942,6 +1143,10 @@ namespace components
 
 			// rigid xmodels - call 2
 			utils::hook(0x6575C5, R_DrawXModelRigidModelSurf2_stub, HOOK_JUMP).install()->quick();
+
+			// hook 'R_DrawXModelSkinnedUncached' call in 'R_TessXModelSkinnedDrawSurfList'
+			utils::hook::nop(0x646ECE, 3); // nop eax overwrite before calling our stub
+			utils::hook(0x646ED4, R_DrawXModelSkinnedUncached_stub, HOOK_JUMP).install()->quick();
 
 #if DEBUG
 			utils::hook::set<BYTE>(0x5FA486 + 6, 0x02); // R_RenderScene :: set viewInfo->decalInfo.cameraView to 2 so we know when we render decals
