@@ -7,6 +7,8 @@
 // todo
 // - disable normal and specularmaps so that remix does not pick them up (less clutter in remix ui)
 
+//#define TESS_TESTS // R_DrawTessTechnique test (2d, debug visualization etc.)
+
 namespace components
 {
 	struct unpacked_model_vert
@@ -947,8 +949,151 @@ namespace components
 		}
 	}
 
+
+	// *
+	// Tess techniques (2d, debug visualization etc.)
+
+#ifdef TESS_TESTS
+	namespace tess
+	{
+		int use_custom_tess_func()
+		{
+			if (const auto str = std::string_view(game::gfxCmdBufState->material->info.name);
+				str == "$line" || str == "$line_nodepth" || str == "iw3xo_showcollision_wire")
+			{
+				return 1;
+			}
+
+			return 0;
+		}
+
+		void custom_tess_func(game::GfxDrawPrimArgs* args, [[maybe_unused]] game::GfxCmdBufSourceState* source, game::GfxCmdBufState* state)
+		{
+			const int DEBUG_VERT_STRIDE = 16;
+			const auto DEBUG_VERT_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE;
+
+			if ((int)(DEBUG_VERT_STRIDE * game::tess->vertexCount + game::gfx_buf->dynamicVertexBuffer->used) > game::gfx_buf->dynamicVertexBuffer->total)
+			{
+				game::gfx_buf->dynamicVertexBuffer->used = 0;
+			}
+
+			// R_SetVertexData;
+			void* buffer_data;
+			if (const auto hr = game::gfx_buf->dynamicVertexBuffer->buffer->Lock(game::gfx_buf->dynamicVertexBuffer->used, DEBUG_VERT_STRIDE * game::tess->vertexCount, &buffer_data, game::gfx_buf->dynamicVertexBuffer->used != 0 ? 0x1000 : 0x2000);
+				hr < 0)
+			{
+				game::Com_Error(game::ERR_DROP, "Fatal lock error :: R_DrawTessTechnique");
+			}
+
+			{
+				struct debug_vert
+				{
+					game::vec3_t pos;
+					DWORD color;
+				};
+
+				for (auto i = 0; i < game::tess->vertexCount; i++)
+				{
+					// packed source vertex
+					const auto src_vert = game::tess->verts[i];
+
+					// position of our unpacked vert within the vertex buffer
+					const auto v_pos_in_buffer = i * DEBUG_VERT_STRIDE;
+					const auto v = reinterpret_cast<debug_vert*>(((DWORD)buffer_data + v_pos_in_buffer));
+
+					// vert pos
+					v->pos[0] = src_vert.xyzw[0];
+					v->pos[1] = src_vert.xyzw[1];
+					v->pos[2] = src_vert.xyzw[2];
+
+					v->color = src_vert.color.packed;
+				}
+			}
+
+			game::gfx_buf->dynamicVertexBuffer->buffer->Unlock();
+			const std::uint32_t vert_offset = game::gfx_buf->dynamicVertexBuffer->used;
+			game::gfx_buf->dynamicVertexBuffer->used += (DEBUG_VERT_STRIDE * game::tess->vertexCount);
+
+
+			// #
+			// #
+
+			if (state->prim.streams[0].vb != game::gfx_buf->dynamicVertexBuffer->buffer || state->prim.streams[0].offset != vert_offset || state->prim.streams[0].stride != DEBUG_VERT_STRIDE)
+			{
+				state->prim.streams[0].vb = game::gfx_buf->dynamicVertexBuffer->buffer;
+				state->prim.streams[0].offset = vert_offset;
+				state->prim.streams[0].stride = DEBUG_VERT_STRIDE;
+				state->prim.device->SetStreamSource(0, game::gfx_buf->dynamicVertexBuffer->buffer, vert_offset, DEBUG_VERT_STRIDE);
+			}
+
+			IDirect3DVertexShader9* og_vertex_shader;
+			IDirect3DPixelShader9* og_pixel_shader;
+
+			// save shaders
+			state->prim.device->GetVertexShader(&og_vertex_shader);
+			state->prim.device->GetPixelShader(&og_pixel_shader);
+
+			// needed or game renders mesh with shaders
+			state->prim.device->SetVertexShader(nullptr);
+			state->prim.device->SetPixelShader(nullptr);
+
+			state->prim.device->SetRenderState(D3DRS_LIGHTING, FALSE);
+			state->prim.device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
+			// set random texture not used for anything else (remix-wise)
+			const auto img = game::DB_FindXAssetHeader(game::ASSET_TYPE_IMAGE, "$identitynormalmap").image;
+			state->prim.device->SetTexture(0, img->texture.basemap);
+
+			// vertex format
+			state->prim.device->SetFVF(DEBUG_VERT_FORMAT);
+
+			// world matrix
+			{
+				float mtx[4][4] = {};
+				mtx[0][0] = 1.0f;  mtx[0][1] = 0.0f; mtx[0][2] = 0.0f; mtx[0][3] = 0.0f;
+				mtx[1][0] = 0.0f;  mtx[1][1] = 1.0f; mtx[1][2] = 0.0f; mtx[1][3] = 0.0f;
+				mtx[2][0] = 0.0f;  mtx[2][1] = 0.0f; mtx[2][2] = 1.0f; mtx[2][3] = 0.0f;
+				mtx[3][0] = 0.0f;  mtx[3][1] = 0.0f; mtx[3][2] = 0.0f; mtx[3][3] = 1.0f;
+
+				mtx[3][0] = mtx[3][0]; // - source->eyeOffset[0];
+				mtx[3][1] = mtx[3][1]; // - source->eyeOffset[1];
+				mtx[3][2] = mtx[3][2]; // - source->eyeOffset[2];
+
+				state->prim.device->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&mtx));
+			}
+
+			state->prim.device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, args->vertexCount, args->baseIndex, args->triCount);
+
+			state->prim.device->SetFVF(NULL);
+			state->prim.device->SetVertexShader(og_vertex_shader);
+			state->prim.device->SetPixelShader(og_pixel_shader);
+		}
+
+		__declspec(naked) void draw_tess_tech_stub()
+		{
+			const static uint32_t stock_func = 0x61A020; // R_DrawTessTechnique
+			const static uint32_t retn_addr = 0x61A374;
+			__asm
+			{
+				pushad;
+				call	use_custom_tess_func;
+				cmp		eax, 1;
+				jne		OG_LOGIC;
+				popad;
+				call	custom_tess_func;
+				jmp		retn_addr;
+
+			OG_LOGIC:
+				popad;
+				call	stock_func;
+				jmp		retn_addr;
+			}
+		}
+	}
+#endif
 	// *
 	// *
+
 
 	rtx_fixed_function::rtx_fixed_function()
 	{
@@ -977,7 +1122,13 @@ namespace components
 			utils::hook(0x44031B, init_fixed_function_buffers_stub, HOOK_JUMP).install()->quick(); // CG_Init :: CG_NorthDirectionChanged call
 
 			// on renderer shutdown :: release custom buffers used by fixed-function rendering
-			utils::hook(0x5F5052, free_fixed_function_buffers_stub).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
+			utils::hook(0x5F5052, free_fixed_function_buffers_stub, HOOK_JUMP).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
+
+#ifdef TESS_TESTS
+			// fixed-function rendering of debug visualizations / 2d etc .. RB_EndTessSurface-> R_DrawTessTechnique
+			// - currently only working "good" on debug collision polygons (lines-only are messed up - here to stay as reference)
+			utils::hook(0x61A36F, tess::draw_tess_tech_stub, HOOK_JUMP).install()->quick();
+#endif
 
 			dvars::rtx_warm_smodels = game::Dvar_RegisterBool(
 				/* name		*/ "rtx_warm_smodels",
