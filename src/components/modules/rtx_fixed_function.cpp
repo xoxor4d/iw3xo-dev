@@ -497,7 +497,7 @@ namespace components
 			game::gfx_buf->dynamicVertexBuffer->used = 0;
 		}
 
-		//const auto offset = R_SetVertexData(surf->vertCount, skinned_surf);
+		// R_SetVertexData
 		void* buffer_data;
 		if (const auto hr = game::gfx_buf->dynamicVertexBuffer->buffer->Lock(game::gfx_buf->dynamicVertexBuffer->used, MODEL_VERTEX_STRIDE * surf->vertCount, &buffer_data, game::gfx_buf->dynamicVertexBuffer->used != 0 ? 0x1000 : 0x2000);
 			hr < 0)
@@ -1116,6 +1116,12 @@ namespace components
 			// fixed-function rendering of world surfaces (R_TessTrianglesPreTessList)
 			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
 
+#ifdef TESS_TESTS
+			// fixed-function rendering of debug visualizations / 2d etc .. RB_EndTessSurface-> R_DrawTessTechnique
+			// - currently only working "good" on debug collision polygons (lines-only are messed up - here to stay as reference)
+			utils::hook(0x61A36F, tess::draw_tess_tech_stub, HOOK_JUMP).install()->quick();
+#endif
+
 			// ----
 
 			// on map load :: build custom buffers for fixed-function rendering
@@ -1123,12 +1129,6 @@ namespace components
 
 			// on renderer shutdown :: release custom buffers used by fixed-function rendering
 			utils::hook(0x5F5052, free_fixed_function_buffers_stub, HOOK_JUMP).install()->quick(); // R_Shutdown :: R_ResetModelLighting call
-
-#ifdef TESS_TESTS
-			// fixed-function rendering of debug visualizations / 2d etc .. RB_EndTessSurface-> R_DrawTessTechnique
-			// - currently only working "good" on debug collision polygons (lines-only are messed up - here to stay as reference)
-			utils::hook(0x61A36F, tess::draw_tess_tech_stub, HOOK_JUMP).install()->quick();
-#endif
 
 			dvars::rtx_warm_smodels = game::Dvar_RegisterBool(
 				/* name		*/ "rtx_warm_smodels",

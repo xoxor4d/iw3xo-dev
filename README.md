@@ -34,7 +34,7 @@ https://xoxor4d.github.io/projects/iw3xo/
 
 <div align="center">
 	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/4cb3fd26-1a58-468f-9c60-49b2aba63235"/>
-	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/8fca51c8-3642-4ddf-84d9-9324e7798093"/>
+	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/d921ead4-c86e-4385-8be3-dedb0302c690"/>
 </div>
 
 <br>
@@ -72,7 +72,7 @@ https://xoxor4d.github.io/projects/iw3xo/
 
 ### Additional Settings (console command `/devgui` - __rtx__ tab)
 - I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
-- `rtx_disable_world_culling` :: disable culling (__set to `all-but-models` (3)__) - _(3 by default)_
+- `rtx_disable_world_culling` :: disable culling (__set to `all-but-models` (3)__) - _(1 by default)_
 - `rtx_disable_entity_culling` :: disable culling of script objects (game entities) - _(enabled by default)_
 - `rtx_hacks` :: replace the skybox with a blue-gray texture _(enabled by default)_
 - `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
@@ -91,8 +91,8 @@ Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your
 
 - If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
 
-- Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all (3)` can or will crash the game eventually.
-  Set it to `less (2)` to make it more stable. Note: World geometry hashes wont be stable! (if that matters to you)
+- Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all .. (3)` can or will crash the game eventually.
+  Set it to `less (1)` to make it more stable. Note: World geometry hashes wont be stable! (if that matters to you)
 
 - The above + having `r_lodScaleRigid` at a pretty low value (increases model draw distance) = more instability.
 
@@ -100,7 +100,7 @@ Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your
 
 - Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
 
-- Using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows.
+- Using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - needs  a unique texture at the player origin so that the remix runtime hides meshes using textures marked as player model)
 
 <br>
 
@@ -170,9 +170,8 @@ ___
 
 <br>
 
+<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/8fca51c8-3642-4ddf-84d9-9324e7798093"/>
 <img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/edf972dc-0a63-4d3d-8bfb-4987c3dc6115"/>
-<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
-<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/mainmenu.jpg"/>
 
 <br>
 <br>
