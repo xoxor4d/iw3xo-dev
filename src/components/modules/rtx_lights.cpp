@@ -122,7 +122,7 @@ namespace components
 			}
 		}
 
-		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, TRUE);
+		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, FALSE);
 	}
 
 	rtx_lights::rtx_lights()
