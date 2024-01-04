@@ -2,17 +2,17 @@
 
 // Notes:
 // * skinned meshes have unstable hashes
-// * motion vectors are broken (flickering static meshes) (might be r_znear related)
+
+// * motion vectors are broken (flickering static meshes)
+// ^ Game Setup -> Parameter Tuning -> Fused World-View Mode set to 'In View Transform' fixes motion vectors but rotates the distant light
+// ^ same applies when distant light is placed via usd.mod
+
 // * running the game with a debug build of remix will throw an assert
-// * running the game will all culling disabled and quickly teleporting around (spawning counts as teleporting) can crash the runtime
+// * running the game with all culling disabled and quickly teleporting around (spawning counts as teleporting) can crash the runtime
 // * dynamic meshes (dynEnts, destr. cars and some other static meshes) are not 'static' (debug view) and create a smear effect (motion vectors)
 
 // * 'r_preTess' (surface batching) set to false + 'rtx_disable_world_culling' set to less (cull full portals only) = almost stable geo hashes
 // ^ bad performance when moving the camera -> all culling turned off is more stable
-
-// * Game Setup -> Parameter Tuning -> Fused World-View Mode set to 'In View Transform' fixes motion vectors but rotates the distant light
-// ^ same applies when distant light is placed via usd.mod
-
 
 //#define STATIC_MODEL_CACHE_TEST // can be ignored
 
@@ -761,7 +761,7 @@ namespace components
 										 "- less: reduces culling to portals only (unstable world geo hashes!)\n"
 										 "- all: disable culling of all surfaces including models\n"
 										 "- all-but-models: disable culling of all surfaces excluding models",
-				/* default	*/ 3,
+				/* default	*/ 1,
 				/* enumSize	*/ rtx::rtx_disable_world_culling_enum.size(),
 				/* enumData */ rtx::rtx_disable_world_culling_enum.data(),
 				/* flags	*/ game::dvar_flags::saved);
