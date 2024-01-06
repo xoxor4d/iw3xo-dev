@@ -122,6 +122,7 @@ namespace components
 			}
 		}
 
+		// needed for fixed-function skysphere (unlit rendering)
 		game::glob::d3d9_device->SetRenderState(D3DRS_LIGHTING, FALSE);
 	}
 

@@ -60,6 +60,7 @@ namespace game
 
 	static inline float COLOR_WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	static inline float COLOR_BLACK[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	static inline float vec3_origin[3] = { 0.0f, 0.0f, 0.0f };
 
 	extern game::TestLod g_testLods[4];
 
@@ -265,6 +266,7 @@ namespace game
 	extern char*	error_message;
 	extern char*	errortype;
 	extern int*		scr_numParam;
+	extern scr_const_t* scr_const;
 
 	extern game::gentity_s*	scr_g_entities;
 	extern game::level_locals_t* level_locals;

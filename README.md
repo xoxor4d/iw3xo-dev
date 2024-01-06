@@ -63,10 +63,10 @@ https://xoxor4d.github.io/projects/iw3xo/
 <br>
 
 ### Commandline Arguments:
-  - ~~`-disable_culling` &ensp; :: disables all culling __(!RECOMMENDED)__~~
-  - `-fixed_function` &ensp; &ensp;:: use the fixed-function pipeline to render static models __(!RECOMMENDED)__
-  - `-thirdperson` &ensp; &ensp; &ensp; &ensp; :: render thirdperson model into firstperson view (General Tips)
-> eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function -thirdperson` 
+  - `-fixed_function` &emsp; > use the fixed-function pipeline to render static models __(!RECOMMENDED)__
+  - `-spawn_sky` &emsp; &emsp; &ensp; &ensp; &nbsp;> automatically spawns a fitting sky when loading a map __(!RECOMMENDED)__
+  - `-thirdperson` &ensp; &ensp; &ensp; &ensp; > render thirdperson model into firstperson view (General Tips)
+> eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function -spawn_sky` 
 
 <br>
 
@@ -91,22 +91,23 @@ Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your
 
 - If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
 
-- Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all .. (3)` can or will crash the game eventually.
+- Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all .. (3)` can crash the game.
   Set it to `less (1)` to make it more stable. Note: World geometry hashes wont be stable! (if that matters to you)
 
 - The above + having `r_lodScaleRigid` at a pretty low value (increases model draw distance) = more instability.
 
-- _Game Setup-> Parameter Tuning-> Fused World-View Mode_ set to `In View Transform` fixes motion vectors but rotates the fallback distant light (this is fixable by using a distantlight defined in your mod.usd)
+- _Game Setup-> Parameter Tuning-> Fused World-View Mode_ set to `In View Transform` fixes motion vectors but rotates the fallback distant light (this is not fixable by using a distantlight defined in your mod.usd)
 
 - Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
 
-- Using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - needs  a unique texture at the player origin so that the remix runtime hides meshes using textures marked as player model)
+- Using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - also spawns a triangle with a unique texture used as the bounding box origin to hide meshes using textures marked as player model)
 
 <br>
 
 ### Questions? 
 - join the [rtx-remix showcase](https://discord.gg/j6sh7JD3v9) discord and check out the cod4 thread within the `remix-projects` channel.
 - join the [iw3xo](https://discord.gg/t5jRGbj) discord if you have questions related to iw3xo
+- sp variant: [iw3sp-mod-rtx](https://github.com/xoxor4d/iw3sp-mod-rtx) 
 - rtx-remix: https://github.com/NVIDIAGameWorks/rtx-remix  
 
 <br>

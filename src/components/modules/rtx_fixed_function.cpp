@@ -922,7 +922,7 @@ namespace components
 					const auto surf_count = XModelGetSurfaces(header.model, &surfaces, lod_index);
 					for (auto surf_index = 0; surf_index < surf_count; ++surf_index)
 					{
-						if (surfaces[surf_index].custom_vertexbuffer)
+						if (!surfaces[surf_index].deformed && surfaces[surf_index].custom_vertexbuffer)
 						{
 							surfaces[surf_index].custom_vertexbuffer->Release();
 							surfaces[surf_index].custom_vertexbuffer = nullptr;

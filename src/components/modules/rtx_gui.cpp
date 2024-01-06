@@ -360,6 +360,8 @@ namespace components
 		case 1: return "rtx_skysphere_desert";
 		case 2: return "rtx_skysphere_overcast_city";
 		case 3: return "rtx_skysphere_night";
+		case 4: return "rtx_skysphere_overcast";
+		case 5: return "rtx_skysphere_sunset_clouds";
 		}
 	}
 
@@ -410,6 +412,14 @@ namespace components
 		skysphere_variant = variant;
 	}
 
+	/**
+	 * - [0] 'rtx_skysphere_oceanrock'
+	 * - [1] 'rtx_skysphere_desert'
+	 * - [2] 'rtx_skysphere_overcast_city'
+	 * - [3] 'rtx_skysphere_night'
+	 * - [4] 'rtx_skysphere_overcast'
+	 * - [5] 'rtx_skysphere_sunset_clouds'
+	 */
 	void rtx_gui::skysphere_spawn(int variant)
 	{
 		if (skysphere_is_model_valid())
@@ -418,14 +428,10 @@ namespace components
 			return;
 		}
 
-		// needs :: 
-		// s->index = modelIndex
-		// linked = 0x1;
-		// svFlags = 0x04; // even = visible, uneven = hidden
-
 		const std::int16_t model_index = game::G_ModelIndex(skysphere_get_name_for_variant(variant));
 
 		skysphere_model = game::G_Spawn();
+		skysphere_model->classname = game::scr_const->script_model;
 		skysphere_model->model = model_index;
 		skysphere_model->s.index = model_index;
 		skysphere_model->r.svFlags = 0x04;
@@ -441,7 +447,5 @@ namespace components
 	}
 
 	rtx_gui::rtx_gui()
-	{
-		
-	}
+	{ }
 }

@@ -41,6 +41,44 @@ namespace components
 
 		rtx_lights::spawn_light();
 		rtx::setup_dvars_rtx();
+
+		if (flags::has_flag("thirdperson"))
+		{
+			rtx::player_origin_model();
+		}
+
+		if (flags::has_flag("spawn_sky"))
+		{
+			if (game::cm && game::cm->name && !rtx_gui::skysphere_is_model_valid())
+			{
+				std::string map_name = game::cm->name;
+				utils::replace_all(map_name, std::string("maps/mp/"), ""); // if mp map
+				utils::replace_all(map_name, std::string("maps/"), ""); // if sp map
+				utils::replace_all(map_name, std::string(".d3dbsp"), "");
+
+				if (map_name == std::string_view("mp_backlot")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_bloc")) rtx_gui::skysphere_spawn(4);
+				else if (map_name == std::string_view("mp_bog")) rtx_gui::skysphere_spawn(3);
+				else if (map_name == std::string_view("mp_broadcast")) rtx_gui::skysphere_spawn(0);
+				else if (map_name == std::string_view("mp_carentan")) rtx_gui::skysphere_spawn(3);
+				else if (map_name == std::string_view("mp_cargoship")) rtx_gui::skysphere_spawn(3);
+				else if (map_name == std::string_view("mp_citystreets")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_convoy")) rtx_gui::skysphere_spawn(1);
+				else if (map_name == std::string_view("mp_countdown")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_crash")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_crash_snow")) rtx_gui::skysphere_spawn(3);
+				else if (map_name == std::string_view("mp_creek")) rtx_gui::skysphere_spawn(0);
+				else if (map_name == std::string_view("mp_crossfire")) rtx_gui::skysphere_spawn(0);
+				else if (map_name == std::string_view("mp_farm")) rtx_gui::skysphere_spawn(4);
+				else if (map_name == std::string_view("mp_killhouse")) rtx_gui::skysphere_spawn(0);
+				else if (map_name == std::string_view("mp_overgrown")) rtx_gui::skysphere_spawn(0);
+				else if (map_name == std::string_view("mp_pipeline")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_shipment")) rtx_gui::skysphere_spawn(4);
+				else if (map_name == std::string_view("mp_showdown")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_strike")) rtx_gui::skysphere_spawn(5);
+				else if (map_name == std::string_view("mp_vacant")) rtx_gui::skysphere_spawn(4);
+			}
+		}
 	}
 
 	// stub at the beginning of 'RB_Draw3DInternal' (frame begin)
@@ -229,6 +267,47 @@ namespace components
 				game::Cmd_ExecuteSingleCommand(0, 0, "fx_enable 0\n");
 			}
 			disable_fx_once = true;
+		}
+	}
+
+	/**
+	 * @brief spawns a little triangle at the origin of the player that is marked as 'player model body texture'
+	 *		  - triangle then acts as the origin for the bounding box that culls meshes marked with the 'player model' category
+	 *		  - not really working .. 
+	 */
+	void rtx::player_origin_model()
+	{
+		const auto index = game::G_ModelIndex("rtx_player_origin");
+
+		if (  !axis_spawned
+			|| axis_model == nullptr
+			|| axis_model->classname == 0
+			|| axis_model->model != index)
+		{
+			axis_model = game::G_Spawn();
+			axis_model->classname = game::scr_const->script_model;
+			axis_model->model = index;
+			axis_model->s.index = index;
+			axis_model->r.svFlags = 0x04;
+			axis_model->r.linked = 0x1;
+
+			// G_SetOrigin
+			game::G_SetOrigin(axis_model, game::vec3_origin);
+			game::G_SetAngles(axis_model, game::vec3_origin);
+			game::G_CallSpawnEntity(axis_model);
+			axis_spawned = true;
+		}
+
+		if (axis_spawned && axis_model && axis_model->model == index)
+		{
+			const game::vec3_t new_org = 
+			{
+				game::glob::lpmove_camera_origin.x,
+				game::glob::lpmove_camera_origin.y,
+				game::glob::lpmove_camera_origin.z - 10.0f,
+			};
+
+			game::G_SetOrigin(axis_model, new_org);
 		}
 	}
 
@@ -730,7 +809,6 @@ namespace components
 		// *
 		// culling
 
-		//if (flags::has_flag("disable_culling"))
 		{
 			// R_AddWorldSurfacesPortalWalk :: less culling .. // 0x60B02E -> jl to jmp // 0x7C -> 0xEB //utils::hook::set<BYTE>(0x60B02E, 0xEB);
 			utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, cull::world_stub_01, HOOK_JUMP).install()->quick();
@@ -745,7 +823,7 @@ namespace components
 				// R_AddAabbTreeSurfacesInFrustum_r :: check if culling mode 'all-but-models' is active - check note above
 				utils::hook(0x643B6B, cull::world_stub_02_skip_static_model, HOOK_JUMP).install()->quick();
 
-				// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps) .. // 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
+			// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps) .. // 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
 				utils::hook(0x643B03, cull::world_stub_02, HOOK_JUMP).install()->quick();
 			}
 
@@ -796,7 +874,6 @@ namespace components
 
 		// ^ but inlined ..... for all other static models (R_AddAllStaticModelSurfacesCamera)
 		utils::hook::nop(0x63AF03, 6);  utils::hook(0x63AF03, xmodel_get_lod_for_dist_inlined, HOOK_JUMP).install()->quick();
-
 
 
 		// *

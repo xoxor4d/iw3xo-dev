@@ -615,6 +615,7 @@ namespace game
 	char*	error_message /*char[1023]*/	= reinterpret_cast<char*>(0x1798378);
 	char*	errortype /*char[1023]*/		= reinterpret_cast<char*>(0x1798777);
 	int*	scr_numParam					= reinterpret_cast<int*>(0x1794074);
+	scr_const_t* scr_const					= reinterpret_cast<scr_const_t*>(0x1406E90);
 
 	game::gentity_s*		scr_g_entities	= reinterpret_cast<game::gentity_s*>(0x1288500);
 	game::level_locals_t*	level_locals	= reinterpret_cast<game::level_locals_t*>(0x13EB6A8);

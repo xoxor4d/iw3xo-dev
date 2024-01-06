@@ -16,5 +16,10 @@ namespace components
 		static void r_set_3d();
 		static void setup_dvars_rtx();
 		static bool r_set_material_stub(game::switch_material_t* swm, const game::GfxCmdBufState* state);
+		static void player_origin_model();
+
+	private:
+		static inline bool axis_spawned = false;
+		static inline game::gentity_s* axis_model = nullptr;
 	};
 }
