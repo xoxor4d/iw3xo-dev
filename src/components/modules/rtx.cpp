@@ -258,7 +258,7 @@ namespace components
 			}
 			disable_decals_once = true;
 		}*/
-
+#ifndef DEBUG
 		// disable fx once but dont force it off the whole time
 		if (static bool disable_fx_once = false; !disable_fx_once)
 		{
@@ -268,6 +268,7 @@ namespace components
 			}
 			disable_fx_once = true;
 		}
+#endif
 	}
 
 	/**

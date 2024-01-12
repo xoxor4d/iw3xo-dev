@@ -64,7 +64,7 @@ namespace components
 			}
 
 			ImGui::SameLine();
-			if (ImGui::Button("Overcast City"))
+			if (ImGui::Button("City"))
 			{
 				skysphere_spawn(2);
 			}
@@ -75,13 +75,25 @@ namespace components
 				skysphere_spawn(3);
 			}
 
+			ImGui::SameLine();
+			if (ImGui::Button("Overcast"))
+			{
+				skysphere_spawn(4);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Sunset"))
+			{
+				skysphere_spawn(5);
+			}
+
 			if (skysphere_is_model_valid())
 			{
-				ImGui::SameLine();
+				/*ImGui::SameLine();
 				if (ImGui::Button("Toggle Sky"))
 				{
 					skysphere_toggle_vis();
-				}
+				}*/
 
 				
 				ImGui::PushItemWidth(90.0f);
