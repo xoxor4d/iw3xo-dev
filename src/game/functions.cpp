@@ -218,6 +218,7 @@ namespace game
 	float& v_postProcessAspect = *reinterpret_cast<float*>(0xCC9D0FC);
 
 	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
+	DxGlobals* dx = reinterpret_cast<DxGlobals*>(0xCC9A400);
 
 	game::Material*			floatz_display = reinterpret_cast<game::Material*>(0xFA5378);
 	GfxCmdBufSourceState*	gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);

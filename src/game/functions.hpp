@@ -159,6 +159,7 @@ namespace game
 	extern float& v_postProcessAspect;
 
 	extern IDirect3DDevice9** dx9_device_ptr;
+	extern DxGlobals* dx;
 
 	extern game::Material* floatz_display;
 	extern GfxCmdBufSourceState* gfxCmdBufSourceState;

@@ -382,6 +382,67 @@ namespace components
 		}
 	}
 	
+	// *
+	// fix resolution issues by removing duplicates returned by EnumAdapterModes
+
+	namespace resolution
+	{
+		auto hash = [](const _D3DDISPLAYMODE& d) { return d.Width + 10 * d.Height + d.RefreshRate; };
+		auto equal = [](const _D3DDISPLAYMODE& d1, const _D3DDISPLAYMODE& d2) { return d1.Width == d2.Width && d1.Height == d2.Height && d1.RefreshRate == d2.RefreshRate; };
+		std::unordered_set<_D3DDISPLAYMODE, decltype(hash), decltype(equal)> modes(256, hash, equal);
+
+		int enum_adapter_modes_intercept(std::uint32_t adapter_index, std::uint32_t mode_index)
+		{
+			_D3DDISPLAYMODE current = {};
+			const auto hr = game::dx->d3d9->EnumAdapterModes(adapter_index, D3DFMT_X8R8G8B8, mode_index, &current) < 0;
+			modes.emplace(current);
+			return hr;
+		}
+
+		__declspec(naked) void R_EnumDisplayModes_stub()
+		{
+			const static uint32_t retn_addr = 0x5F4192;
+			__asm
+			{
+				push	esi; // mode index
+				push	ebx; // adapter index
+				call	enum_adapter_modes_intercept;
+				add		esp, 8;
+				jmp		retn_addr;
+			}
+		}
+
+		void enum_adapter_modes_write_array()
+		{
+			std::uint32_t idx = 0;
+			for (auto& m : modes)
+			{
+				if (idx >= 256)
+				{
+					game::Com_PrintMessage(0, "EnumAdapterModes : Failed to grab all possible resolutions. Array to small!\n", 0);
+					break;
+				}
+
+				memcpy(&game::dx->displayModes[idx], &m, sizeof(_D3DDISPLAYMODE));
+				idx++;
+			}
+		}
+
+		__declspec(naked) void R_EnumDisplayModes_stub2()
+		{
+			const static uint32_t R_CompareDisplayModes_addr = 0x5F4110;
+			const static uint32_t retn_addr = 0x5F41CE;
+			__asm
+			{
+				pushad;
+				call	enum_adapter_modes_write_array;
+				popad;
+
+				push	R_CompareDisplayModes_addr;
+				jmp		retn_addr;
+			}
+		}
+	}
 
 
 	// *
@@ -805,6 +866,11 @@ namespace components
 		utils::hook::set<BYTE>(0x641C89 + 3, 0x00);
 		utils::hook::set<BYTE>(0x641C89 + 4, 0x01);
 
+		// dxvk's 'EnumAdapterModes' returns a lot of duplicates and the games array only has a capacity of 256 which is not enough depending on max res. and refreshrate
+		// fix resolution issues by removing duplicates returned by EnumAdapterModes - then write the array ourselfs
+		utils::hook(0x5F4182, resolution::R_EnumDisplayModes_stub, HOOK_JUMP).install()->quick();
+		utils::hook(0x5F41C9, resolution::R_EnumDisplayModes_stub2, HOOK_JUMP).install()->quick();
+		utils::hook::set<BYTE>(0x5F4170 + 2, 0x04); // set max array size check to 1024 (check within loop)
 
 
 		// *

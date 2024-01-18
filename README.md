@@ -1,29 +1,22 @@
 
-<h1 align="center">iw3xo - a Call of Duty 4 modification</h3>
+<h1 align="center">iw3xo - a call of duty 4 modification</h3>
 
-<p align="center">
-This project is aimed at developers and includes various modifications/additions.  
-iw3xo is not compatible with CoD4x, so make sure you uninstall it first.  
-A compatible radiant modification that can create a live-link between iw3xo and iw3xo-radiant can be found below.
-</p>
+<div align="center" markdown="1"> 
+
+The rtx branch of iw3xo is specifically made to make the game compatible with nvidia's [rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix).  
+It does __not__ come with a 'rtx mod' -> meaning no custom models nor materials (as of yet).  
+
+</div>
 
 <br>
 <div align="center" markdown="1">
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/xoxor4d/iw3xo-dev?color=%2368BC71&logo=github)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
+[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-rtx-release.yml?branch=rtx&label=nightly-rtx&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)&ensp;
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/xoxor4d/iw3xo-dev/latest/develop?logo=github)&ensp;
 [![Downloads](https://img.shields.io/github/downloads/xoxor4d/iw3xo-dev/total?logo=github&label=total-downloads)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
 [![Discord](https://img.shields.io/discord/677574256678141973?label=Discord&logo=discord&logoColor=%23FFFF&)](https://discord.gg/t5jRGbj)&ensp;
 
-<br>
-
-### nightly builds - develop branch
-( download and install the [latest release](https://github.com/xoxor4d/iw3xo-dev/releases) before using nightly's )
-
-[![build-develop](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-debug.yml?branch=develop&label=nightly-debug&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)&ensp;
-[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=develop&label=nightly-release&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release%20binaries.zip)&ensp;
-
-<br>
 
 ### > Features / Guides / In-Depth <
 https://xoxor4d.github.io/projects/iw3xo/
@@ -38,34 +31,36 @@ https://xoxor4d.github.io/projects/iw3xo/
 </div>
 
 <br>
-<br>
 
 ## Installation > nvidia-remix-branch (rtx) 
 
-<div align="right" markdown="1">
-
-[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-rtx-release.yml?branch=rtx&label=nightly-rtx&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)
-</div>
-
-1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases) and copy the contents of the `.zip` file into your cod4 root folder (a full release is required as it comes with additional files)
+1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases) of iw3xo and copy the contents of the `.zip` file into your cod4 root folder (a full release is required as it comes with additional files)
 
 2. Open [Github Actions](https://github.com/xoxor4d/iw3xo-dev/actions) and select the latest successful `rtx` build 
 
 3. Download the `Release-binaries-rtx` artifact. Files within `assets-remix` go into your cod4 root folder. The same goes for `iw3x.dll`. Replace all files when prompted. 
 
-4. Run `iw3xo.exe`
+4. Install the latest full rtx-remix release (0.3.0 at this time)   
+https://github.com/NVIDIAGameWorks/rtx-remix/tags
+
+5. Install the latest `github action` builds of:  
+remix bridge - https://github.com/NVIDIAGameWorks/bridge-remix/actions  
+remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions  
+
+6. Run `iw3xo.exe`
 > `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
 > | -> `iw3x.dll` (a proxy d3d9.dll) will then load the remix runtime d3d9 proxy dll :]  
 > | -> if you want to use the original `iw3mp.exe` then you have to find other ways of chain-loading the dll's 
 
-5. Open the in-game console and type `/exec rtx` and restart the game
+7. Open the in-game console and type `/exec rtx` and restart the game (kinda optional now)
 
 <br>
 
 ### Commandline Arguments:
-  - `-fixed_function` &emsp; > use the fixed-function pipeline to render static models __(!RECOMMENDED)__
-  - `-spawn_sky` &emsp; &emsp; &ensp; &ensp; &nbsp;> automatically spawns a fitting sky when loading a map __(!RECOMMENDED)__
-  - `-thirdperson` &ensp; &ensp; &ensp; &ensp; > render thirdperson model into firstperson view (General Tips)
+  - `-fixed_function` &emsp; > use the fixed-function pipeline to render static models __(RECOMMENDED)__
+  - `-spawn_sky` &emsp;&emsp;&emsp;&ensp;&ensp; > automatically spawns a fitting sky when loading a map __(RECOMMENDED)__
+  - `-stock_effects` &emsp;&ensp; > render effects using shaders (not recommended)
+  - `-thirdperson` &emsp;&ensp;&ensp;&ensp; > render thirdperson model into firstperson view (see general tips)
 > eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function -spawn_sky` 
 
 <br>
@@ -84,19 +79,15 @@ https://xoxor4d.github.io/projects/iw3xo/
 
 <br>
 
-### General Tips
-
-- You might need to assign the sky category manually (if your map is black).   
-Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your mouse to select the sky (in the world) and assign the sky category
-
-- If you want to use a custom skysphere (found in devgui - rtx tab), you need to assign the __Ignore Texture__ category to the blue-gray sky (mentioned one bullet point above). Then spawn the skysphere using the devgui. If the sky remains black, assign the sky category to the _new_ sky (like mentioned in the bullet point above). You only need to do this once if you save your settings afterwards.
-
+## Current Issues
 - Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all .. (3)` can crash the game.
   Set it to `less (1)` to make it more stable. Note: World geometry hashes wont be stable! (if that matters to you)
-
 - The above + having `r_lodScaleRigid` at a pretty low value (increases model draw distance) = more instability.
+- Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)   
 
-- _Game Setup-> Parameter Tuning-> Fused World-View Mode_ set to `In View Transform` fixes motion vectors but rotates the fallback distant light (this is not fixable by using a distantlight defined in your mod.usd)
+<br>
+
+## General Tips
 
 - Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
 
@@ -104,10 +95,10 @@ Open remix -> Go to the game setup tab -> Step 1 -> Open Sky Texture -> Use your
 
 <br>
 
-### Questions? 
+## Questions? 
 - join the [rtx-remix showcase](https://discord.gg/j6sh7JD3v9) discord and check out the cod4 thread within the `remix-projects` channel.
 - join the [iw3xo](https://discord.gg/t5jRGbj) discord if you have questions related to iw3xo
-- sp variant: [iw3sp-mod-rtx](https://github.com/xoxor4d/iw3sp-mod-rtx) 
+- sp compatibility mod: [iw3sp-mod-rtx](https://github.com/xoxor4d/iw3sp-mod-rtx) 
 - rtx-remix: https://github.com/NVIDIAGameWorks/rtx-remix  
 
 <br>
@@ -116,9 +107,7 @@ ___
 ## Requirements:
 
 1. CoD4 1.7
-2. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
-3. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
-4. English localization (other languages work when renamed:)
+2. English localization (other languages work when renamed)
 > - __root/localization.txt__ &ensp; -> change first line to "english"
 > - __root/main/__ &ensp; -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
 > - __root/zone/__ &ensp; -> rename folder "yourlanguage" to "english"
@@ -137,6 +126,10 @@ ___
 > - Debugging &ensp; command -> `path-to-cod4-root\iw3xo.exe`
 > - Debugging &ensp; working directory -> `path-to-cod4-root`
 4. Build -> Build Solution or run with debugger
+
+> Optional __(Fastfile sources)__
+5. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
+6. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
 
 <br>
 
