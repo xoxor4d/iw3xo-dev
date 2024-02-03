@@ -1,5 +1,5 @@
 
-<h1 align="center">iw3xo - a call of duty 4 modification</h3>
+<h1 align="center">iw3xo (rtx) - a call of duty 4 modification</h3>
 
 <div align="center" markdown="1"> 
 
@@ -20,79 +20,102 @@ It does __not__ come with a 'rtx mod' -> meaning no custom models nor materials 
 
 ### > Features / Guides / In-Depth <
 https://xoxor4d.github.io/projects/iw3xo/
-
 </div>
+<br>
+
+<div align="center" markdown="1">
+
+![img](assets/img/01.jpg)
+</div>
+<br>
+
+# Usage
+
+#### Mandatory but might not feature the latest and greatest:
+  1. Download the latest [iw3xo rtx-release](https://github.com/xoxor4d/iw3xo-dev/releases) and extract the contents into your cod4 root directory.  
+  - Skip to Step 5 if you are not interested in nightly builds
 
 <br>
 
-<div align="center">
-	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/4cb3fd26-1a58-468f-9c60-49b2aba63235"/>
-	<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/d921ead4-c86e-4385-8be3-dedb0302c690"/>
-</div>
+#### Nightly (always up-to-date):
 
-<br>
-
-## Installation > nvidia-remix-branch (rtx) 
-
-1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases) of iw3xo and copy the contents of the `.zip` file into your cod4 root folder (a full release is required as it comes with additional files)
-
-2. Open [Github Actions](https://github.com/xoxor4d/iw3xo-dev/actions) and select the latest successful `rtx` build 
-
-3. Download the `Release-binaries-rtx` artifact. Files within `assets-remix` go into your cod4 root folder. The same goes for `iw3x.dll`. Replace all files when prompted. 
-
-4. Install the latest full rtx-remix release (0.3.0 at this time)   
+2) Install the latest full rtx-remix release (0.4.0 at this time)   
 https://github.com/NVIDIAGameWorks/rtx-remix/tags
 
-5. Install the latest `github action` builds of:  
+<br>
+
+3) (Optional) Install the latest `github action` builds of:  
 remix bridge - https://github.com/NVIDIAGameWorks/bridge-remix/actions  
 remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions  
 
-6. Run `iw3xo.exe`
-> `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
-> | -> `iw3x.dll` (a proxy d3d9.dll) will then load the remix runtime d3d9 proxy dll :]  
-> | -> if you want to use the original `iw3mp.exe` then you have to find other ways of chain-loading the dll's 
+<br>
 
-7. Open the in-game console and type `/exec rtx` and restart the game (kinda optional now)
+4) Download the latest iw3xo-rtx `github actions` build:  
+  Release-binaries-rtx - https://github.com/xoxor4d/iw3xo-dev/actions  
+  - Drop `iw3x.dll` and the contents of the `assets-remix` folder into your cod4 root directory
 
 <br>
 
-### Commandline Arguments:
-  - `-fixed_function` &emsp; > use the fixed-function pipeline to render static models __(RECOMMENDED)__
-  - `-spawn_sky` &emsp;&emsp;&emsp;&ensp;&ensp; > automatically spawns a fitting sky when loading a map __(RECOMMENDED)__
-  - `-stock_effects` &emsp;&ensp; > render effects using shaders (not recommended)
-  - `-thirdperson` &emsp;&ensp;&ensp;&ensp; > render thirdperson model into firstperson view (see general tips)
-> eg: &ensp;`"c:\path\iw3xo.exe" -fixed_function -spawn_sky` 
-
+5) Run `iw3xo.exe`
+  > `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
+  > | -> `iw3x.dll` (a proxy d3d9.dll) will then load the remix runtime d3d9 proxy dll :]  
+  > | -> if you want to use the original `iw3mp.exe` then you have to find other ways of chain-loading the dll's (eg: [asiloader](https://github.com/ThirteenAG/Ultimate-ASI-Loader))  
+  
 <br>
 
-### Additional Settings (console command `/devgui` - __rtx__ tab)
-- I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
-- `rtx_disable_world_culling` :: disable culling (__set to `all-but-models` (3)__) - _(1 by default)_
-- `rtx_disable_entity_culling` :: disable culling of script objects (game entities) - _(enabled by default)_
-- `rtx_hacks` :: replace the skybox with a blue-gray texture _(enabled by default)_
-- `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
-- `rtx_warm_smodels` :: build model buffers on map load _(fixed-function only - enabled by default)_
-- `r_forceLod` :: force a specific LOD
-- `r_forceLod_second_lowest` :: prevent game from using the lowest LOD (sometimes used to hide the model)
-- `r_lodScaleRigid` :: adjust model LOD distance - a value of 0 will force LOD0
+6) Read the `Dvars / Console Commands` and `Current issues` sections
+
+<br>
+<br>
+
+## Dvars / Console Commands to further tweak the game to your liking:
+> 🔸 skybox and fog settings can be tweaked per map by using `map_settings.ini` found in the `iw3xo/rtx` folder 🔸
+- use console command `/devgui` to open a developer gui -> __RTX__ tab
+  - I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
+  - most of the following dvars can be accessed via the gui
+
+- `r_forceLod` :: force all models to a specific LOD - _(highest by default)_
+- `r_forceLod_second_lowest` :: prevent game from using the lowest LOD - (sometimes used to hide the model)
+- `r_lodScaleRigid` :: adjust static model draw distances - (lower values increase draw distance)
+- `rtx_disable_world_culling` :: tweak culling - _(set to less (1) by default)_
 
 
 <br>
+<br>
 
-## Current Issues
-- Swift changes in geometry (eg. teleporting) with dvar `rtx_disable_world_culling` set to `all .. (3)` can crash the game.
-  Set it to `less (1)` to make it more stable. Note: World geometry hashes wont be stable! (if that matters to you)
-- The above + having `r_lodScaleRigid` at a pretty low value (increases model draw distance) = more instability.
+## Advanced Settings:
+
+- A. Commandline Arguments:  
+  - `-no_default_sky` :: disable spawning of a default sky on each map
+  - `-stock_effects` :: render effects using shaders
+  - `-no_fog` :: disable fog
+  - `-no_forced_lod` :: do not set `r_forceLod` to `high` by default  
+  - `-thirdperson` :: using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - also spawns a triangle with a unique texture used as the bounding box origin to hide meshes using textures marked as player model)    
+
+> - commandline example: &ensp;`c:\path\iw3xo.exe -no_default_sky -stock_effects` 
+
+  - Notes: 
+    - `rtx_disable_entity_culling` :: tweak culling of script objects (entities) - _(enabled by default)_
+    - `rtx_warm_smodels` :: build model buffers on map load - _(enabled by default)_
+    - `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
+	- `rtx_hacks` :: replace the skybox with a blue-gray texture - _(enabled by default)_
+
+<br>
+<br>
+
+## ⚠️ Current Issues
+- Swift changes in geometry (eg. teleporting) can crash the game.
+  - Set dvar `rtx_disable_world_culling` to `less (1)` and increase dvar `r_lodScaleRigid` to make it more stable.
+
 - Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)   
 
 <br>
 
-## General Tips
+<div align="center" markdown="1">
 
-- Spawning lights with the devgui should be pretty self explanatory. (8 active lights are supported)
-
-- Using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - also spawns a triangle with a unique texture used as the bounding box origin to hide meshes using textures marked as player model)
-
+![img](assets/img/02.jpg)
+![img](assets/img/03.jpg)
+</div>
 <br>
 
 ## Questions? 
@@ -160,15 +183,6 @@ https://discord.gg/t5jRGbj
 <br>
 
 ___
-## Images
-
-<br>
-
-<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/8fca51c8-3642-4ddf-84d9-9324e7798093"/>
-<img src="https://github.com/xoxor4d/iw3xo-dev/assets/45299104/edf972dc-0a63-4d3d-8bfb-4987c3dc6115"/>
-
-<br>
-<br>
 
 ## Disclaimer
 This software has been created purely for the purposes of academic research. Project maintainers are not responsible or liable for misuse of the software. Use responsibly.

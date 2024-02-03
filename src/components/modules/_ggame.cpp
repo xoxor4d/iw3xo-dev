@@ -228,19 +228,19 @@ namespace components
 			float angles[3] = {};
 			float rotation[3] = {};
 
-			angles[0] = utils::try_stof(params[2], true);
+			angles[0] = utils::try_stof(params[2]);
 
 			if (params.length() >= 4)
 			{
-				angles[1] = utils::try_stof(params[3], true);
+				angles[1] = utils::try_stof(params[3]);
 			}
 
 			if (params.length() >= 5)
 			{
-				angles[2] = utils::try_stof(params[4], true);
+				angles[2] = utils::try_stof(params[4]);
 			}
 
-			const int ent_index = utils::try_stoi(params[1], true);
+			const int ent_index = utils::try_stoi(params[1]);
 
 			for (auto i = 0; i < 3; ++i)
 			{

@@ -62,7 +62,11 @@ namespace components
 				game::Cmd_ExecuteSingleCommand(0, 0, "sv_punkbuster 0\n");
 			}
 
-			if (!components::active.rtx || !dvars::rtx_hacks->current.enabled)
+			if (components::active.rtx)
+			{
+				rtx::set_dvars_defaults_on_init();
+			}
+			else
 			{
 				// force depthbuffer
 				if (r_zFeather && !r_zFeather->current.enabled)

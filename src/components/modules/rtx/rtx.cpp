@@ -40,44 +40,54 @@ namespace components
 		dev->SetTransform(D3DTS_PROJECTION, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->viewParms.projectionMatrix.m));
 
 		rtx_lights::spawn_light();
-		rtx::setup_dvars_rtx();
+		rtx::force_dvars_on_frame();
 
 		if (flags::has_flag("thirdperson"))
 		{
 			rtx::player_origin_model();
 		}
 
-		if (flags::has_flag("spawn_sky"))
-		{
-			if (game::cm && game::cm->name && !rtx_gui::skysphere_is_model_valid())
-			{
-				std::string map_name = game::cm->name;
-				utils::replace_all(map_name, std::string("maps/mp/"), ""); // if mp map
-				utils::replace_all(map_name, std::string("maps/"), ""); // if sp map
-				utils::replace_all(map_name, std::string(".d3dbsp"), "");
+		//if (flags::has_flag("spawn_sky"))
+		//{
+		//	if (game::cm && game::cm->name && !rtx_gui::skysphere_is_model_valid())
+		//	{
+		//		std::string map_name = game::cm->name;
+		//		utils::replace_all(map_name, std::string("maps/mp/"), ""); // if mp map
+		//		utils::replace_all(map_name, std::string("maps/"), ""); // if sp map
+		//		utils::replace_all(map_name, std::string(".d3dbsp"), "");
 
-				if (map_name == std::string_view("mp_backlot")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_bloc")) rtx_gui::skysphere_spawn(4);
-				else if (map_name == std::string_view("mp_bog")) rtx_gui::skysphere_spawn(3);
-				else if (map_name == std::string_view("mp_broadcast")) rtx_gui::skysphere_spawn(0);
-				else if (map_name == std::string_view("mp_carentan")) rtx_gui::skysphere_spawn(3);
-				else if (map_name == std::string_view("mp_cargoship")) rtx_gui::skysphere_spawn(3);
-				else if (map_name == std::string_view("mp_citystreets")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_convoy")) rtx_gui::skysphere_spawn(1);
-				else if (map_name == std::string_view("mp_countdown")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_crash")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_crash_snow")) rtx_gui::skysphere_spawn(3);
-				else if (map_name == std::string_view("mp_creek")) rtx_gui::skysphere_spawn(0);
-				else if (map_name == std::string_view("mp_crossfire")) rtx_gui::skysphere_spawn(0);
-				else if (map_name == std::string_view("mp_farm")) rtx_gui::skysphere_spawn(4);
-				else if (map_name == std::string_view("mp_killhouse")) rtx_gui::skysphere_spawn(0);
-				else if (map_name == std::string_view("mp_overgrown")) rtx_gui::skysphere_spawn(0);
-				else if (map_name == std::string_view("mp_pipeline")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_shipment")) rtx_gui::skysphere_spawn(4);
-				else if (map_name == std::string_view("mp_showdown")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_strike")) rtx_gui::skysphere_spawn(5);
-				else if (map_name == std::string_view("mp_vacant")) rtx_gui::skysphere_spawn(4);
-			}
+		//		if (map_name == std::string_view("mp_backlot")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_bloc")) rtx_gui::skysphere_spawn(4);
+		//		else if (map_name == std::string_view("mp_bog")) rtx_gui::skysphere_spawn(3);
+		//		else if (map_name == std::string_view("mp_broadcast")) rtx_gui::skysphere_spawn(0);
+		//		else if (map_name == std::string_view("mp_carentan")) rtx_gui::skysphere_spawn(3);
+		//		else if (map_name == std::string_view("mp_cargoship")) rtx_gui::skysphere_spawn(3);
+		//		else if (map_name == std::string_view("mp_citystreets")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_convoy")) rtx_gui::skysphere_spawn(1);
+		//		else if (map_name == std::string_view("mp_countdown")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_crash")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_crash_snow")) rtx_gui::skysphere_spawn(3);
+		//		else if (map_name == std::string_view("mp_creek")) rtx_gui::skysphere_spawn(0);
+		//		else if (map_name == std::string_view("mp_crossfire")) rtx_gui::skysphere_spawn(0);
+		//		else if (map_name == std::string_view("mp_farm")) rtx_gui::skysphere_spawn(4);
+		//		else if (map_name == std::string_view("mp_killhouse")) rtx_gui::skysphere_spawn(0);
+		//		else if (map_name == std::string_view("mp_overgrown")) rtx_gui::skysphere_spawn(0);
+		//		else if (map_name == std::string_view("mp_pipeline")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_shipment")) rtx_gui::skysphere_spawn(4);
+		//		else if (map_name == std::string_view("mp_showdown")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_strike")) rtx_gui::skysphere_spawn(5);
+		//		else if (map_name == std::string_view("mp_vacant")) rtx_gui::skysphere_spawn(4);
+		//	}
+		//}
+
+		if (!flags::has_flag("no_fog"))
+		{
+			const float fog_start = 1.0f;
+			dev->SetRenderState(D3DRS_FOGENABLE, TRUE);
+			dev->SetRenderState(D3DRS_FOGCOLOR, rtx_map_settings::m_color.packed);
+			dev->SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
+			dev->SetRenderState(D3DRS_FOGSTART, *(DWORD*)(&fog_start));
+			dev->SetRenderState(D3DRS_FOGEND, *(DWORD*)(&rtx_map_settings::m_max_distance));
 		}
 	}
 
@@ -89,6 +99,32 @@ namespace components
 		{
 			pushad;
 			call	setup_rtx;
+			popad;
+
+			// og instructions
+			mov     ebp, esp;
+			and		esp, 0xFFFFFFF8;
+			jmp		retn_addr;
+		}
+	}
+
+	void post_scene_rendering_stub()
+	{
+		const auto dev = game::glob::d3d9_device;
+
+		// disable fog before rendering UI (who wants foggy UI elements right?)
+		// ^ can happen if no skysphere is rendered, which is rendered last and thus disables fog for everything afterwards
+		dev->SetRenderState(D3DRS_FOGENABLE, FALSE);
+	}
+
+	// stub at the beginning of 'RB_CallExecuteRenderCommands' (before UI)
+	__declspec(naked) void rb_call_execute_render_commands_stub()
+	{
+		const static uint32_t retn_addr = 0x6155E6;
+		__asm
+		{
+			pushad;
+			call	post_scene_rendering_stub;
 			popad;
 
 			// og instructions
@@ -148,128 +184,7 @@ namespace components
 		}
 	}
 
-	void rtx::setup_dvars_rtx()
-	{
-		// update culling vars at the end of a frame (so we don't change culling behaviour mid-frame -> not safe)
-		{
-			// set world culling to 'less' once on start if culling is disabled completly
-			/*if (static bool set_less_culling_once = false; !set_less_culling_once)
-			{
-				if (dvars::rtx_disable_world_culling && dvars::rtx_disable_world_culling->current.integer > 1)
-				{
-					game::dvar_set_value_dirty(dvars::rtx_disable_world_culling, 1);
-				}
-				set_less_culling_once = true;
-			}*/
-
-			// update world culling
-			if (dvars::rtx_disable_world_culling)
-			{
-				loc_disable_world_culling = dvars::rtx_disable_world_culling->current.integer;
-				loc_disable_world_culling = loc_disable_world_culling < 0 ? 0 :
-					loc_disable_world_culling > 3 ? 3 : loc_disable_world_culling;
-			}
-
-			// update entity culling
-			if (dvars::rtx_disable_entity_culling)
-			{
-				loc_disable_entity_culling = dvars::rtx_disable_entity_culling->current.enabled ? 1 : 0;
-			}
-		}
-
-		// #
-		// #
-
-		// r_znear around 4 pushes viewmodel away the further from 0 0 0 we are - 4.002 fixes that
-		if (const auto var = game::Dvar_FindVar("r_znear"); var && var->current.value != 4.00195f)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_znear 4.00195\n");
-		}
-
-		// show viewmodel
-		if (const auto var = game::Dvar_FindVar("r_znear_depthhack"); var && var->current.value != 4.0f)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_znear_depthhack 4\n");
-		}
-
-#if DEBUG == FALSE
-		// reduces lag-spikes and generally increases fps, wobbly / laggy animated meshes
-		if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_smp_backend 0\n");
-		}
-		// ^ fix wobbly viewmodels
-		if (const auto var = game::Dvar_FindVar("r_skinCache"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_skinCache 0\n");
-		}
-
-
-		// disable static model caching (stable hashes)
-		if (const auto var = game::Dvar_FindVar("r_smc_enable"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_smc_enable 0\n");
-		}
-
-		// remix does not like this
-		if (const auto var = game::Dvar_FindVar("r_depthPrepass"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_depthPrepass 0\n");
-		}
-
-		// fps ++
-		if (const auto var = game::Dvar_FindVar("r_multiGpu"); var && !var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 1\n");
-		}
-
-		// needed for fixed-function
-		if (const auto var = game::Dvar_FindVar("r_pretess"); var && !var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_pretess 1\n");
-		}
-#endif
-
-		if (const auto var = game::Dvar_FindVar("r_dof_enable"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_dof_enable 0\n");
-		}
-
-		// fix effects or other zfeathered materials to cause remix to freak out (turning everything white)
-		if (const auto var = game::Dvar_FindVar("r_zfeather"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_zfeather 0\n");
-		}
-
-		// disable weapon tracers
-		if (const auto var = game::Dvar_FindVar("cg_tracerlength"); var && var->current.value != 0.0f)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "cg_tracerlength 0\n");
-		}
-
-		// ------------- one time only --------------------
-
-		// disable decals once but dont force it off the whole time
-		/*if (static bool disable_decals_once = false; !disable_decals_once)
-		{
-			if (const auto var = game::Dvar_FindVar("r_drawdecals"); var && var->current.enabled)
-			{
-				game::Cmd_ExecuteSingleCommand(0, 0, "r_drawdecals 0\n");
-			}
-			disable_decals_once = true;
-		}*/
-#ifndef DEBUG
-		// disable fx once but dont force it off the whole time
-		if (static bool disable_fx_once = false; !disable_fx_once)
-		{
-			if (const auto var = game::Dvar_FindVar("fx_enable"); var && var->current.enabled)
-			{
-				game::Cmd_ExecuteSingleCommand(0, 0, "fx_enable 0\n");
-			}
-			disable_fx_once = true;
-		}
-#endif
-	}
+	
 
 	/**
 	 * @brief spawns a little triangle at the origin of the player that is marked as 'player model body texture'
@@ -330,13 +245,13 @@ namespace components
 			}
 
 			// fix remix normals for viewmodels - needs the material string check because the weapon is in both depth-ranges for some reason
-			if (state->depthRangeType == game::GFX_DEPTH_RANGE_VIEWMODEL || utils::starts_with(swm->current_material->info.name, "mc/mtl_weapon_"))
+			/*if (state->depthRangeType == game::GFX_DEPTH_RANGE_VIEWMODEL || utils::starts_with(swm->current_material->info.name, "mc/mtl_weapon_"))
 			{
 				swm->technique_type = game::TECHNIQUE_LIT;
 				swm->switch_technique_type = true;
 
 				return false;
-			}
+			}*/
 		}
 
 		return true;
@@ -754,6 +669,133 @@ namespace components
 	// *
 	// dvars
 
+	void rtx::force_dvars_on_frame()
+	{
+		// update culling vars at the end of a frame (so we don't change culling behaviour mid-frame -> not safe)
+		{
+			// set world culling to 'less' once on start if culling is disabled completly
+			/*if (static bool set_less_culling_once = false; !set_less_culling_once)
+			{
+				if (dvars::rtx_disable_world_culling && dvars::rtx_disable_world_culling->current.integer > 1)
+				{
+					game::dvar_set_value_dirty(dvars::rtx_disable_world_culling, 1);
+				}
+				set_less_culling_once = true;
+			}*/
+
+			// update world culling
+			if (dvars::rtx_disable_world_culling)
+			{
+				loc_disable_world_culling = dvars::rtx_disable_world_culling->current.integer;
+				loc_disable_world_culling = loc_disable_world_culling < 0 ? 0 :
+					loc_disable_world_culling > 3 ? 3 : loc_disable_world_culling;
+			}
+
+			// update entity culling
+			if (dvars::rtx_disable_entity_culling)
+			{
+				loc_disable_entity_culling = dvars::rtx_disable_entity_culling->current.enabled ? 1 : 0;
+			}
+		}
+
+		// #
+		// #
+
+		dvars::bool_override("r_smp_backend", false); // reduces lag-spikes and generally increases fps, wobbly / laggy animated meshes
+		dvars::bool_override("r_skinCache", false); // ^ fix wobbly viewmodels
+		dvars::bool_override("r_smc_enable", false); // disable static model caching (stable hashes)
+		dvars::bool_override("r_depthPrepass", false); // remix does not like this
+		dvars::bool_override("r_zfeather", false);
+		dvars::bool_override("r_dof_enable", false);
+
+		// r_znear around 4 pushes viewmodel away the further from 0 0 0 we are - 4.002 fixes that
+		//if (const auto var = game::Dvar_FindVar("r_znear"); var && var->current.value != 4.00195f)
+		//{
+		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_znear 4.00195\n");
+		//}
+
+		//// show viewmodel
+		//if (const auto var = game::Dvar_FindVar("r_znear_depthhack"); var && var->current.value != 4.0f)
+		//{
+		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_znear_depthhack 4\n");
+		//}
+
+#if DEBUG == FALSE
+		
+		//if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && var->current.enabled)
+		//{
+		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_smp_backend 0\n");
+		//}
+		//// ^ fix wobbly viewmodels
+		//if (const auto var = game::Dvar_FindVar("r_skinCache"); var && var->current.enabled)
+		//{
+		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_skinCache 0\n");
+		//}
+
+		// disable static model caching (stable hashes)
+		/*if (const auto var = game::Dvar_FindVar("r_smc_enable"); var && var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_smc_enable 0\n");
+		}*/
+
+		// remix does not like this
+		/*if (const auto var = game::Dvar_FindVar("r_depthPrepass"); var && var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_depthPrepass 0\n");
+		}*/
+
+		// fps ++
+		/*if (const auto var = game::Dvar_FindVar("r_multiGpu"); var && !var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 1\n");
+		}*/
+
+		// needed for fixed-function
+		/*if (const auto var = game::Dvar_FindVar("r_pretess"); var && !var->current.enabled)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "r_pretess 1\n");
+		}*/
+#endif
+
+		//if (const auto var = game::Dvar_FindVar("r_dof_enable"); var && var->current.enabled)
+		//{
+		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_dof_enable 0\n");
+		//}
+
+		//// fix effects or other zfeathered materials to cause remix to freak out (turning everything white)
+		//if (const auto var = game::Dvar_FindVar("r_zfeather"); var && var->current.enabled)
+		//{
+		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_zfeather 0\n");
+		//}
+
+		// disable weapon tracers
+		/*if (const auto var = game::Dvar_FindVar("cg_tracerlength"); var && var->current.value != 0.0f)
+		{
+			game::Cmd_ExecuteSingleCommand(0, 0, "cg_tracerlength 0\n");
+		}*/
+	}
+
+	//_common::force_dvars_on_init()
+	void rtx::set_dvars_defaults_on_init()
+	{
+		rtx::force_dvars_on_frame();
+		dvars::bool_override("r_multiGpu", true); // fps ++
+	}
+
+	// rtx::on_map_load()
+	void rtx::set_dvars_defaults_on_mapload()
+	{
+		if (!flags::has_flag("no_forced_lod"))
+		{
+			dvars::int_override("r_forceLod", 0);
+		}
+
+		//dvars::bool_override("fx_drawClouds", false);
+		dvars::bool_override("r_pretess", true); // needed for fixed-function
+		dvars::float_override("r_znear", 4.00195f);
+		dvars::float_override("r_znear_depthhack", 4.0f);
+	}
+
 	void register_rtx_dvars()
 	{
 		// 
@@ -813,6 +855,21 @@ namespace components
 
 	// ----------------------------------------------------
 
+	// *
+	// Event stubs
+
+	// > _map::init_fixed_function_buffers_stub
+	void rtx::on_map_load()
+	{
+		rtx_map_settings::get()->set_settings_for_loaded_map();
+		rtx::set_dvars_defaults_on_mapload();
+	}
+
+	// > fixed_function::free_fixed_function_buffers_stub
+	void rtx::on_map_shutdown()
+	{
+	}
+
 	rtx::rtx()
 	{
 		// *
@@ -823,6 +880,9 @@ namespace components
 
 		// hook beginning of 'RB_Draw3DInternal' to setup general stuff required for rtx-remix
 		utils::hook(0x64B7B1, rb_standard_drawcommands_stub, HOOK_JUMP).install()->quick();
+
+		// hook beginning of 'RB_CallExecuteRenderCommands' (before UI)
+		utils::hook(0x6155E1, rb_call_execute_render_commands_stub, HOOK_JUMP).install()->quick();
 
 		if (flags::has_flag("thirdperson"))
 		{
@@ -890,7 +950,7 @@ namespace components
 				// R_AddAabbTreeSurfacesInFrustum_r :: check if culling mode 'all-but-models' is active - check note above
 				utils::hook(0x643B6B, cull::world_stub_02_skip_static_model, HOOK_JUMP).install()->quick();
 
-			// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps) .. // 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
+				// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps) .. // 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
 				utils::hook(0x643B03, cull::world_stub_02, HOOK_JUMP).install()->quick();
 			}
 
@@ -967,5 +1027,15 @@ namespace components
 			/* desc		*/ "Force LOD of static models to the second lowest LOD (should keep grass, rocks, trees ... visible)\nSet r_forceLod to anything but none for this to work",
 			/* default	*/ true,
 			/* flags	*/ game::dvar_flags::saved);
+
+#if DEBUG
+		command::add("dump_modes", "", "", [this](command::params)
+		{
+			for (auto m = 0u; m < game::dx->displayModeCount; m++)
+			{
+				game::Com_PrintMessage(0, utils::va("[%d] %dx%d @ %dHz - D3DFORMAT: %d \n", m, game::dx->displayModes[m].Width, game::dx->displayModes[m].Height, game::dx->displayModes[m].RefreshRate, game::dx->displayModes[m].Format), 0);
+			}
+		});
+#endif
 	}
 }

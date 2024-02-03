@@ -41,44 +41,6 @@ namespace utils
 		return false;
 	}
 
-	int try_stoi(const std::string& str, bool quite)
-	{
-		int ret = 0;
-
-		try
-		{
-			ret = std::stoi(str);
-		}
-		catch (const std::invalid_argument)
-		{
-			if (!quite)
-			{
-				game::Com_PrintMessage(0, utils::va("[!] (%s) is not a valid argument! Defaulting to integer 0!\n", str.c_str()), 0);
-			}
-		}
-
-		return ret;
-	}
-
-	float try_stof(const std::string& str, bool quite)
-	{
-		float ret = 0.0f;
-
-		try
-		{
-			ret = std::stof(str);
-		}
-		catch (const std::invalid_argument)
-		{
-			if (!quite)
-			{
-				game::Com_PrintMessage(0, utils::va("[!] (%s) is not a valid argument! Defaulting to float 0.0f!\n", str.c_str()), 0);
-			}
-		}
-
-		return ret;
-	}
-
 	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer()
 	{
 		return std::chrono::high_resolution_clock::now();
@@ -116,6 +78,36 @@ namespace utils
 		{
 			file << utils::va(string, elapsed.count()) << std::endl;
 		}
+	}
+
+	int try_stoi(const std::string& str, const int& default_return_val)
+	{
+		int ret = default_return_val;
+
+		try
+		{
+			ret = std::stoi(str);
+		}
+		catch (const std::invalid_argument)
+		{
+		}
+
+		return ret;
+	}
+
+	float try_stof(const std::string& str, const float& default_return_val)
+	{
+		float ret = default_return_val;
+
+		try
+		{
+			ret = std::stof(str);
+		}
+		catch (const std::invalid_argument)
+		{
+		}
+
+		return ret;
 	}
 
 	int q_strncasecmp(char *s1, char *s2, int n)
@@ -282,7 +274,7 @@ namespace utils
 		return !q_stricmp(s1, s2);
 	}
 
-	bool contains(std::string haystack, std::string needle)
+	bool contains(std::string_view haystack, std::string_view needle)
 	{
 		if (haystack.find(needle) != std::string::npos)
 		{
@@ -292,23 +284,23 @@ namespace utils
 		return false;
 	}
 
-	bool has_suffix(const std::string &str, const std::string &suffix)
+	bool has_suffix(const std::string_view str, const std::string_view suffix)
 	{
 		return str.size() >= suffix.size() &&
 			str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 	}
 
-	bool starts_with(std::string haystack, std::string needle)
+	bool starts_with(std::string_view haystack, std::string_view needle)
 	{
 		return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
 	}
 
-	bool ends_with(std::string haystack, std::string needle)
+	bool ends_with(std::string_view haystack, std::string_view needle)
 	{
 		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
 	}
 
-	bool replace(std::string& str, const std::string& from, const std::string& to)
+	bool replace(std::string& str, const std::string_view from, const std::string_view to)
 	{
 		const size_t start_pos = str.find(from);
 
@@ -321,7 +313,7 @@ namespace utils
 		return true;
 	}
 
-	void replace_all(std::string& source, const std::string& from, const std::string& to)
+	void replace_all(std::string& source, const std::string_view from, const std::string_view to)
 	{
 		std::string new_string;
 		new_string.reserve(source.length());  // avoids a few memory allocations
@@ -342,7 +334,7 @@ namespace utils
 		source.swap(new_string);
 	}
 
-	void erase_substring(std::string& base, std::string replace)
+	void erase_substring(std::string& base, std::string_view replace)
 	{
 		if (const auto	it = base.find(replace);
 			it != std::string::npos)
@@ -418,7 +410,7 @@ namespace utils
 	}
 
 	// used to extract Integers from dvar strings
-	void extract_integer_words(std::string str, std::vector<int> &Integers, bool checkForDuplicates)
+	void extract_integer_words(std::string_view str, std::vector<int> &Integers, bool checkForDuplicates)
 	{
 		std::stringstream ss;
 
@@ -460,7 +452,7 @@ namespace utils
 	}
 
 	// used to extract Integers from dvar strings
-	int extract_first_integer_from_string(std::string str)
+	int extract_first_integer_from_string(std::string_view str)
 	{
 		std::stringstream ss;
 
@@ -665,5 +657,41 @@ namespace utils
 			hmtl = L"";
 		}
 		return ret;
+	}
+
+	namespace fs
+	{
+		/**
+		* @brief			open handle to a file within the home-path (root)
+		* @param sub_dir	sub directory within home-path (root)
+		* @param file_name	the file name
+		* @param print		print generic error message when we fail to open a handle
+		* @param file		in-out file handle
+		* @return			file handle state (valid or not)
+		*/
+		bool open_file_homepath(const std::string& sub_dir, const std::string& file_name, bool print, std::ifstream& file)
+		{
+			if (const auto& var = game::Dvar_FindVar("fs_homepath");
+							var)
+			{
+				std::string	file_path = var->current.string;
+				file_path += "\\" + sub_dir + "\\" + file_name;
+
+				file.open(file_path);
+				if (!file.is_open())
+				{
+					if (print)
+					{
+						game::Com_PrintMessage(1, utils::va("[ERR] Could not open file '%s'.", file_path.c_str()), 0);
+					}
+
+					return false;
+				}
+
+				return true;
+			}
+
+			return false;
+		}
 	}
 }

@@ -309,6 +309,9 @@ namespace components
 		if (state->material && state->material->info.sortKey == 5)
 		{
 			custom_scalar = rtx_gui::skysphere_scale;
+
+			// disable fog for skysphere
+			state->prim.device->SetRenderState(D3DRS_FOGENABLE, FALSE);
 		}
 
 		// #
@@ -917,13 +920,139 @@ namespace components
 		dev->SetFVF(NULL);
 	}
 
+	/**
+	 * @brief completely rewritten R_TessBModel to render brushmodels using the fixed-function pipeline
+	 * - most challenging issue yet
+	 */
+	std::uint32_t R_TessBModel(game::GfxDrawSurfListArgs* listArgs, [[maybe_unused]] void* x, [[maybe_unused]] void* y)
+	{
+		const auto source = listArgs->context.source;
+		const auto prim = &listArgs->context.state->prim;
+
+		// #
+		// setup fixed-function
+
+		// vertex format
+		prim->device->SetFVF(WORLD_VERTEX_FORMAT);
+
+		// save shaders
+		IDirect3DVertexShader9* og_vertex_shader;
+		prim->device->GetVertexShader(&og_vertex_shader);
+
+		IDirect3DPixelShader9* og_pixel_shader;
+		prim->device->GetPixelShader(&og_pixel_shader);
+
+		// def. needed or the game will render the mesh using shaders
+		prim->device->SetVertexShader(nullptr);
+		prim->device->SetPixelShader(nullptr);
+
+		// texture alpha + vertex alpha (decal blending)
+		prim->device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+		prim->device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+		prim->device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+
+
+		// #
+		// draw prims
+
+		const auto draw_surf_list = &listArgs->info->drawSurfs[listArgs->firstDrawSurfIndex];
+		const auto draw_surf_count = listArgs->info->drawSurfCount - listArgs->firstDrawSurfIndex;
+
+		const auto draw_surf_sub_mask = 0xFFFFFFFFE0000000;
+
+		game::GfxDrawSurf draw_surf = {};
+		draw_surf.fields = draw_surf_list->fields;
+
+		game::GfxDrawSurf draw_surf_key = {};
+		draw_surf_key.packed = draw_surf.packed & draw_surf_sub_mask;
+
+		const std::uint64_t first_surf = draw_surf_key.packed;
+		auto draw_surf_index = 0u;
+
+		while (true)
+		{
+			const auto bsurf = reinterpret_cast<game::BModelSurface*>(&source->input.data->surfsBuffer[4u * draw_surf.fields.objectId]);
+
+			// #
+			// transform
+
+			float model_axis[3][3] = {};
+
+			const auto placement = bsurf->placement;
+			utils::vector::unit_quat_to_axis(placement->base.quat, model_axis);
+			const auto scale = placement->scale;
+
+			//const auto mtx = source->matrices.matrix[0].m;
+			float mtx[4][4] = {};
+
+			// inlined ikMatrixSet44
+			mtx[0][0] = model_axis[0][0] * scale;
+			mtx[0][1] = model_axis[0][1] * scale;
+			mtx[0][2] = model_axis[0][2] * scale;
+			mtx[0][3] = 0.0f;
+
+			mtx[1][0] = model_axis[1][0] * scale;
+			mtx[1][1] = model_axis[1][1] * scale;
+			mtx[1][2] = model_axis[1][2] * scale;
+			mtx[1][3] = 0.0f;
+
+			mtx[2][0] = model_axis[2][0] * scale;
+			mtx[2][1] = model_axis[2][1] * scale;
+			mtx[2][2] = model_axis[2][2] * scale;
+			mtx[2][3] = 0.0f;
+
+			mtx[3][0] = placement->base.origin[0];
+			mtx[3][1] = placement->base.origin[1];
+			mtx[3][2] = placement->base.origin[2];
+			mtx[3][3] = 1.0f;
+
+			prim->device->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&mtx));
+
+			// #
+			// ------
+
+			const auto gfxsurf = bsurf->surf;
+			const auto base_vertex = WORLD_VERTEX_STRIDE * gfxsurf->tris.firstVertex;
+
+			if (prim->streams[0].vb != gfx_world_vertexbuffer || prim->streams[0].offset != base_vertex || prim->streams[0].stride != WORLD_VERTEX_STRIDE)
+			{
+				prim->streams[0].vb = gfx_world_vertexbuffer;
+				prim->streams[0].offset = base_vertex;
+				prim->streams[0].stride = WORLD_VERTEX_STRIDE;
+				prim->device->SetStreamSource(0, gfx_world_vertexbuffer, base_vertex, WORLD_VERTEX_STRIDE);
+			}
+
+			const auto base_index = R_SetIndexData(prim, &game::rgp->world->indices[gfxsurf->tris.baseIndex], gfxsurf->tris.triCount);
+			prim->device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, gfxsurf->tris.vertexCount, base_index, gfxsurf->tris.triCount);
+
+			++draw_surf_index;
+			if (draw_surf_index == draw_surf_count)
+			{
+				break;
+			}
+
+			draw_surf.fields = draw_surf_list[draw_surf_index].fields;
+			draw_surf_key.packed = draw_surf_list[draw_surf_index].packed & draw_surf_sub_mask;
+
+			if (draw_surf_key.packed != first_surf)
+			{
+				break;
+			}
+		}
+
+		//prim->device->SetVertexShader(og_vertex_shader);
+		//prim->device->SetPixelShader(og_pixel_shader);
+		prim->device->SetFVF(NULL);
+		return draw_surf_index;
+	}
+
 
 	// *
 	// effects
 
 	IDirect3DVertexShader9* _og_codemesh_vertex_shader;
 	IDirect3DPixelShader9* _og_codemesh_pixel_shader;
-	constexpr auto MAX_EFFECT_VERTS = 0x1000; // !ADJUST hook::set (2x)
+	//constexpr auto MAX_EFFECT_VERTS = 0x1000; // !ADJUST hook::set (2x)
 
 	void R_TessCodeMeshList_begin(game::GfxDrawSurfListArgs* listArgs)
 	{
@@ -965,14 +1094,14 @@ namespace components
 		// unpack codemesh vertex data and place new data into the dynamic vertex buffer
 
 		void* og_buffer_data;
-		if (const auto hr = source->input.data->codeMesh.vb.buffer->Lock(0, source->input.data->codeMesh.vertSize * MAX_EFFECT_VERTS, &og_buffer_data, D3DLOCK_READONLY);
+		if (const auto hr = source->input.data->codeMesh.vb.buffer->Lock(0, source->input.data->codeMesh.vb.used, &og_buffer_data, D3DLOCK_READONLY);
 			hr < 0)
 		{
 			//R_FatalLockError(hr);
 			game::Com_Error(0, "Fatal lock error - codeMesh :: R_TessCodeMeshList_begin");
 		}
 
-		if ((int)(MODEL_VERTEX_STRIDE * MAX_EFFECT_VERTS + game::gfx_buf->dynamicVertexBuffer->used) > game::gfx_buf->dynamicVertexBuffer->total)
+		if ((int)(source->input.data->codeMesh.vb.used + game::gfx_buf->dynamicVertexBuffer->used) > game::gfx_buf->dynamicVertexBuffer->total)
 		{
 			game::gfx_buf->dynamicVertexBuffer->used = 0;
 		}
@@ -980,7 +1109,7 @@ namespace components
 		// R_SetVertexData
 		void* buffer_data;
 		if (const auto hr = game::gfx_buf->dynamicVertexBuffer->buffer->Lock(
-			game::gfx_buf->dynamicVertexBuffer->used, MODEL_VERTEX_STRIDE * MAX_EFFECT_VERTS, &buffer_data,
+			game::gfx_buf->dynamicVertexBuffer->used, source->input.data->codeMesh.vb.used, &buffer_data,
 			game::gfx_buf->dynamicVertexBuffer->used != 0 ? 0x1000 : 0x2000);
 			hr < 0)
 		{
@@ -991,7 +1120,7 @@ namespace components
 		// #
 		// unpack verts
 
-		for (auto i = 0u; i < MAX_EFFECT_VERTS; i++)
+		for (auto i = 0u; i * source->input.data->codeMesh.vertSize < (unsigned)source->input.data->codeMesh.vb.used && i < 0x4000; i++)
 		{
 			// position of vert within the vertex buffer
 			const auto v_pos_in_buffer = i * source->input.data->codeMesh.vertSize; // size of GfxPackedVertex
@@ -1025,7 +1154,7 @@ namespace components
 		game::gfx_buf->dynamicVertexBuffer->buffer->Unlock();
 
 		const std::uint32_t vert_offset = game::gfx_buf->dynamicVertexBuffer->used;
-		game::gfx_buf->dynamicVertexBuffer->used += (MODEL_VERTEX_STRIDE * MAX_EFFECT_VERTS);
+		game::gfx_buf->dynamicVertexBuffer->used += source->input.data->codeMesh.vb.used;
 
 		// #
 		// #
@@ -1047,8 +1176,8 @@ namespace components
 	void R_TessCodeMeshList_end()
 	{
 		const auto dev = game::dx->device;
-		dev->SetVertexShader(_og_codemesh_vertex_shader);
-		dev->SetPixelShader(_og_codemesh_pixel_shader);
+		//dev->SetVertexShader(_og_codemesh_vertex_shader);
+		//dev->SetPixelShader(_og_codemesh_pixel_shader);
 		dev->SetFVF(NULL);
 	}
 
@@ -1197,6 +1326,7 @@ namespace components
 			pushad;
 			call	build_static_model_buffers;
 			call	build_gfxworld_buffers;
+			call	rtx::on_map_load;
 			popad;
 
 			call	stock_func;
@@ -1257,6 +1387,7 @@ namespace components
 		{
 			pushad;
 			call	free_fixed_function_buffers;
+			call	rtx::on_map_shutdown;
 			popad;
 
 			call	stock_func;
@@ -1413,7 +1544,7 @@ namespace components
 	rtx_fixed_function::rtx_fixed_function()
 	{
 		// fixed function rendering of static models and world geometry
-		if (flags::has_flag("fixed_function"))
+		//if (flags::has_flag("fixed_function"))
 		{
 			// fixed-function rendering of static models (R_TessStaticModelRigidDrawSurfList)
 			utils::hook(0x655A10, R_DrawStaticModelDrawSurfNonOptimized, HOOK_CALL).install()->quick();
@@ -1433,6 +1564,9 @@ namespace components
 
 			// fixed-function rendering of world surfaces (R_TessTrianglesPreTessList)
 			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
+
+			// fixed-function rendering of brushmodels
+			utils::hook(0x648710, R_TessBModel, HOOK_JUMP).install()->quick();
 
 #ifdef TESS_TESTS
 			// fixed-function rendering of debug visualizations / 2d etc .. RB_EndTessSurface-> R_DrawTessTechnique

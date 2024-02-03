@@ -14,9 +14,15 @@ namespace components
 		static inline std::vector rtx_disable_world_culling_enum = { "default", "less", "all", "all-but-models" };
 
 		static void r_set_3d();
-		static void setup_dvars_rtx();
 		static bool r_set_material_stub(game::switch_material_t* swm, const game::GfxCmdBufState* state);
 		static void player_origin_model();
+
+		static void force_dvars_on_frame();
+		static void set_dvars_defaults_on_init();
+		static void set_dvars_defaults_on_mapload();
+
+		static void on_map_load();
+		static void on_map_shutdown();
 
 	private:
 		static inline bool axis_spawned = false;

@@ -39,6 +39,7 @@ namespace components
 		bool rtx_fixed_function;
 		bool rtx_gui;
 		bool rtx_lights;
+		bool rtx_map_settings;
 	};
 
 	extern activeModules_s active;
@@ -100,11 +101,12 @@ namespace components
 #include "modules/ocean.hpp"
 #include "modules/postfx_shaders.hpp"
 #include "modules/radiant_livelink.hpp"
-#include "modules/rtx.hpp"
-#include "modules/rtx_fixed_function.hpp"
-#include "modules/rtx_gui.hpp"
-#include "modules/rtx_lights.hpp"
 #include "modules/window.hpp"
+#include "modules/rtx/rtx.hpp"
+#include "modules/rtx/rtx_fixed_function.hpp"
+#include "modules/rtx/rtx_gui.hpp"
+#include "modules/rtx/rtx_lights.hpp"
+#include "modules/rtx/rtx_map_settings.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "modules/scheduler.hpp"

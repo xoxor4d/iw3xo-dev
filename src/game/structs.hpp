@@ -7348,6 +7348,12 @@ namespace game
 	};
 #pragma warning( pop )
 
+	struct BModelSurface
+	{
+		GfxScaledPlacement* placement;
+		GfxSurface* surf;
+	};
+
 	struct GfxWindowTarget
 	{
 		HWND__* hwnd;

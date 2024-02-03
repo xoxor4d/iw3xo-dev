@@ -55,7 +55,7 @@ jobs:
           path: |
             ./iw3x.dll
             ./iw3x.pdb
-            ./assets-remix/*
+            ./assets-remix/
 
   webbook:
     needs: build

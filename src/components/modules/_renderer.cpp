@@ -726,7 +726,7 @@ namespace components
 			}
 		}
 
-		const auto& r_logFile = game::Dvar_FindVar("r_logFile");
+		/*const auto& r_logFile = game::Dvar_FindVar("r_logFile");
 		if (r_logFile && r_logFile->current.integer && mat.current_material)
 		{
 			const auto string = utils::va("R_SetMaterial( %s, %s, %i )\n", state->material->info.name, state->technique->name, mat.technique_type);
@@ -738,7 +738,7 @@ namespace components
 				call	RB_LogPrint_func;
 				popad;
 			}
-		}
+		}*/
 
 		state->origTechType = state->techType;
 		state->techType = mat.technique_type;

@@ -49,6 +49,7 @@ namespace components
 		active.rtx_fixed_function	= true;
 		active.rtx_gui				= true;
 		active.rtx_lights			= true;
+		active.rtx_map_settings		= true;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_cg);
@@ -85,6 +86,7 @@ namespace components
 		REGISTER_MODULE(rtx_fixed_function);
 		REGISTER_MODULE(rtx_gui);
 		REGISTER_MODULE(rtx_lights);
+		REGISTER_MODULE(rtx_map_settings);
 	}
 
 	void loader::uninitialize_()
