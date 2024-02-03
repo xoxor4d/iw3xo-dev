@@ -72,9 +72,9 @@ namespace components
 				game::vec3_t fwd, rt, up = {};
 				utils::vector::angle_vectors(game::cgs->predictedPlayerState.viewangles, fwd, rt, up);
 
-				setting->origin[0] = game::glob::lpmove_camera_origin.x + (utils::vector::dot3(fwd, setting->dir_offset));
-				setting->origin[1] = game::glob::lpmove_camera_origin.y + (utils::vector::dot3(rt, setting->dir_offset));
-				setting->origin[2] = game::glob::lpmove_camera_origin.z + (utils::vector::dot3(up, setting->dir_offset));
+				setting->origin[0] = game::cgs->predictedPlayerState.origin[0] + (utils::vector::dot3(fwd, setting->dir_offset));
+				setting->origin[1] = game::cgs->predictedPlayerState.origin[1] + (utils::vector::dot3(rt, setting->dir_offset));
+				setting->origin[2] = game::cgs->predictedPlayerState.origin[2] + game::cgs->predictedPlayerState.viewHeightCurrent + (utils::vector::dot3(up, setting->dir_offset));
 
 				utils::vector::copy(setting->origin, &ff_light->Position.x, 3);
 
