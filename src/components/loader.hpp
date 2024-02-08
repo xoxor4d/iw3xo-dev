@@ -16,6 +16,7 @@ namespace components
 		bool _ui;
 		bool command;
 		bool d3d9ex;
+		bool flags;
 		bool gscr_methods;
 		bool patches;
 		bool scheduler;
@@ -34,6 +35,11 @@ namespace components
 		bool ocean;
 		bool postfx_shaders;
 		bool radiant_livelink;
+		bool rtx;
+		bool rtx_fixed_function;
+		bool rtx_gui;
+		bool rtx_lights;
+		bool rtx_map_settings;
 	};
 
 	extern activeModules_s active;
@@ -77,6 +83,7 @@ namespace components
 #include "modules/_renderer.hpp"
 #include "modules/_ui.hpp"
 #include "modules/command.hpp"
+#include "modules/flags.hpp"
 #include "modules/d3d9ex.hpp"
 #include "modules/gscr_methods.hpp"
 #include "modules/patches.hpp"
@@ -95,6 +102,11 @@ namespace components
 #include "modules/postfx_shaders.hpp"
 #include "modules/radiant_livelink.hpp"
 #include "modules/window.hpp"
+#include "modules/rtx/rtx.hpp"
+#include "modules/rtx/rtx_fixed_function.hpp"
+#include "modules/rtx/rtx_gui.hpp"
+#include "modules/rtx/rtx_lights.hpp"
+#include "modules/rtx/rtx_map_settings.hpp"
 
 // General Modules with dynamic hooks depending on addon component loading
 #include "modules/scheduler.hpp"

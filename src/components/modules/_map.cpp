@@ -80,7 +80,7 @@ namespace components
 				if (std::filesystem::exists(base_path))
 				{
 					std::ifstream mapents;
-					mapents.open(base_path + mpsp_map_name + ".ents", std::ios::in | std::ios::binary);
+					mapents.open(base_path + mpsp_map_name + ".ents", std::ios_base::in | std::ios_base::binary);
 
 					if (!mapents.is_open())
 					{

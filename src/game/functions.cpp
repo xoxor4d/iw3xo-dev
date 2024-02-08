@@ -56,6 +56,7 @@ namespace game
 #endif
 	}
 
+	game::TestLod g_testLods[4] = {};
 
 	// *
 	// general structs
@@ -217,6 +218,7 @@ namespace game
 	float& v_postProcessAspect = *reinterpret_cast<float*>(0xCC9D0FC);
 
 	IDirect3DDevice9** dx9_device_ptr = reinterpret_cast<IDirect3DDevice9**>(0xCC9A408);
+	DxGlobals* dx = reinterpret_cast<DxGlobals*>(0xCC9A400);
 
 	game::Material*			floatz_display = reinterpret_cast<game::Material*>(0xFA5378);
 	GfxCmdBufSourceState*	gfxCmdBufSourceState = reinterpret_cast<GfxCmdBufSourceState*>(0xD53F5F0);
@@ -224,7 +226,15 @@ namespace game
 
 	game::materialCommands_t* tess = reinterpret_cast<game::materialCommands_t*>(0xD085EE0);
 	game::GfxBackEndData* _frontEndDataOut = reinterpret_cast<game::GfxBackEndData*>(0xCC9827C);
-	game::GfxBackEndData* _backEndData = reinterpret_cast<game::GfxBackEndData*>(0xD0704BC);
+	//game::GfxBackEndData* _backEndData = reinterpret_cast<game::GfxBackEndData*>(0xD0704BC);
+
+	game::GfxBackEndData* get_backenddata()
+	{
+		const auto out = reinterpret_cast<game::GfxBackEndData*>(*game::backEndDataOut_ptr);
+		return out;
+	}
+
+	game::r_globals_t* rg = reinterpret_cast<game::r_globals_t*>(0xCC9D150);
 	game::r_global_permanent_t* rgp = reinterpret_cast<game::r_global_permanent_t*>(0xCC98280);
 
 	game::clientDebugLineInfo_t* clientDebugLineInfo_client = reinterpret_cast<game::clientDebugLineInfo_t*>(0xC5B054);
@@ -426,12 +436,13 @@ namespace game
 	void R_Set3D()
 	{
 		const static uint32_t R_Set3D_func = 0x6337C0;
-		const static uint32_t _gfxCmdBufSourceState = 0xD53F5F0;
+		//const static uint32_t _gfxCmdBufSourceState = 0xD53F5F0;
 
 		__asm
 		{
 			pushad;
-			mov		edx, [_gfxCmdBufSourceState];
+			mov		edx, game::gfxCmdBufSourceState;
+			//mov		edx		offset game::gfxCmdBufSourceState;
 			call	R_Set3D_func;
 			popad;
 		}
@@ -605,6 +616,7 @@ namespace game
 	char*	error_message /*char[1023]*/	= reinterpret_cast<char*>(0x1798378);
 	char*	errortype /*char[1023]*/		= reinterpret_cast<char*>(0x1798777);
 	int*	scr_numParam					= reinterpret_cast<int*>(0x1794074);
+	scr_const_t* scr_const					= reinterpret_cast<scr_const_t*>(0x1406E90);
 
 	game::gentity_s*		scr_g_entities	= reinterpret_cast<game::gentity_s*>(0x1288500);
 	game::level_locals_t*	level_locals	= reinterpret_cast<game::level_locals_t*>(0x13EB6A8);
@@ -1478,20 +1490,30 @@ namespace game
 		}
 	}
 
-	__declspec(naked) void Vec3UnpackUnitVec(game::PackedUnitVec, const float*)
+	void Vec3UnpackUnitVec(unsigned int packed, float* texcoord_out /*ecx*/)
 	{
 		const static uint32_t func_addr = 0x5647D0;
 		__asm
 		{
-			push	ecx;
-			mov		ecx, [esp + 0Ch];
-			push	[esp + 08h];
+			mov		ecx, texcoord_out;
+			push	packed;
 			call	func_addr;
-			add		esp, 4h;
-			pop		ecx;
-			retn;
+			add		esp, 4;
 		}
 	}
+
+	void Vec2UnpackTexCoords(unsigned int packed, float* texcoord_out /*ecx*/)
+	{
+		const static uint32_t func_addr = 0x5648E0;
+		__asm
+		{
+			mov		ecx, texcoord_out;
+			push	packed;
+			call	func_addr;
+			add		esp, 4;
+		}
+	}
+
 
 	void Byte4UnpackRgba(unsigned __int8* from, float* to)
 	{

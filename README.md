@@ -1,67 +1,152 @@
 
-<h1 align="center">IW3xo - A Call of Duty 4 Modification</h3>
+<h1 align="center">iw3xo/rtx - a call of duty 4 modification</h3>
 
-<p align="center">
-This project is aimed at developers and includes various modifications/additions.  
-IW3xo is not compatible with CoD4x, so make sure you do have a stock non-steam 1.7 CoD4.  
-A compatible Radiant, built for use with IW3xo, that enables a live-link between CoD4 and Radiant can be found below.
-</p>
+<div align="center" markdown="1"> 
+
+This client mod brings various modifications and additions to the base game and also includes support for nvidia's [rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix).  
+
+This includes, but is not limited to:  
+map exporting -- live link between the game and radiant -- sp map loading in mp  
+collision visualization -- day and night cycle with custom sky shader   
+custom movement options and much more
+
+__[ Remix compatibility ]__   
+This client mod does __not__ come with a 'rtx mod' -> that means:  
+no custom models, no normal-maps, no fancy pbr materials or lights. 
+
+</div>
 
 <br>
 <div align="center" markdown="1">
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/xoxor4d/iw3xo-dev?color=%2368BC71&logo=github)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
+[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=rtx&label=nightly-dev&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)&ensp;
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/xoxor4d/iw3xo-dev/latest/develop?logo=github)&ensp;
 [![Downloads](https://img.shields.io/github/downloads/xoxor4d/iw3xo-dev/total?logo=github&label=total-downloads)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
 [![Discord](https://img.shields.io/discord/677574256678141973?label=Discord&logo=discord&logoColor=%23FFFF&)](https://discord.gg/t5jRGbj)&ensp;
 
-<br>
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
 
-### nightly builds - develop branch
-( download and install the [latest release](https://github.com/xoxor4d/iw3xo-dev/releases) before using nightly's )
-
-[![build-develop](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-debug.yml?branch=develop&label=nightly-debug&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)&ensp;
-[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=develop&label=nightly-release&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release%20binaries.zip)&ensp;
-
-<br>
 
 ### > Features / Guides / In-Depth <
 https://xoxor4d.github.io/projects/iw3xo/
-
 </div>
-
 <br>
 
-<div align="center">
-	<img src="https://xoxor4d.github.io/assets/img/iw3xo/banner.jpg"/>
-	<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
+<div align="center" markdown="1">
+
+![img](assets/img/01.jpg)
 </div>
+<br>
+
+# Usage
+
+#### Mandatory but might not feature the latest and greatest:
+  1. Download the latest [iw3xo release](https://github.com/xoxor4d/iw3xo-dev/releases) - the `_rtx` build comes with all files required for rtx remix  
+  - Extract the contents into your cod4 root directory.  
+  - Skip to Step 5 if you are not interested in nightly builds
+
+<br>
+
+#### Nightly (always up-to-date):
+
+2) [rtx only] Install the latest full rtx-remix release (0.4.1 at this time)   
+https://github.com/NVIDIAGameWorks/rtx-remix/tags
+
+<br>
+
+3) [rtx only] [optional] Install the latest `github action` builds of:  
+remix bridge - https://github.com/NVIDIAGameWorks/bridge-remix/actions  
+remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions  
+
+<br>
+
+4) Download the latest iw3xo-rtx `github actions` build:  
+  Release-binaries-rtx - https://github.com/xoxor4d/iw3xo-dev/actions  
+  - Drop `iw3x.dll` and the contents of the `assets-remix` folder [rtx only] into your cod4 root directory
+
+<br>
+
+5) Run `iw3xo.exe`
+  > `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
+  > | -> `iw3x.dll` (a proxy d3d9.dll) will then load the remix runtime d3d9 proxy dll :]  
+  > | -> if you want to use the original `iw3mp.exe` then you have to find other ways of chain-loading the dll's (eg: [asiloader](https://github.com/ThirteenAG/Ultimate-ASI-Loader))  
+  
+<br>
+
+6) Read the `Dvars / Console Commands` and `Current issues` sections
 
 <br>
 <br>
 
-___
-## Installation
+
+# Remix section
+- Note: general functionallity of iw3xo is documented here: https://xoxor4d.github.io/projects/iw3xo
+
+## Dvars / Console Commands to further tweak the game to your liking:
+> 🔸 skybox and fog settings can be tweaked per map by using `map_settings.ini` found in the `iw3xo/rtx` folder 🔸
+- use console command `/devgui` to open a developer gui -> __RTX__ tab
+  - I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
+  - most of the following dvars can be accessed via the gui
+
+- `r_forceLod` :: force all models to a specific LOD - _(highest by default)_
+- `r_forceLod_second_lowest` :: prevent game from using the lowest LOD - (sometimes used to hide the model)
+- `r_lodScaleRigid` :: adjust static model draw distances - (lower values increase draw distance)
+- `rtx_disable_world_culling` :: tweak culling - _(set to less (1) by default)_
+
+<br>
+<br>
+
+## Advanced Settings:
+
+- A. Commandline Arguments:  
+  - `-no_rtx` :: disable all rtx modules
+  - `-no_d3d9_check` :: active rtx modules even if no d3d9.dll was found (eg: if you are loading remix using asi loader)
+  - `-no_default_sky` :: disable spawning of a default sky on each map
+  - `-stock_effects` :: render effects using shaders
+  - `-no_fog` :: disable fog
+  - `-no_forced_lod` :: do not set `r_forceLod` to `high` by default  
+  - `-thirdperson` :: using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - also spawns a triangle with a unique texture used as the bounding box origin to hide meshes using textures marked as player model)    
+
+> - commandline example: &ensp;`c:\path\iw3xo.exe -no_default_sky -stock_effects` 
+
+- B. Dvars: 
+    - `rtx_disable_entity_culling` :: tweak culling of script objects (entities) - _(enabled by default)_
+    - `rtx_warm_smodels` :: build model buffers on map load - _(enabled by default)_
+    - `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
+	- `rtx_hacks` :: replace the skybox with a blue-gray texture - _(enabled by default)_
+
+<br>
+<br>
+
+## ⚠️ Current Issues
+- Swift changes in geometry (eg. teleporting) can crash the game.
+  - Set dvar `rtx_disable_world_culling` to `less (1)` and increase dvar `r_lodScaleRigid` to make it more stable.
+
+- Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)   
 
 <br>
 
-1. Download the latest [release](https://github.com/xoxor4d/iw3xo-dev/releases)
-2. Copy the `.zip` contents into your cod4 root folder
-3. Start __IW3xo.exe__
+<div align="center" markdown="1">
 
-- [NIGHTLY]&ensp; unpack and replace `iw3x.dll` with the one found in your cod4 root folder
+![img](assets/img/02.jpg)
+![img](assets/img/03.jpg)
+</div>
+<br>
+
+## Questions? 
+- join the [rtx-remix showcase](https://discord.gg/j6sh7JD3v9) discord and check out the cod4 thread within the `remix-projects` channel.
+- join the [iw3xo](https://discord.gg/t5jRGbj) discord if you have questions related to iw3xo
+- sp compatibility mod: [iw3sp-mod-rtx](https://github.com/xoxor4d/iw3sp-mod-rtx) 
+- rtx-remix: https://github.com/NVIDIAGameWorks/rtx-remix  
 
 <br>
 
 ___
 ## Requirements:
 
-<br>
-
 1. CoD4 1.7
-2. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
-3. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
-4. English localization (other languages work when renamed:)
+2. English localization (other languages work when renamed)
 > - __root/localization.txt__ &ensp; -> change first line to "english"
 > - __root/main/__ &ensp; -> rename "localized_yourlanguage_iw**.iwd" files to "localized_english_iw**.iwd"
 > - __root/zone/__ &ensp; -> rename folder "yourlanguage" to "english"
@@ -71,25 +156,19 @@ ___
 ___
 ## Build / Compile
 
-<br>
-
 ### > How to build / compile the project using Visual Studio
 1. Clone the repo! __(zip does not include deps!)__
+2. Setup a `COD4_ROOT` environment variable with a path to your cod4 directory (optional)
 2. Use __generate-buildfiles.bat__ to build project files with premake
-3. Load the solution `(build/iw3xo-dev.sln)` and open the iw3x project-settings to setup paths:
+3. Open `(build/iw3xo-dev.sln)` and setup paths for the iw3x project (not needed if Step #2)
 > - General &ensp; &ensp; &ensp; output directory path -> `path-to-cod4-root\`
-> - Debugging &ensp; command -> `path-to-cod4-root\IW3xo.exe`
+> - Debugging &ensp; command -> `path-to-cod4-root\iw3xo.exe`
 > - Debugging &ensp; working directory -> `path-to-cod4-root`
 4. Build -> Build Solution or run with debugger
-   
-<br>
 
-### > Generating the exe:  
-1. Copy a non-steam (1.7) `iw3mp.exe` into the `\assets\\` folder
-2. Install required resource tools by running `\res\res-tools.ps1`
-3. `\res\generate-exe.ps1` will generate and place `iw3xo.exe` into the project root
-4. Copy the generated exe into your cod4-root
-5. You only need to do this once
+> Optional __(Fastfile sources)__
+5. https://github.com/xoxor4d/xcommon_iw3xo (compiled, placed into root/zone/english/)
+6. https://github.com/xoxor4d/xcommon_iw3xo_menu (compiled, placed into root/zone/english/)
 
 <br>
 
@@ -115,19 +194,12 @@ https://discord.gg/t5jRGbj
 - [g-truc - glm](https://github.com/g-truc/glm/)
 - [ocornut - Dear ImGui](https://github.com/ocornut/imgui)
 - [Jelvan1 - cgame proxymod](https://github.com/Jelvan1/cgame_proxymod)
+- [Nvidia - rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix)
+- [people of the rtx showcase discord](https://discord.gg/j6sh7JD3v9) (for testing, feedback and ideas)
 
 <br>
 
 ___
-## Images
-
-<br>
-
-<img src="https://xoxor4d.github.io/assets/img/iw3xo/collisionClip.jpg"/>
-<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/mainmenu.jpg"/>
-<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/iw3xo/feat_spmap.jpg"/>
-
-<br>
 
 ## Disclaimer
 This software has been created purely for the purposes of academic research. Project maintainers are not responsible or liable for misuse of the software. Use responsibly.

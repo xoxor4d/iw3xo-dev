@@ -15,35 +15,51 @@ namespace components
 		loader::component_allocator_.clear();
 
 		// global bools for more dynamic modules (choose which modules to load)
-		active._cg				= true;
-		active._client			= true;
-		active._common			= true;
-		active._debug			= true;
-		active._ggame			= true;
-		active._map				= true;
-		active._pmove			= true;
-		active._renderer		= true;
-		active._ui				= true;
-		active.command			= true;
-		active.d3d9ex			= true;
-		active.gscr_methods		= true;
-		active.patches			= true;
-		active.scheduler		= true;
-		active.window			= true;
-		
-		active.cgaz				= true;
-		active.compass			= true;
-		active.console			= true;
-		active.daynight_cycle	= true;
-		active.draw_collision	= true;
-		active.gui				= active.window == active.d3d9ex; // needs the window module and d3d9ex
-		active.gui_devgui		= active.gui; // obv. needs imgui
-		active.menu_export		= true;
-		active.movement			= true;
-		active.mvm				= true;
-		active.ocean			= true;
-		active.postfx_shaders	= true;
-		active.radiant_livelink	= true;
+		active._cg = true;
+		active._client = true;
+		active._common = true;
+		active._debug = true;
+		active._ggame = true;
+		active._map = true;
+		active._pmove = true;
+		active._renderer = true;
+		active._ui = true;
+		active.command = true;
+		active.d3d9ex = true;
+		active.gscr_methods = true;
+		active.patches = true;
+		active.scheduler = true;
+		active.window = true;
+
+		active.cgaz = true;
+		active.compass = true;
+		active.console = true;
+		active.daynight_cycle = true;
+		active.draw_collision = true;
+		active.gui = active.window == active.d3d9ex; // needs the window module and d3d9ex
+		active.gui_devgui = active.gui; // obv. needs imgui
+		active.menu_export = true;
+		active.movement = true;
+		active.mvm = true;
+		active.ocean = true;
+		active.postfx_shaders = true;
+		active.radiant_livelink = true;
+
+		bool activate_rtx = false;
+
+		if (!flags::has_flag("no_rtx"))
+		{
+			if (flags::has_flag("no_d3d9_check") || utils::fs::file_exists("", "d3d9.dll"))
+			{
+				activate_rtx = true;
+			}
+		}
+
+		active.rtx					= activate_rtx;
+		active.rtx_fixed_function	= activate_rtx;
+		active.rtx_gui				= activate_rtx;
+		active.rtx_lights			= activate_rtx;
+		active.rtx_map_settings		= activate_rtx;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_cg);
@@ -76,6 +92,11 @@ namespace components
 		REGISTER_MODULE(ocean);
 		REGISTER_MODULE(postfx_shaders);
 		REGISTER_MODULE(radiant_livelink);
+		REGISTER_MODULE(rtx);
+		REGISTER_MODULE(rtx_fixed_function);
+		REGISTER_MODULE(rtx_gui);
+		REGISTER_MODULE(rtx_lights);
+		REGISTER_MODULE(rtx_map_settings);
 	}
 
 	void loader::uninitialize_()

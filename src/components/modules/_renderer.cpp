@@ -357,24 +357,6 @@ namespace components
 			/* minVal	*/ 2,
 			/* maxVal	*/ 64,
 			/* flags	*/ game::dvar_flags::saved | game::dvar_flags::latched);
-
-		//dvars::r_cullWorld = Game::Dvar_RegisterBoolWrapper(
-		//	/* name		*/ "r_cullWorld",
-		//	/* desc		*/ "Culls invisible world surfaces. Disabling this can be useful for vertex manipulating shaders.",
-		//	/* default	*/ true,
-		//	/* flags	*/ Game::dvar_flags::latched);
-
-		//dvars::r_cullEntities = Game::Dvar_RegisterBoolWrapper(
-		//	/* name		*/ "r_cullEntities",
-		//	/* desc		*/ "Culls invisible entities. Disabling this can be useful for vertex manipulating shaders.",
-		//	/* default	*/ true,
-		//	/* flags	*/ Game::dvar_flags::latched);
-
-		//dvars::r_drawDynents = Game::Dvar_RegisterBoolWrapper(
-		//	/* name		*/ "r_drawDynents",
-		//	/* desc		*/ "Draw dynamic entities.",
-		//	/* default	*/ true,
-		//	/* flags	*/ Game::dvar_flags::none);
 	}
 
 
@@ -485,150 +467,7 @@ namespace components
 	}
 
 
-	/* ---------------------------------------------------------- */
-
-#if 0 // disabled for now
-	// R_AddWorldSurfacesPortalWalk
-	__declspec(naked) void r_cull_world_stub_01()
-	{
-		const static uint32_t rtn_pt_skip = 0x60B095;
-		const static uint32_t rtn_pt_stock = 0x60B02E;
-		__asm
-		{
-			// stock op's
-			cmp     esi, ebp;
-			mov		[esp + 10h], eax;
-
-			pushad;
-			push	eax;
-			mov		eax, dvars::r_cullWorld;
-			cmp		byte ptr[eax + 12], 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		rtn_pt_stock;
-
-		SKIP:
-			popad;
-			jmp		rtn_pt_skip;
-		}
-	}
-
-	// R_AddAabbTreeSurfacesInFrustum_r
-	__declspec(naked) void r_cull_world_stub_02()
-	{
-		const static uint32_t rtn_pt_skip = 0x643B0E;
-		const static uint32_t rtn_pt_stock = 0x643B08;
-		__asm
-		{
-			// stock op's
-			fnstsw  ax;
-			test    ah, 41h;
-
-			pushad;
-			push	eax;
-			mov		eax, dvars::r_cullWorld;
-			cmp		byte ptr[eax + 12], 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		rtn_pt_stock;
-
-		SKIP:
-			popad;
-			jmp		rtn_pt_skip;
-		}
-	}
-
-	// R_AddAabbTreeSurfacesInFrustum_r
-	__declspec(naked) void r_cull_world_stub_03()
-	{
-		const static uint32_t rtn_pt_skip = 0x643B48;
-		const static uint32_t rtn_pt_stock = 0x643B39;
-		__asm
-		{
-			// stock op's
-			fnstsw  ax;
-			test    ah, 1;
-
-			pushad;
-			push	eax;
-			mov		eax, dvars::r_cullWorld;
-			cmp		byte ptr[eax + 12], 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		rtn_pt_stock;
-
-		SKIP:
-			popad;
-			jmp		rtn_pt_skip;
-		}
-	}
-
-	// R_AddCellSceneEntSurfacesInFrustumCmd
-	__declspec(naked) void r_cull_entities_stub()
-	{
-		const static uint32_t rtn_pt_skip = 0x64D17C;
-		const static uint32_t rtn_pt_stock = 0x64D17A;
-		__asm
-		{
-			// stock op's
-			and		[esp + 18h], edx;
-			cmp     byte ptr[esi + eax], 0;
-
-			pushad;
-			push	eax;
-			mov		eax, dvars::r_cullEntities;
-			cmp		byte ptr[eax + 12], 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			jmp		rtn_pt_stock;
-
-		SKIP:
-			popad;
-			jmp		rtn_pt_skip;
-		}
-	}
-
-	// R_AddWorkerCmd
-	__declspec(naked) void r_draw_dynents_stub()
-	{
-		const static uint32_t R_AddCellDynModelSurfacesInFrustumCmd_Func = 0x64D4C0;
-		const static uint32_t rtn_pt_stock = 0x62932D;
-		__asm
-		{
-			pushad;
-			push	eax;
-			mov		eax, dvars::r_drawDynents;
-			cmp		byte ptr[eax + 12], 1;
-			pop		eax;
-
-			// jump if not culling world
-			jne		SKIP;
-
-			popad;
-			call	R_AddCellDynModelSurfacesInFrustumCmd_Func;
-
-		SKIP:
-			popad;
-			jmp		rtn_pt_stock;
-		}
-	}
-#endif
+	
 
 
 	/* ---------------------------------------------------------- */
@@ -750,6 +589,14 @@ namespace components
 			if (components::active.daynight_cycle)
 			{
 				daynight_cycle::overwrite_sky_material(&mat);
+			}
+
+			if (components::active.rtx)
+			{
+				if (!rtx::r_set_material_stub(&mat, state))
+				{
+					disable_prepass = true;
+				}
 			}
 
 			// wireframe xmodels
@@ -879,7 +726,7 @@ namespace components
 			}
 		}
 
-		const auto& r_logFile = game::Dvar_FindVar("r_logFile");
+		/*const auto& r_logFile = game::Dvar_FindVar("r_logFile");
 		if (r_logFile && r_logFile->current.integer && mat.current_material)
 		{
 			const auto string = utils::va("R_SetMaterial( %s, %s, %i )\n", state->material->info.name, state->technique->name, mat.technique_type);
@@ -891,7 +738,7 @@ namespace components
 				call	RB_LogPrint_func;
 				popad;
 			}
-		}
+		}*/
 
 		state->origTechType = state->techType;
 		state->techType = mat.technique_type;
@@ -1266,7 +1113,7 @@ namespace components
 	}
 
 	_renderer::_renderer()
-	{ 
+	{
 		/*
 		* Increase the amount of skinned vertices (bone controlled meshes) per frame.
 		*      (R_MAX_SKINNED_CACHE_VERTICES | TEMP_SKIN_BUF_SIZE) Warnings
@@ -1303,26 +1150,7 @@ namespace components
 		utils::hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // dvar info
 
 
-		/* ---------------------------------------------------------- */
-
-		// R_AddWorldSurfacesPortalWalk :: less culling
-		// 0x60B02E -> jl to jmp // 0x7C -> 0xEB //utils::hook::set<BYTE>(0x60B02E, 0xEB);
-		//utils::hook::nop(0x60B028, 6); utils::hook(0x60B028, r_cull_world_stub_01, HOOK_JUMP).install()->quick(); // crashes on release
-
-		// R_AddAabbTreeSurfacesInFrustum_r :: disable all surface culling (bad fps)
-		// 0x643B08 -> nop //utils::hook::nop(0x643B08, 6);
-		//utils::hook(0x643B03, r_cull_world_stub_02, HOOK_JUMP).install()->quick();
-
-		// 0x643B39 -> jmp ^ // 0x74 -> 0xEB //utils::hook::set<BYTE>(0x643B39, 0xEB);
-		//utils::hook(0x643B34, r_cull_world_stub_03, HOOK_JUMP).install()->quick();
-
-		// R_AddCellSceneEntSurfacesInFrustumCmd :: active ents like destructible cars / players (disable all culling)
-		// 0x64D17A -> nop // 2 bytes //utils::hook::nop(0x64D17A, 2);
-		//utils::hook::nop(0x64D172, 8); utils::hook(0x64D172, r_cull_entities_stub, HOOK_JUMP).install()->quick();
-
-		// R_AddWorkerCmd :: disable dynEnt models
-		// 0x629328 -> nop
-		//utils::hook(0x629328, r_draw_dynents_stub, HOOK_JUMP).install()->quick(); // popad makes it worse
+		
 
 
 		/* ---------------------------------------------------------- */
@@ -1404,7 +1232,6 @@ namespace components
 			/* minVal	*/ 20.0f,
 			/* maxVal	*/ 160.0f,
 			/* flags	*/ game::dvar_flags::saved);
-
 
 		// increase fps cap to 125 for menus and loadscreen
 		utils::hook::set<BYTE>(0x500174 + 2, 8);

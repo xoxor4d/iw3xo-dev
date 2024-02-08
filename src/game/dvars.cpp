@@ -144,12 +144,17 @@ namespace dvars
 	game::dvar_s* r_wireframe_world = nullptr;
 	game::dvar_s* r_wireframe_xmodels = nullptr;
 
-	game::dvar_s* r_cullWorld = nullptr;
-	game::dvar_s* r_cullEntities = nullptr;
-	game::dvar_s* r_drawDynents = nullptr;
-
 	game::dvar_s* r_debugShaderTexcoord = nullptr;
 	game::dvar_s* r_dayAndNight = nullptr;
+
+	game::dvar_s* rtx_hacks = nullptr;
+	game::dvar_s* rtx_warm_smodels = nullptr;
+	game::dvar_s* rtx_extend_smodel_drawing = nullptr;
+	game::dvar_s* r_forceLod_second_lowest = nullptr;
+	game::dvar_s* rtx_disable_world_culling = nullptr;
+	game::dvar_s* rtx_disable_entity_culling = nullptr;
+	game::dvar_s* rtx_draw_dynents = nullptr;
+
 
 	game::dvar_s* r_fogTweaks = nullptr;
 	game::dvar_s* r_fogTweaksColor = nullptr;
@@ -238,4 +243,52 @@ namespace dvars
 	game::dvar_s* mdd_cgaz_rgbaPartialAccel = nullptr;
 	game::dvar_s* mdd_cgaz_rgbaFullAccel = nullptr;
 	game::dvar_s* mdd_cgaz_rgbaTurnZone = nullptr;
+
+	//
+	//
+
+	void bool_override(const char* dvarName, const bool& value, const game::dvar_flags& flags)
+	{
+		if (const auto& dvar = game::Dvar_FindVar(dvarName); dvar)
+		{
+			dvar->current.enabled = value;
+			dvar->latched.enabled = value;
+			dvar->flags = flags;
+			dvar->modified = false;
+		}
+	}
+
+	void int_override(const char* dvarName, const int& value, const game::dvar_flags& flags, const bool& limits, const int& mins, const int& maxs)
+	{
+		if (const auto& dvar = game::Dvar_FindVar(dvarName); dvar)
+		{
+			dvar->current.integer = value;
+			dvar->latched.integer = value;
+			dvar->flags = flags;
+			dvar->modified = false;
+
+			if (limits)
+			{
+				dvar->domain.integer.min = mins;
+				dvar->domain.integer.max = maxs;
+			}
+		}
+	}
+
+	void float_override(const char* dvarName, const float& value, const game::dvar_flags& flags, const bool& limits, const float& mins, const float& maxs)
+	{
+		if (const auto& dvar = game::Dvar_FindVar(dvarName); dvar)
+		{
+			dvar->current.value = value;
+			dvar->latched.value = value;
+			dvar->flags = flags;
+			dvar->modified = false;
+
+			if (limits)
+			{
+				dvar->domain.value.min = mins;
+				dvar->domain.value.max = maxs;
+			}
+		}
+	}
 }

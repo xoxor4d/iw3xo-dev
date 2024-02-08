@@ -5,42 +5,40 @@
 
 namespace utils
 {
-	int try_stoi(const std::string& str, bool quite)
+	// kej
+	bool world_to_screen(const game::vec3_t world_location, game::vec2_t xy)
 	{
-		int ret = 0;
+		if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame");
+						cl_ingame && cl_ingame->current.enabled)
+		{
+			const auto cgs = game::cgs;
+			const auto ref = &cgs->refdef;
 
-		try
-		{
-			ret = std::stoi(str);
-		}
-		catch (const std::invalid_argument)
-		{
-			if (!quite)
+			const auto center_x = cgs->refdef.width / 2u;
+			const auto center_y = cgs->refdef.height / 2u;
+
+			game::vec3_t local, transform;
+			vector::subtract3(world_location, cgs->refdef.vieworg, local);
+
+			transform[0] = vector::dot3(local, ref->viewaxis[1]);
+			transform[1] = vector::dot3(local, ref->viewaxis[2]);
+			transform[2] = vector::dot3(local, ref->viewaxis[0]);
+
+			if (transform[2] < 0.01f)
 			{
-				game::Com_PrintMessage(0, utils::va("[!] (%s) is not a valid argument! Defaulting to integer 0!\n", str.c_str()), 0);
+				return false;
 			}
-		}
 
-		return ret;
-	}
-
-	float try_stof(const std::string& str, bool quite)
-	{
-		float ret = 0.0f;
-
-		try
-		{
-			ret = std::stof(str);
-		}
-		catch (const std::invalid_argument)
-		{
-			if (!quite)
+			if (xy)
 			{
-				game::Com_PrintMessage(0, utils::va("[!] (%s) is not a valid argument! Defaulting to float 0.0f!\n", str.c_str()), 0);
+				xy[0] = static_cast<float>(center_x) * (1.0f - (transform[0] / ref->tanHalfFovX / transform[2]));
+				xy[1] = static_cast<float>(center_y) * (1.0f - (transform[1] / ref->tanHalfFovY / transform[2]));
 			}
+
+			return transform[2] > 0;
 		}
 
-		return ret;
+		return false;
 	}
 
 	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer()
@@ -80,6 +78,36 @@ namespace utils
 		{
 			file << utils::va(string, elapsed.count()) << std::endl;
 		}
+	}
+
+	int try_stoi(const std::string& str, const int& default_return_val)
+	{
+		int ret = default_return_val;
+
+		try
+		{
+			ret = std::stoi(str);
+		}
+		catch (const std::invalid_argument)
+		{
+		}
+
+		return ret;
+	}
+
+	float try_stof(const std::string& str, const float& default_return_val)
+	{
+		float ret = default_return_val;
+
+		try
+		{
+			ret = std::stof(str);
+		}
+		catch (const std::invalid_argument)
+		{
+		}
+
+		return ret;
 	}
 
 	int q_strncasecmp(char *s1, char *s2, int n)
@@ -228,12 +256,25 @@ namespace utils
 		return s;
 	}
 
+	std::string convert_wstring(const std::wstring& wstr)
+	{
+		std::string result;
+		result.reserve(wstr.size());
+
+		for (const auto& chr : wstr)
+		{
+			result.push_back(static_cast<char>(chr));
+		}
+
+		return result;
+	}
+
 	bool string_equals(const char* s1, const char* s2)
 	{
 		return !q_stricmp(s1, s2);
 	}
 
-	bool contains(std::string haystack, std::string needle)
+	bool contains(std::string_view haystack, std::string_view needle)
 	{
 		if (haystack.find(needle) != std::string::npos)
 		{
@@ -243,23 +284,23 @@ namespace utils
 		return false;
 	}
 
-	bool has_suffix(const std::string &str, const std::string &suffix)
+	bool has_suffix(const std::string_view str, const std::string_view suffix)
 	{
 		return str.size() >= suffix.size() &&
 			str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 	}
 
-	bool starts_with(std::string haystack, std::string needle)
+	bool starts_with(std::string_view haystack, std::string_view needle)
 	{
 		return (haystack.size() >= needle.size() && !strncmp(needle.data(), haystack.data(), needle.size()));
 	}
 
-	bool ends_with(std::string haystack, std::string needle)
+	bool ends_with(std::string_view haystack, std::string_view needle)
 	{
 		return (strstr(haystack.data(), needle.data()) == (haystack.data() + haystack.size() - needle.size()));
 	}
 
-	bool replace(std::string& str, const std::string& from, const std::string& to)
+	bool replace(std::string& str, const std::string_view from, const std::string_view to)
 	{
 		const size_t start_pos = str.find(from);
 
@@ -272,7 +313,7 @@ namespace utils
 		return true;
 	}
 
-	void replace_all(std::string& source, const std::string& from, const std::string& to)
+	void replace_all(std::string& source, const std::string_view from, const std::string_view to)
 	{
 		std::string new_string;
 		new_string.reserve(source.length());  // avoids a few memory allocations
@@ -293,7 +334,7 @@ namespace utils
 		source.swap(new_string);
 	}
 
-	void erase_substring(std::string& base, std::string replace)
+	void erase_substring(std::string& base, std::string_view replace)
 	{
 		if (const auto	it = base.find(replace);
 			it != std::string::npos)
@@ -369,7 +410,7 @@ namespace utils
 	}
 
 	// used to extract Integers from dvar strings
-	void extract_integer_words(std::string str, std::vector<int> &Integers, bool checkForDuplicates)
+	void extract_integer_words(std::string_view str, std::vector<int> &Integers, bool checkForDuplicates)
 	{
 		std::stringstream ss;
 
@@ -411,7 +452,7 @@ namespace utils
 	}
 
 	// used to extract Integers from dvar strings
-	int extract_first_integer_from_string(std::string str)
+	int extract_first_integer_from_string(std::string_view str)
 	{
 		std::stringstream ss;
 
@@ -616,5 +657,69 @@ namespace utils
 			hmtl = L"";
 		}
 		return ret;
+	}
+
+	namespace fs
+	{
+		/**
+		* @brief			open handle to a file within the home-path (root)
+		* @param sub_dir	sub directory within home-path (root)
+		* @param file_name	the file name
+		* @param print		print generic error message when we fail to open a handle
+		* @param file		in-out file handle
+		* @return			file handle state (valid or not)
+		*/
+		bool open_file_homepath(const std::string& sub_dir, const std::string& file_name, bool print, std::ifstream& file)
+		{
+			if (const auto& var = game::Dvar_FindVar("fs_homepath");
+							var)
+			{
+				std::string	file_path = var->current.string;
+				file_path += "\\" + sub_dir + "\\" + file_name;
+
+				file.open(file_path);
+				if (!file.is_open())
+				{
+					if (print)
+					{
+						game::Com_PrintMessage(1, utils::va("[ERR] Could not open file '%s'.", file_path.c_str()), 0);
+					}
+
+					return false;
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+		
+		bool file_exists(const std::string& sub_dir, const std::string& file_name)
+		{
+			char filename[MAX_PATH];
+			GetModuleFileNameA(nullptr, filename, MAX_PATH);
+
+			if (const auto pos = std::string_view(filename).find_last_of('\\');
+				pos != std::string::npos)
+			{
+				auto file_path = std::string(filename).substr(0, pos) + "\\";
+				if (!sub_dir.empty())
+				{
+					file_path += sub_dir + "\\";
+				}
+
+				file_path += file_name;
+
+				const std::ifstream file(file_path, std::ios_base::binary);
+				if (!file.is_open())
+				{
+					return false;
+				}
+
+				return true;
+			}
+
+			return false;
+		}
 	}
 }

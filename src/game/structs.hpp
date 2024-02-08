@@ -121,6 +121,18 @@ namespace game
 		NUM_ANIM_EVENTTYPES = 0x15,
 	};
 
+	enum errorParm_t
+	{
+		ERR_FATAL = 0x0,
+		ERR_DROP = 0x1,
+		ERR_SERVERDISCONNECT = 0x2,
+		ERR_DISCONNECT = 0x3,
+		ERR_SCRIPT = 0x4,
+		ERR_SCRIPT_DROP = 0x5,
+		ERR_LOCALIZATION = 0x6,
+		ERR_MAPLOADERRORSUMMARY = 0x7,
+	};
+
 	struct ScreenPlacement
 	{
 		float scaleVirtualToReal[2];
@@ -1728,7 +1740,7 @@ namespace game
 		XSurfaceCollisionTree* collisionTree;
 	};
 
-	struct XSurface
+	/*struct XSurface
 	{
 		char tileMode;
 		bool deformed;
@@ -1743,7 +1755,25 @@ namespace game
 		unsigned int vertListCount;
 		XRigidVertList* vertList;
 		int partBits[4];
-	};
+	};*/
+
+	struct XSurface
+	{
+		char tileMode;
+		bool deformed;
+		unsigned __int16 vertCount;
+		unsigned __int16 triCount;
+		char zoneHandle;
+		unsigned __int16 baseTriIndex;
+		unsigned __int16 baseVertIndex;
+		unsigned __int16* triIndices;
+		XSurfaceVertexInfo vertInfo;
+		GfxPackedVertex* verts0;
+		unsigned int vertListCount;
+		XRigidVertList* vertList;
+		int partBits[3]; // was 4
+		IDirect3DVertexBuffer9* custom_vertexbuffer;
+	}; STATIC_ASSERT_SIZE(XSurface, 0x38);
 
 	struct BrushWrapper
 	{
@@ -2013,6 +2043,24 @@ namespace game
 		float maxs[3];
 	};
 
+	struct GfxDrawPrimArgs
+	{
+		int vertexCount;
+		int triCount;
+		int baseIndex;
+	};
+
+	struct GfxBspPreTessDrawSurf
+	{
+		unsigned __int16 baseSurfIndex;
+		unsigned __int16 totalTriCount;
+	};
+
+	struct GfxReadCmdBuf
+	{
+		const unsigned int* primDrawSurfPos;
+	};
+
 	struct GfxWorldStreamInfo
 	{
 		int aabbTreeCount;
@@ -2024,13 +2072,13 @@ namespace game
 	struct GfxWorldVertexData
 	{
 		GfxWorldVertex* vertices;
-		void/*IDirect3DVertexBuffer9*/* worldVb;
+		IDirect3DVertexBuffer9* worldVb;
 	};
 
 	struct GfxWorldVertexLayerData
 	{
 		char* data;
-		void/*IDirect3DVertexBuffer9*/* layerVb;
+		IDirect3DVertexBuffer9* layerVb;
 	};
 
 	struct SunLightParseParams
@@ -2599,6 +2647,31 @@ namespace game
 		unsigned __int16 lightingHandle;
 		char flags;
 	};
+
+	struct GfxStaticModelDrawStream
+	{
+		const unsigned int* primDrawSurfPos;
+		GfxTexture* reflectionProbeTexture;
+		unsigned int customSamplerFlags;
+		XSurface* localSurf;
+		unsigned int smodelCount;
+		const unsigned __int16* smodelList;
+		unsigned int reflectionProbeIndex;
+	};
+
+	// custom struct for fixed-function rendering
+	/*struct __declspec(align(4)) GfxStaticModelDrawInst
+	{
+		float cullDist;
+		GfxPackedPlacement placement;
+		XModel* model;
+		IDirect3DVertexBuffer9* custom_vertexbuffer;
+		IDirect3DIndexBuffer9* custom_indexbuffer;
+		char reflectionProbeIndex;
+		char primaryLightIndex;
+		unsigned __int16 lightingHandle;
+		char flags;
+	}; STATIC_ASSERT_SIZE(GfxStaticModelDrawInst, 0x4C);*/
 
 	struct GfxWorldDpvsStatic
 	{
@@ -3425,8 +3498,8 @@ namespace game
 		XBlock blocks[9];
 		char* lockedVertexData;
 		char* lockedIndexData;
-		void* vertexBuffer;
-		void* indexBuffer;
+		IDirect3DVertexBuffer9* vertexBuffer;
+		IDirect3DIndexBuffer9* indexBuffer;
 	};
 
 	struct XZone
@@ -3817,6 +3890,196 @@ namespace game
 		VehicleTags boneIndex;
 		int turretHitNum;
 		float forcedMaterialSpeed;*/
+	};
+
+	struct scr_const_t
+	{
+		unsigned __int16 _;
+		unsigned __int16 active;
+		unsigned __int16 aim_bone;
+		unsigned __int16 aim_highest_bone;
+		unsigned __int16 aim_vis_bone;
+		unsigned __int16 all;
+		unsigned __int16 allies;
+		unsigned __int16 axis;
+		unsigned __int16 bad_path;
+		unsigned __int16 begin_firing;
+		unsigned __int16 cancel_location;
+		unsigned __int16 confirm_location;
+		unsigned __int16 crouch;
+		unsigned __int16 current;
+		unsigned __int16 damage;
+		unsigned __int16 dead;
+		unsigned __int16 death;
+		unsigned __int16 detonate;
+		unsigned __int16 direct;
+		unsigned __int16 dlight;
+		unsigned __int16 done;
+		unsigned __int16 empty;
+		unsigned __int16 end_firing;
+		unsigned __int16 entity;
+		unsigned __int16 explode;
+		unsigned __int16 failed;
+		unsigned __int16 free;
+		unsigned __int16 fraction;
+		unsigned __int16 goal;
+		unsigned __int16 goal_changed;
+		unsigned __int16 goal_yaw;
+		unsigned __int16 grenade;
+		unsigned __int16 grenadedanger;
+		unsigned __int16 grenade_fire;
+		unsigned __int16 grenade_pullback;
+		unsigned __int16 info_notnull;
+		unsigned __int16 invisible;
+		unsigned __int16 key1;
+		unsigned __int16 key2;
+		unsigned __int16 killanimscript;
+		unsigned __int16 left;
+		unsigned __int16 light;
+		unsigned __int16 movedone;
+		unsigned __int16 noclass;
+		unsigned __int16 none;
+		unsigned __int16 normal;
+		unsigned __int16 player;
+		unsigned __int16 position;
+		unsigned __int16 projectile_impact;
+		unsigned __int16 prone;
+		unsigned __int16 right;
+		unsigned __int16 reload;
+		unsigned __int16 reload_start;
+		unsigned __int16 rocket;
+		unsigned __int16 rotatedone;
+		unsigned __int16 script_brushmodel;
+		unsigned __int16 script_model;
+		unsigned __int16 script_origin;
+		unsigned __int16 snd_enveffectsprio_level;
+		unsigned __int16 snd_enveffectsprio_shellshock;
+		unsigned __int16 snd_channelvolprio_holdbreath;
+		unsigned __int16 snd_channelvolprio_pain;
+		unsigned __int16 snd_channelvolprio_shellshock;
+		unsigned __int16 stand;
+		unsigned __int16 suppression;
+		unsigned __int16 suppression_end;
+		unsigned __int16 surfacetype;
+		unsigned __int16 tag_aim;
+		unsigned __int16 tag_aim_animated;
+		unsigned __int16 tag_brass;
+		unsigned __int16 tag_butt;
+		unsigned __int16 tag_clip;
+		unsigned __int16 tag_flash;
+		unsigned __int16 tag_flash_11;
+		unsigned __int16 tag_flash_2;
+		unsigned __int16 tag_flash_22;
+		unsigned __int16 tag_flash_3;
+		unsigned __int16 tag_fx;
+		unsigned __int16 tag_inhand;
+		unsigned __int16 tag_knife_attach;
+		unsigned __int16 tag_knife_fx;
+		unsigned __int16 tag_laser;
+		unsigned __int16 tag_origin;
+		unsigned __int16 tag_weapon;
+		unsigned __int16 tag_player;
+		unsigned __int16 tag_camera;
+		unsigned __int16 tag_weapon_right;
+		unsigned __int16 tag_gasmask;
+		unsigned __int16 tag_gasmask2;
+		unsigned __int16 tag_sync;
+		unsigned __int16 target_script_trigger;
+		unsigned __int16 tempEntity;
+		unsigned __int16 top;
+		unsigned __int16 touch;
+		unsigned __int16 trigger;
+		unsigned __int16 trigger_use;
+		unsigned __int16 trigger_use_touch;
+		unsigned __int16 trigger_damage;
+		unsigned __int16 trigger_lookat;
+		unsigned __int16 truck_cam;
+		unsigned __int16 weapon_change;
+		unsigned __int16 weapon_fired;
+		unsigned __int16 worldspawn;
+		unsigned __int16 flashbang;
+		unsigned __int16 flash;
+		unsigned __int16 smoke;
+		unsigned __int16 night_vision_on;
+		unsigned __int16 night_vision_off;
+		unsigned __int16 mod_unknown;
+		unsigned __int16 mod_pistol_bullet;
+		unsigned __int16 mod_rifle_bullet;
+		unsigned __int16 mod_grenade;
+		unsigned __int16 mod_grenade_splash;
+		unsigned __int16 mod_projectile;
+		unsigned __int16 mod_projectile_splash;
+		unsigned __int16 mod_melee;
+		unsigned __int16 mod_head_shot;
+		unsigned __int16 mod_crush;
+		unsigned __int16 mod_telefrag;
+		unsigned __int16 mod_falling;
+		unsigned __int16 mod_suicide;
+		unsigned __int16 mod_trigger_hurt;
+		unsigned __int16 mod_explosive;
+		unsigned __int16 mod_impact;
+		unsigned __int16 script_vehicle;
+		unsigned __int16 script_vehicle_collision;
+		unsigned __int16 script_vehicle_collmap;
+		unsigned __int16 script_vehicle_corpse;
+		unsigned __int16 turret_fire;
+		unsigned __int16 turret_on_target;
+		unsigned __int16 turret_not_on_target;
+		unsigned __int16 turret_on_vistarget;
+		unsigned __int16 turret_no_vis;
+		unsigned __int16 turret_rotate_stopped;
+		unsigned __int16 turret_deactivate;
+		unsigned __int16 turretstatechange;
+		unsigned __int16 turretownerchange;
+		unsigned __int16 reached_end_node;
+		unsigned __int16 reached_wait_node;
+		unsigned __int16 reached_wait_speed;
+		unsigned __int16 near_goal;
+		unsigned __int16 veh_collision;
+		unsigned __int16 veh_predictedcollision;
+		unsigned __int16 auto_change;
+		unsigned __int16 back_low;
+		unsigned __int16 back_mid;
+		unsigned __int16 back_up;
+		unsigned __int16 begin;
+		unsigned __int16 call_vote;
+		unsigned __int16 freelook;
+		unsigned __int16 head;
+		unsigned __int16 intermission;
+		unsigned __int16 j_head;
+		unsigned __int16 manual_change;
+		unsigned __int16 menuresponse;
+		unsigned __int16 neck;
+		unsigned __int16 pelvis;
+		unsigned __int16 pistol;
+		unsigned __int16 plane_waypoint;
+		unsigned __int16 playing;
+		unsigned __int16 spectator;
+		unsigned __int16 vote;
+		unsigned __int16 sprint_begin;
+		unsigned __int16 sprint_end;
+		unsigned __int16 tag_driver;
+		unsigned __int16 tag_passenger;
+		unsigned __int16 tag_gunner;
+		unsigned __int16 tag_wheel_front_left;
+		unsigned __int16 tag_wheel_front_right;
+		unsigned __int16 tag_wheel_back_left;
+		unsigned __int16 tag_wheel_back_right;
+		unsigned __int16 tag_wheel_middle_left;
+		unsigned __int16 tag_wheel_middle_right;
+		unsigned __int16 tag_detach;
+		unsigned __int16 tag_popout;
+		unsigned __int16 tag_body;
+		unsigned __int16 tag_turret;
+		unsigned __int16 tag_turret_base;
+		unsigned __int16 tag_barrel;
+		unsigned __int16 tag_engine_left;
+		unsigned __int16 tag_engine_right;
+		unsigned __int16 front_left;
+		unsigned __int16 front_right;
+		unsigned __int16 back_left;
+		unsigned __int16 back_right;
+		unsigned __int16 tag_gunner_pov;
 	};
 
 	struct item_ent_t
@@ -4696,6 +4959,35 @@ namespace game
 		float scale;
 	};
 
+	struct __declspec(align(4)) GfxModelSurfaceInfo
+	{
+		DObjAnimMat* baseMat;
+		char boneIndex;
+		char boneCount;
+		unsigned __int16 gfxEntIndex;
+		unsigned __int16 lightingHandle;
+	};
+
+	union $178D1D161B34F636C03EBC0CA3007D75
+	{
+		GfxPackedVertex* skinnedVert;
+		int oldSkinnedCachedOffset;
+	};
+
+	struct GfxModelSkinnedSurface
+	{
+		int skinnedCachedOffset;
+		XSurface* xsurf;
+		GfxModelSurfaceInfo info;
+		$178D1D161B34F636C03EBC0CA3007D75 u;
+	};
+
+	struct GfxModelRigidSurface
+	{
+		GfxModelSkinnedSurface surf;
+		GfxScaledPlacement placement;
+	};
+
 	struct GfxParticleCloud
 	{
 		GfxScaledPlacement placement;
@@ -4743,7 +5035,7 @@ namespace game
 
 	struct GfxVertexBufferState
 	{
-		volatile int used;
+		/*volatile*/ int used;
 		int total;
 		//int IDirect3DVertexBuffer9; // 
 		IDirect3DVertexBuffer9* buffer;
@@ -5249,7 +5541,7 @@ namespace game
 	struct gfxVertexSteamsUnk
 	{
 		unsigned int stride;
-		int* vb; // IDirect3DVertexBuffer9
+		IDirect3DVertexBuffer9* vb; // IDirect3DVertexBuffer9
 		unsigned int offset;
 	};
 
@@ -5284,7 +5576,7 @@ namespace game
 	struct GfxCmdBufPrimState
 	{
 		IDirect3DDevice9* device; // IDirect3DDevice9
-		int* indexBuffer; // IDirect3DIndexBuffer9
+		IDirect3DIndexBuffer9* indexBuffer; // IDirect3DIndexBuffer9
 		MaterialVertexDeclType vertDeclType;
 		gfxVertexSteamsUnk streams[2];
 		int* vertexDecl; // IDirect3DVertexDeclaration9
@@ -6992,6 +7284,19 @@ namespace game
 		GfxLodRamp ramp[2];
 	};
 
+	struct GfxCmdBufContext
+	{
+		GfxCmdBufSourceState* source;
+		GfxCmdBufState* state;
+	};
+
+	struct GfxDrawSurfListArgs
+	{
+		GfxCmdBufContext context;
+		unsigned int firstDrawSurfIndex;
+		GfxDrawSurfListInfo* info;
+	};
+
 #pragma warning( push )
 #pragma warning( disable : 4324 )
 	struct __declspec(align(8)) r_globals_t
@@ -7042,6 +7347,69 @@ namespace game
 		float waterFloatTime;
 	};
 #pragma warning( pop )
+
+	struct BModelSurface
+	{
+		GfxScaledPlacement* placement;
+		GfxSurface* surf;
+	};
+
+	struct GfxWindowTarget
+	{
+		HWND__* hwnd;
+		IDirect3DSwapChain9* swapChain;
+		int width;
+		int height;
+	};
+
+	struct __declspec(align(8)) DxGlobals
+	{
+		HINSTANCE__* hinst;
+		IDirect3D9* d3d9;
+		IDirect3DDevice9* device;
+		unsigned int adapterIndex;
+		bool adapterNativeIsValid;
+		int adapterNativeWidth;
+		int adapterNativeHeight;
+		int adapterFullscreenWidth;
+		int adapterFullscreenHeight;
+		int depthStencilFormat;
+		unsigned int displayModeCount;
+		_D3DDISPLAYMODE displayModes[256];
+		const char* resolutionNameTable[257];
+		const char* refreshRateNameTable[257];
+		char modeText[5120];
+		IDirect3DQuery9* fencePool[8];
+		unsigned int nextFence;
+		int gpuSync;
+		int multiSampleType;
+		unsigned int multiSampleQuality;
+		int sunSpriteSamples;
+		IDirect3DSurface9* singleSampleDepthStencilSurface;
+		bool deviceLost;
+		bool inScene;
+		int targetWindowIndex;
+		int windowCount;
+		GfxWindowTarget windows[1];
+		int flushGpuQueryCount;
+		IDirect3DQuery9* flushGpuQuery;
+		unsigned __int64 gpuSyncDelay;
+		unsigned __int64 gpuSyncStart;
+		unsigned __int64 gpuSyncEnd;
+		bool flushGpuQueryIssued;
+		int linearNonMippedMinFilter;
+		int linearNonMippedMagFilter;
+		int linearMippedMinFilter;
+		int linearMippedMagFilter;
+		int anisotropicMinFilter;
+		int anisotropicMagFilter;
+		int linearMippedAnisotropy;
+		int anisotropyFor2x;
+		int anisotropyFor4x;
+		int mipFilterMode;
+		unsigned int mipBias;
+		IDirect3DQuery9* swapFence;
+	};
 
 	struct CmdArgs
 	{
@@ -7163,6 +7531,13 @@ namespace game
 
 		game::MaterialTechniqueType technique_type;
 	};
+
+	struct TestLod
+	{
+		bool enabled;
+		float dist;
+	};
+
 
 #ifdef __cplusplus
 }

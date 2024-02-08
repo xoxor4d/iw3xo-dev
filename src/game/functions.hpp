@@ -60,7 +60,9 @@ namespace game
 
 	static inline float COLOR_WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	static inline float COLOR_BLACK[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	static inline float vec3_origin[3] = { 0.0f, 0.0f, 0.0f };
 
+	extern game::TestLod g_testLods[4];
 
 	// *
 	// general structs
@@ -157,6 +159,7 @@ namespace game
 	extern float& v_postProcessAspect;
 
 	extern IDirect3DDevice9** dx9_device_ptr;
+	extern DxGlobals* dx;
 
 	extern game::Material* floatz_display;
 	extern GfxCmdBufSourceState* gfxCmdBufSourceState;
@@ -164,7 +167,12 @@ namespace game
 
 	extern game::materialCommands_t* tess;
 	extern game::GfxBackEndData* _frontEndDataOut;
-	extern game::GfxBackEndData* _backEndData;
+	//extern game::GfxBackEndData* _backEndData;
+
+	static DWORD* backEndDataOut_ptr = (DWORD*)(0xD0704BC);  // backendEndDataOut pointer
+	extern game::GfxBackEndData* get_backenddata();
+
+	extern game::r_globals_t* rg;
 	extern game::r_global_permanent_t* rgp;
 
 	extern game::clientDebugLineInfo_t* clientDebugLineInfo_client;
@@ -259,6 +267,7 @@ namespace game
 	extern char*	error_message;
 	extern char*	errortype;
 	extern int*		scr_numParam;
+	extern scr_const_t* scr_const;
 
 	extern game::gentity_s*	scr_g_entities;
 	extern game::level_locals_t* level_locals;
@@ -565,7 +574,8 @@ namespace game
 	const char* SL_ConvertToString(int idx);
 
 	game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
-	void Vec3UnpackUnitVec(game::PackedUnitVec in, const float *out);
+	void Vec3UnpackUnitVec(unsigned int packed, float* texcoord_out /*ecx*/);
+	void Vec2UnpackTexCoords(unsigned int packed, float* texcoord_out /*ecx*/);
 
 	void Byte4UnpackRgba(unsigned __int8* from, float* to);
 	char Byte1PackClamp(const float from);

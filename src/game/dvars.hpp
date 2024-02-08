@@ -151,12 +151,16 @@ namespace dvars
 	extern game::dvar_s* r_wireframe_world;
 	extern game::dvar_s* r_wireframe_xmodels;
 
-	extern game::dvar_s* r_cullWorld;
-	extern game::dvar_s* r_cullEntities;
-	extern game::dvar_s* r_drawDynents;
-
 	extern game::dvar_s* r_debugShaderTexcoord;
 	extern game::dvar_s* r_dayAndNight;
+
+	extern game::dvar_s* rtx_hacks;
+	extern game::dvar_s* rtx_warm_smodels;
+	extern game::dvar_s* rtx_extend_smodel_drawing;
+	extern game::dvar_s* r_forceLod_second_lowest;
+	extern game::dvar_s* rtx_disable_world_culling;
+	extern game::dvar_s* rtx_disable_entity_culling;
+	extern game::dvar_s* rtx_draw_dynents;
 
 	extern game::dvar_s* r_fogTweaks;
 	extern game::dvar_s* r_fogTweaksColor;
@@ -244,4 +248,12 @@ namespace dvars
 	extern game::dvar_s* mdd_cgaz_rgbaPartialAccel;
 	extern game::dvar_s* mdd_cgaz_rgbaFullAccel;
 	extern game::dvar_s* mdd_cgaz_rgbaTurnZone;
+
+	//
+	//
+
+	void bool_override(const char* dvarName, const bool& value, const game::dvar_flags& flags = game::saved);
+	void int_override(const char* dvarName, const int& value, const game::dvar_flags& flags = game::saved, const bool& limits = false, const int& mins = 0, const int& maxs = 0);
+	void float_override(const char* dvarName, const float& value, const game::dvar_flags& flags = game::saved, const bool& limits = false, const float& mins = 0.0f, const float& maxs = 0.0f);
+
 }

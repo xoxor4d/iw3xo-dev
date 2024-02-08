@@ -1,20 +1,5 @@
 #include "std_include.hpp"
 
-// show tooltip after x seconds
-#define TTDELAY 1.0f 
-
-// tooltip with delay
-#define TT(tooltip) if (ImGui::IsItemHoveredDelay(TTDELAY)) { ImGui::SetTooltip(tooltip); }
-
-// spacing dummy
-#define SPACING(x, y) ImGui::Dummy(ImVec2(x, y)) 
-
-// seperator with spacing
-#define SEPERATORV(spacing) SPACING(0.0f, spacing); ImGui::Separator(); SPACING(0.0f, spacing); 
-
-// execute a single command
-#define CMDEXEC(command) game::Cmd_ExecuteSingleCommand(0, 0, command)
-
 namespace components
 {
 	// *
@@ -88,8 +73,6 @@ namespace components
 			return;
 		}
 
-		
-
 		if (ImGui::BeginTabBar("devgui_tabs"))
 		{
 			// save current window parms
@@ -101,6 +84,15 @@ namespace components
 			if (const auto& cl_ingame = game::Dvar_FindVar("cl_ingame"); 
 							cl_ingame && cl_ingame->current.enabled)
 			{
+				if (components::active.rtx && components::active.rtx_gui && components::active.rtx_lights)
+				{
+					if (ImGui::BeginTabItem("RTX"))
+					{
+						rtx_gui::gui();
+						ImGui::EndTabItem();
+					}
+				}
+
 				if ((components::active.cgaz || components::active.compass || components::active.movement || components::active._cg || components::active._pmove) && ImGui::BeginTabItem("Movement"))
 				{
 					gui_devgui::menu_tab_movement(menu);

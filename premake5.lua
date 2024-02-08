@@ -235,6 +235,7 @@ workspace "iw3xo-dev"
 	disablewarnings {
 		"4100",
 		"4189",
+		"4505",
 		"26812",
 		"26451",
 	}

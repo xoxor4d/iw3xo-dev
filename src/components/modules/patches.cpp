@@ -195,7 +195,7 @@ namespace components
 
 			if (parms.length() >= 2)
 			{
-				node_array_offset = utils::try_stoi(parms[1], true);
+				node_array_offset = utils::try_stoi(parms[1]);
 			}
 
 			game::GameWorldSp* sp = game::DB_FindXAssetHeader(game::ASSET_TYPE_GAMEWORLD_SP, game::cm->name).gameWorldSp;
