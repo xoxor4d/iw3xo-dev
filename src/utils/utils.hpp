@@ -148,5 +148,6 @@ namespace utils
 	namespace fs
 	{
 		bool open_file_homepath(const std::string& sub_dir, const std::string& file_name, bool print, std::ifstream& file);
+		bool file_exists(const std::string& sub_dir, const std::string& file_name);
 	}
 }

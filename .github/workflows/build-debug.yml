@@ -1,10 +1,12 @@
 name: Build-Debug
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
-      - "develop"
-
+      - 'develop'
+    paths:
+      - 'src/**'
 jobs:
   build:
     name: Build binary
@@ -38,22 +40,28 @@ jobs:
       - name: Set up problem matching
         uses: ammaraskar/msvc-problem-matcher@master
 
-      - name: Build ${{matrix.configuration}} binaries
+      - name: Build ${{matrix.configuration}}-binaries
         run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw3xo-dev.sln
 
-      - name: Upload ${{matrix.configuration}} binaries
+      - name: Move build files 
+        run: |
+          move build/bin/${{matrix.configuration}}/iw3x.dll ./
+          move build/bin/${{matrix.configuration}}/iw3x.pdb ./
+
+      - name: Upload ${{matrix.configuration}}-binaries
         uses: actions/upload-artifact@v2
         with:
-          name: ${{matrix.configuration}} binaries
+          name: ${{matrix.configuration}}-binaries
           path: |
-            build/bin/${{matrix.configuration}}/iw3x.dll
-            build/bin/${{matrix.configuration}}/iw3x.pdb
+            ./iw3x.dll
+            ./iw3x.pdb
+            ./assets-remix/
 
   webbook:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Tag String
@@ -74,4 +82,4 @@ jobs:
           embed-author-url: "https://github.com/xoxor4d/iw3xo-dev"
           embed-title: "Successful build (debug)"
           embed-color: 0xc680ff
-          embed-description: "${{ env.GIT_TAG }} [nightly link](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug%20binaries.zip)"
+          embed-description: "${{ env.GIT_TAG }} [nightly link](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-debug/develop/Debug-binaries.zip)"

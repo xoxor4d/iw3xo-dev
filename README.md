@@ -1,10 +1,18 @@
 
-<h1 align="center">iw3xo (rtx) - a call of duty 4 modification</h3>
+<h1 align="center">iw3xo/rtx - a call of duty 4 modification</h3>
 
 <div align="center" markdown="1"> 
 
-The rtx branch of iw3xo is specifically made to make the game compatible with nvidia's [rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix).  
-It does __not__ come with a 'rtx mod' -> meaning no custom models nor materials (as of yet).  
+This client mod brings various modifications and additions to the base game and also includes support for nvidia's [rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix).  
+
+This includes, but is not limited to:  
+map exporting -- live link between the game and radiant -- sp map loading in mp  
+collision visualization -- day and night cycle with custom sky shader   
+custom movement options and much more
+
+__[ Remix compatibility ]__   
+This client mod does __not__ come with a 'rtx mod' -> that means:  
+no custom models, no normal-maps, no fancy pbr materials or lights. 
 
 </div>
 
@@ -12,10 +20,12 @@ It does __not__ come with a 'rtx mod' -> meaning no custom models nor materials 
 <div align="center" markdown="1">
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/xoxor4d/iw3xo-dev?color=%2368BC71&logo=github)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
-[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-rtx-release.yml?branch=rtx&label=nightly-rtx&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)&ensp;
+[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=rtx&label=nightly-dev&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)&ensp;
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/xoxor4d/iw3xo-dev/latest/develop?logo=github)&ensp;
 [![Downloads](https://img.shields.io/github/downloads/xoxor4d/iw3xo-dev/total?logo=github&label=total-downloads)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
 [![Discord](https://img.shields.io/discord/677574256678141973?label=Discord&logo=discord&logoColor=%23FFFF&)](https://discord.gg/t5jRGbj)&ensp;
+
+<img src="https://raw.githubusercontent.com/xoxor4d/xoxor4d.github.io/master/assets/img/daynight/small_gif.gif"/>
 
 
 ### > Features / Guides / In-Depth <
@@ -32,19 +42,20 @@ https://xoxor4d.github.io/projects/iw3xo/
 # Usage
 
 #### Mandatory but might not feature the latest and greatest:
-  1. Download the latest [iw3xo rtx-release](https://github.com/xoxor4d/iw3xo-dev/releases) and extract the contents into your cod4 root directory.  
+  1. Download the latest [iw3xo release](https://github.com/xoxor4d/iw3xo-dev/releases) - the `_rtx` build comes with all files required for rtx remix  
+  - Extract the contents into your cod4 root directory.  
   - Skip to Step 5 if you are not interested in nightly builds
 
 <br>
 
 #### Nightly (always up-to-date):
 
-2) Install the latest full rtx-remix release (0.4.0 at this time)   
+2) [rtx only] Install the latest full rtx-remix release (0.4.1 at this time)   
 https://github.com/NVIDIAGameWorks/rtx-remix/tags
 
 <br>
 
-3) (Optional) Install the latest `github action` builds of:  
+3) [rtx only] [optional] Install the latest `github action` builds of:  
 remix bridge - https://github.com/NVIDIAGameWorks/bridge-remix/actions  
 remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions  
 
@@ -52,7 +63,7 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 
 4) Download the latest iw3xo-rtx `github actions` build:  
   Release-binaries-rtx - https://github.com/xoxor4d/iw3xo-dev/actions  
-  - Drop `iw3x.dll` and the contents of the `assets-remix` folder into your cod4 root directory
+  - Drop `iw3x.dll` and the contents of the `assets-remix` folder [rtx only] into your cod4 root directory
 
 <br>
 
@@ -68,6 +79,10 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 <br>
 <br>
 
+
+# Remix section
+- Note: general functionallity of iw3xo is documented here: https://xoxor4d.github.io/projects/iw3xo
+
 ## Dvars / Console Commands to further tweak the game to your liking:
 > 🔸 skybox and fog settings can be tweaked per map by using `map_settings.ini` found in the `iw3xo/rtx` folder 🔸
 - use console command `/devgui` to open a developer gui -> __RTX__ tab
@@ -79,13 +94,14 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 - `r_lodScaleRigid` :: adjust static model draw distances - (lower values increase draw distance)
 - `rtx_disable_world_culling` :: tweak culling - _(set to less (1) by default)_
 
-
 <br>
 <br>
 
 ## Advanced Settings:
 
 - A. Commandline Arguments:  
+  - `-no_rtx` :: disable all rtx modules
+  - `-no_d3d9_check` :: active rtx modules even if no d3d9.dll was found (eg: if you are loading remix using asi loader)
   - `-no_default_sky` :: disable spawning of a default sky on each map
   - `-stock_effects` :: render effects using shaders
   - `-no_fog` :: disable fog
@@ -94,7 +110,7 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 
 > - commandline example: &ensp;`c:\path\iw3xo.exe -no_default_sky -stock_effects` 
 
-  - Notes: 
+- B. Dvars: 
     - `rtx_disable_entity_culling` :: tweak culling of script objects (entities) - _(enabled by default)_
     - `rtx_warm_smodels` :: build model buffers on map load - _(enabled by default)_
     - `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
@@ -179,6 +195,7 @@ https://discord.gg/t5jRGbj
 - [ocornut - Dear ImGui](https://github.com/ocornut/imgui)
 - [Jelvan1 - cgame proxymod](https://github.com/Jelvan1/cgame_proxymod)
 - [Nvidia - rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix)
+- [people of the rtx showcase discord](https://discord.gg/j6sh7JD3v9) (for testing, feedback and ideas)
 
 <br>
 

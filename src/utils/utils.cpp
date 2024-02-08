@@ -693,5 +693,33 @@ namespace utils
 
 			return false;
 		}
+		
+		bool file_exists(const std::string& sub_dir, const std::string& file_name)
+		{
+			char filename[MAX_PATH];
+			GetModuleFileNameA(nullptr, filename, MAX_PATH);
+
+			if (const auto pos = std::string_view(filename).find_last_of('\\');
+				pos != std::string::npos)
+			{
+				auto file_path = std::string(filename).substr(0, pos) + "\\";
+				if (!sub_dir.empty())
+				{
+					file_path += sub_dir + "\\";
+				}
+
+				file_path += file_name;
+
+				const std::ifstream file(file_path, std::ios_base::binary);
+				if (!file.is_open())
+				{
+					return false;
+				}
+
+				return true;
+			}
+
+			return false;
+		}
 	}
 }
