@@ -483,9 +483,8 @@ namespace components
 		// Register String dvars (doing so on module load crashes the game (SL_GetStringOfSize))
 		utils::hook(0x629D7A, register_additional_dvars_stub, HOOK_JUMP).install()->quick();
 
-		// Disable dvar cheat / write protection
-		utils::hook(0x56B335, disable_dvar_cheats_stub, HOOK_JUMP).install()->quick();
-		utils::hook::nop(0x56B339 + 1, 1);
+		// ignore dvar cheat protection
+		utils::hook::set<BYTE>(0x56B376, 0xEB);
 
 
 		// *

@@ -861,7 +861,11 @@ namespace components
 	// > _map::init_fixed_function_buffers_stub
 	void rtx::on_map_load()
 	{
-		rtx_map_settings::get()->set_settings_for_loaded_map();
+		if (!game::clc.demoplaying)
+		{
+			rtx_map_settings::get()->set_settings_for_loaded_map();
+		}
+		
 		rtx::set_dvars_defaults_on_mapload();
 	}
 
