@@ -450,11 +450,11 @@ namespace components
 
 	// ------------------------
 
-	int R_SetIndexData(game::GfxCmdBufPrimState* state, const unsigned __int16* indices, int tri_count)
+	int R_SetIndexData(game::GfxCmdBufPrimState* state, const std::uint16_t* indices, std::uint32_t tri_count)
 	{
 		const auto index_count = 3 * tri_count;
 
-		if (index_count + game::gfx_buf->dynamicIndexBuffer->used > game::gfx_buf->dynamicIndexBuffer->total)
+		if (static_cast<int>(index_count) + game::gfx_buf->dynamicIndexBuffer->used > game::gfx_buf->dynamicIndexBuffer->total)
 		{
 			game::gfx_buf->dynamicIndexBuffer->used = 0;
 		}
@@ -482,7 +482,7 @@ namespace components
 		}
 
 		const auto base_index = game::gfx_buf->dynamicIndexBuffer->used;
-		game::gfx_buf->dynamicIndexBuffer->used += index_count;
+		game::gfx_buf->dynamicIndexBuffer->used += static_cast<int>(index_count);
 
 		return base_index;
 	}
@@ -917,6 +917,117 @@ namespace components
 		rtx::r_set_3d();
 		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->matrices.matrix[0].m));
 
+		dev->SetFVF(NULL);
+	}
+
+	bool R_ReadBspDrawSurfs(const unsigned int** primDrawSurfPos, const unsigned __int16** list, unsigned int* count)
+	{
+		*count = *(*primDrawSurfPos)++;
+		if (!*count)
+		{
+			return false;
+		}
+		*list = (const unsigned __int16*)*primDrawSurfPos;
+		*primDrawSurfPos += (*count + 1) >> 1;
+		return true;
+	}
+
+	void R_DrawBspTris(game::GfxCmdBufSourceState* src, game::GfxCmdBufPrimState* state, game::srfTriangles_t* tris, unsigned int baseIndex, unsigned int triCount)
+	{
+		const auto dev = game::glob::d3d9_device;
+
+		src->matrices.matrix[0].m[3][0] = 0.0f;
+		src->matrices.matrix[0].m[3][1] = 0.0f;
+		src->matrices.matrix[0].m[3][2] = 0.0f;
+		src->matrices.matrix[0].m[3][3] = 1.0f;
+		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&src->matrices.matrix[0].m));
+
+		// texture alpha + vertex alpha (decal blending)
+		dev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+		dev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+#if DEBUG
+		dev->SetTextureStageState(0, D3DTSS_ALPHAOP, rtx_gui::d3d_alpha_blend);
+#else
+		dev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+#endif
+
+		//dev->SetStreamSource(0, gfx_world_vertexbuffer, WORLD_VERTEX_STRIDE * tris->firstVertex, WORLD_VERTEX_STRIDE);
+		state->device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, tris->vertexCount, baseIndex, triCount);
+	}
+
+	void R_DrawBspDrawSurfs(game::GfxTrianglesDrawStream* drawStream, game::GfxCmdBufPrimState* state)
+	{
+		const auto dev = game::glob::d3d9_device;
+
+		// #
+		// setup fixed-function
+
+		// vertex format
+		dev->SetFVF(WORLD_VERTEX_FORMAT);
+
+		// save shaders
+		IDirect3DVertexShader9* og_vertex_shader;
+		dev->GetVertexShader(&og_vertex_shader);
+
+		IDirect3DPixelShader9* og_pixel_shader;
+		dev->GetPixelShader(&og_pixel_shader);
+
+		// def. needed or the game will render the mesh using shaders
+		dev->SetVertexShader(nullptr);
+		dev->SetPixelShader(nullptr);
+
+
+		// #
+		// draw prims
+
+		const std::uint16_t* list;
+		game::srfTriangles_t* prev_tris = nullptr;
+		unsigned int base_index = 0u, count = 0u, tri_count = 0u;
+		auto base_vertex = -1;
+
+		while (R_ReadBspDrawSurfs(&drawStream->primDrawSurfPos, &list, &count))
+		{
+			for (auto index = 0u; index < count; ++index)
+			{
+				const auto bsp_surf = &game::rgp->world->dpvs.surfaces[list[index]];
+				if (base_vertex != bsp_surf->tris.firstVertex || base_index + 3u * tri_count != static_cast<unsigned>(bsp_surf->tris.baseIndex))
+				{
+					if (prev_tris)
+					{
+						const auto base = R_SetIndexData(state, &game::rgp->world->indices[prev_tris->baseIndex], tri_count);
+						R_DrawBspTris(game::gfxCmdBufSourceState, state, prev_tris, base, tri_count);
+					}
+
+					tri_count = 0;
+					prev_tris  = &bsp_surf->tris;
+					base_index = bsp_surf->tris.baseIndex;
+
+					if (base_vertex != bsp_surf->tris.firstVertex)
+					{
+						base_vertex = bsp_surf->tris.firstVertex;
+						dev->SetStreamSource(0, gfx_world_vertexbuffer, WORLD_VERTEX_STRIDE * bsp_surf->tris.firstVertex, WORLD_VERTEX_STRIDE);
+					}
+				}
+
+				tri_count += bsp_surf->tris.triCount;
+			}
+		}
+
+		if (prev_tris)
+		{
+			const auto base = R_SetIndexData(state, &game::rgp->world->indices[prev_tris->baseIndex], tri_count);
+			R_DrawBspTris(game::gfxCmdBufSourceState, state, prev_tris, base, tri_count);
+		}
+
+		// #
+		// restore everything for following meshes rendered via shaders
+
+		dev->SetVertexShader(og_vertex_shader);
+		dev->SetPixelShader(og_pixel_shader);
+
+		// restore world matrix
+		rtx::r_set_3d();
+		dev->SetTransform(D3DTS_WORLD, reinterpret_cast<D3DMATRIX*>(&game::gfxCmdBufSourceState->matrices.matrix[0].m));
 		dev->SetFVF(NULL);
 	}
 
@@ -1564,6 +1675,9 @@ namespace components
 
 			// fixed-function rendering of world surfaces (R_TessTrianglesPreTessList)
 			utils::hook(0x6486F4, R_DrawBspDrawSurfsPreTess, HOOK_CALL).install()->quick();
+
+			// ^ without batching
+			utils::hook(0x648563, R_DrawBspDrawSurfs, HOOK_CALL).install()->quick();
 
 			// fixed-function rendering of brushmodels
 			utils::hook(0x648710, R_TessBModel, HOOK_JUMP).install()->quick();

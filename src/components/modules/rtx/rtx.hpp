@@ -24,8 +24,12 @@ namespace components
 		static void on_map_load();
 		static void on_map_shutdown();
 
+		static void sky_material_update(std::string_view buffer, bool use_dvar = false);
+
 	private:
 		static inline bool axis_spawned = false;
 		static inline game::gentity_s* axis_model = nullptr;
+
+		static inline std::vector<std::string> sky_material_addons;
 	};
 }

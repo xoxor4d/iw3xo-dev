@@ -6827,7 +6827,7 @@ namespace game
 
 	struct GfxIndexBufferState
 	{
-		volatile int used;
+		int used;
 		int total;
 		IDirect3DIndexBuffer9* buffer;
 		unsigned __int16* indices;
@@ -7352,6 +7352,22 @@ namespace game
 	{
 		GfxScaledPlacement* placement;
 		GfxSurface* surf;
+	};
+
+	struct GfxTrianglesDrawStream
+	{
+		unsigned int reflectionProbeCount;
+		unsigned int lightmapCount;
+		GfxTexture* reflectionProbeTextures;
+		GfxTexture* lightmapPrimaryTextures;
+		GfxTexture* lightmapSecondaryTextures;
+		GfxTexture* whiteTexture;
+		const unsigned int* primDrawSurfPos;
+		GfxTexture* reflectionProbeTexture;
+		GfxTexture* lightmapPrimaryTexture;
+		GfxTexture* lightmapSecondaryTexture;
+		unsigned int customSamplerFlags;
+		int hasSunDirChanged;
 	};
 
 	struct GfxWindowTarget

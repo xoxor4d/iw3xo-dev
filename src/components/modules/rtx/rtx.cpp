@@ -47,38 +47,11 @@ namespace components
 			rtx::player_origin_model();
 		}
 
-		//if (flags::has_flag("spawn_sky"))
-		//{
-		//	if (game::cm && game::cm->name && !rtx_gui::skysphere_is_model_valid())
-		//	{
-		//		std::string map_name = game::cm->name;
-		//		utils::replace_all(map_name, std::string("maps/mp/"), ""); // if mp map
-		//		utils::replace_all(map_name, std::string("maps/"), ""); // if sp map
-		//		utils::replace_all(map_name, std::string(".d3dbsp"), "");
-
-		//		if (map_name == std::string_view("mp_backlot")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_bloc")) rtx_gui::skysphere_spawn(4);
-		//		else if (map_name == std::string_view("mp_bog")) rtx_gui::skysphere_spawn(3);
-		//		else if (map_name == std::string_view("mp_broadcast")) rtx_gui::skysphere_spawn(0);
-		//		else if (map_name == std::string_view("mp_carentan")) rtx_gui::skysphere_spawn(3);
-		//		else if (map_name == std::string_view("mp_cargoship")) rtx_gui::skysphere_spawn(3);
-		//		else if (map_name == std::string_view("mp_citystreets")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_convoy")) rtx_gui::skysphere_spawn(1);
-		//		else if (map_name == std::string_view("mp_countdown")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_crash")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_crash_snow")) rtx_gui::skysphere_spawn(3);
-		//		else if (map_name == std::string_view("mp_creek")) rtx_gui::skysphere_spawn(0);
-		//		else if (map_name == std::string_view("mp_crossfire")) rtx_gui::skysphere_spawn(0);
-		//		else if (map_name == std::string_view("mp_farm")) rtx_gui::skysphere_spawn(4);
-		//		else if (map_name == std::string_view("mp_killhouse")) rtx_gui::skysphere_spawn(0);
-		//		else if (map_name == std::string_view("mp_overgrown")) rtx_gui::skysphere_spawn(0);
-		//		else if (map_name == std::string_view("mp_pipeline")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_shipment")) rtx_gui::skysphere_spawn(4);
-		//		else if (map_name == std::string_view("mp_showdown")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_strike")) rtx_gui::skysphere_spawn(5);
-		//		else if (map_name == std::string_view("mp_vacant")) rtx_gui::skysphere_spawn(4);
-		//	}
-		//}
+		if (dvars::rtx_sky_follow_player && dvars::rtx_sky_follow_player->current.enabled)
+		{
+			utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx_gui::skysphere_model_origin, 3);
+			rtx_gui::skysphere_update_pos();
+		}
 
 		if (!flags::has_flag("no_fog"))
 		{
@@ -228,6 +201,18 @@ namespace components
 	}
 
 
+	void rtx::sky_material_update(std::string_view buffer, bool use_dvar)
+	{
+		if (use_dvar && dvars::rtx_sky_materials && *dvars::rtx_sky_materials->current.string)
+		{
+			sky_material_addons = utils::split(dvars::rtx_sky_materials->current.string, ' ');
+		}
+		else
+		{
+			sky_material_addons = utils::split(std::string(buffer), ' ');
+		}
+	}
+
 	/**
 	 * @brief function called by _renderer::R_SetMaterial,
 	 *		  triggered each time the game sets up the material pass for the next object to be rendered
@@ -235,28 +220,40 @@ namespace components
 	 */
 	bool rtx::r_set_material_stub(game::switch_material_t* swm, const game::GfxCmdBufState* state)
 	{
-		if (dvars::rtx_hacks->current.enabled)
+		if (dvars::rtx_hacks && dvars::rtx_hacks->current.enabled)
 		{
-			if (utils::starts_with(swm->current_material->info.name, "wc/sky_"))
+			if (dvars::rtx_sky_hacks && dvars::rtx_sky_hacks->current.enabled)
+			{
+				if (sky_material_addons.empty())
+				{
+					sky_material_update("", true);
+				}
+
+				if (!sky_material_addons.empty())
+				{
+					for (const std::string_view s : sky_material_addons)
+					{
+						// remove 'wc/' - 'mc/' from materials
+						if (s == std::string(swm->current_material->info.name).substr(3))
+						{
+							swm->technique_type = game::TECHNIQUE_UNLIT;
+							_renderer::switch_material(swm, "rtx_sky");
+							return false;
+						}
+					}
+				}
+			}
+
+			if (state->material && state->material->info.sortKey == 5 || utils::starts_with(swm->current_material->info.name, "wc/sky_"))
 			{
 				swm->technique_type = game::TECHNIQUE_UNLIT;
 				_renderer::switch_material(swm, "rtx_sky");
 				return false;
 			}
-
-			// fix remix normals for viewmodels - needs the material string check because the weapon is in both depth-ranges for some reason
-			/*if (state->depthRangeType == game::GFX_DEPTH_RANGE_VIEWMODEL || utils::starts_with(swm->current_material->info.name, "mc/mtl_weapon_"))
-			{
-				swm->technique_type = game::TECHNIQUE_LIT;
-				swm->switch_technique_type = true;
-
-				return false;
-			}*/
 		}
 
 		return true;
 	}
-
 
 	
 	// *
@@ -836,6 +833,12 @@ namespace components
 			/* minVal	*/ -FLT_MAX,
 			/* maxVal	*/ FLT_MAX,
 			/* flags	*/ game::dvar_flags::saved);
+
+		dvars::rtx_sky_materials = game::Dvar_RegisterString(
+			/* name		*/ "rtx_sky_materials",
+			/* desc		*/ "materials that get replaced by a placeholder sky texture (rtx_hacks)\nuseful for custom maps with custom skies",
+			/* default	*/ "",
+			/* flags	*/ game::saved);
 	}
 
 	__declspec(naked) void register_dvars_stub()
@@ -1016,6 +1019,18 @@ namespace components
 		dvars::rtx_hacks = game::Dvar_RegisterBool(
 			/* name		*/ "rtx_hacks",
 			/* desc		*/ "Enables various hacks and tweaks to make nvidia rtx work",
+			/* default	*/ true,
+			/* flags	*/ game::dvar_flags::saved);
+
+		dvars::rtx_sky_hacks = game::Dvar_RegisterBool(
+			/* name		*/ "rtx_sky_hacks",
+			/* desc		*/ "Check and replace sky materials defined with dvar 'rtx_sky_materials'",
+			/* default	*/ false,
+			/* flags	*/ game::dvar_flags::saved);
+
+		dvars::rtx_sky_follow_player = game::Dvar_RegisterBool(
+			/* name		*/ "rtx_sky_follow_player",
+			/* desc		*/ "Sky will follow the player (can help with culling issues)",
 			/* default	*/ true,
 			/* flags	*/ game::dvar_flags::saved);
 

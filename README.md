@@ -115,6 +115,8 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
     - `rtx_warm_smodels` :: build model buffers on map load - _(enabled by default)_
     - `rtx_extend_smodel_drawing` :: disable static model draw limit (max amount of static models drawn at once)
 	- `rtx_hacks` :: replace the skybox with a blue-gray texture - _(enabled by default)_
+	- `rtx_sky_hacks` :: allows manually declaring textures as sky (via dvar `rtx_sky_materials`)
+	- `rtx_sky_follow_player` :: sky will follow the player (might help with culling in some cases)
 
 <br>
 <br>

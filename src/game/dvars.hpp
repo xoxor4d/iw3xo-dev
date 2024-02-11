@@ -155,6 +155,9 @@ namespace dvars
 	extern game::dvar_s* r_dayAndNight;
 
 	extern game::dvar_s* rtx_hacks;
+	extern game::dvar_s* rtx_sky_hacks;
+	extern game::dvar_s* rtx_sky_follow_player;
+	extern game::dvar_s* rtx_sky_materials;
 	extern game::dvar_s* rtx_warm_smodels;
 	extern game::dvar_s* rtx_extend_smodel_drawing;
 	extern game::dvar_s* r_forceLod_second_lowest;

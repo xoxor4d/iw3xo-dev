@@ -30,5 +30,8 @@ namespace components
 		static inline bool skysphere_spawned = false;
 		static inline int skysphere_variant = 0;
 		static inline game::gentity_s* skysphere_model = nullptr;
+
+		static void map_materials_update();
+		static inline std::string map_materials;
 	};
 }

@@ -108,14 +108,69 @@ namespace components
 				ImGui::DragFloat("Speed", &skysphere_auto_rotation_speed, 0.01f, 0.01f, 10.0f, "%.2f");
 				ImGui::PopItemWidth();
 
-				/*if (ImGui::DragFloat3("Sphere Origin", rtx::skysphere_model_origin, 1.0f, -360.0f, 360.0f, "%.2f"))
+				if (dvars::rtx_sky_follow_player)
 				{
-					rtx::skysphere_update_pos();
-				}*/
+					ImGui::Checkbox("Follow player", &dvars::rtx_sky_follow_player->current.enabled);
+				}
 
-				if (ImGui::DragFloat3("Sphere Rotation", skysphere_model_rotation, 0.25f, -360.0f, 360.0f, "%.2f"))
+				if (ImGui::DragFloat3("Sphere Origin", rtx_gui::skysphere_model_origin, 1.0f, -360.0f, 360.0f, "%.2f"))
+				{
+					rtx_gui::skysphere_update_pos();
+				}
+
+				if (ImGui::DragFloat3("Sphere Rotation", skysphere_model_rotation, 0.25f, -FLT_MAX, FLT_MAX, "%.2f"))
 				{
 					skysphere_update_pos();
+				}
+			}
+
+			if (dvars::rtx_sky_hacks)
+			{
+				if (ImGui::CollapsingHeader("Additional Sky Marking"))
+				{
+					if (ImGui::Checkbox("Enable Additional Sky Marking", &dvars::rtx_sky_hacks->current.enabled))
+					{
+						dvars::rtx_sky_hacks->latched.enabled = dvars::rtx_sky_hacks->current.enabled;
+						dvars::rtx_sky_hacks->modified = true;
+					} TT("This can be used to tell iw3xo about any custom skies it might not have picked up for replacement");
+
+					if (dvars::rtx_sky_hacks->current.enabled)
+					{
+						SPACING(0.0f, 4.0f);
+
+						ImGui::Text("Map Material List");
+						ImGui::InputTextMultiline("##map_mat_list", (char*)map_materials.c_str(), map_materials.size(), ImVec2(ImGui::GetWindowWidth() - 54.0f, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_ReadOnly);
+
+						
+						if (ImGui::Button("Refresh List", ImVec2(ImGui::GetWindowWidth() - 54.0f, 30.0f)) || map_materials.empty())
+						{
+							map_materials_update();
+						}
+
+						SPACING(0.0f, 4.0f);
+
+						if (dvars::rtx_sky_materials)
+						{
+							static char edit_buffer[1024] = {};
+							static bool edit_buffer_update = *dvars::rtx_sky_materials->current.string;
+
+							ImGui::Text("Sky Materials (editable). Format <string string string ...>");
+							ImGui::InputTextMultiline("##edit_mats", edit_buffer, IM_ARRAYSIZE(edit_buffer), ImVec2(ImGui::GetWindowWidth() - 54.0f, ImGui::GetTextLineHeight() * 3));
+
+							if (ImGui::Button("Refresh") || edit_buffer_update)
+							{
+								memset(&edit_buffer, 0, IM_ARRAYSIZE(edit_buffer));
+								memcpy(&edit_buffer, dvars::rtx_sky_materials->current.string, strlen(dvars::rtx_sky_materials->current.string));
+							}
+
+							ImGui::SameLine();
+							if (ImGui::Button("Apply"))
+							{
+								CMDEXEC(utils::va("set rtx_sky_materials %s", edit_buffer));
+								rtx::sky_material_update(edit_buffer);
+							}
+						}
+					}
 				}
 			}
 
@@ -336,6 +391,20 @@ namespace components
 	// ---------------------------------------------------------------------
 	// #####################################################################
 	// ---------------------------------------------------------------------
+
+	void rtx_gui::map_materials_update()
+	{
+		map_materials.clear();
+
+		for (auto num = 0u; num < game::cm->numMaterials; num++)
+		{
+			if (game::cm->materials[num].material[0])
+			{
+				map_materials += std::to_string(num) + ": " + std::string(game::cm->materials[num].material) + "\n";
+				//map_materials.emplace_back(game::cm->materials[num].material);
+			}
+		}
+	}
 
 	// hide with
 	// rtx_skysphere_model->r.svFlags = 0x01;

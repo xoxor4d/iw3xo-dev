@@ -148,6 +148,9 @@ namespace dvars
 	game::dvar_s* r_dayAndNight = nullptr;
 
 	game::dvar_s* rtx_hacks = nullptr;
+	game::dvar_s* rtx_sky_hacks = nullptr;
+	game::dvar_s* rtx_sky_follow_player = nullptr;
+	game::dvar_s* rtx_sky_materials = nullptr;
 	game::dvar_s* rtx_warm_smodels = nullptr;
 	game::dvar_s* rtx_extend_smodel_drawing = nullptr;
 	game::dvar_s* r_forceLod_second_lowest = nullptr;
