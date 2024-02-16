@@ -153,12 +153,14 @@ namespace components
 						{
 							static char edit_buffer[1024] = {};
 							static bool edit_buffer_update = *dvars::rtx_sky_materials->current.string;
+							static bool edit_buffer_update_init = false;
 
 							ImGui::Text("Sky Materials (editable). Format <string string string ...>");
 							ImGui::InputTextMultiline("##edit_mats", edit_buffer, IM_ARRAYSIZE(edit_buffer), ImVec2(ImGui::GetWindowWidth() - 54.0f, ImGui::GetTextLineHeight() * 3));
 
-							if (ImGui::Button("Refresh") || edit_buffer_update)
+							if ((ImGui::Button("Refresh") && edit_buffer_update) || (!edit_buffer_update_init && edit_buffer_update))
 							{
+								edit_buffer_update_init = true;
 								memset(&edit_buffer, 0, IM_ARRAYSIZE(edit_buffer));
 								memcpy(&edit_buffer, dvars::rtx_sky_materials->current.string, strlen(dvars::rtx_sky_materials->current.string));
 							}
