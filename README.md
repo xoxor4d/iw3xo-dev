@@ -3,11 +3,12 @@
 
 <div align="center" markdown="1"> 
 
-This client mod brings various modifications and additions to the base game and also includes support for nvidia's [rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix).  
+This client mod brings various modifications and additions to the base game  
+and also includes support for nvidia's [rtx-remix](https://github.com/NVIDIAGameWorks/rtx-remix).  
 
-This includes, but is not limited to:  
-map exporting -- live link between the game and radiant -- sp map loading in mp  
-collision visualization -- day and night cycle with custom sky shader   
+__[ Most noteworthy features of iw3xo ]__  
+map exporting -- live link between the game and radiant -- sp map loading in mp --   
+collision visualization -- day and night cycle with custom sky shader --     
 custom movement options and much more
 
 __[ Remix compatibility ]__   
@@ -20,7 +21,7 @@ no custom models, no normal-maps, no fancy pbr materials or lights.
 <div align="center" markdown="1">
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/xoxor4d/iw3xo-dev?color=%2368BC71&logo=github)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
-[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=rtx&label=nightly-dev&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-rtx-release/rtx/Release-binaries-rtx.zip)&ensp;
+[![build-release](https://img.shields.io/github/actions/workflow/status/xoxor4d/iw3xo-dev/build-release.yml?branch=develop&label=nightly-dev&logo=github)](https://nightly.link/xoxor4d/iw3xo-dev/workflows/build-release/develop/Release-binaries.zip)&ensp;
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/xoxor4d/iw3xo-dev/latest/develop?logo=github)&ensp;
 [![Downloads](https://img.shields.io/github/downloads/xoxor4d/iw3xo-dev/total?logo=github&label=total-downloads)](https://github.com/xoxor4d/iw3xo-dev/releases)&ensp;
 [![Discord](https://img.shields.io/discord/677574256678141973?label=Discord&logo=discord&logoColor=%23FFFF&)](https://discord.gg/t5jRGbj)&ensp;
@@ -61,16 +62,17 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 
 <br>
 
-4) Download the latest iw3xo-rtx `github actions` build:  
-  Release-binaries-rtx - https://github.com/xoxor4d/iw3xo-dev/actions  
+4) Download the latest iw3xo (develop branch) `github actions` build:  
+  `Build-Release` - https://github.com/xoxor4d/iw3xo-dev/actions  
   - Drop `iw3x.dll` and the contents of the `assets-remix` folder [rtx only] into your cod4 root directory
 
 <br>
 
-5) Run `iw3xo.exe`
+5) Run `run_remix.bat` to start the game with rtx-remix features enabled   
+or directly run `iw3xo.exe`
   > `iw3xo.exe` (modified to load `iw3x.dll` instead of `d3d9.dll`)  
-  > | -> `iw3x.dll` (a proxy d3d9.dll) will then load the remix runtime d3d9 proxy dll :]  
-  > | -> if you want to use the original `iw3mp.exe` then you have to find other ways of chain-loading the dll's (eg: [asiloader](https://github.com/ThirteenAG/Ultimate-ASI-Loader))  
+  > | -> `iw3x.dll` is a proxy d3d9.dll  
+  > | -> if you want to use the original `iw3mp.exe` then you have to find other ways to load the dll (eg: [asiloader](https://github.com/ThirteenAG/Ultimate-ASI-Loader))  
   
 <br>
 
@@ -84,7 +86,7 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 - Note: general functionallity of iw3xo is documented here: https://xoxor4d.github.io/projects/iw3xo
 
 ## Dvars / Console Commands to further tweak the game to your liking:
-> 🔸 skybox and fog settings can be tweaked per map by using `map_settings.ini` found in the `iw3xo/rtx` folder 🔸
+> 🔸 skybox and fog settings can be tweaked per map by using `map_settings.ini` :: `iw3xo/rtx` folder 🔸
 - use console command `/devgui` to open a developer gui -> __RTX__ tab
   - I suggest binding the `/devgui` command to a key, eg: `bind F5 devgui`
   - most of the following dvars can be accessed via the gui
@@ -100,15 +102,14 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 ## Advanced Settings:
 
 - A. Commandline Arguments:  
-  - `-no_rtx` :: disable all rtx modules
-  - `-no_d3d9_check` :: active rtx modules even if no d3d9.dll was found (eg: if you are loading remix using asi loader)
-  - `-no_default_sky` :: disable spawning of a default sky on each map
+  - `-rtx` :: enable rtx modules (⚠️ required for rtx-remix)
+  - `-no_default_sky` :: disable spawning of a default sky on each map (if not set via `map_settings.ini`)
   - `-stock_effects` :: render effects using shaders
   - `-no_fog` :: disable fog
   - `-no_forced_lod` :: do not set `r_forceLod` to `high` by default  
   - `-thirdperson` :: using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - also spawns a triangle with a unique texture used as the bounding box origin to hide meshes using textures marked as player model)    
 
-> - commandline example: &ensp;`c:\path\iw3xo.exe -no_default_sky -stock_effects` 
+> - commandline example: &ensp;`c:\path\iw3xo.exe -rtx -no_default_sky -stock_effects` 
 
 - B. Dvars: 
     - `rtx_disable_entity_culling` :: tweak culling of script objects (entities) - _(enabled by default)_
@@ -125,7 +126,7 @@ remix runtime - https://github.com/NVIDIAGameWorks/dxvk-remix/actions
 - Swift changes in geometry (eg. teleporting) can crash the game.
   - Set dvar `rtx_disable_world_culling` to `less (1)` and increase dvar `r_lodScaleRigid` to make it more stable.
 
-- Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)   
+- Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)    
 
 <br>
 

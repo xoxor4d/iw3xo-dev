@@ -46,13 +46,9 @@ namespace components
 		active.radiant_livelink = true;
 
 		bool activate_rtx = false;
-
-		if (!flags::has_flag("no_rtx"))
+		if (flags::has_flag("rtx"))
 		{
-			if (flags::has_flag("no_d3d9_check") || utils::fs::file_exists("", "d3d9.dll"))
-			{
-				activate_rtx = true;
-			}
+			activate_rtx = true;
 		}
 
 		active.rtx					= activate_rtx;

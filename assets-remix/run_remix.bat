@@ -1,0 +1,1 @@
+START iw3xo.exe -rtx +set r_fullscreen 0
