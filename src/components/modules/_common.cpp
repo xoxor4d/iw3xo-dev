@@ -110,7 +110,7 @@ namespace components
 			call	force_dvars_on_init;
 			popad;
 
-			mov     ecx, 0Ch;	// overwritten op
+			mov     ecx, 0xC;	// overwritten op
 			jmp		retn_addr;
 		}
 	}
@@ -121,7 +121,7 @@ namespace components
 		const static uint32_t retn_addr = 0x56B3A1;
 		__asm
 		{
-			movzx   eax, word ptr[edi + 8];	// overwritten op
+			movzx   eax, word ptr [edi + 8];	// overwritten op
 			jmp		retn_addr;
 		}
 	}
@@ -162,7 +162,7 @@ namespace components
 		// ---------------------------------------------------------------------------------------------------------
 
 		// if addon_menu loading is enabled
-		if (FF_LOAD_ADDON_MENU)
+		if constexpr (FF_LOAD_ADDON_MENU)
 		{
 			// if the fastfile exists
 			if (FF_ADDON_MENU_NAME && game::DB_FileExists(FF_ADDON_MENU_NAME, game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
@@ -190,7 +190,7 @@ namespace components
 			}
 
 			// if addon_menu loading is enabled and file not found
-			else if (FF_LOAD_ADDON_MENU)
+			else if constexpr (FF_LOAD_ADDON_MENU)
 			{
 				game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
 			}
@@ -246,7 +246,7 @@ namespace components
 		// ------------------------------------
 
 		// load user addon zone
-		if (FF_LOAD_ADDON_OPT)
+		if constexpr (FF_LOAD_ADDON_OPT)
 		{
 			// custom addon file
 			if (game::DB_FileExists(FF_ADDON_OPT_NAME, game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
@@ -274,7 +274,7 @@ namespace components
 		}
 
 		// load required addon fastfile last, if addon_required loading enabled
-		if (FF_LOAD_ADDON_REQ)
+		if constexpr (FF_LOAD_ADDON_REQ)
 		{
 			// if the fastfile exists
 			if (FF_ADDON_REQ_NAME && game::DB_FileExists(FF_ADDON_REQ_NAME, game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
@@ -307,7 +307,7 @@ namespace components
 			game::XZoneInfo XZoneInfoStack[2];
 
 			// if addon menu loading is enabled
-			if (FF_LOAD_ADDON_MENU)
+			if constexpr (FF_LOAD_ADDON_MENU)
 			{
 				// if the fastfile exists
 				if (FF_ADDON_MENU_NAME && game::DB_FileExists(FF_ADDON_MENU_NAME, game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
@@ -325,7 +325,7 @@ namespace components
 				}
 
 				// if addon menu loading is enabled and file not found
-				else if (FF_LOAD_ADDON_MENU)
+				else if constexpr (FF_LOAD_ADDON_MENU)
 				{
 					game::Com_PrintMessage(0, utils::va("^1Com_StartHunkUsers^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
 				}
@@ -407,7 +407,7 @@ namespace components
 		MATCH:
 			mov     ebx, [ebp - 4];		// whatever df that is
 			mov		[ebp - 8], 1;		// set qLocalized to true ;)
-			mov		[ebp - 0Ch], esi;	// whatever df that is
+			mov		[ebp - 0xC], esi;	// whatever df that is
 			jmp		retn_addr;
 		}
 	}
@@ -419,7 +419,7 @@ namespace components
 	void _common::db_realloc_entry_pool()
 	{
 		const size_t ALLOC_SIZE = 789312;
-		game::XAssetEntry* entry_pool = utils::memory::get_allocator()->allocate_array<game::XAssetEntry>(ALLOC_SIZE);
+		const auto entry_pool = utils::memory::get_allocator()->allocate_array<game::XAssetEntry>(ALLOC_SIZE);
 
 		// Apply new size
 		utils::hook::set<DWORD>(0x488F50, ALLOC_SIZE);
@@ -434,9 +434,9 @@ namespace components
 			0x48B4A4, 0x48B4F8
 		};
 
-		for (int i = 0; i < ARRAYSIZE(asset_entry_pool_patches); ++i) 
+		for (const auto addr : asset_entry_pool_patches)
 		{
-			utils::hook::set<game::XAssetEntry*>(asset_entry_pool_patches[i], entry_pool);
+			utils::hook::set<game::XAssetEntry*>(addr, entry_pool);
 		}
 
 		utils::hook::set<game::XAssetEntry*>(0x488F31, entry_pool + 1);
@@ -520,10 +520,10 @@ namespace components
 			}
 
 			game::XZoneInfo info[2];
-			std::string zone = params[1];
+			const std::string zone = params[1];
 
 			// unload
-			info[0].name = 0;
+			info[0].name = nullptr;
 			info[0].allocFlags = game::XZONE_FLAGS::XZONE_ZERO;
 			info[0].freeFlags = game::XZONE_FLAGS::XZONE_MOD;
 

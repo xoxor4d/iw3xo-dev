@@ -23,7 +23,7 @@ namespace components
 
 	bool _ggame::get_entity_token(char* buffer, int buffer_size)
 	{
-		char* s = game::Com_Parse(&game::g_entityBeginParsePoint);
+		const char* s = game::Com_Parse(&game::g_entityBeginParsePoint);
 		utils::q_strncpyz(buffer, s, buffer_size);
 
 		if (!game::g_entityBeginParsePoint)

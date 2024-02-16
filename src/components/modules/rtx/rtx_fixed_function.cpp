@@ -2,7 +2,6 @@
 
 // notes:
 // - r_pretess (surface batching) might cause some messed up normals (sometimes noticeable in water puddles)
-// - ^ surface batching is def. needed with fixed-function rendering (fps)
 
 // todo
 // - disable normal and specularmaps so that remix does not pick them up (less clutter in remix ui)
@@ -1516,7 +1515,7 @@ namespace components
 		int use_custom_tess_func()
 		{
 			if (const auto str = std::string_view(game::gfxCmdBufState->material->info.name);
-				str == "$line" || str == "$line_nodepth" || str == "iw3xo_showcollision_wire")
+				str == "$line" || str == "$line_nodepth" || str == "iw3xo_showcollision_wire" || str == "iw3xo_showcollision_fakelight")
 			{
 				return 1;
 			}

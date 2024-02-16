@@ -8,8 +8,6 @@ namespace components
 	std::vector<component*> loader::components_;
 	utils::memory::allocator loader::component_allocator_;
 
-	#define USE_MODULE(name, state)	active.##name = state
-
 	void loader::initialize_()
 	{
 		loader::component_allocator_.clear();

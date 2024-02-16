@@ -4,21 +4,6 @@ namespace components
 {
 	void on_disconnect()
 	{ 
-		/*if (Components::active.Mvm)
-		{
-			const auto& cl_avidemo = Game::Dvar_FindVar("cl_avidemo");
-
-			if (cl_avidemo && cl_avidemo->current.integer)
-			{
-				Game::Dvar_SetValue(cl_avidemo, 0);
-			}
-
-			if (dvars::cl_avidemo_streams && dvars::cl_avidemo_streams->current.integer)
-			{
-				Game::Dvar_SetValue(dvars::cl_avidemo_streams, 0);
-			}
-		}*/
-
 		game::glob::mainmenu_fade_done = false;
 		game::glob::loaded_main_menu = false;
 

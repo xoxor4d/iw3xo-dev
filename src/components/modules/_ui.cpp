@@ -838,7 +838,7 @@ R"(
 			call	init_white_material;
 			popad;
 
-			fld     dword ptr[esp + 50h];		// stock op
+			fld     dword ptr[esp + 0x50];		// stock op
 			mov     eax, [edi];					// stock op
 			fadd	y_offs;						// stock op -- itemheight + yOffs
 			mov		ecx, [ebp + eax * 4 + 4];	// stock op
@@ -846,31 +846,31 @@ R"(
 
 			// material <-> color
 			mov     edx, ui_white_material;	// ui white material handle
-			mov     eax, [ebx + 18h];		// stock op
-			fstp    dword ptr[esp + 50h];	// stock op
-			fld     dword ptr[ebx + 10h];	// stock op
-			mov     ecx, [ebx + 14h];		// stock op
+			mov     eax, [ebx + 0x18];		// stock op
+			fstp    dword ptr[esp + 0x50];	// stock op
+			fld     dword ptr[ebx + 0x10];	// stock op
+			mov     ecx, [ebx + 0x14];		// stock op
 			fadd	h_offs;					// stock op -- h - hOffs
-			add     esp, 1Ch;				// stock op
+			add     esp, 0x1C;				// stock op
 			push    edx;					// stock op -- material
 			push    eax;					// stock op -- vertAlign
-			fstp    dword ptr[esp + 20h];	// stock op
+			fstp    dword ptr[esp + 0x20];	// stock op
 			push    ecx;					// stock op -- horzAlign
-			fld     dword ptr[esp + 24h];	// stock op
-			sub     esp, 10h;				// stock op
+			fld     dword ptr[esp + 0x24];	// stock op
+			sub     esp, 0x10;				// stock op
 			fadd	meme2;					// stock op -- new h + 1.0f
 			mov     ecx, color_ptr;			// color -- was "xor ecx, ecx"
 
 			// continue till we are at x
 			mov     edx, esi;				// stock op -- placement
-			fstp    dword ptr[esp + 44h];	// stock op
-			fld     dword ptr[esp + 44h];	// stock op
-			fstp    dword ptr[esp + 0Ch];	// stock op -- h
+			fstp    dword ptr[esp + 0x44];	// stock op
+			fld     dword ptr[esp + 0x44];	// stock op
+			fstp    dword ptr[esp + 0xC];	// stock op -- h
 			fld		width;					// stock op
 			fstp    dword ptr[esp + 8];		// stock op -- w
-			fld     dword ptr[esp + 50h];	// stock op
+			fld     dword ptr[esp + 0x50];	// stock op
 			fstp    dword ptr[esp + 4];		// stock op -- y
-			fld     dword ptr[esp + 30h];	// stock op
+			fld     dword ptr[esp + 0x30];	// stock op
 			fadd	x_offs;
 			fstp    dword ptr[esp];			// stock op -- x
 
@@ -902,22 +902,22 @@ R"(
 			// material <-> color
 			mov     edx, ui_white_material;		// ui white material handle
 			fld		boxWH;						// stock op
-			mov     eax, [ebx + 18h];			// stock op
-			mov     ecx, [ebx + 14h];			// stock op
+			mov     eax, [ebx + 0x18];			// stock op
+			mov     ecx, [ebx + 0x14];			// stock op
 			push    edx;						// stock op -- material
 			push    eax;						// stock op -- vertAlign
 			push    ecx;						// stock op -- horzAlign
-			sub     esp, 10h;					// stock op
+			sub     esp, 0x10;					// stock op
 			fadd	h_offs;
-			fst     dword ptr[esp + 0Ch];		// stock op -- h (uses boxWH)
+			fst     dword ptr[esp + 0xC];		// stock op -- h (uses boxWH)
 			mov     ecx, color_ptr;				// color -- was "xor ecx, ecx"
 			fsub	h_offs;
 			fstp    dword ptr[esp + 8];			// stock op -- w (uses boxWH)
 			mov     edx, esi;					// stock op
-			fld     dword ptr[esp + 34h];		// stock op
+			fld     dword ptr[esp + 0x34];		// stock op
 			fadd	y_offs;
 			fstp    dword ptr[esp + 4];			// stock op -- y
-			fld     dword ptr[esp + 30h];		// stock op
+			fld     dword ptr[esp + 0x30];		// stock op
 			fadd	x_offs;
 			fstp    dword ptr[esp];				// stock op -- x
 
@@ -995,7 +995,7 @@ R"(
 		const static uint32_t if_addon_return_addr = 0x546E52; // jump to the valid return point if we had a valid match in addons
 		__asm
 		{
-			lea     edx, [esp + 58h];		// 'out' arg was at 0x5C but we hooked at the push before it => 'out' arg at esp+5C - 4 ;)
+			lea     edx, [esp + 0x58];		// 'out' arg was at 0x5C but we hooked at the push before it => 'out' arg at esp+5C - 4 ;)
 	
 			pushad;
 			push	edx;
@@ -1020,55 +1020,55 @@ R"(
 		const static uint32_t retn_addr = 0x54B6FA;
 		_asm 
 		{
-			cmp     dword ptr[ebx + 3Ch], 2;	// if border 2
+			cmp     dword ptr[ebx + 0x3C], 2;	// if border 2
 			je		short border_2;
 
-			cmp     dword ptr[ebx + 3Ch], 3;	// if border 3
+			cmp     dword ptr[ebx + 0x3C], 3;	// if border 3
 			je		short border_3;
 
 			//fix for full border
-			fld     dword ptr[ebx + 48h];	// stock op
-			fadd    dword ptr[esp + 10h];	// stock op
-			fstp    dword ptr[esp + 10h];	// stock op
-			fld     dword ptr[ebx + 48h];	// stock op
-			fadd    dword ptr[esp + 14h];	// stock op
-			fstp    dword ptr[esp + 14h];	// stock op
-			fld     dword ptr[ebx + 48h];	// stock op
-			fld     dword ptr[esp + 18h];	// stock op
+			fld     dword ptr[ebx + 0x48];	// stock op
+			fadd    dword ptr[esp + 0x10];	// stock op
+			fstp    dword ptr[esp + 0x10];	// stock op
+			fld     dword ptr[ebx + 0x48];	// stock op
+			fadd    dword ptr[esp + 0x14];	// stock op
+			fstp    dword ptr[esp + 0x14];	// stock op
+			fld     dword ptr[ebx + 0x48];	// stock op
+			fld     dword ptr[esp + 0x18];	// stock op
 			fsub    st, st(1);				// stock op
 			fsub    st, st(1);
-			fstp    dword ptr[esp + 18h];	// stock op
-			fsubr   dword ptr[esp + 1Ch];	// subract border size (st0) from height, save in st0
-			fsub	dword ptr[ebx + 48h];	// subract boder size from st0
-			fstp    dword ptr[esp + 1Ch];	// stock op
+			fstp    dword ptr[esp + 0x18];	// stock op
+			fsubr   dword ptr[esp + 0x1C];	// subract border size (st0) from height, save in st0
+			fsub	dword ptr[ebx + 0x48];	// subract boder size from st0
+			fstp    dword ptr[esp + 0x1C];	// stock op
 			jmp		retn_addr;
 
 
 			//fix for border 2
 			border_2:
 
-			fld     dword ptr[ebx + 48h];	// load bordersize
-			fadd    dword ptr[esp + 14h];	// add y to bordersize
-			fstp    dword ptr[esp + 14h];	// store y, pop st0
+			fld     dword ptr[ebx + 0x48];	// load bordersize
+			fadd    dword ptr[esp + 0x14];	// add y to bordersize
+			fstp    dword ptr[esp + 0x14];	// store y, pop st0
 
-			fld     dword ptr[ebx + 48h];	// load bordersize
-			fsubr	dword ptr[esp + 1Ch];
-			fsub	dword ptr[ebx + 48h];
-			fstp	dword ptr[esp + 1Ch];	// store width
+			fld     dword ptr[ebx + 0x48];	// load bordersize
+			fsubr	dword ptr[esp + 0x1C];
+			fsub	dword ptr[ebx + 0x48];
+			fstp	dword ptr[esp + 0x1C];	// store width
 			jmp		retn_addr;
 
 
 			//fix for border 3
 			border_3:
 			
-			fld     dword ptr[ebx + 48h];	// load bordersize
-			fadd    dword ptr[esp + 10h];	// add x to bordersize
-			fstp    dword ptr[esp + 10h];	// store x, pop st0
+			fld     dword ptr[ebx + 0x48];	// load bordersize
+			fadd    dword ptr[esp + 0x10];	// add x to bordersize
+			fstp    dword ptr[esp + 0x10];	// store x, pop st0
 
-			fld     dword ptr[ebx + 48h];	// load bordersize
-			fsubr   dword ptr[esp + 18h];
-			fsub	dword ptr[ebx + 48h];
-			fstp    dword ptr[esp + 18h];	// store height
+			fld     dword ptr[ebx + 0x48];	// load bordersize
+			fsubr   dword ptr[esp + 0x18];
+			fsub	dword ptr[ebx + 0x48];
+			fstp    dword ptr[esp + 0x18];	// store height
 			jmp		retn_addr;
 		}
 	}
@@ -1078,7 +1078,7 @@ R"(
 	{
 		__asm
 		{
-			add     esp, 18h;	// hook is placed on call to FS_FOpenFileReadForThread, so fix the stack
+			add     esp, 0x18;	// hook is placed on call to FS_FOpenFileReadForThread, so fix the stack
 			
 			xor		eax, eax;	// return a nullptr
 			pop		edi;		// epilog
@@ -1119,10 +1119,10 @@ R"(
 			pushad;
 			push	0;
 			call	set_ultrawide_dvar;
-			add		esp, 4h;
+			add		esp, 4;
 			popad;
 
-			mov     eax, [eax + 0Ch];	// overwritten op
+			mov     eax, [eax + 0xC];	// overwritten op
 			cmp     eax, 3;				// overwritten op
 
 			jmp		retn_addr;			// jump back to break op
@@ -1138,7 +1138,7 @@ R"(
 			pushad;
 			push	1;
 			call	set_ultrawide_dvar;
-			add		esp, 4h;
+			add		esp, 4;
 
 			Call	set_custom_aspect_ratio;
 			popad;
@@ -1157,7 +1157,7 @@ R"(
 		std::wstring header, html;
 		utils::get_html(url, header, html);
 
-		std::transform(html.begin(), html.end(), std::back_inserter(game::glob::changelog_html_body), [](wchar_t c)
+		std::ranges::transform(html.begin(), html.end(), std::back_inserter(game::glob::changelog_html_body), [](wchar_t c)
 		{
 			return (char)c;
 		});
@@ -1319,26 +1319,6 @@ R"(
 					game::Com_PrintMessage(0, "^1Not in-game\n", 0);
 				}
 			}
-
-			/*if (params.length() < 2)
-			{
-				game::Com_PrintMessage(0, "Usage :: menu_open_ingame <menu_name>\n", 0);
-				return;
-			}
-
-
-			if (!game::ui_context)
-			{
-				game::Com_PrintMessage(0, "uiContext was null\n", 0);
-				return;
-			}
-
-			const char* name = params[1];
-			game::UiContext* ui = &game::ui_context[0];
-
-			game::Key_SetCatcher();
-			game::Menus_CloseAll(ui);
-			game::Menus_OpenByName(name, ui);*/
 		});
 
 
@@ -1524,7 +1504,7 @@ R"(
 			/* maxVal	*/ 10.0f,
 			/* flags	*/ game::dvar_flags::saved);
 
-		static std::vector <const char*> r_customAspectratio =
+		static std::vector r_customAspectratio =
 		{ 
 			"auto", 
 			"4:3", 

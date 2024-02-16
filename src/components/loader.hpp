@@ -53,7 +53,7 @@ namespace components
 	public:
 		component() = default;
 		virtual ~component() = default;
-		virtual const char* get_name() { return "unknown"; };
+		virtual const char* get_name() { return "unknown"; }
 	};
 
 	class loader
@@ -61,7 +61,7 @@ namespace components
 	public:
 		static void initialize_();
 		static void uninitialize_();
-		static void register_(component* component);//, bool& registered);
+		static void register_(component* component);
 		static bool is_registered(const char *componentName);
 
 		static utils::memory::allocator* get_alloctor();

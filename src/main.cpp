@@ -22,7 +22,6 @@ __declspec(naked) void entry_point()
     {
         // this has to be called, otherwise the hook is not uninstalled and we're deadlocking
 		call	main::initialize;
-
 		mov		eax, 0x67493C;
 		jmp		eax;
     }
@@ -61,7 +60,6 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		VirtualProtect(GetModuleHandle(nullptr), 0xD536000, PAGE_EXECUTE_READWRITE, &oldProtect);
 
 		main::entry_point_hook_.initialize(0x67493C, entry_point)->install();
-		
 		FreeConsole();
 
 		// load additional libaries from '\iw3xo\bin\'

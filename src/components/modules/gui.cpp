@@ -67,7 +67,7 @@ namespace components
 
 		ImFont* get_font() const override
 		{
-			ImGuiIO& io = ImGui::GetIO();
+			const ImGuiIO& io = ImGui::GetIO();
 
 			if (m_is_table_header) 
 			{
@@ -85,14 +85,12 @@ namespace components
 				default:
 					return io.Fonts->Fonts[FONTS::BOLD];
 			}
-		};
-
+		}
 
 		void open_url() const override
 		{
-			ShellExecuteA(0, "open", m_href.c_str(), 0, 0, SW_SHOW);
+			ShellExecuteA(nullptr, "open", m_href.c_str(), nullptr, nullptr, SW_SHOW);
 		}
-
 
 		bool get_image(image_info& nfo) const override
 		{
@@ -115,7 +113,6 @@ namespace components
 
 			return true;
 		}
-
 
 		void html_div(const std::string& dclass, bool e) override
 		{
@@ -144,8 +141,8 @@ namespace components
 
 	void gui::redraw_cursor()
 	{
-		float cur_w = (32.0f * game::scrPlace->scaleVirtualToReal[0]) / game::scrPlace->scaleVirtualToFull[0];
-		float cur_h = (32.0f * game::scrPlace->scaleVirtualToReal[1]) / game::scrPlace->scaleVirtualToFull[1];
+		float cur_w = (1.0f * game::scrPlaceFull->scaleVirtualToReal[0]) / game::scrPlaceFull->scaleVirtualToFull[0];
+		float cur_h = (1.0f * game::scrPlaceFull->scaleVirtualToReal[1]) / game::scrPlaceFull->scaleVirtualToFull[1];
 		float cur_x = game::ui_context->cursor.x - 0.5f * cur_w;
 		float cur_y = game::ui_context->cursor.y - 0.5f * cur_h;
 
@@ -166,18 +163,16 @@ namespace components
 			if (const auto	material = game::Material_RegisterHandle("ui_cursor", 3); 
 							material)
 			{
-				const float cur_size = 54.0f;
-				const float offs_x = 0.0f;
-				const float offs_y = cur_size;
-
-				const ImTextureID image = material->textureTable->u.image->texture.data;
+				const float cur_size = 74.0f;
+				const float offs_x = -(cur_size * 0.5f);
+				const float offs_y = cur_size * 0.5f;
 				
 				ImGui::GetWindowDrawList()->AddImageQuad(
-					image,
-					ImVec2(cur_x + offs_x,			cur_y + offs_y),
+					material->textureTable->u.image->texture.data,
+					ImVec2(cur_x + offs_x,				cur_y + offs_y),
 					ImVec2(cur_x + cur_size + offs_x,	cur_y + offs_y),
 					ImVec2(cur_x + cur_size + offs_x,	cur_y - cur_size + offs_y),
-					ImVec2(cur_x + offs_x,			cur_y - cur_size + offs_y),
+					ImVec2(cur_x + offs_x,				cur_y - cur_size + offs_y),
 					ImVec2(0.0f, 1.0f),
 					ImVec2(1.0f, 1.0f),
 					ImVec2(1.0f, 0.0f),
@@ -227,7 +222,7 @@ namespace components
 	}
 
 	// *
-	// main rendering loop (D3D9Ex::D3D9Device::EndScene())
+	// main rendering loop (D3D9Device::EndScene())
 	void gui::render_loop()
 	{
 		auto& ggui = GET_GGUI;
@@ -398,9 +393,9 @@ namespace components
 		auto& ggui = GET_GGUI;
 		const auto& cl_ingame = game::Dvar_FindVar("cl_ingame");
 
-		for (int m = 0; m < GGUI_MENU_COUNT; m++)
+		for (const auto& menu : ggui.menus)
 		{
-			if (ggui.menus[m].menustate)
+			if (menu.menustate)
 			{
 				// positive flag and ingame
 				if (!ggui.any_menus_open && cl_ingame && cl_ingame->current.enabled)
@@ -409,7 +404,7 @@ namespace components
 					CMDEXEC("menu_open_ingame pregame_loaderror_mp");
 				}
 
-				if (ggui.menus[m].mouse_ignores_menustate)
+				if (menu.mouse_ignores_menustate)
 				{
 					ggui.any_menus_open = false;
 					return false;

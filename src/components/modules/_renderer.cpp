@@ -1,14 +1,5 @@
 #include "std_include.hpp"
 
-//#define RELOC_GFX_SURFS_BUFFER
-
-// BACKUP
-//#define GFX_SKINNED_CACHE_VB_POOL_SIZE	0x2000000				// stock : 0x480000 : gfxBuf.skinnedCacheVbPool
-//#define GFX_SMODEL_CACHE_VB_SIZE			0x1400000				// stock : 0x800000 : gfxBuf.smodelCacheVb
-//#define GFX_SMODEL_CACHE_SIZE				0x250000				// stock : 0x100000 : gfxBuf.smodelCache
-//#define GFX_DYN_IB_POOL_SIZE				0x250000				// stock : 0x100000 : gfxBuf.dynamicIndexBufferPool
-//#define GFX_PRETESS_IB_POOL_SIZE			GFX_DYN_IB_POOL_SIZE	// stock : 0x100000 : gfxBuf.preTessIndexBufferPool
-
 namespace components
 {
 	/* ---------------------------------------------------------- */
@@ -20,10 +11,8 @@ namespace components
 		{
 			return game::glob::d3d9_device;
 		}
-		else
-		{
-			return *game::dx9_device_ptr;
-		}
+
+		return *game::dx9_device_ptr;
 	}
 
 	// R_AllocDynamicIndexBuffer
@@ -33,9 +22,9 @@ namespace components
 		{
 			return 0;
 		}
-
-		HRESULT hr = get_d3d_device()->CreateIndexBuffer(size_in_bytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, nullptr);
-		if (hr < 0)
+		
+		if (HRESULT hr = get_d3d_device()->CreateIndexBuffer(size_in_bytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, nullptr); 
+					hr < 0)
 		{
 			const char* msg = utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
 			msg = utils::va("DirectX didn't create a 0x%.8x dynamic index buffer: %s\n", size_in_bytes, msg);
@@ -48,24 +37,24 @@ namespace components
 	}
 
 	// R_InitDynamicIndexBufferState
-	void init_dynamic_index_buffer_state(game::GfxIndexBufferState* ib, int indexCount, const char* buffer_name, bool loadForRenderer)
+	void init_dynamic_index_buffer_state(game::GfxIndexBufferState* ib, int index_count, const char* buffer_name, bool load_for_renderer)
 	{
 		ib->used = 0;
-		ib->total = indexCount;
+		ib->total = index_count;
 
-		alloc_dynamic_index_buffer(&ib->buffer, 2 * indexCount, buffer_name, loadForRenderer);
+		alloc_dynamic_index_buffer(&ib->buffer, 2 * index_count, buffer_name, load_for_renderer);
 	}
 
 	// R_AllocDynamicVertexBuffer
-	char* alloc_dynamic_vertex_buffer(IDirect3DVertexBuffer9** vb, int size_in_bytes, const char* buffer_name, bool load_for_renderer)
+	char* alloc_dynamic_vertex_buffer(IDirect3DVertexBuffer9** vb, std::uint32_t size_in_bytes, const char* buffer_name, bool load_for_renderer)
 	{
 		if (!load_for_renderer)
 		{
 			return nullptr;
 		}
 
-		HRESULT hr = get_d3d_device()->CreateVertexBuffer(size_in_bytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, vb, 0);
-		if (hr < 0)
+		if (HRESULT hr = get_d3d_device()->CreateVertexBuffer(size_in_bytes, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, vb, nullptr); 
+					hr < 0)
 		{
 			const char* msg = utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
 			msg = utils::va("DirectX didn't create a 0x%.8x dynamic vertex buffer: %s\n", size_in_bytes, msg);
@@ -78,17 +67,17 @@ namespace components
 	}
 
 	// R_InitDynamicVertexBufferState
-	void init_dynamic_vertex_buffer_state(game::GfxVertexBufferState* vb, int bytes, const char* buffer_name, bool load_for_renderer)
+	void init_dynamic_vertex_buffer_state(game::GfxVertexBufferState* vb, std::uint32_t bytes, const char* buffer_name, bool load_for_renderer)
 	{
 		vb->used = 0;
-		vb->total = bytes;
-		vb->verts = 0;
+		vb->total = static_cast<int>(bytes);
+		vb->verts = nullptr;
 
 		alloc_dynamic_vertex_buffer(&vb->buffer, bytes, buffer_name, load_for_renderer);
 	}
 
 	// R_InitTempSkinBuf :: Temp skin buffer within backenddata
-	void init_temp_skin_buf(int bytes)
+	void init_temp_skin_buf(std::uint32_t bytes)
 	{
 		auto* back_end_data = reinterpret_cast<game::GfxBackEndData*>(0xCC9F600);
 
@@ -139,32 +128,21 @@ namespace components
 		}
 
 
-		for (auto i = 0; i != 1; ++i)
-		{
-			init_dynamic_vertex_buffer_state(&gfx_buf.dynamicVertexBufferPool[i], dynamic_vb_size, "dynamicVertexBufferPool", r_loadForRenderer);
-		}
+		init_dynamic_vertex_buffer_state(&gfx_buf.dynamicVertexBufferPool[0], dynamic_vb_size, "dynamicVertexBufferPool", r_loadForRenderer);
 		gfx_buf.dynamicVertexBuffer = gfx_buf.dynamicVertexBufferPool;
 
 
-		for (auto i = 0; i != 2; ++i)
-		{
-			init_dynamic_vertex_buffer_state(&gfx_buf.skinnedCacheVbPool[i], skinned_cache_size, "skinnedCacheVbPool", r_loadForRenderer);
-		}
-
+		init_dynamic_vertex_buffer_state(&gfx_buf.skinnedCacheVbPool[0], skinned_cache_size, "skinnedCacheVbPool", r_loadForRenderer);
+		init_dynamic_vertex_buffer_state(&gfx_buf.skinnedCacheVbPool[1], skinned_cache_size, "skinnedCacheVbPool", r_loadForRenderer);
 		init_temp_skin_buf(temp_skin_size);
 
 
-		for (auto i = 0; i != 1; ++i)
-		{
-			init_dynamic_index_buffer_state(&gfx_buf.dynamicIndexBufferPool[i], dynamic_ib_size, "dynamicIndexBufferPool", r_loadForRenderer);
-		}
+		init_dynamic_index_buffer_state(&gfx_buf.dynamicIndexBufferPool[0], dynamic_ib_size, "dynamicIndexBufferPool", r_loadForRenderer);
 		gfx_buf.dynamicIndexBuffer = gfx_buf.dynamicIndexBufferPool;
 
 
-		for (auto i = 0; i != 2; ++i)
-		{
-			init_dynamic_index_buffer_state(&gfx_buf.preTessIndexBufferPool[i], pretess_ib_size, "preTessIndexBufferPool", r_loadForRenderer);
-		}
+		init_dynamic_index_buffer_state(&gfx_buf.preTessIndexBufferPool[0], pretess_ib_size, "preTessIndexBufferPool", r_loadForRenderer);
+		init_dynamic_index_buffer_state(&gfx_buf.preTessIndexBufferPool[1], pretess_ib_size, "preTessIndexBufferPool", r_loadForRenderer);
 		gfx_buf.preTessBufferFrame = 0;
 		gfx_buf.preTessIndexBuffer = gfx_buf.preTessIndexBufferPool;
 	}
@@ -176,7 +154,6 @@ namespace components
 	void alloc_dynamic_vertex_buffer()
 	{
 		auto& gfx_buf = *reinterpret_cast<game::GfxBuffers*>(0xD2B0840);
-		const auto& r_loadForRenderer = game::Dvar_FindVar("r_loadForRenderer")->current.enabled;
 
 		// default size in bytes
 		std::uint32_t smodel_cache_vb_size = 8 * 1048576;
@@ -187,17 +164,17 @@ namespace components
 			smodel_cache_vb_size = dvars::r_buf_smodelCacheVb->current.integer * 1048576;
 		}
 
-		if (r_loadForRenderer)
+		if (const auto& r_loadForRenderer = game::Dvar_FindVar("r_loadForRenderer"); 
+						r_loadForRenderer && r_loadForRenderer->current.enabled)
 		{
-			HRESULT hr = get_d3d_device()->CreateVertexBuffer(smodel_cache_vb_size, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, &gfx_buf.smodelCacheVb, 0);
-			if (hr < 0)
+			if (HRESULT hr = get_d3d_device()->CreateVertexBuffer(smodel_cache_vb_size, (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY), 0, D3DPOOL_DEFAULT, &gfx_buf.smodelCacheVb, nullptr); 
+						hr < 0)
 			{
 				const char* msg = utils::function<const char* __stdcall(HRESULT)>(0x685F98)(hr); // R_ErrorDescription
 				msg = utils::va("DirectX didn't create a 0x%.8x dynamic vertex buffer: %s\n", smodel_cache_vb_size, msg);
 
 				utils::function<void(const char*)>(0x576A30)(msg); // Sys_Error
 			}
-			
 
 			game::Com_PrintMessage(0, utils::va("D3D9: Created Vertexbuffer (smodelCacheVb) of size: 0x%.8x\n", smodel_cache_vb_size), 0);
 		}
@@ -237,7 +214,7 @@ namespace components
 		}
 
 		game::Com_PrintMessage(0, utils::va("Allocated smodelCache (smodelCacheIb) of size: 0x%.8x\n", smodel_cache_ib_size), 0);
-		gfx_buf.smodelCache.indices = static_cast<unsigned __int16*>(mem_reserve);
+		gfx_buf.smodelCache.indices = static_cast<std::uint16_t*>(mem_reserve);
 	}
 
 	__declspec(naked) void init_smodel_indices_stub()
@@ -390,20 +367,20 @@ namespace components
 			// push    msg
 			// push    dropType
 
-			mov     eax, [esp + 8h];	// move sampler string into eax
+			mov     eax, [esp + 0x8];	// move sampler string into eax
 			push	eax;				// decreased esp by 4
-			mov     eax, [esp + 14h];	// move GfxCmdBufState* into eax (now at 14h)
+			mov     eax, [esp + 0x14];	// move GfxCmdBufState* into eax (now at 14h)
 			push	eax;				// GfxCmdBufState*
 			push	ebx;				// GfxCmdBufSourceState*
 			push	edi;				// MaterialShaderArgument*
 
 #if DEBUG
-			Call	codesampler_error;	// only dump info on debug builds
+			call	codesampler_error;	// only dump info on debug builds
 #endif
 			add		esp, 28;
 
-			mov     eax, [esp + 14h];
-			mov     ecx, [esp + 24h];
+			mov     eax, [esp + 0x14];
+			mov     ecx, [esp + 0x24];
 			movzx   esi, word ptr[edi + 2];
 			push    eax;
 			push    ecx;
@@ -423,10 +400,10 @@ namespace components
 			// skip error and R_SetSampler
 			add		esp, 12;
 
-			mov     eax, [esp + 20h];
+			mov     eax, [esp + 0x20];
 			movzx   esi, word ptr[edi + 2];
 			push    eax;
-			mov     eax, [esp + 18h];
+			mov     eax, [esp + 0x18];
 			push    ebx;
 			push    ebp;
 
@@ -542,8 +519,6 @@ namespace components
 	// return new material if valid, stock material otherwise
 	void _renderer::switch_material(game::switch_material_t* swm, const char* material_name)
 	{
-		
-		
 		if (const auto	material = game::Material_RegisterHandle(material_name, 3); 
 						material)
 		{
@@ -563,19 +538,13 @@ namespace components
 		swm->material = swm->current_material;
 	}
 
-	// memes
-	// bool rendered_scope = false;
-
 	// *
 	// :>
 	int R_SetMaterial(game::MaterialTechniqueType techType, game::GfxCmdBufSourceState* src, game::GfxCmdBufState* state, game::GfxDrawSurf drawSurf)
 	{
-		auto& rg = *reinterpret_cast<game::r_globals_t*>(0xCC9D150);
-		auto rgp =  reinterpret_cast<game::r_global_permanent_t*>(0xCC98280);
-
 		game::switch_material_t mat = {};
 
-		mat.current_material  = rgp->sortedMaterials[(drawSurf.packed >> 29) & 0x7FF];
+		mat.current_material = game::rgp->sortedMaterials[drawSurf.fields.materialSortedIndex & 2047u];
 		mat.current_technique = mat.current_material->techniqueSet->remappedTechniqueSet->techniques[techType];
 
 		mat.material		  = mat.current_material;
@@ -713,7 +682,7 @@ namespace components
 		state->technique = mat.technique;
 
 
-		if (!state->technique || (state->technique->flags & 1) != 0 && !rg.distortion)
+		if (!state->technique || (state->technique->flags & 1) != 0 && !game::rg->distortion)
 		{
 			return 0;
 		}
@@ -756,7 +725,7 @@ namespace components
 			push	esi;		// techType
 			call	R_SetMaterial;
 			pop		esi;
-			add     esp, 10h;
+			add     esp, 0x10;
 
 			test    eax, eax;	// do not return BOOL if you test 4 byte sized registers :>
 			jz      memes;
@@ -876,9 +845,8 @@ namespace components
 			// loop through all argument defs to find custom codeconsts
 			for (auto arg = 0; arg < state->pass->perObjArgCount + state->pass->perPrimArgCount + state->pass->stableArgCount; arg++)
 			{
-				const auto arg_def = &state->pass->args[arg];
-
-				if (arg_def && arg_def->type == 5)
+				if (const auto  arg_def = &state->pass->args[arg]; 
+								arg_def && arg_def->type == 5)
 				{
 					if (components::active.daynight_cycle)
 					{
@@ -889,22 +857,6 @@ namespace components
 					{
 						ocean::set_pixelshader_constants(state, arg_def);
 					}
-
-#ifdef DEVGUI_XO_BLUR
-					// dev stuff
-					if (state->pass->pixelShader && !utils::q_stricmp(state->pass->pixelShader->name, "sm2_blur"))
-					{
-						float constant[4] = { game::glob::xo_blur_directions, game::glob::xo_blur_quality, game::glob::xo_blur_size, game::glob::xo_blur_alpha };
-
-						if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0) {
-							(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-
-						if (arg_def->u.codeConst.index == game::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR) {
-							(*game::dx9_device_ptr)->SetPixelShaderConstantF(arg_def->dest, constant, 1);
-						}
-					}
-#endif
 				}
 			}
 		}
@@ -922,7 +874,7 @@ namespace components
 			add     esp, 8;
 
 			// GfxCmdBufState
-			mov		edx, [esp + 0Ch];
+			mov		edx, [esp + 0xC];
 
 			pushad;
 			push	edx;
@@ -943,9 +895,8 @@ namespace components
 			// loop through all argument defs to find custom codeconsts
 			for (auto arg = 0; arg < state->pass->perObjArgCount + state->pass->perPrimArgCount + state->pass->stableArgCount; arg++)
 			{
-				const auto arg_def = &state->pass->args[arg];
-
-				if (arg_def && arg_def->type == 3)
+				if (const auto  arg_def = &state->pass->args[arg]; 
+								arg_def && arg_def->type == 3)
 				{
 					if (components::active.ocean)
 					{
@@ -968,8 +919,8 @@ namespace components
 			add     esp, 8;
 
 			// GfxCmdBufState
-			mov		ecx, [esp + 8h];
-			mov		edx, [esp + 0Ch];
+			mov		ecx, [esp + 0x8];
+			mov		edx, [esp + 0xC];
 
 			pushad;
 			push	edx; // state
@@ -1001,7 +952,7 @@ namespace components
 	// rewrite of CG_GetViewFov()
 	float calculate_gunfov_with_zoom(float fov_val)
 	{
-		float calc_fov;
+		float calc_fov = 80.0f;
 		const auto& cg_fovMin = game::Dvar_FindVar("cg_fovMin");
 
 		unsigned int offhand_index = game::cgs->predictedPlayerState.offHandIndex;
@@ -1042,9 +993,9 @@ namespace components
 				return check_flags_and_fovmin();
 			}
 			
-			if (0.0f != game::cgs->predictedPlayerState.fWeaponPosFrac)
+			if (game::cgs->predictedPlayerState.fWeaponPosFrac != 0.0f)
 			{
-				float ads_factor;
+				float ads_factor = 0.0f;
 				
 				if (game::cgs->playerEntity.bPositionToADS)
 				{
@@ -1053,6 +1004,7 @@ namespace components
 					{
 						return check_flags_and_fovmin();
 					}
+
 					ads_factor = w_pos_frac / weapon->fAdsZoomInFrac;
 				}
 				else
@@ -1062,6 +1014,7 @@ namespace components
 					{
 						return check_flags_and_fovmin();
 					}
+
 					ads_factor = w_pos_frac / weapon->fAdsZoomOutFrac;
 				}
 				
@@ -1077,7 +1030,7 @@ namespace components
 
 	void set_gunfov(game::GfxViewParms* view_parms)
 	{
-		if(dvars::cg_fov_tweaks && dvars::cg_fov_tweaks->current.enabled)
+		if (dvars::cg_fov_tweaks && dvars::cg_fov_tweaks->current.enabled)
 		{
 			// calc gun fov (includes weapon zoom)
 			const float gun_fov = calculate_gunfov_with_zoom(dvars::cg_fov_gun->current.value);
@@ -1107,7 +1060,7 @@ namespace components
 			popad;
 			
 			// stock op's
-			lea     ecx, [edi + 0C0h];
+			lea     ecx, [edi + 0xC0];
 			jmp		retn_addr;
 		}
 	}
@@ -1149,13 +1102,9 @@ namespace components
 		utils::hook::set<BYTE>(0x4754D5 + 2, 0xB0); // end on "_dn" + 1 instead of "_bk" (6 images)
 		utils::hook(0x47540C, cubemap_shot_f_stub, HOOK_JUMP).install()->quick(); // dvar info
 
-
-		
-
-
 		/* ---------------------------------------------------------- */
 
-		static std::vector <const char*> r_wireframe_enum =
+		static std::vector r_wireframe_enum =
 		{
 			"NONE",
 			"SHADED",
@@ -1186,20 +1135,6 @@ namespace components
 			/* default	*/ false,
 			/* flags	*/ game::dvar_flags::none);
 
-		// not in use
-		//dvars::r_debugShaderToggle = Game::Dvar_RegisterBool(
-		//	/* name		*/ "r_debugShaderToggle",
-		//	/* desc		*/ "debugging purpose",
-		//	/* default	*/ false,
-		//	/* flags	*/ Game::dvar_flags::none);
-
-		//// not in use
-		//dvars::r_setmaterial_hk = Game::Dvar_RegisterBool(
-		//	/* name		*/ "r_setmaterial_hk",
-		//	/* desc		*/ "debugging purpose",
-		//	/* default	*/ false,
-		//	/* flags	*/ Game::dvar_flags::none);
-
 
 		// hook R_SetMaterial
 		utils::hook(0x648F86, R_SetMaterial_stub, HOOK_JUMP).install()->quick();
@@ -1215,7 +1150,7 @@ namespace components
 		utils::hook::nop(0x64BD22, 7);
 		utils::hook(0x64BD22, R_SetVertexShaderConstantFromCode_stub, HOOK_JUMP).install()->quick();
 
-		// seperate world and viewmodel fov
+		// separate world and viewmodel fov
 		utils::hook::nop(0x5FAA05, 6);
 		utils::hook(0x5FAA05, R_SetViewParmsForScene_stub, HOOK_JUMP).install()->quick();
 

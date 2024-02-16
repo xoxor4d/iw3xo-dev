@@ -138,9 +138,6 @@ namespace dvars
 	game::dvar_s* r_buf_dynamicIndexBuffer = nullptr;
 	game::dvar_s* r_buf_preTessIndexBuffer = nullptr;
 
-	game::dvar_s* r_debugShaderToggle = nullptr;
-	game::dvar_s* r_setmaterial_hk = nullptr;
-
 	game::dvar_s* r_wireframe_world = nullptr;
 	game::dvar_s* r_wireframe_xmodels = nullptr;
 

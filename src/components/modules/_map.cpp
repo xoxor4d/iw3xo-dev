@@ -37,7 +37,7 @@ namespace components
 		{
 			// overwritten op's
 			add     esp, 8;
-			and		esi, 0FFFFFFF0h;
+			and		esi, 0xFFFFFFF0;
 
 			call	_map::on_load;
 			jmp		retn_addr;

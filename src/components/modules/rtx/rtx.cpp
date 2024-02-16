@@ -12,15 +12,12 @@
 // * dynamic meshes (dynEnts, destr. cars and some other static meshes) are not 'static' (debug view) and create a smear effect (motion vectors)
 
 // * 'r_preTess' (surface batching) set to false + 'rtx_disable_world_culling' set to less (cull full portals only) = almost stable geo hashes
-// ^ bad performance when moving the camera -> all culling turned off is more stable
-
-//#define STATIC_MODEL_CACHE_TEST // can be ignored
 
 namespace components
 {
 	/**
 	 * @brief - send camera matrices down the fixed-function pipeline so that the remix runtime finds the camera
-	 *		  - update spawned (fixed-function) debug lights
+	 *		  - update fixed-function debug lights (spawned via the dev-gui)
 	 *		  - force certain dvar's 
 	 */
 	void setup_rtx()
@@ -619,47 +616,6 @@ namespace components
 				jmp		retn_skip;
 			}
 		}
-
-#ifdef STATIC_MODEL_CACHE_TEST
-		int R_GetStaticModelId_test(int smodel_index)
-		{
-			if (const auto r_smc_enable = game::Dvar_FindVar("r_smc_enable"); r_smc_enable)
-			{
-				if (r_smc_enable->current.enabled)
-				{
-					if (utils::contains(game::rgp->world->dpvs.smodelDrawInsts[smodel_index].model->name, "grass"))
-					{
-						return 0;
-					}
-				}
-
-				return r_smc_enable->current.enabled;
-			}
-
-			return 0;
-		}
-
-		__declspec(naked) void R_GetStaticModelId_stub()
-		{
-			const static uint32_t disabled_addr = 0x63ABF7;
-			const static uint32_t enabled_addr = 0x63ABB9;
-			__asm
-			{
-				pushad;
-				push	ebx; // smodelIndex
-				call	R_GetStaticModelId_test;
-				add		esp, 4;
-				cmp     eax, 0;
-				jz		loc_63ABF7;
-				popad;
-				jmp		enabled_addr;
-
-			loc_63ABF7:
-				popad;
-				jmp		disabled_addr;
-			}
-		}
-#endif
 	}
 
 
@@ -670,16 +626,6 @@ namespace components
 	{
 		// update culling vars at the end of a frame (so we don't change culling behaviour mid-frame -> not safe)
 		{
-			// set world culling to 'less' once on start if culling is disabled completly
-			/*if (static bool set_less_culling_once = false; !set_less_culling_once)
-			{
-				if (dvars::rtx_disable_world_culling && dvars::rtx_disable_world_culling->current.integer > 1)
-				{
-					game::dvar_set_value_dirty(dvars::rtx_disable_world_culling, 1);
-				}
-				set_less_culling_once = true;
-			}*/
-
 			// update world culling
 			if (dvars::rtx_disable_world_culling)
 			{
@@ -704,72 +650,6 @@ namespace components
 		dvars::bool_override("r_depthPrepass", false); // remix does not like this
 		dvars::bool_override("r_zfeather", false);
 		dvars::bool_override("r_dof_enable", false);
-
-		// r_znear around 4 pushes viewmodel away the further from 0 0 0 we are - 4.002 fixes that
-		//if (const auto var = game::Dvar_FindVar("r_znear"); var && var->current.value != 4.00195f)
-		//{
-		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_znear 4.00195\n");
-		//}
-
-		//// show viewmodel
-		//if (const auto var = game::Dvar_FindVar("r_znear_depthhack"); var && var->current.value != 4.0f)
-		//{
-		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_znear_depthhack 4\n");
-		//}
-
-#if DEBUG == FALSE
-		
-		//if (const auto var = game::Dvar_FindVar("r_smp_backend"); var && var->current.enabled)
-		//{
-		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_smp_backend 0\n");
-		//}
-		//// ^ fix wobbly viewmodels
-		//if (const auto var = game::Dvar_FindVar("r_skinCache"); var && var->current.enabled)
-		//{
-		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_skinCache 0\n");
-		//}
-
-		// disable static model caching (stable hashes)
-		/*if (const auto var = game::Dvar_FindVar("r_smc_enable"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_smc_enable 0\n");
-		}*/
-
-		// remix does not like this
-		/*if (const auto var = game::Dvar_FindVar("r_depthPrepass"); var && var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_depthPrepass 0\n");
-		}*/
-
-		// fps ++
-		/*if (const auto var = game::Dvar_FindVar("r_multiGpu"); var && !var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_multiGpu 1\n");
-		}*/
-
-		// needed for fixed-function
-		/*if (const auto var = game::Dvar_FindVar("r_pretess"); var && !var->current.enabled)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "r_pretess 1\n");
-		}*/
-#endif
-
-		//if (const auto var = game::Dvar_FindVar("r_dof_enable"); var && var->current.enabled)
-		//{
-		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_dof_enable 0\n");
-		//}
-
-		//// fix effects or other zfeathered materials to cause remix to freak out (turning everything white)
-		//if (const auto var = game::Dvar_FindVar("r_zfeather"); var && var->current.enabled)
-		//{
-		//	game::Cmd_ExecuteSingleCommand(0, 0, "r_zfeather 0\n");
-		//}
-
-		// disable weapon tracers
-		/*if (const auto var = game::Dvar_FindVar("cg_tracerlength"); var && var->current.value != 0.0f)
-		{
-			game::Cmd_ExecuteSingleCommand(0, 0, "cg_tracerlength 0\n");
-		}*/
 	}
 
 	//_common::force_dvars_on_init()
@@ -983,11 +863,6 @@ namespace components
 				/* desc		*/ "Disable culling of game entities (script objects/destructible cars ...)",
 				/* default	*/ true,
 				/* flags	*/ game::dvar_flags::saved);
-
-#ifdef STATIC_MODEL_CACHE_TEST
-			// can be ignored
-			utils::hook(0x63ABAE, cull::R_GetStaticModelId_stub, HOOK_JUMP).install()->quick();
-#endif
 		}
 
 		// *

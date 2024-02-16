@@ -145,9 +145,6 @@ namespace dvars
 	extern game::dvar_s* r_buf_dynamicIndexBuffer;
 	extern game::dvar_s* r_buf_preTessIndexBuffer;
 
-	extern game::dvar_s* r_debugShaderToggle;
-	extern game::dvar_s* r_setmaterial_hk;
-
 	extern game::dvar_s* r_wireframe_world;
 	extern game::dvar_s* r_wireframe_xmodels;
 

@@ -1053,7 +1053,7 @@ namespace components
 
 		if (ent->client->ps.eFlags & 0x300 || ent->client->ps.pm_flags & 0x100000) 
 		{
-			return *&game::g_entities[157 * ent->client->ps.viewlocked_entNum];
+			return game::g_entities[ent->client->ps.viewlocked_entNum].s.number;
 		}
 
 		if (ent->client->ps.weapFlags & 2) 
