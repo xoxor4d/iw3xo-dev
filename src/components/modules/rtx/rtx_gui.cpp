@@ -295,7 +295,7 @@ namespace components
 						{
 							on_edit = ImGui::DragFloat3("Direction", rtx_lights::rtx_debug_lights[i].dir, 0.05f) ? true : on_edit;
 
-							if (rtx_lights::rtx_debug_lights[i].attach)
+							if (rtx_lights::rtx_debug_lights[i].attach_to_head)
 							{
 								on_edit = ImGui::DragFloat3("Direction Offset", rtx_lights::rtx_debug_lights[i].dir_offset, 0.05f) ? true : on_edit;
 							}
@@ -317,7 +317,16 @@ namespace components
 
 						if (rtx_lights::rtx_debug_lights[i].type != D3DLIGHT_DIRECTIONAL)
 						{
-							ImGui::Checkbox("Attach light to head", &rtx_lights::rtx_debug_lights[i].attach);
+							if (ImGui::Checkbox("Attach light to head", &rtx_lights::rtx_debug_lights[i].attach_to_head))
+							{
+								rtx_lights::rtx_debug_lights[i].attach_to_weapon = false;
+							}
+
+							ImGui::SameLine(0, 20.0f);
+							if (ImGui::Checkbox("Attach light to weapon", &rtx_lights::rtx_debug_lights[i].attach_to_weapon))
+							{
+								rtx_lights::rtx_debug_lights[i].attach_to_head = false;
+							}
 
 							if (ImGui::Button("Move light to player"))
 							{
@@ -401,7 +410,6 @@ namespace components
 			if (game::cm->materials[num].material[0])
 			{
 				map_materials += std::to_string(num) + ": " + std::string(game::cm->materials[num].material) + "\n";
-				//map_materials.emplace_back(game::cm->materials[num].material);
 			}
 		}
 	}

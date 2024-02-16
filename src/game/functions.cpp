@@ -72,6 +72,11 @@ namespace game
 	game::ComWorld*				com = reinterpret_cast<game::ComWorld*>(0x1435CB8);
 	game::GfxWorld*				gfx_world = reinterpret_cast<game::GfxWorld*>(0xD0701E0);
 
+	game::DObj_s* objBuf = reinterpret_cast<game::DObj_s*>(0x1477F30);
+	std::uint16_t* clientObjMap = reinterpret_cast<std::uint16_t*>(0x14A9F30);
+	game::centity_s* cg_entitiesArray = reinterpret_cast<game::centity_s*>(0x84F2D8);
+	game::weaponInfo_s* cg_weaponsArray = reinterpret_cast<game::weaponInfo_s*>(0x748658);
+
 	int* com_frameTime = reinterpret_cast<int*>(0x1476EFC);
 	float* com_timescaleValue = reinterpret_cast<float*>(0x1435D68);
 
@@ -747,6 +752,79 @@ namespace game
 		}
 	}
 
+	int GetTagPos(std::uint16_t tag, game::centity_s* ent, float* origin_out)
+	{
+		const static uint32_t func_addr = 0x4024B0;
+		int return_val = 0;
+
+		__asm
+		{
+			push	origin_out;
+			movzx	esi, tag;
+			mov		ecx, ent;
+			movzx	eax, byte ptr[ecx + 4];
+			call	func_addr;
+			add		esp, 4;
+			mov		return_val, eax;
+		}
+
+		return return_val;
+	}
+
+	int DObjGetBoneIndex(DObj_s* obj /*ecx*/, int tag_name, BYTE* bone_index)
+	{
+		const static uint32_t func_addr = 0x57F2B0;
+		int result = 0;
+		__asm
+		{
+			push	bone_index;
+			push	tag_name;
+			mov		ecx, obj;
+			call	func_addr;
+			add		esp, 8;
+			mov		result, eax;
+		}
+
+		return result;
+	}
+
+	int CG_GetBoneIndex(int local_client_num /*eax*/, int tag_name /*edx*/, int nextstate_num, char* bone)
+	{
+		const static uint32_t func_addr = 0x435A50;
+		int result = 0;
+		__asm
+		{
+			push	bone;
+			push	nextstate_num;
+			mov		edx, tag_name;
+			mov		eax, local_client_num;
+			call	func_addr;
+			add		esp, 8;
+			mov		result, eax;
+		}
+
+		return result;
+	}
+
+	int CG_DObjGetWorldBoneMatrix(cpose_t* pose /*eax*/, int bone_index /*ecx*/, float* axis /*esi*/, DObj_s* obj, float* origin)
+	{
+		const static uint32_t func_addr = 0x433F00;
+		int result = 0;
+		__asm
+		{
+			push	origin;
+			push	obj;
+			mov		esi, axis;
+			mov		ecx, bone_index;
+			mov		eax, pose;
+			call	func_addr;
+			add		esp, 8;
+			mov		result, eax;
+		}
+
+		return result;
+	}
+
 	int is_button_pressed(int button, int button_data) 
 	{
 		int tmp, i = 0;
@@ -798,8 +876,8 @@ namespace game
 
 	game::WeaponDef** BG_WeaponNames = reinterpret_cast<game::WeaponDef**>(0x736DB8);
 
-	int* g_entities		= reinterpret_cast<int*>(0x12885C4);
-	int* g_clients		= reinterpret_cast<int*>(0x13255A8);
+	game::gentity_s* g_entities = reinterpret_cast<game::gentity_s*>(0x12885C4);
+	game::gclient_s* g_clients = reinterpret_cast<game::gclient_s*>(0x13255A8);
 
 	bool Jump_Check(game::pmove_t* pm /*eax*/, game::pml_t* pml)
 	{

@@ -78,6 +78,11 @@ namespace game
 	extern game::ComWorld*				com;
 	extern game::GfxWorld*				gfx_world;
 
+	extern game::DObj_s*	objBuf;
+	extern std::uint16_t*	clientObjMap;
+	extern game::centity_s* cg_entitiesArray;
+	extern game::weaponInfo_s* cg_weaponsArray;
+
 	extern int*	com_frameTime;
 	extern float* com_timescaleValue;
 
@@ -293,6 +298,10 @@ namespace game
 	void Scr_AddVector(float* out /*esi*/); // ASM
 	float Scr_GetFloat(unsigned int arg_index /*eax*/); // ASM
 
+	int GetTagPos(std::uint16_t tag, game::centity_s* ent, float* origin_out); // ASM
+	int DObjGetBoneIndex(DObj_s* obj /*ecx*/, int tag_name, BYTE* bone_index); // ASM
+	int CG_GetBoneIndex(int local_client_num /*eax*/, int tag_name /*edx*/, int nextstate_num, char* bone); // ASM
+	int CG_DObjGetWorldBoneMatrix(cpose_t* pose /*eax*/, int bone_index /*ecx*/, float* axis /*esi*/, DObj_s* obj, float* origin); // ASM
 	int	is_button_pressed(int button, int button_data);
 
 
@@ -301,8 +310,8 @@ namespace game
 
 	extern game::WeaponDef** BG_WeaponNames;
 
-	extern int* g_entities;
-	extern int* g_clients;
+	extern game::gentity_s* g_entities;
+	extern game::gclient_s* g_clients;
 
 	static utils::function<void(game::pmove_t* pm)>									PmoveSingle = 0x4143A0;
 	static utils::function<void(game::pmove_t* pm)>									PM_UpdateSprint = 0x40E6A0;
@@ -399,10 +408,10 @@ namespace game
 	}
 
 	// using RegisterNew - ENUM (04)
-	static utils::function<dvar_s* (const char *dvar_name, DvarType type_enum, std::uint16_t flags, const char *description, std::int32_t default_index, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::int32_t enumSize, const char** enum_data)>
+	static utils::function<dvar_s* (const char *dvar_name, DvarType type_enum, std::uint16_t flags, const char *description, std::uint32_t default_index, std::int32_t null1, std::int32_t null2, std::int32_t null3, std::uint32_t enumSize, const char** enum_data)>
 		Dvar_RegisterEnum_r = 0x56C130;
 
-	inline dvar_s* Dvar_RegisterEnum(const char* dvar_name, const char* description, std::int32_t default_value, std::int32_t enum_size, const char** enum_data, std::uint16_t flags) {
+	inline dvar_s* Dvar_RegisterEnum(const char* dvar_name, const char* description, std::uint32_t default_value, std::uint32_t enum_size, const char** enum_data, std::uint16_t flags) {
 		return Dvar_RegisterEnum_r(dvar_name, DvarType::DVAR_TYPE_ENUM, flags, description, default_value, 0, 0, 0, enum_size, enum_data);
 	}
 

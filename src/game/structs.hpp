@@ -2779,6 +2779,12 @@ namespace game
 		float absmax[3];
 	};
 
+	struct orientation_t
+	{
+		float origin[3];
+		float axis[3][3];
+	};
+
 	struct dmaterial_t
 	{
 		char material[64];
@@ -7436,6 +7442,34 @@ namespace game
 		const char** argv[8];
 	};
 
+	enum itemType_t
+	{
+		IT_BAD = 0x0,
+		IT_WEAPON = 0x1,
+	};
+
+	struct gitem_s
+	{
+		itemType_t giType;
+	};
+
+	struct weaponInfo_s
+	{
+		DObj_s* viewModelDObj;
+		XModel* handModel;
+		XModel* gogglesModel;
+		XModel* rocketModel;
+		XModel* knifeModel;
+		char weapModelIdx;
+		unsigned int partBits[4];
+		int iPrevAnim;
+		XAnimTree_s* tree;
+		int registered;
+		gitem_s* item;
+		const char* translatedDisplayName;
+		const char* translatedModename;
+		const char* translatedAIOverlayDescription;
+	};
 
 	struct dynBrush_t
 	{

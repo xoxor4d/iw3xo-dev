@@ -15,7 +15,8 @@ namespace components
 		struct rtx_debug_light
 		{
 			bool enable = false;
-			bool attach = false;
+			bool attach_to_head = false;
+			bool attach_to_weapon = false;
 			bool virgin = true;
 			int disable_hack = 10;
 
