@@ -227,7 +227,7 @@ workspace "iw3xo-dev"
     platforms "Win32"
 	architecture "x86"
 
-    buildoptions "/std:c++latest"
+    cppdialect "C++latest"
 	systemversion "latest"
     symbols "On"
     staticruntime "On"
