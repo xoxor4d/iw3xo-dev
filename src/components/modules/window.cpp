@@ -105,10 +105,17 @@ namespace components
 
 		if (components::active.gui && GGUI_READY)
 		{
-			// handle input and mouse cursor for open menus
-			for (auto menu = 0; menu < GGUI_MENU_COUNT; menu++)
+			// block game input (keyboard) if an imgui widget with text input is active
+			if (Msg >= WM_KEYFIRST && Msg <= WM_INITDIALOG && ImGui::GetIO().WantTextInput)
 			{
-				if (game::glob::gui.menus[menu].menustate)
+				ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam);
+				return false;
+			}
+
+			// handle input and mouse cursor for open menus
+			for (const auto& menu : game::glob::gui.menus)
+			{
+				if (menu.menustate)
 				{
 					if (ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam))
 					{
@@ -124,7 +131,7 @@ namespace components
 		}
 
 		// draw cursor (if no imgui menu opened) when cod4 inactive and hovering over it
-		if(!menu_open)
+		if (!menu_open)
 		{
 			if (Msg == WM_SETCURSOR)
 			{
@@ -152,8 +159,8 @@ namespace components
 		const static uint32_t retn_addr = 0x5F4C50;
 		__asm
 		{
-			mov		[esi + 10h], eax;	// overwritten op (wndParms->y)
-			mov		dword ptr[esi], 0;	// overwritten op
+			mov		[esi + 0x10], eax;	// overwritten op (wndParms->y)
+			mov		dword ptr [esi], 0;	// overwritten op
 
 			pushad;
 			call	window::is_noborder;
@@ -167,8 +174,8 @@ namespace components
 		NO_BORDER:
 			popad;
 			xor		eax, eax;			// clear eax
-			mov		[esi + 0Ch], eax;	// set wndParms->x to 0 (4 byte)
-			mov		[esi + 10h], eax;	// set wndParms->y to 0 (4 byte)
+			mov		[esi + 0xC], eax;	// set wndParms->x to 0 (4 byte)
+			mov		[esi + 0x10], eax;	// set wndParms->y to 0 (4 byte)
 			jmp		retn_addr;
 		}
 	}
