@@ -24,6 +24,7 @@ namespace game
 		// ui / devgui
 		bool loaded_main_menu = false;
 		bool mainmenu_fade_done = false;
+		bool mainmenu_snd_played = false;
 
 		game::gui_t gui = {};
 		std::string changelog_html_body;

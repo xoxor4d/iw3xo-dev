@@ -622,7 +622,7 @@ R"(
 		const char* text_foreground = utils::va("IW3xo :: %s :: %s", VERSION, IW3XO_BUILDVERSION_DATE);
 		const char* text_background = text_foreground;
 
-		if (DEBUG)
+		if constexpr (DEBUG)
 		{
 			text_foreground = utils::va("IW3xo :: %s :: %s :: %s", VERSION, IW3XO_BUILDVERSION_DATE, "^1DEBUG");
 			text_background = utils::va("IW3xo :: %s :: %s :: %s", VERSION, IW3XO_BUILDVERSION_DATE, "DEBUG");
@@ -680,6 +680,17 @@ R"(
 			if (!game::glob::loaded_main_menu)
 			{
 				GET_GGUI.menus[game::GUI_MENUS::CHANGELOG].menustate = true;
+			}
+
+			// :>
+			if (!game::glob::mainmenu_snd_played)
+			{
+				if (components::active.rtx)
+				{
+					game::Cmd_ExecuteSingleCommand(0, 0, "snd_playlocal nvintro\n");
+				}
+
+				game::glob::mainmenu_snd_played = true;
 			}
 
 			if (const auto	ui = game::ui_context; 
@@ -750,6 +761,9 @@ R"(
 		// screencenter will be 0.0 ( -1.0, 1.0 = bottom left )
 		mouse_pos.x = mouse_pos.x * 2.0f - 1.0f;
 		mouse_pos.y = mouse_pos.y * 2.0f - 1.0f;
+
+		// filterTap 4
+		game::gfxCmdBufSourceState->input.consts[game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4][0] = components::active.rtx ? 1.0f : 0.0f;
 
 		// filterTap 5
 		game::gfxCmdBufSourceState->input.consts[game::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5][0] = dvars::ui_eyes_position->current.vector[0];

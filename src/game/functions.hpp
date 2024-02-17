@@ -26,6 +26,7 @@ namespace game
 		// ui / devgui
 		extern bool loaded_main_menu;
 		extern bool mainmenu_fade_done;
+		extern bool mainmenu_snd_played;
 
 		extern game::gui_t gui;
 		extern std::string changelog_html_body;
