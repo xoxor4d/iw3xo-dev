@@ -736,6 +736,45 @@ namespace components
 		}
 	}
 
+	int skip_image_load(game::GfxImage* img)
+	{
+		// 0x2 = color, 0x5 = normal, 0x8 = spec
+		if (img->semantic == 0x5 || img->semantic == 0x8)
+		{
+			return 1;
+		}
+
+		return 0;
+	}
+
+	__declspec(naked) void load_image_stub()
+	{
+		const static uint32_t skip_img_addr = 0x6424F3;
+		const static uint32_t og_logic_addr = 0x6424EB;
+		__asm
+		{
+			pushad;
+			push	ebx;					// img
+			call	skip_image_load;
+			pop		ebx;
+			cmp		eax, 1;
+			jne		OG_LOGIC;
+
+			popad;
+			//xor		eax, eax;
+			//mov     eax, 1;
+			jmp		skip_img_addr;
+
+			// og code
+		OG_LOGIC:
+			popad;
+			push    ebx;
+			mov     edx, edi;
+			lea     eax, [esp + 0x10];
+			jmp		og_logic_addr;
+		}
+	}
+
 	// ----------------------------------------------------
 
 	// *
@@ -801,6 +840,13 @@ namespace components
 		// disable 'RB_DrawSun' call
 		utils::hook::nop(0x649BD8, 5);
 
+		// disable loading of specular and normalmaps (de-clutter remix ui)
+		if (!flags::has_flag("load_normal_spec"))
+		{
+			utils::hook::nop(0x616E65, 5);
+			utils::hook::nop(0x616F42, 5);
+			utils::hook::nop(0x6424E4, 7); utils::hook(0x6424E4, load_image_stub, HOOK_JUMP).install()->quick();
+		}
 
 		// *
 		// allow 4k images (skysphere)

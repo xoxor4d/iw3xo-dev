@@ -107,6 +107,7 @@ or directly run `iw3xo.exe`
   - `-stock_effects` :: render effects using shaders
   - `-no_fog` :: disable fog
   - `-no_forced_lod` :: do not set `r_forceLod` to `high` by default  
+  - `-load_normal_spec` :: enable loading of specular and normal maps (if you need to for some reason)
   - `-thirdperson` :: using the `thirdperson` flag will render the thirdperson playermodel into the firstperson view (for shadow casting. Assign the _Player Model_ material category to hide it from your view while keeping it casting shadows. (Still WIP - also spawns a triangle with a unique texture used as the bounding box origin to hide meshes using textures marked as player model)    
 
 > - commandline example: &ensp;`c:\path\iw3xo.exe -rtx -no_default_sky -stock_effects` 
@@ -126,7 +127,9 @@ or directly run `iw3xo.exe`
 - Swift changes in geometry (eg. teleporting) can crash the game.
   - Set dvar `rtx_disable_world_culling` to `less (1)` and increase dvar `r_lodScaleRigid` to make it more stable.
 
-- Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)    
+- Effects will slow down the game (really depends on the effect and the amount - use `fx_enable 0` to disable effects completely)   
+
+- Remix might try to use your onboard gpu (that is a general CoD issue), so its best to disable it in the bios or within the device manager 
 
 <br>
 
