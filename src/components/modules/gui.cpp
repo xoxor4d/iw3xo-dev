@@ -442,16 +442,16 @@ namespace components
 	// 
 	gui::gui()
 	{
-#if DEBUG
-		// check hotkeys every frame
-		scheduler::on_frame([this]()
-		{
-			gui::toggle(GET_GGUI.menus[game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
-			gui::toggle(GET_GGUI.menus[game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
-			gui::toggle(GET_GGUI.menus[game::GUI_MENUS::CHANGELOG], KEYCATCHER_INS);
-
-		}, scheduler::thread::main);
-#endif
+//#if DEBUG
+//		// check hotkeys every frame
+//		scheduler::on_frame([this]()
+//		{
+//			gui::toggle(GET_GGUI.menus[game::GUI_MENUS::DEMO], KEYCATCHER_HOME);
+//			gui::toggle(GET_GGUI.menus[game::GUI_MENUS::DEVGUI], KEYCATCHER_END);
+//			gui::toggle(GET_GGUI.menus[game::GUI_MENUS::CHANGELOG], KEYCATCHER_INS);
+//
+//		}, scheduler::thread::main);
+//#endif
 
 		// *
 		// Commands

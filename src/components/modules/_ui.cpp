@@ -1157,6 +1157,7 @@ R"(
 		std::wstring header, html;
 		utils::get_html(url, header, html);
 
+		game::glob::changelog_html_body.clear();
 		std::ranges::transform(html.begin(), html.end(), std::back_inserter(game::glob::changelog_html_body), [](wchar_t c)
 		{
 			return (char)c;
@@ -1206,6 +1207,13 @@ R"(
 
 		// *
 		// Commands
+
+#if DEBUG
+		command::add("mainmenu_reload_changelog", "", "reloads zone \"xcommon_iw3xo_menu\"", [](command::params)
+		{
+			CreateThread(nullptr, 0, get_changelog, nullptr, 0, nullptr);
+		});
+#endif
 
 		command::add("mainmenu_reload", "", "reloads zone \"xcommon_iw3xo_menu\"", [](command::params)
 		{
