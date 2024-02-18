@@ -195,7 +195,7 @@ namespace components
 				game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found. \n", FF_ADDON_MENU_NAME), 0);
 			}
 		}
-
+		
 		// mod loading -- maybe sync assets for addon menu too?
 		if (*game::zone_mod)
 		{
@@ -252,7 +252,7 @@ namespace components
 			if (game::DB_FileExists(FF_ADDON_OPT_NAME, game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
 			{
 				xzone_info_stack[i].name = FF_ADDON_OPT_NAME;
-				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_ZERO; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
 				xzone_info_stack[i].freeFlags = game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
 				++i;
 			}
@@ -261,18 +261,7 @@ namespace components
 				game::Com_PrintMessage(0, utils::va("^1DB_LoadCommonFastFiles^7:: %s.ff not found (optional user addon)\n", FF_ADDON_OPT_NAME), 0);
 			}
 		}
-
-		if (components::active.rtx)
-		{
-			if (game::DB_FileExists("xcommon_rtx", game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
-			{
-				xzone_info_stack[i].name = "xcommon_rtx";
-				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_COMMON;
-				xzone_info_stack[i].freeFlags = game::XZONE_FLAGS::XZONE_ZERO;
-				++i;
-			}
-		}
-
+		
 		// load required addon fastfile last, if addon_required loading enabled
 		if constexpr (FF_LOAD_ADDON_REQ)
 		{
@@ -280,7 +269,7 @@ namespace components
 			if (FF_ADDON_REQ_NAME && game::DB_FileExists(FF_ADDON_REQ_NAME, game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
 			{
 				xzone_info_stack[i].name = FF_ADDON_REQ_NAME;
-				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_COMMON; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
+				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_ZERO; //Game::XZONE_FLAGS::XZONE_MOD; // free when loading mods?
 				xzone_info_stack[i].freeFlags = game::XZONE_FLAGS::XZONE_ZERO; // do not free any other fastfiles?
 				++i;
 			}
@@ -292,6 +281,17 @@ namespace components
 			}
 		}
 
+		if (components::active.rtx)
+		{
+			if (game::DB_FileExists("xcommon_rtx", game::DB_FILE_EXISTS_PATH::DB_PATH_ZONE))
+			{
+				xzone_info_stack[i].name = "xcommon_rtx";
+				xzone_info_stack[i].allocFlags = game::XZONE_FLAGS::XZONE_ZERO;
+				xzone_info_stack[i].freeFlags = game::XZONE_FLAGS::XZONE_ZERO;
+				++i;
+			}
+		}
+		
 		// ------------------------------------
 
 		game::DB_LoadXAssets(&xzone_info_stack[0], i, 0);

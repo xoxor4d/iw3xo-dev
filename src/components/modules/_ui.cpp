@@ -683,13 +683,9 @@ R"(
 			}
 
 			// :>
-			if (!game::glob::mainmenu_snd_played)
+			if (components::active.rtx && !game::glob::mainmenu_snd_played)
 			{
-				if (components::active.rtx)
-				{
-					game::Cmd_ExecuteSingleCommand(0, 0, "snd_playlocal nvintro\n");
-				}
-
+				game::Cmd_ExecuteSingleCommand(0, 0, "snd_playlocal nvintro\n");
 				game::glob::mainmenu_snd_played = true;
 			}
 

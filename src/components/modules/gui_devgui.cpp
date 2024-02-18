@@ -105,10 +105,13 @@ namespace components
 					ImGui::EndTabItem();
 				}
 
-				if (components::active.postfx_shaders && ImGui::BeginTabItem("Shaders"))
+				if (!components::active.rtx)
 				{
-					gui_devgui::menu_tab_shaders(menu);
-					ImGui::EndTabItem();
+					if (components::active.postfx_shaders && ImGui::BeginTabItem("Shaders"))
+					{
+						gui_devgui::menu_tab_shaders(menu);
+						ImGui::EndTabItem();
+					}
 				}
 
 				if (ImGui::BeginTabItem("Visuals"))
@@ -123,10 +126,13 @@ namespace components
 					ImGui::EndTabItem();
 				}
 
-				if (components::active.daynight_cycle && ImGui::BeginTabItem("DayNight"))
+				if (!components::active.rtx)
 				{
-					daynight_cycle::devgui_tab(menu);
-					ImGui::EndTabItem();
+					if (components::active.daynight_cycle && ImGui::BeginTabItem("DayNight"))
+					{
+						daynight_cycle::devgui_tab(menu);
+						ImGui::EndTabItem();
+					}
 				}
 			}
 
@@ -370,9 +376,20 @@ namespace components
 	{
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-		const char* collision_type_items[] = { "Off", "Outlines Only", "Polygons Only", "Both" };
-		ImGui::Combo("Debug Collision Mode", &dvars::r_drawCollision->current.integer, collision_type_items, IM_ARRAYSIZE(collision_type_items)); TT("r_drawCollision");
-
+		if (components::active.rtx)
+		{
+			static bool dbg_collision_helper = false;
+			if (ImGui::Checkbox("Enable Debug Collision", &dbg_collision_helper))
+			{
+				dvars::r_drawCollision->current.integer = dbg_collision_helper ? 2 : 0;
+			}
+		}
+		else
+		{
+			const char* collision_type_items[] = { "Off", "Outlines Only", "Polygons Only", "Both" };
+			ImGui::Combo("Debug Collision Mode", &dvars::r_drawCollision->current.integer, collision_type_items, IM_ARRAYSIZE(collision_type_items)); TT("r_drawCollision");
+		}
+		
 		// only show settings when collision drawing is enabled
 		if (dvars::r_drawCollision->current.integer != 0)
 		{
@@ -441,31 +458,34 @@ namespace components
 				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 			}
 
-			// *
-			if (ImGui::CollapsingHeader("Brush Visuals"))
+			if (!components::active.rtx)
 			{
-				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+				// *
+				if (ImGui::CollapsingHeader("Brush Visuals"))
+				{
+					ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-				ImGui::SliderInt("Line Width", gui::dvar_get_set<int*>(dvars::r_drawCollision_lineWidth), dvars::r_drawCollision_lineWidth->domain.integer.min, dvars::r_drawCollision_lineWidth->domain.integer.max); TT("r_drawCollision_lineWidth");
+					ImGui::SliderInt("Line Width", gui::dvar_get_set<int*>(dvars::r_drawCollision_lineWidth), dvars::r_drawCollision_lineWidth->domain.integer.min, dvars::r_drawCollision_lineWidth->domain.integer.max); TT("r_drawCollision_lineWidth");
 
-				ImGui::ColorEdit4("Line Color", gui::dvar_get_set<float*>(dvars::r_drawCollision_lineColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("r_drawCollision_lineColor");
+					ImGui::ColorEdit4("Line Color", gui::dvar_get_set<float*>(dvars::r_drawCollision_lineColor), ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf); TT("r_drawCollision_lineColor");
 
-				// --------------- 
-				SEPERATORV(4.0f);
+					// --------------- 
+					SEPERATORV(4.0f);
 
-				ImGui::Checkbox("Polygon Depth", gui::dvar_get_set<bool*>(dvars::r_drawCollision_polyDepth)); TT("r_drawCollision_polyDepth");
+					ImGui::Checkbox("Polygon Depth", gui::dvar_get_set<bool*>(dvars::r_drawCollision_polyDepth)); TT("r_drawCollision_polyDepth");
 
-				ImGui::SameLine();
-				ImGui::Checkbox("Polygon 2-Sided", gui::dvar_get_set<bool*>(dvars::r_drawCollision_polyFace)); TT("r_drawCollision_polyFace");
+					ImGui::SameLine();
+					ImGui::Checkbox("Polygon 2-Sided", gui::dvar_get_set<bool*>(dvars::r_drawCollision_polyFace)); TT("r_drawCollision_polyFace");
 
-				ImGui::SameLine();
-				ImGui::Checkbox("Polygon Fake-Light", gui::dvar_get_set<bool*>(dvars::r_drawCollision_polyLit)); TT("r_drawCollision_polyLit");
+					ImGui::SameLine();
+					ImGui::Checkbox("Polygon Fake-Light", gui::dvar_get_set<bool*>(dvars::r_drawCollision_polyLit)); TT("r_drawCollision_polyLit");
 
-				SPACING(0.0f, 4.0f);
+					SPACING(0.0f, 4.0f);
 
-				ImGui::SliderFloat("Polygon Alpha", gui::dvar_get_set<float*>(dvars::r_drawCollision_polyAlpha), dvars::r_drawCollision_polyAlpha->domain.value.min, dvars::r_drawCollision_polyAlpha->domain.value.max, "%.2f"); TT("r_drawCollision_polyAlpha");
+					ImGui::SliderFloat("Polygon Alpha", gui::dvar_get_set<float*>(dvars::r_drawCollision_polyAlpha), dvars::r_drawCollision_polyAlpha->domain.value.min, dvars::r_drawCollision_polyAlpha->domain.value.max, "%.2f"); TT("r_drawCollision_polyAlpha");
 
-				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+					SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+				}
 			}
 
 			// *
@@ -674,98 +694,101 @@ namespace components
 
 	void gui_devgui::menu_tab_visuals(game::gui_menus_t& menu)
 	{
-		if (ImGui::Button("Dump Visual Settings"))
+		if (!components::active.rtx)
 		{
-			dump_visual_settings();
-		}
-
-		if (ImGui::CollapsingHeader("Film Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			const auto& r_filmTweakEnable = game::Dvar_FindVar("r_filmTweakEnable");
-			const auto& r_filmUseTweaks = game::Dvar_FindVar("r_filmUseTweaks");
-
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			if (r_filmTweakEnable && r_filmUseTweaks)
+			if (ImGui::Button("Dump Visual Settings"))
 			{
-				ImGui::Checkbox("Enable Filmtweaks", &r_filmTweakEnable->current.enabled);
+				dump_visual_settings();
+			}
 
-				ImGui::SameLine();
-				ImGui::Checkbox("Use Filmtweaks", &r_filmUseTweaks->current.enabled);
+			if (ImGui::CollapsingHeader("Film Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				const auto& r_filmTweakEnable = game::Dvar_FindVar("r_filmTweakEnable");
+				const auto& r_filmUseTweaks = game::Dvar_FindVar("r_filmUseTweaks");
 
-				if (r_filmTweakEnable->current.enabled && r_filmUseTweaks->current.enabled)
+				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+				if (r_filmTweakEnable && r_filmUseTweaks)
 				{
-					const auto& r_filmTweakInvert = game::Dvar_FindVar("r_filmTweakInvert");
-					const auto& r_filmTweakLightTint = game::Dvar_FindVar("r_filmTweakLightTint");
-					const auto& r_filmTweakDarkTint = game::Dvar_FindVar("r_filmTweakDarkTint");
-					const auto& r_filmTweakDesaturation = game::Dvar_FindVar("r_filmTweakDesaturation");
-					const auto& r_filmTweakContrast = game::Dvar_FindVar("r_filmTweakContrast");
-					const auto& r_filmTweakBrightness = game::Dvar_FindVar("r_filmTweakBrightness");
+					ImGui::Checkbox("Enable Filmtweaks", &r_filmTweakEnable->current.enabled);
 
-					if (r_filmTweakInvert && r_filmTweakLightTint && r_filmTweakDarkTint && r_filmTweakDesaturation && r_filmTweakContrast && r_filmTweakBrightness)
+					ImGui::SameLine();
+					ImGui::Checkbox("Use Filmtweaks", &r_filmUseTweaks->current.enabled);
+
+					if (r_filmTweakEnable->current.enabled && r_filmUseTweaks->current.enabled)
 					{
-						ImGui::SameLine();
-						ImGui::Checkbox("Invert", &r_filmTweakInvert->current.enabled);
+						const auto& r_filmTweakInvert = game::Dvar_FindVar("r_filmTweakInvert");
+						const auto& r_filmTweakLightTint = game::Dvar_FindVar("r_filmTweakLightTint");
+						const auto& r_filmTweakDarkTint = game::Dvar_FindVar("r_filmTweakDarkTint");
+						const auto& r_filmTweakDesaturation = game::Dvar_FindVar("r_filmTweakDesaturation");
+						const auto& r_filmTweakContrast = game::Dvar_FindVar("r_filmTweakContrast");
+						const auto& r_filmTweakBrightness = game::Dvar_FindVar("r_filmTweakBrightness");
 
-						SPACING(0.0f, 4.0f);
+						if (r_filmTweakInvert && r_filmTweakLightTint && r_filmTweakDarkTint && r_filmTweakDesaturation && r_filmTweakContrast && r_filmTweakBrightness)
+						{
+							ImGui::SameLine();
+							ImGui::Checkbox("Invert", &r_filmTweakInvert->current.enabled);
 
-						// light and darktint should be capped at 2.0 since hdr allows for much higher values
-						ImGui::ColorEdit3("Light Tint", r_filmTweakLightTint->current.vector, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel); TT("r_filmTweakLightTint");
-						ImGui::ColorEdit3("Dark Tint", r_filmTweakDarkTint->current.vector, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel); TT("r_filmTweakDarkTint");
-						ImGui::DragFloat("Desaturation", &r_filmTweakDesaturation->current.value, 0.005f, 0.0f, 1.0f); TT("r_filmTweakDesaturation");
-						ImGui::DragFloat("Contrast", &r_filmTweakContrast->current.value, 0.005f, 0.0f, 4.0f); TT("r_filmTweakContrast");
-						ImGui::DragFloat("Brightness", &r_filmTweakBrightness->current.value, 0.005f, -1.0f, 1.0f); TT("r_filmTweakBrightness");
+							SPACING(0.0f, 4.0f);
+
+							// light and darktint should be capped at 2.0 since hdr allows for much higher values
+							ImGui::ColorEdit3("Light Tint", r_filmTweakLightTint->current.vector, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel); TT("r_filmTweakLightTint");
+							ImGui::ColorEdit3("Dark Tint", r_filmTweakDarkTint->current.vector, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel); TT("r_filmTweakDarkTint");
+							ImGui::DragFloat("Desaturation", &r_filmTweakDesaturation->current.value, 0.005f, 0.0f, 1.0f); TT("r_filmTweakDesaturation");
+							ImGui::DragFloat("Contrast", &r_filmTweakContrast->current.value, 0.005f, 0.0f, 4.0f); TT("r_filmTweakContrast");
+							ImGui::DragFloat("Brightness", &r_filmTweakBrightness->current.value, 0.005f, -1.0f, 1.0f); TT("r_filmTweakBrightness");
+						}
 					}
 				}
+
+				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 			}
-			
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-		}
 
-		if (ImGui::CollapsingHeader("Light Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			const auto& r_lightTweakSunColor = game::Dvar_FindVar("r_lightTweakSunColor");
-			const auto& r_lightTweakSunDirection = game::Dvar_FindVar("r_lightTweakSunDirection");
-			const auto& r_lightTweakSunLight = game::Dvar_FindVar("r_lightTweakSunLight");
-
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
-
-			if (r_lightTweakSunColor && r_lightTweakSunDirection && r_lightTweakSunLight)
+			if (ImGui::CollapsingHeader("Light Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				// unpack the color and use a swap var
-				float sun_color_swap[4] = { 0.0f }; 
-				utils::byte4_unpack_rgba(r_lightTweakSunColor->current.color, sun_color_swap);
-				
-				if (ImGui::ColorEdit3("Sun Color", sun_color_swap, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel))
+				const auto& r_lightTweakSunColor = game::Dvar_FindVar("r_lightTweakSunColor");
+				const auto& r_lightTweakSunDirection = game::Dvar_FindVar("r_lightTweakSunDirection");
+				const auto& r_lightTweakSunLight = game::Dvar_FindVar("r_lightTweakSunLight");
+
+				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
+				if (r_lightTweakSunColor && r_lightTweakSunDirection && r_lightTweakSunLight)
 				{
-					utils::byte4_pack_rgba(sun_color_swap, r_lightTweakSunColor->current.color);
+					// unpack the color and use a swap var
+					float sun_color_swap[4] = { 0.0f };
+					utils::byte4_unpack_rgba(r_lightTweakSunColor->current.color, sun_color_swap);
 
-					for (auto i = 0; i < 4; i++) 
+					if (ImGui::ColorEdit3("Sun Color", sun_color_swap, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel))
 					{
-						r_lightTweakSunColor->latched.color[i] = r_lightTweakSunColor->current.color[i];
-					}
+						utils::byte4_pack_rgba(sun_color_swap, r_lightTweakSunColor->current.color);
 
-					r_lightTweakSunColor->modified = true;
+						for (auto i = 0; i < 4; i++)
+						{
+							r_lightTweakSunColor->latched.color[i] = r_lightTweakSunColor->current.color[i];
+						}
 
-				} TT("r_lightTweakSunColor");
+						r_lightTweakSunColor->modified = true;
 
-				ImGui::DragFloat3("Sun Direction", gui::dvar_get_set<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f"); TT("r_lightTweakSunDirection");
-				ImGui::SliderFloat("Sun Light", gui::dvar_get_set<float*>(r_lightTweakSunLight), r_lightTweakSunLight->domain.value.min, r_lightTweakSunLight->domain.value.max, "%.2f");
+					} TT("r_lightTweakSunColor");
+
+					ImGui::DragFloat3("Sun Direction", gui::dvar_get_set<float*>(r_lightTweakSunDirection), 0.25f, -360.0f, 360.0f, "%.2f"); TT("r_lightTweakSunDirection");
+					ImGui::SliderFloat("Sun Light", gui::dvar_get_set<float*>(r_lightTweakSunLight), r_lightTweakSunLight->domain.value.min, r_lightTweakSunLight->domain.value.max, "%.2f");
+				}
+
+				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
 			}
 
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
-		}
+			if (ImGui::CollapsingHeader("Fog Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-		if (ImGui::CollapsingHeader("Fog Tweaks", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+				ImGui::Checkbox("Tweak Framefog", gui::dvar_get_set<bool*>(dvars::r_fogTweaks));
+				ImGui::ColorEdit4("Fog Color", gui::dvar_get_set<float*>(dvars::r_fogTweaksColor), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel);
+				ImGui::DragFloat("Fog Start", gui::dvar_get_set<float*>(dvars::r_fogTweaksStart), 5.0f, -1000.0f, 30000.0f, "%.4f");
+				ImGui::DragFloat("Fog Density", gui::dvar_get_set<float*>(dvars::r_fogTweaksDensity), 0.0001f, 0.0f, 1.0f, "%.4f");
 
-			ImGui::Checkbox("Tweak Framefog", gui::dvar_get_set<bool*>(dvars::r_fogTweaks));
-			ImGui::ColorEdit4("Fog Color", gui::dvar_get_set<float*>(dvars::r_fogTweaksColor), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel);
-			ImGui::DragFloat("Fog Start", gui::dvar_get_set<float*>(dvars::r_fogTweaksStart), 5.0f, -1000.0f, 30000.0f, "%.4f");
-			ImGui::DragFloat("Fog Density", gui::dvar_get_set<float*>(dvars::r_fogTweaksDensity), 0.0001f, 0.0f, 1.0f, "%.4f");
-
-			SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+				SPACING(0.0f, 4.0f); ImGui::Indent(-8.0f);
+			}
 		}
 
 		ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);

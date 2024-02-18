@@ -6,7 +6,7 @@
 // todo
 // - disable normal and specularmaps so that remix does not pick them up (less clutter in remix ui)
 
-//#define TESS_TESTS // R_DrawTessTechnique test (2d, debug visualization etc.)
+#define TESS_TESTS // R_DrawTessTechnique test (2d, debug visualization etc.)
 
 namespace components
 {
@@ -1515,7 +1515,7 @@ namespace components
 		int use_custom_tess_func()
 		{
 			if (const auto str = std::string_view(game::gfxCmdBufState->material->info.name);
-				str == "$line" || str == "$line_nodepth" || str == "iw3xo_showcollision_wire" || str == "iw3xo_showcollision_fakelight")
+				str == "$line" || str == "$line_nodepth" || str == "iw3xo_showcollision_wire")
 			{
 				return 1;
 			}
@@ -1595,9 +1595,11 @@ namespace components
 
 			state->prim.device->SetRenderState(D3DRS_LIGHTING, FALSE);
 			state->prim.device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+			//state->prim.device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+			state->prim.device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 
 			// set random texture not used for anything else (remix-wise)
-			const auto img = game::DB_FindXAssetHeader(game::ASSET_TYPE_IMAGE, "$identitynormalmap").image;
+			const auto img = game::DB_FindXAssetHeader(game::ASSET_TYPE_IMAGE, "$identitynormalmap").image; // $identitynormalmap
 			state->prim.device->SetTexture(0, img->texture.basemap);
 
 			// vertex format
@@ -1623,6 +1625,8 @@ namespace components
 			state->prim.device->SetFVF(NULL);
 			state->prim.device->SetVertexShader(og_vertex_shader);
 			state->prim.device->SetPixelShader(og_pixel_shader);
+
+			state->prim.device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 		}
 
 		__declspec(naked) void draw_tess_tech_stub()
