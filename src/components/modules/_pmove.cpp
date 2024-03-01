@@ -303,16 +303,16 @@ namespace components
 				game::glob::cgs_addons.radiant_camera_client_time_old = command_time;
 			}
 
-			int div = 16; // assume 60hz
+			//int div = 16; // assume 60hz
 
-			if (const auto	refresh_rate = game::Dvar_FindVar("r_displayRefresh"); 
-							refresh_rate)
-			{
-				div = utils::extract_first_integer_from_string(refresh_rate->domain.enumeration.strings[refresh_rate->current.integer]);
-			}
+			//if (const auto	refresh_rate = game::Dvar_FindVar("r_displayRefresh"); 
+			//				refresh_rate)
+			//{
+			//	div = utils::extract_first_integer_from_string(refresh_rate->domain.enumeration.strings[refresh_rate->current.integer]);
+			//}
 
 			// we need the screen refreshrate to limit the packet-rate
-			refresh_rate_ms = 1000 / div;
+			refresh_rate_ms = static_cast<int>((1000u / game::cls->vidConfig.displayFrequency));
 		}
 		
 		// stock pmove
