@@ -79,6 +79,9 @@ namespace game
 	extern game::ComWorld*				com;
 	extern game::GfxWorld*				gfx_world;
 
+	extern game::server_t* sv;
+	extern game::serverStaticHeader_t* svs_header;
+
 	extern game::DObj_s*	objBuf;
 	extern std::uint16_t*	clientObjMap;
 	extern game::centity_s* cg_entitiesArray;
@@ -594,6 +597,8 @@ namespace game
 
 	void AxisToAngles(float* angles /*eax*/, const float(*axis)[3] /*ecx*/);
 
+	game::FxEffect* FX_SpawnOrientedEffect(const float* axis /*edx*/, game::FxEffectDef* def, int msec_begin, float* origin);
+	void FX_KillEffect(game::FxEffect* def);
 
 	// *
 	// cgaz - Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod)

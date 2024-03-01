@@ -87,27 +87,19 @@ namespace components
 				skysphere_spawn(5);
 			}
 
-			if (skysphere_is_model_valid())
+			const auto sky_valid = skysphere_is_valid();
+
+			if (!sky_valid)
 			{
-				/*ImGui::SameLine();
-				if (ImGui::Button("Toggle Sky"))
-				{
-					skysphere_toggle_vis();
-				}*/
+				ImGui::TextUnformatted("No valid sky found. Limited settings...");
+			}
 
-				
-				ImGui::PushItemWidth(90.0f);
-				ImGui::DragFloat("Sky Scale", &skysphere_scale, 0.01f, 1.0f, 10000.0f, "%.0f");
-				ImGui::PopItemWidth();
+			ImGui::PushItemWidth(90.0f);
+			ImGui::DragFloat("Sky Scale", &skysphere_scale, 0.01f, 1.0f, 10000.0f, "%.0f");
+			ImGui::PopItemWidth();
 
-				//ImGui::SameLine();
-				ImGui::Checkbox("Auto Rotation", &skysphere_auto_rotation);
-				ImGui::SameLine();
-
-				ImGui::PushItemWidth(90.0f);
-				ImGui::DragFloat("Speed", &skysphere_auto_rotation_speed, 0.01f, 0.01f, 10.0f, "%.2f");
-				ImGui::PopItemWidth();
-
+			if (sky_valid)
+			{
 				if (dvars::rtx_sky_follow_player)
 				{
 					ImGui::Checkbox("Follow player", &dvars::rtx_sky_follow_player->current.enabled);
@@ -122,6 +114,14 @@ namespace components
 				{
 					skysphere_update_pos();
 				}
+
+				//ImGui::SameLine();
+				ImGui::Checkbox("Auto Rotation", &skysphere_auto_rotation);
+				ImGui::SameLine();
+
+				ImGui::PushItemWidth(90.0f);
+				ImGui::DragFloat("Speed", &skysphere_auto_rotation_speed, 0.01f, 0.01f, 10.0f, "%.2f");
+				ImGui::PopItemWidth();
 			}
 
 			if (dvars::rtx_sky_hacks)
@@ -416,17 +416,17 @@ namespace components
 		}
 	}
 
-	// hide with
-	// rtx_skysphere_model->r.svFlags = 0x01;
-
-	// show with
-	// rtx_skysphere_model->r.svFlags = 0x04;
-
-	// called from r_set_frame_fog > daynight
+	// called from rtx::setup_rtx()
 	void rtx_gui::skysphere_frame()
 	{
-		if (skysphere_is_model_valid())
+		if (skysphere_is_valid())
 		{
+			if (dvars::rtx_sky_follow_player && dvars::rtx_sky_follow_player->current.enabled)
+			{
+				utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx_gui::skysphere_model_origin, 3);
+				rtx_gui::skysphere_update_pos();
+			}
+
 			if (skysphere_auto_rotation)
 			{
 				if (skysphere_model_rotation[1] >= 360.0f)
@@ -436,8 +436,15 @@ namespace components
 
 				const auto timescale = game::Dvar_FindVar("timescale")->current.value;
 
-				skysphere_model_rotation[1] += (float)game::glob::lpmove_server_frame_time * 0.0001f * skysphere_auto_rotation_speed * timescale;
-				game::G_SetAngles(skysphere_model, skysphere_model_rotation);
+				if (game::clc.demoplaying)
+				{
+					skysphere_model_rotation[1] += (float)game::cgs->frametime * 0.0001f * skysphere_auto_rotation_speed * timescale;
+				}
+				else
+				{
+					skysphere_model_rotation[1] += (float)game::glob::lpmove_server_frame_time * 0.0001f * skysphere_auto_rotation_speed * timescale;
+					game::G_SetAngles(skysphere_model, skysphere_model_rotation);
+				}
 			}
 		}
 	}
@@ -456,11 +463,15 @@ namespace components
 		}
 	}
 
-	bool rtx_gui::skysphere_is_model_valid()
+	bool rtx_gui::skysphere_is_valid()
 	{
-		// if not spawned an entity yet
-		if (!skysphere_spawned)
+		if (game::clc.demoplaying)
 		{
+			if (skysphere_model_fx)
+			{
+				return true;
+			}
+
 			return false;
 		}
 
@@ -476,6 +487,22 @@ namespace components
 
 	void rtx_gui::skysphere_update_pos()
 	{
+		if (game::clc.demoplaying && skysphere_model_fx)
+		{
+			game::vec4_t quat = {};
+			game::vec3_t axis[3] = {};
+			utils::vector::angles_to_axis(skysphere_model_rotation, axis);
+			utils::vector::axis_to_quat(axis, quat);
+
+			utils::vector::copy(game::clients->cgameOrigin, skysphere_model_fx->frameAtSpawn.origin, 4);
+			utils::vector::copy(quat,						skysphere_model_fx->frameAtSpawn.quat, 4);
+
+			utils::vector::copy(game::clients->cgameOrigin, skysphere_model_fx->frameNow.origin, 4);
+			utils::vector::copy(quat,						skysphere_model_fx->frameNow.quat, 4);
+
+			return;
+		}
+
 		if (skysphere_spawned)
 		{
 			skysphere_model->r.svFlags = 0x04; // visible
@@ -486,7 +513,7 @@ namespace components
 
 	void rtx_gui::skysphere_toggle_vis()
 	{
-		if (rtx_gui::skysphere_is_model_valid())
+		if (rtx_gui::skysphere_is_valid())
 		{
 			skysphere_model->r.svFlags = skysphere_model->r.svFlags == 0x04 ? 0x01 : 0x04;
 			game::G_SetOrigin(skysphere_model, skysphere_model_origin);
@@ -503,6 +530,18 @@ namespace components
 		skysphere_variant = variant;
 	}
 
+	void rtx_gui::skysphere_spawn_fx(int variant)
+	{
+		const auto fx = game::DB_FindXAssetHeader(game::XAssetType::ASSET_TYPE_FX, rtx_gui::skysphere_get_name_for_variant(variant)).fx;
+
+		if (fx)
+		{
+			game::vec3_t axis[3] = {};
+			utils::vector::angles_to_axis(skysphere_model_rotation, axis);
+			skysphere_model_fx = game::FX_SpawnOrientedEffect(axis[0], fx, 0, skysphere_model_origin);
+		}
+	}
+
 	/**
 	 * - [0] 'rtx_skysphere_oceanrock'
 	 * - [1] 'rtx_skysphere_desert'
@@ -513,7 +552,21 @@ namespace components
 	 */
 	void rtx_gui::skysphere_spawn(int variant)
 	{
-		if (skysphere_is_model_valid())
+		if (game::clc.demoplaying)
+		{
+			if (skysphere_model_fx)
+			{
+				game::FX_KillEffect(skysphere_model_fx);
+			}
+
+			skysphere_spawn_fx(variant);
+			return;
+		}
+
+		// #
+		// #
+
+		if (skysphere_is_valid())
 		{
 			skysphere_change_model(variant);
 			return;
@@ -526,7 +579,6 @@ namespace components
 		skysphere_model->model = model_index;
 		skysphere_model->s.index = model_index;
 		skysphere_model->r.svFlags = 0x04;
-		skysphere_model->r.linked = 0x1;
 
 		game::G_SetOrigin(skysphere_model, skysphere_model_origin);
 		game::G_SetAngles(skysphere_model, skysphere_model_rotation);
@@ -535,6 +587,13 @@ namespace components
 
 		skysphere_spawned = true;
 		skysphere_variant = variant;
+	}
+
+	void rtx_gui::skysphere_reset()
+	{
+		skysphere_spawned = false;
+		skysphere_model = nullptr;
+		skysphere_model_fx = nullptr;
 	}
 
 	rtx_gui::rtx_gui()

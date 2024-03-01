@@ -133,6 +133,11 @@ namespace utils
 			return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 		}
 
+		vec_t length_squared4(const vec4_t v)
+		{
+			return v[0] * v[0] + v[1] * v[1] + v[2] * v[2] + v[3] * v[3];
+		}
+
 		vec_t length2(const vec2_t v)
 		{
 			return sqrtf(length_squared2(v));
@@ -142,6 +147,8 @@ namespace utils
 		{
 			return sqrtf(length_squared3(v));
 		}
+
+		
 
 		vec_t distance_squared3(const vec3_t p1, const vec3_t p2)
 		{
@@ -627,6 +634,55 @@ namespace utils
 			(*axis)[6] = xz + yw;
 			(*axis)[7] = yz - xw;
 			(*axis)[8] = 1.0f - (xx + yy);
+		}
+
+		void axis_to_quat(const float(*mat)[3], float* out)
+		{
+			
+			float test[4][4] = {};
+
+			test[0][0] = (*mat)[5] - (*mat)[7];
+			test[0][1] = (*mat)[6] - (*mat)[2];
+			test[0][2] = (*mat)[1] - (*mat)[3];
+			test[0][3] = (*mat)[0] + (*mat)[4] + (*mat)[8] + 1.0f;
+
+			float test_size_sq = utils::vector::length_squared4(test[0]);
+			int best = 0;
+
+			if (test_size_sq < 1.0f)
+			{
+				test[1][0] = (*mat)[6] + (*mat)[2];
+				test[1][1] = (*mat)[7] + (*mat)[5];
+				test[1][2] = (*mat)[8] - (*mat)[4] - (*mat)[0] + 1.0f;
+				test[1][3] = test[0][2];
+
+				test_size_sq = utils::vector::length_squared4(test[1]);
+				best = 1;
+
+				if (test_size_sq < 1.0f)
+				{
+					test[2][0] = (*mat)[0] - (*mat)[4] - (*mat)[8] + 1.0f;
+					test[2][1] = (*mat)[3] + (*mat)[1];
+					test[2][2] = test[1][0];
+					test[2][3] = test[0][0];
+
+					test_size_sq = utils::vector::length_squared4(test[2]);
+					best = 2;
+
+					if (test_size_sq < 1.0f)
+					{
+						test[3][0] = test[2][1];
+						test[3][1] = (*mat)[4] - (*mat)[0] - (*mat)[8] + 1.0f;
+						test[3][2] = test[1][1];
+						test[3][3] = test[0][1];
+						test_size_sq = utils::vector::length_squared4(test[3]);
+						best = 3;
+					}
+				}
+			}
+
+			const auto inv_length = 1.0f / sqrt(test_size_sq);
+			utils::vector::scale4(test[best], inv_length, out);
 		}
 	}
 }

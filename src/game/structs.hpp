@@ -1911,6 +1911,14 @@ namespace game
 		PhysGeomList* physGeoms;
 	};
 
+	struct DObjModel_s
+	{
+		XModel* model;
+		unsigned __int16 boneName;
+		bool ignoreCollision;
+		char pad;
+	};
+
 	union XAnimIndices
 	{
 		char* _1;
@@ -2995,6 +3003,41 @@ namespace game
 	struct FxEffectDef_Placeholder
 	{
 		const char* name;
+	};
+
+	struct FxBoltAndSortOrder
+	{
+		unsigned __int32 dobjHandle : 12;
+		unsigned __int32 temporalBits : 2;
+		unsigned __int32 boneIndex : 10;
+		unsigned __int32 sortOrder : 8;
+	};
+
+	struct FxSpatialFrame
+	{
+		float quat[4];
+		float origin[3];
+	};
+
+
+	struct FxEffect
+	{
+		FxEffectDef_Placeholder* def;
+		volatile int status;
+		unsigned __int16 firstElemHandle[3];
+		unsigned __int16 firstSortedElemHandle;
+		unsigned __int16 firstTrailHandle;
+		unsigned __int16 randomSeed;
+		unsigned __int16 owner;
+		unsigned __int16 packedLighting;
+		FxBoltAndSortOrder boltAndSortOrder;
+		volatile int frameCount;
+		int msecBegin;
+		int msecLastUpdate;
+		FxSpatialFrame frameAtSpawn;
+		FxSpatialFrame frameNow;
+		FxSpatialFrame framePrev;
+		float distanceTraveled;
 	};
 
 	struct DynEntityDef
@@ -4898,6 +4941,9 @@ namespace game
 		float wallClockTime;
 	};
 
+	
+
+
 	struct svEntity_s
 	{
 		unsigned __int16 worldSector;
@@ -4952,6 +4998,39 @@ namespace game
 		char gametype[64];
 		bool killServer;
 		const char* killReason;
+	};
+
+	struct serverStaticHeader_t
+	{
+		client_t* clients;
+		int time;
+		int snapFlagServerBit;
+		int numSnapshotEntities;
+		int numSnapshotClients;
+		int nextSnapshotEntities;
+		int nextSnapshotClients;
+		entityState_s* snapshotEntities;
+		clientState_s* snapshotClients;
+		svEntity_s* svEntities;
+		float mapCenter[3];
+		archivedEntity_s* cachedSnapshotEntities;
+		cachedClient_s* cachedSnapshotClients;
+		char* archivedSnapshotBuffer;
+		cachedSnapshot_t* cachedSnapshotFrames;
+		int nextCachedSnapshotFrames;
+		int nextArchivedSnapshotFrames;
+		int nextCachedSnapshotEntities;
+		int nextCachedSnapshotClients;
+		int num_entities;
+		int maxclients;
+		int fps;
+		int clientArchive;
+		gentity_s* gentities;
+		int gentitySize;
+		clientState_s* firstClientState;
+		playerState_s* firstPlayerState;
+		int clientSize;
+		unsigned int pad[3];
 	};
 
 	struct GfxMatrix
@@ -5092,6 +5171,23 @@ namespace game
 	{
 		unsigned int renderFxFlags;
 		float materialTime;
+	};
+
+	enum leType_t
+	{
+		LE_MOVING_TRACER = 0x0,
+	};
+
+	struct localEntity_s
+	{
+		localEntity_s* prev;
+		localEntity_s* next;
+		leType_t leType;
+		int endTime;
+		trajectory_t pos;
+		float color[4];
+		float tracerClipDist;
+		GfxEntity refEntity;
 	};
 
 	struct FxMarkMeshData

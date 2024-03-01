@@ -44,11 +44,7 @@ namespace components
 			rtx::player_origin_model();
 		}
 
-		if (dvars::rtx_sky_follow_player && dvars::rtx_sky_follow_player->current.enabled)
-		{
-			utils::vector::copy(game::cgs->predictedPlayerState.origin, rtx_gui::skysphere_model_origin, 3);
-			rtx_gui::skysphere_update_pos();
-		}
+		rtx_gui::skysphere_frame();
 
 		if (!flags::has_flag("no_fog"))
 		{
@@ -783,17 +779,14 @@ namespace components
 	// > _map::init_fixed_function_buffers_stub
 	void rtx::on_map_load()
 	{
-		if (!game::clc.demoplaying)
-		{
-			rtx_map_settings::get()->set_settings_for_loaded_map();
-		}
-		
+		rtx_map_settings::get()->set_settings_for_loaded_map();
 		rtx::set_dvars_defaults_on_mapload();
 	}
 
 	// > fixed_function::free_fixed_function_buffers_stub
 	void rtx::on_map_shutdown()
 	{
+		rtx_gui::skysphere_reset();
 	}
 
 	rtx::rtx()
@@ -851,13 +844,13 @@ namespace components
 		// *
 		// allow 4k images (skysphere)
 
-		// set img alloc size from 0x600000 to 0x1000000
+		// set img alloc size from 0x600000 to 0x2000000
 		utils::hook::set<BYTE>(0x641CC7 + 3, 0x00);
-		utils::hook::set<BYTE>(0x641CC7 + 4, 0x01);
+		utils::hook::set<BYTE>(0x641CC7 + 4, 0x02);
 
 		// ^ cmp -> error if image larger
 		utils::hook::set<BYTE>(0x641C89 + 3, 0x00);
-		utils::hook::set<BYTE>(0x641C89 + 4, 0x01);
+		utils::hook::set<BYTE>(0x641C89 + 4, 0x02);
 
 		// dxvk's 'EnumAdapterModes' returns a lot of duplicates and the games array only has a capacity of 256 which is not enough depending on max res. and refreshrate
 		// fix resolution issues by removing duplicates returned by EnumAdapterModes - then write the array ourselfs

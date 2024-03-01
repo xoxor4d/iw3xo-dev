@@ -54,6 +54,7 @@ namespace utils
 
 		vec_t	length_squared2(const vec2_t v);
 		vec_t	length_squared3(const vec3_t v);
+		vec_t	length_squared4(const vec4_t v);
 		vec_t	length2(const vec2_t v);
 		vec_t	length3(const vec3_t v);
 
@@ -96,6 +97,7 @@ namespace utils
 		void	create_rotation_matrix(const vec3_t angles, vec3_t matrix[3]);
 		void	rotate_point(vec3_t point, vec3_t matrix[3]);
 		void	unit_quat_to_axis(const float* quat, float(*axis)[3]);
+		void	axis_to_quat(const float(*mat)[3], float* out);
 
 		class vec4
 		{

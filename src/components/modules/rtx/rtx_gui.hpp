@@ -11,11 +11,13 @@ namespace components
 		static void gui();
 
 		static void skysphere_frame();
-		static bool skysphere_is_model_valid();
+		static bool skysphere_is_valid();
 		static void skysphere_update_pos();
 		static void skysphere_toggle_vis();
 		static void skysphere_change_model(int variant);
+		static void skysphere_spawn_fx(int variant);
 		static void skysphere_spawn(int variant = 0);
+		static void skysphere_reset();
 
 		static inline game::vec3_t skysphere_model_origin = {};
 		static inline game::vec3_t skysphere_model_rotation = {};
@@ -30,6 +32,7 @@ namespace components
 		static inline bool skysphere_spawned = false;
 		static inline int skysphere_variant = 0;
 		static inline game::gentity_s* skysphere_model = nullptr;
+		static inline game::FxEffect* skysphere_model_fx = nullptr; // used in demos
 
 		static void map_materials_update();
 		static inline std::string map_materials;

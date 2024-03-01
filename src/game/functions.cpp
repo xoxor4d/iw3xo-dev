@@ -73,6 +73,9 @@ namespace game
 	game::ComWorld*				com = reinterpret_cast<game::ComWorld*>(0x1435CB8);
 	game::GfxWorld*				gfx_world = reinterpret_cast<game::GfxWorld*>(0xD0701E0);
 
+	game::server_t* sv = reinterpret_cast<game::server_t*>(0x17FC7C8);
+	game::serverStaticHeader_t* svs_header = reinterpret_cast<game::serverStaticHeader_t*>(0xCAE3A80);
+
 	game::DObj_s* objBuf = reinterpret_cast<game::DObj_s*>(0x1477F30);
 	std::uint16_t* clientObjMap = reinterpret_cast<std::uint16_t*>(0x14A9F30);
 	game::centity_s* cg_entitiesArray = reinterpret_cast<game::centity_s*>(0x84F2D8);
@@ -1658,6 +1661,36 @@ namespace game
 			popad;
 		}
 	}
+
+	game::FxEffect* FX_SpawnOrientedEffect(const float* axis /*edx*/, game::FxEffectDef* def, int msec_begin, float* origin)
+	{
+		const static uint32_t func_addr = 0x4A14B0;
+		__asm
+		{
+			push	origin;
+			push	msec_begin;
+			push	def;
+			mov     ecx, 1023; // markentnum
+			mov		edx, axis;
+			call	func_addr;
+			add		esp, 12;
+		}
+	}
+
+	void FX_KillEffect(game::FxEffect* def)
+	{
+		const static uint32_t func_addr = 0x4A1BA0;
+		__asm
+		{
+			pushad;
+			push	def;
+			mov     eax, [0x115D100]; // fx_systemPool
+			call	func_addr;
+			add		esp, 4;
+			popad;
+		}
+	}
+
 
 	// *
 	// cgaz - Port from mDd client Proxymod (https://github.com/Jelvan1/cgame_proxymod)

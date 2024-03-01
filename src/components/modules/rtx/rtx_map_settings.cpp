@@ -39,7 +39,7 @@ namespace components
 				m_max_distance = 5000.0f;
 				m_color.packed = D3DCOLOR_XRGB(200, 200, 220);
 
-				if (!flags::has_flag("no_default_sky") && !rtx_gui::skysphere_is_model_valid())
+				if (!flags::has_flag("no_default_sky") && !rtx_gui::skysphere_is_valid())
 				{
 					rtx_gui::skysphere_spawn(5); // always spawn sunset
 				}
