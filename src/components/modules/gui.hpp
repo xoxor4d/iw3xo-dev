@@ -29,6 +29,9 @@ namespace components
 		//static void Markdown(const std::string& markdown_);
 		static void markdown(const char* str, const char* str_end);
 
+		static void center_horz_begin(const float group_width, float indent = 4.0f);
+		static void center_horz_end(float& group_width);
+
 		static game::gui_menus_t& get_menu(game::GUI_MENUS id);
 
 		// *

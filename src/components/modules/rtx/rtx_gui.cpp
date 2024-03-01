@@ -52,58 +52,95 @@ namespace components
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-			if (ImGui::Button("Hill"))
-			{
-				skysphere_spawn(0);
-			}
-
-			ImGui::SameLine();
-			if (ImGui::Button("Desert"))
-			{
-				skysphere_spawn(1);
-			}
-
-			ImGui::SameLine();
-			if (ImGui::Button("City"))
-			{
-				skysphere_spawn(2);
-			}
-
-			ImGui::SameLine();
-			if (ImGui::Button("Night"))
-			{
-				skysphere_spawn(3);
-			}
-
-			ImGui::SameLine();
-			if (ImGui::Button("Overcast"))
-			{
-				skysphere_spawn(4);
-			}
-
-			ImGui::SameLine();
-			if (ImGui::Button("Sunset"))
-			{
-				skysphere_spawn(5);
-			}
-
 			const auto sky_valid = skysphere_is_valid();
+			constexpr auto BUTTON_WIDTH = 100.0f;
 
-			if (!sky_valid)
+			static float skygroup01_width = 0.0f;
+			gui::center_horz_begin(skygroup01_width);
 			{
-				ImGui::TextUnformatted("No valid sky found. Limited settings...");
+				if (ImGui::Button("Hill", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::CLEAR);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Desert", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::DESERT);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Night", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::NIGHT);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Night 2", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::NIGHT2);
+				}
+
+				gui::center_horz_end(skygroup01_width);
 			}
 
-			ImGui::PushItemWidth(90.0f);
-			ImGui::DragFloat("Sky Scale", &skysphere_scale, 0.01f, 1.0f, 10000.0f, "%.0f");
-			ImGui::PopItemWidth();
+			static float skygroup02_width = 0.0f;
+			gui::center_horz_begin(skygroup02_width);
+			{
+				if (ImGui::Button("Overcast", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::OVERCAST);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Sunset", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::SUNSET);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Galaxy 1", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::GALAXY1);
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Galaxy 2", ImVec2(BUTTON_WIDTH, 0)))
+				{
+					skysphere_spawn(SKY::GALAXY2);
+				}
+
+				gui::center_horz_end(skygroup02_width);
+			}
+
+			static float skygroup03_width = 0.0f;
+			gui::center_horz_begin(skygroup03_width);
+			{
+				SPACING(4.0f, 0);
+
+				if (!sky_valid)
+				{
+					ImGui::TextUnformatted("No valid sky found. Limited settings...");
+				}
+
+				ImGui::PushItemWidth(90.0f);
+				ImGui::DragFloat("Sky Scale", &skysphere_scale, 0.01f, 1.0f, 10000.0f, "%.0f");
+				ImGui::PopItemWidth();
+
+				if (sky_valid)
+				{
+					if (dvars::rtx_sky_follow_player)
+					{
+						ImGui::SameLine(0, 30.0f);
+						ImGui::Checkbox("Follow player", &dvars::rtx_sky_follow_player->current.enabled);
+					}
+				}
+				gui::center_horz_end(skygroup03_width);
+			}
 
 			if (sky_valid)
 			{
-				if (dvars::rtx_sky_follow_player)
-				{
-					ImGui::Checkbox("Follow player", &dvars::rtx_sky_follow_player->current.enabled);
-				}
+				SPACING(4.0f, 0);
 
 				if (ImGui::DragFloat3("Sphere Origin", rtx_gui::skysphere_model_origin, 1.0f, -360.0f, 360.0f, "%.2f"))
 				{
@@ -449,18 +486,14 @@ namespace components
 		}
 	}
 
-	const char* rtx_gui::skysphere_get_name_for_variant(int variant)
+	const char* rtx_gui::skysphere_get_name_for_variant(std::uint32_t variant)
 	{
-		switch (variant)
+		if (variant > SKY::COUNT)
 		{
-		default:
-		case 0: return "rtx_skysphere_oceanrock";
-		case 1: return "rtx_skysphere_desert";
-		case 2: return "rtx_skysphere_overcast_city";
-		case 3: return "rtx_skysphere_night";
-		case 4: return "rtx_skysphere_overcast";
-		case 5: return "rtx_skysphere_sunset_clouds";
+			return SKY_STRINGS[SKY::SUNSET];
 		}
+
+		return SKY_STRINGS[variant];
 	}
 
 	bool rtx_gui::skysphere_is_valid()
@@ -542,14 +575,7 @@ namespace components
 		}
 	}
 
-	/**
-	 * - [0] 'rtx_skysphere_oceanrock'
-	 * - [1] 'rtx_skysphere_desert'
-	 * - [2] 'rtx_skysphere_overcast_city'
-	 * - [3] 'rtx_skysphere_night'
-	 * - [4] 'rtx_skysphere_overcast'
-	 * - [5] 'rtx_skysphere_sunset_clouds'
-	 */
+	// rtx_gui::SKY enum
 	void rtx_gui::skysphere_spawn(int variant)
 	{
 		if (game::clc.demoplaying)

@@ -139,6 +139,26 @@ namespace components
 		s_printer.print(str, str_end);
 	}
 
+	void gui::center_horz_begin(const float group_width, float indent)
+	{
+		if (group_width != 0.0f)
+		{
+			// floorf to ensure no half pixel offsets (image 1px borders)
+			ImGui::SetCursorPosX(floorf((ImGui::GetWindowWidth() - ImGui::GetCursorPos().x) * 0.5f - (group_width * 0.5f) + indent));
+		}
+
+		ImGui::BeginGroup();
+	}
+
+	void gui::center_horz_end(float& group_width)
+	{
+		ImGui::EndGroup();
+
+		// only update group width if change is larger then 1px because floorf in 'center_horz_begin' causes a wiggle
+		const float new_width = ImGui::GetItemRectSize().x;
+		group_width = abs(group_width - new_width) != 1.0f ? new_width : group_width;
+	}
+
 	void gui::redraw_cursor()
 	{
 		float cur_w = (1.0f * game::scrPlaceFull->scaleVirtualToReal[0]) / game::scrPlaceFull->scaleVirtualToFull[0];

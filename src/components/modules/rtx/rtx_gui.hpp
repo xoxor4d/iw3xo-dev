@@ -10,6 +10,31 @@ namespace components
 
 		static void gui();
 
+		enum SKY : std::uint32_t
+		{
+			CLEAR,
+			DESERT,
+			GALAXY1,
+			NIGHT,
+			OVERCAST,
+			SUNSET,
+			GALAXY2,
+			NIGHT2,
+			COUNT,
+		};
+
+		static inline constexpr const char* SKY_STRINGS[] =
+		{
+			"rtx_skysphere_oceanrock",
+			"rtx_skysphere_desert",
+			"rtx_skysphere_galaxy01",
+			"rtx_skysphere_night",
+			"rtx_skysphere_overcast",
+			"rtx_skysphere_sunset_clouds",
+			"rtx_skysphere_galaxy02",
+			"rtx_skysphere_night02"
+		};
+
 		static void skysphere_frame();
 		static bool skysphere_is_valid();
 		static void skysphere_update_pos();
@@ -28,7 +53,7 @@ namespace components
 		static inline int d3d_alpha_blend = 4;
 
 	private:
-		static const char* skysphere_get_name_for_variant(int variant);
+		static const char* skysphere_get_name_for_variant(std::uint32_t variant);
 		static inline bool skysphere_spawned = false;
 		static inline int skysphere_variant = 0;
 		static inline game::gentity_s* skysphere_model = nullptr;

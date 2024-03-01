@@ -41,7 +41,7 @@ namespace components
 
 				if (!flags::has_flag("no_default_sky") && !rtx_gui::skysphere_is_valid())
 				{
-					rtx_gui::skysphere_spawn(5); // always spawn sunset
+					rtx_gui::skysphere_spawn(rtx_gui::SKY::SUNSET); // always spawn sunset
 				}
 			}
 		}
