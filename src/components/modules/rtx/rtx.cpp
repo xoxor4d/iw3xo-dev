@@ -844,13 +844,14 @@ namespace components
 		// *
 		// allow 4k images (skysphere)
 
-		// set img alloc size from 0x600000 to 0x2000000
+		// set img alloc size from 0x600000 to 0x3000000
 		utils::hook::set<BYTE>(0x641CC7 + 3, 0x00);
-		utils::hook::set<BYTE>(0x641CC7 + 4, 0x02);
+		utils::hook::set<BYTE>(0x641CC7 + 4, 0x03);
 
 		// ^ cmp -> error if image larger
 		utils::hook::set<BYTE>(0x641C89 + 3, 0x00);
-		utils::hook::set<BYTE>(0x641C89 + 4, 0x02);
+		utils::hook::set<BYTE>(0x641C89 + 4, 0x03);
+		//utils::hook::set<BYTE>(0x641C8F, 0xEB); // disable warning completely
 
 		// dxvk's 'EnumAdapterModes' returns a lot of duplicates and the games array only has a capacity of 256 which is not enough depending on max res. and refreshrate
 		// fix resolution issues by removing duplicates returned by EnumAdapterModes - then write the array ourselfs
