@@ -60,7 +60,10 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		VirtualProtect(GetModuleHandle(nullptr), 0xD536000, PAGE_EXECUTE_READWRITE, &oldProtect);
 
 		main::entry_point_hook_.initialize(0x67493C, entry_point)->install();
+
+#if !DEBUG
 		FreeConsole();
+#endif
 
 		// load additional libaries from '\iw3xo\bin\'
 		load_addon_libaries();

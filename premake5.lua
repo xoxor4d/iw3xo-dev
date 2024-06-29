@@ -230,7 +230,7 @@ workspace "iw3xo-dev"
     cppdialect "C++latest"
 	systemversion "latest"
     symbols "On"
-    staticruntime "On"
+    --staticruntime "On"
 
 	disablewarnings {
 		"4100",
@@ -241,7 +241,8 @@ workspace "iw3xo-dev"
 	}
 
 	defines { 
-        "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" 
+        "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS",
+		"_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS"
     }
 
 	filter "platforms:Win*"
@@ -283,6 +284,7 @@ workspace "iw3xo-dev"
     
 	project "iw3x"
 		kind "SharedLib"
+		staticruntime "Off"
 		language "C++"
 
 		linkoptions {

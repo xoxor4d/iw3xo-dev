@@ -36,6 +36,9 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
+#pragma comment(lib, "rpclib86.lib")
+
+#include "rpc/client.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -69,7 +72,7 @@
 #define STATIC_ASSERT_SIZE(struct, size)				static_assert(sizeof(struct) == size, "Size check")
 #define STATIC_ASSERT_OFFSET(struct, member, offset)	static_assert(offsetof(struct, member) == offset, "Offset check")
 
-#define DEBUG_PRINT(_MSG) if constexpr (DEBUG) { OutputDebugStringA(_MSG); } //{ game::Com_PrintMessage(0, _MSG, 0); }
+#define DEBUG_PRINT(_MSG) if constexpr (DEBUG) { OutputDebugStringA(_MSG); std::cout << _MSG; }
 
 #include <glm.hpp>
 #include <imgui.h>

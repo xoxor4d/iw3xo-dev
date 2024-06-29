@@ -50,6 +50,7 @@ namespace components
 		}
 
 		active.rtx					= activate_rtx;
+		active.rtx_api				= activate_rtx;
 		active.rtx_fixed_function	= activate_rtx;
 		active.rtx_gui				= activate_rtx;
 		active.rtx_lights			= activate_rtx;
@@ -87,6 +88,7 @@ namespace components
 		REGISTER_MODULE(postfx_shaders);
 		REGISTER_MODULE(radiant_livelink);
 		REGISTER_MODULE(rtx);
+		REGISTER_MODULE(rtx_api);
 		REGISTER_MODULE(rtx_fixed_function);
 		REGISTER_MODULE(rtx_gui);
 		REGISTER_MODULE(rtx_lights);
@@ -109,7 +111,10 @@ namespace components
 	{
 		if (component)
 		{
-			game::glob::loaded_modules.append(utils::va("Component registered: %s\n", component->get_name()));
+			const auto name = component->get_name();
+			game::glob::loaded_modules.append(utils::va("Component registered: %s\n", name));
+
+			DEBUG_PRINT(utils::va("[Component] %s\n", name));
 			loader::components_.push_back(component);
 		}
 	}

@@ -36,6 +36,7 @@ namespace components
 		bool postfx_shaders;
 		bool radiant_livelink;
 		bool rtx;
+		bool rtx_api;
 		bool rtx_fixed_function;
 		bool rtx_gui;
 		bool rtx_lights;
@@ -103,6 +104,7 @@ namespace components
 #include "modules/radiant_livelink.hpp"
 #include "modules/window.hpp"
 #include "modules/rtx/rtx.hpp"
+#include "modules/rtx/rtx_api.hpp"
 #include "modules/rtx/rtx_fixed_function.hpp"
 #include "modules/rtx/rtx_gui.hpp"
 #include "modules/rtx/rtx_lights.hpp"

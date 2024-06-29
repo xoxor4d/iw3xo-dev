@@ -5,10 +5,12 @@ namespace components
 	// on renderer initialization
 	void print_loaded_modules()
 	{
+#if !DEBUG
 		ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
 
-
-		game::Com_PrintMessage(0, utils::va("-------------- Loaded Modules -------------- \n%s\n", game::glob::loaded_modules.c_str()), 0);
+		const auto module_str = utils::va("-------------- Loaded Modules -------------- \n%s\n", game::glob::loaded_modules.c_str());
+		game::Com_PrintMessage(0, module_str, 0);
 
 		// add FS Path output print
 		if (const auto& dedicated = game::Dvar_FindVar("dedicated"); 
