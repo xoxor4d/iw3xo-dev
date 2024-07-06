@@ -84,6 +84,8 @@ namespace components
 
 		static inline int d3d_alpha_blend = 4;
 
+		static inline uint64_t light_handles[2];
+
 	private:
 		static const char* skysphere_get_name_for_variant(std::uint32_t variant);
 		static inline bool skysphere_spawned = false;

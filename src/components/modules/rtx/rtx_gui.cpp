@@ -555,6 +555,8 @@ namespace components
 		{
 			if (ImGui::CollapsingHeader("DEV", ImGuiTreeNodeFlags_None))
 			{
+				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
+
 				static game::FxEffect* marker_test = nullptr;
 				if (ImGui::Button("Spawn Marker FX"))
 				{
@@ -572,6 +574,71 @@ namespace components
 						game::FX_KillEffect(marker_test);
 					}
 				}
+
+				// -------------------
+				gui::title_inside_seperator("Bridge API", true, 0.0f, true, 2.0f);
+
+				const auto interf = rtx_api::bridge;
+				ImGui::Text("Api Initialized: %s", (interf.initialized ? "true" : "false"));
+
+				if (!interf.initialized && ImGui::Button("Initialize Api"))
+				{
+					rtx_api::init();
+				}
+
+				bool was_modified = false;
+				static game::vec3_t light_positions[2] = {};
+				static game::vec3_t light_radiances[2] = {};
+				static bool light_anim[2] = {};
+				static int light_selection = 0;
+
+				if (interf.initialized)
+				{
+					if (ImGui::SliderInt("Light Selector", &light_selection, 0, 1))
+					{
+						light_selection = light_selection < 0 ? 0 : light_selection;
+						light_selection = light_selection > 1 ? 1 : light_selection;
+					}
+
+					was_modified = ImGui::DragFloat3("Light Position", light_positions[light_selection], 0.25f, -2000.0f, 2000.0f, "%.0f") ? true : was_modified;
+					was_modified = ImGui::SliderFloat3("Light Radiance", light_radiances[light_selection], 0.0f, 5000.0f, "%.0f") ? true : was_modified;
+					was_modified = ImGui::Checkbox("Animate Light", &light_anim[light_selection]) ? true : was_modified;
+
+					static float anim_speed = 1.0f;
+					ImGui::SliderFloat("Animation Speed", &anim_speed, 0.1f, 20.0f, "%.1f");
+
+					float anim = 1.0f;
+					if (light_anim[light_selection])
+					{
+						const auto t = sinf(game::scene->def.floatTime * anim_speed) + 1.0f;
+						//anim = t < 0.5f ? 2 * t : 2 * (1.0f - t);
+						anim = t * 0.5f;
+						was_modified = true;
+					}
+
+					if (ImGui::Button(utils::va("Create/Update Light #%d", light_selection)) || was_modified)
+					{
+						rtx_api::create_sphere_light(
+							&light_handles[light_selection],
+							light_selection + 1,
+							light_positions[light_selection][0],
+							light_positions[light_selection][1],
+							light_positions[light_selection][2],
+							(light_radiances[light_selection][0] * anim) < 0.0f ? 0.0f : (light_radiances[light_selection][0] * anim),
+							light_radiances[light_selection][1],
+							light_radiances[light_selection][2]);
+					}
+
+					if (light_handles[light_selection])
+					{
+						if (ImGui::Button(utils::va("Destroy Light #%d", light_selection)))
+						{
+							rtx_api::destroy_light(&light_handles[light_selection]);
+						}
+					}
+				}
+
+				ImGui::Indent(-8.0f); SPACING(0.0f, 12.0f);
 			}
 		}
 	}
