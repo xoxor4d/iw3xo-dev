@@ -557,8 +557,8 @@ namespace components
 			{
 				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-				// -------------------
-				gui::title_inside_seperator("Bridge API", true, 0.0f, true, 2.0f);
+				// #
+				// api vars
 
 				const auto interf = rtx_api::bridge;
 				//ImGui::Text("API Status: %s", (interf.initialized ? "Initialized" : "Needs Initialization"));
@@ -605,6 +605,12 @@ namespace components
 					light_shaping[1].coneAngleDegrees = 80.0f;
 					init_once = true;
 				}
+
+				// mesh vars
+
+
+				// -------------------
+				gui::title_inside_seperator("Bridge API - Lights", true, 0.0f, true, 2.0f);
 
 				if (interf.initialized)
 				{
@@ -875,6 +881,60 @@ namespace components
 					else
 					{
 						ImGui::Text("Status: Not spawned or failed to spawn.");
+					}
+				}
+
+				// -------------------
+				gui::title_inside_seperator("Bridge API - Mesh", true, 0.0f, true, 2.0f);
+
+				if (interf.initialized)
+				{
+					if (ImGui::Button("Create Triangle"))
+					{
+						auto makeVertex = [&](float x, float y, float z) {
+							x86::remixapi_HardcodedVertex v =
+							{
+							  .position = {x,y,z},
+							  .normal = {0,0,-1},
+							  .texcoord = {0,0},
+							  .color = 0xFFFFFFFF,
+							};
+							return v;
+							};
+
+						x86::remixapi_HardcodedVertex verts[] = {
+							makeVertex(30, -30, 6),
+							makeVertex(0, 30, 6),
+							makeVertex(-30, -30, 6),
+						};
+
+						x86::remixapi_MeshInfoSurfaceTriangles triangles = {
+						  .vertices_values = verts,
+						  .vertices_count = ARRAYSIZE(verts),
+						  .indices_values = nullptr,
+						  .indices_count = 0,
+						  .skinning_hasvalue = FALSE,
+						  //.skinning_value = { 0 },
+						  .material = nullptr,
+						};
+
+						x86::remixapi_MeshInfo i = {
+						  .sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
+						  .hash = mesh_handle ? mesh_handle : 0xDEAD,
+						  .surfaces_values = &triangles,
+						  .surfaces_count = 1,
+						};
+
+						mesh_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+					}
+
+					if (mesh_handle)
+					{
+						ImGui::DragFloat4("Transform X", mesh_transform.matrix[0], 0.05f);
+						ImGui::DragFloat4("Transform Y", mesh_transform.matrix[1], 0.05f);
+						ImGui::DragFloat4("Transform Z", mesh_transform.matrix[2], 0.05f);
+						ImGui::Checkbox("Double Sided", &mesh_double_sided);
+						ImGui::Text("Mesh spawned!");
 					}
 				}
 

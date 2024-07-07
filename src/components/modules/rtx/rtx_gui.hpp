@@ -84,7 +84,10 @@ namespace components
 
 		static inline int d3d_alpha_blend = 4;
 
-		static inline uint64_t light_handles[2];
+		static inline uint64_t light_handles[2] = {};
+		static inline uint64_t mesh_handle = 0;
+		static inline x86::remixapi_Transform mesh_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,0}} };
+		static inline bool mesh_double_sided = true;
 
 	private:
 		static const char* skysphere_get_name_for_variant(std::uint32_t variant);
