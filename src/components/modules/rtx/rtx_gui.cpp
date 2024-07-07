@@ -587,6 +587,10 @@ namespace components
 				static float rect_yScale[2] = { 1.0f, 1.0f };
 				static game::vec3_t rect_direction[2] = { { 1, 0, 0 }, { 1, 0, 0 } };
 
+				// distant
+				static game::vec3_t distant_direction[2] = { { 0.0f, 0.3f, -0.7f }, { 0.0f, 0.3f, -0.7f } };
+				static float distant_angularDiaDeg[2] = { 0.1f, 0.1f };
+
 				// shaping and anim
 				static x86::remixapi_LightInfoLightShaping light_shaping[2] = {};
 
@@ -608,40 +612,55 @@ namespace components
 					{
 						ls = ls < 0 ? 0 : ls;
 						ls = ls > 1 ? 1 : ls;
-					}
+					} TT("Index of the light to be edited")
 
-					was_modified = ImGui::SliderInt("Light Type", (int*)&light_types[ls], 2, 4, light_types_str[light_types[ls]]) ? true : was_modified;
+					was_modified = ImGui::SliderInt("Light Type", (int*)&light_types[ls], 0, 4, light_types_str[light_types[ls]]) ? true : was_modified;
 
 					SPACING(0,4);
 
 					// lamdas
 					auto get_type = [&] { return light_types[ls]; };
 
-					if (ImGui::Button("Move to player"))
+					if (get_type() != DISTANT)
 					{
-						utils::vector::copy(game::cgs->predictedPlayerState.origin, light_positions[ls], 3);
-						light_positions[ls][2] += game::cgs->predictedPlayerState.viewHeightCurrent;
-						was_modified = true;
-					}
+						if (ImGui::Button("Move to player"))
+						{
+							utils::vector::copy(game::cgs->predictedPlayerState.origin, light_positions[ls], 3);
+							light_positions[ls][2] += game::cgs->predictedPlayerState.viewHeightCurrent;
+							was_modified = true;
+						}
 
-					was_modified = ImGui::DragFloat3("Light Position", light_positions[ls], 0.25f, -2000.0f, 2000.0f, "%.0f") ? true : was_modified;
-					was_modified = ImGui::SliderFloat3("Light Radiance", light_radiances[ls], 0.0f, 10000.0f, "%.0f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Position", light_positions[ls], 0.25f, -2000.0f, 2000.0f, "%.0f") ? true : was_modified;
+					}
+					
+					was_modified = ImGui::SliderFloat3("Radiance", light_radiances[ls], 0.0f, 10000.0f, "%.0f") ? true : was_modified;
 
 					if (get_type() == SPHERE)
 					{
-						was_modified = ImGui::SliderFloat("Light Radius", &light_radii[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Radius", &light_radii[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
 					}
 					else if (get_type() == RECT)
 					{
-						was_modified = ImGui::SliderFloat("Rect xScale", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
-						was_modified = ImGui::SliderFloat("Rect yScale", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
-						was_modified = ImGui::DragFloat3("Rect Direction", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("xScale", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("yScale", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Direction", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
 					}
 					else if (get_type() == DISK)
 					{
-						was_modified = ImGui::SliderFloat("Disk xRadius", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
-						was_modified = ImGui::SliderFloat("Disk yRadius", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
-						was_modified = ImGui::DragFloat3("Disk Direction", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("xRadius", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("yRadius", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Direction", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+					}
+					else if (get_type() == CYLINDER)
+					{
+						was_modified = ImGui::SliderFloat("Radius", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Axis", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Axis Length", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+					}
+					else if (get_type() == DISTANT)
+					{
+						was_modified = ImGui::SliderFloat("Angular Dia. Deg.", &distant_angularDiaDeg[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Direction", (float*)&distant_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
 					}
 
 					SPACING(0, 4);
@@ -789,12 +808,67 @@ namespace components
 							rtx_api::create_disk_light(&light_handles[ls], &l, &d);
 						}
 					}
+					else if (get_type() == CYLINDER)
+					{
+						if (ImGui::Button(utils::va("Create/Update Cylinder Light #%d", ls)) || was_modified)
+						{
+							x86::remixapi_LightInfo l = {};
+							{
+								l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+								l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
+								l.radiance =
+								{
+									light_radiances[ls][0] * anim < 0.0f ? 0.0f : light_radiances[ls][0] * anim,
+									light_radiances[ls][1],
+									light_radiances[ls][2]
+								};
+							}
+
+							x86::remixapi_LightInfoCylinderEXT cy = {};
+							{
+								cy.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_CYLINDER_EXT;
+								cy.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
+								cy.radius = rect_xScale[ls];
+								utils::vector::normalize_to(&rect_direction[ls][0], (float*)&cy.axis);
+								cy.axisLength = rect_yScale[ls];
+							}
+
+							rtx_api::create_cylinder_light(&light_handles[ls], &l, &cy);
+						}
+					}
+					else if (get_type() == DISTANT)
+					{
+						if (ImGui::Button(utils::va("Create/Update Distant Light #%d", ls)) || was_modified)
+						{
+							x86::remixapi_LightInfo l = {};
+							{
+								l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+								l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
+								l.radiance =
+								{
+									light_radiances[ls][0] * anim < 0.0f ? 0.0f : light_radiances[ls][0] * anim,
+									light_radiances[ls][1],
+									light_radiances[ls][2]
+								};
+							}
+
+							x86::remixapi_LightInfoDistantEXT d = {};
+							{
+								d.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;
+								utils::vector::normalize_to(&distant_direction[ls][0], (float*)&d.direction);
+								d.angularDiameterDegrees = distant_angularDiaDeg[ls];
+							}
+
+							rtx_api::create_distant_light(&light_handles[ls], &l, &d);
+						}
+					}
 					
 					ImGui::SameLine();
 					if (light_handles[ls])
 					{
 						if (ImGui::Button(utils::va("Destroy Light #%d", ls)))
 						{
+							light_anim[ls] = false;
 							rtx_api::destroy_light(&light_handles[ls]);
 						}
 					}

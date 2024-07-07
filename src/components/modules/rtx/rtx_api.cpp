@@ -76,6 +76,44 @@ namespace components
 		return true;
 	}
 
+	bool rtx_api::create_cylinder_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoCylinderEXT* cy)
+	{
+		CHECK_INIT(false);
+		if (!in_out_handle)
+		{
+			return false;
+		}
+
+		if (*in_out_handle)
+		{
+			bridge.DestroyLight(*in_out_handle);
+		}
+
+		*in_out_handle = bridge.CreateCylinderLight(l, cy);
+		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
+
+		return true;
+	}
+
+	bool rtx_api::create_distant_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoDistantEXT* d)
+	{
+		CHECK_INIT(false);
+		if (!in_out_handle)
+		{
+			return false;
+		}
+
+		if (*in_out_handle)
+		{
+			bridge.DestroyLight(*in_out_handle);
+		}
+
+		*in_out_handle = bridge.CreateDistantLight(l, d);
+		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
+
+		return true;
+	}
+
 	bool rtx_api::destroy_light(uint64_t* in_out_handle)
 	{
 		CHECK_INIT(false);

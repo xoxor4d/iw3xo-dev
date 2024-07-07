@@ -126,6 +126,58 @@ extern "C" {
       remixapi_LightInfoLightShaping shaping_value;
     } remixapi_LightInfoSphereEXT;
 
+    typedef struct remixapi_LightInfoRectEXT {
+      remixapi_StructType            sType;
+      //void* pNext;
+      remixapi_Float3D               position;
+      // The X axis of the Rect Light. Must be normalized and orthogonal to the Y and direction axes.
+      remixapi_Float3D               xAxis;
+      float                          xSize;
+      // The Y axis of the Rect Light. Must be normalized and orthogonal to the X and direction axes.
+      remixapi_Float3D               yAxis;
+      float                          ySize;
+      // The direction the Rect Light is pointing in, should match the Shaping direction if present.
+      // Must be normalized and orthogonal to the X and Y axes.
+      remixapi_Float3D               direction;
+      remixapi_Bool                  shaping_hasvalue;
+      remixapi_LightInfoLightShaping shaping_value;
+    } remixapi_LightInfoRectEXT;
+
+    typedef struct remixapi_LightInfoDiskEXT {
+      remixapi_StructType            sType;
+      //void* pNext;
+      remixapi_Float3D               position;
+      // The X axis of the Disk Light. Must be normalized and orthogonal to the Y and direction axes.
+      remixapi_Float3D               xAxis;
+      float                          xRadius;
+      // The Y axis of the Disk Light. Must be normalized and orthogonal to the X and direction axes.
+      remixapi_Float3D               yAxis;
+      float                          yRadius;
+      // The direction the Disk Light is pointing in, should match the Shaping direction if present
+      // Must be normalized and orthogonal to the X and Y axes.
+      remixapi_Float3D               direction;
+      remixapi_Bool                  shaping_hasvalue;
+      remixapi_LightInfoLightShaping shaping_value;
+    } remixapi_LightInfoDiskEXT;
+
+    typedef struct remixapi_LightInfoCylinderEXT {
+      remixapi_StructType            sType;
+      //void* pNext;
+      remixapi_Float3D               position;
+      float                          radius;
+      // The "center" axis of the Cylinder Light. Must be normalized.
+      remixapi_Float3D               axis;
+      float                          axisLength;
+    } remixapi_LightInfoCylinderEXT;
+
+    typedef struct remixapi_LightInfoDistantEXT {
+      remixapi_StructType             sType;
+      //void* pNext;
+      // The direction the Distant Light is pointing in. Must be normalized.
+      remixapi_Float3D                direction;
+      float                           angularDiameterDegrees;
+    } remixapi_LightInfoDistantEXT;
+
     typedef struct remixapi_LightInfo {
       remixapi_StructType             sType;
       //void* pNext;
@@ -142,7 +194,11 @@ extern "C" {
 
   typedef void(BRIDGEAPI_PTR* PFN_bridgeapi_DebugPrint)(const char* text);
   typedef void(BRIDGEAPI_PTR* PFN_bridgeapi_Present)(void);
-  typedef uint64_t(BRIDGEAPI_PTR* PFN_bridgeapi_CreateSphereLight)(const x86::remixapi_LightInfo* info, x86::remixapi_LightInfoSphereEXT* sphere_info);
+  typedef uint64_t(BRIDGEAPI_PTR* PFN_bridgeapi_CreateSphereLight)(const x86::remixapi_LightInfo* info, const x86::remixapi_LightInfoSphereEXT* sphere_info);
+  typedef uint64_t(BRIDGEAPI_PTR* PFN_bridgeapi_CreateRectLight)(const x86::remixapi_LightInfo* info, const x86::remixapi_LightInfoRectEXT* rect_info);
+  typedef uint64_t(BRIDGEAPI_PTR* PFN_bridgeapi_CreateDiskLight)(const x86::remixapi_LightInfo* info, const x86::remixapi_LightInfoDiskEXT* disk_info);
+  typedef uint64_t(BRIDGEAPI_PTR* PFN_bridgeapi_CreateCylinderLight)(const x86::remixapi_LightInfo* info, const x86::remixapi_LightInfoCylinderEXT* cylinder_info);
+  typedef uint64_t(BRIDGEAPI_PTR* PFN_bridgeapi_CreateDistantLight)(const x86::remixapi_LightInfo* info, const x86::remixapi_LightInfoDistantEXT* dist_info);
   typedef void(BRIDGEAPI_PTR* PFN_bridgeapi_DestroyLight)(uint64_t handle);
   typedef void(BRIDGEAPI_PTR* PFN_bridgeapi_DrawLightInstance)(uint64_t handle);
   typedef void(BRIDGEAPI_PTR* PFN_bridgeapi_SetConfigVariable)(const char* var, const char* value);
@@ -150,13 +206,17 @@ extern "C" {
 
   typedef struct bridgeapi_Interface {
     bool initialized;
-    PFN_bridgeapi_DebugPrint		    DebugPrint;
-    PFN_bridgeapi_Present		        Present;
-    PFN_bridgeapi_CreateSphereLight CreateSphereLight;
-    PFN_bridgeapi_DestroyLight      DestroyLight;
-    PFN_bridgeapi_DrawLightInstance DrawLightInstance;
-    PFN_bridgeapi_SetConfigVariable SetConfigVariable;
-    PFN_bridgeapi_RegisterDevice    RegisterDevice;
+    PFN_bridgeapi_DebugPrint          DebugPrint;            // const char* text
+    PFN_bridgeapi_Present             Present;               // void
+    PFN_bridgeapi_CreateSphereLight   CreateSphereLight;     // x86::remixapi_LightInfo* info --- x86::remixapi_LightInfoSphereEXT* sphere_info
+    PFN_bridgeapi_CreateRectLight     CreateRectLight;       // x86::remixapi_LightInfo* info --- x86::remixapi_LightInfoRectEXT* rect_info
+    PFN_bridgeapi_CreateDiskLight     CreateDiskLight;       // x86::remixapi_LightInfo* info --- x86::remixapi_LightInfoDiskEXT* disk_info
+    PFN_bridgeapi_CreateCylinderLight CreateCylinderLight;   // x86::remixapi_LightInfo* info --- x86::remixapi_LightInfoCylinderEXT* cylinder_info
+    PFN_bridgeapi_CreateDistantLight  CreateDistantLight;    // x86::remixapi_LightInfo* info --- x86::remixapi_LightInfoDistantEXT* dist_info
+    PFN_bridgeapi_DestroyLight        DestroyLight;          // uint64_t handle
+    PFN_bridgeapi_DrawLightInstance   DrawLightInstance;     // uint64_t handle
+    PFN_bridgeapi_SetConfigVariable   SetConfigVariable;     // const char* var --- const char* value
+    PFN_bridgeapi_RegisterDevice      RegisterDevice;        // void
   } bridgeapi_Interface;
 
   BRIDGE_API BRIDGEAPI_ErrorCode __cdecl bridgeapi_InitFuncs(bridgeapi_Interface* out_result);
@@ -172,13 +232,13 @@ extern "C" {
 	if (hModule) {
 	  PROC func = GetProcAddress(hModule, "bridgeapi_InitFuncs");
 	  if (func) {
-	  	pfn_Initialize = (PFN_bridgeapi_InitFuncs)func;
+	  	pfn_Initialize = (PFN_bridgeapi_InitFuncs) func;
 	  }
 	  else {
 	  	return BRIDGEAPI_ERROR_CODE_GET_PROC_ADDRESS_FAILURE;
 	  }
 	  
-	  bridgeapi_Interface bridgeInterface = { false };
+	  bridgeapi_Interface bridgeInterface = { 0 };
 	  bridgeapi_ErrorCode status = pfn_Initialize(&bridgeInterface);
 	  if (status != BRIDGEAPI_ERROR_CODE_SUCCESS) {
 	  	return status;
