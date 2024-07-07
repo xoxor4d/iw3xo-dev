@@ -41,33 +41,15 @@ namespace components
 			rtx_api::bridge.DrawLightInstance(rtx_gui::light_handles[1]);
 		}
 
-		//if (const auto api = rtx_api::get(); api->draw_light)
-		//{
-		//	if (!rtx_api::g_light_handle)
-		//	{
-		//		game::Com_PrintMessage(0, "g_light_handle is null ...", 0);
-		//		api->draw_light = !api->draw_light;
-		//	}
-		//	else
-		//	{
-		//		//rtx_api::bridge.Present();
-		//		rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle);
-		//	}
-		//}
+		if (rtx_api::g_light_handle)
+		{
+			rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle);
+		}
 
-		//if (const auto api = rtx_api::get(); api->draw_light2)
-		//{
-		//	if (!rtx_api::g_light_handle2)
-		//	{
-		//		game::Com_PrintMessage(0, "g_light_handle2 is null ...", 0);
-		//		api->draw_light2 = !api->draw_light2;
-		//	}
-		//	else
-		//	{
-		//		//rtx_api::bridge.Present();
-		//		rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle2);
-		//	}
-		//}
+		if (rtx_api::g_light_handle2)
+		{
+			rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle2);
+		}
 
 		rtx_gui::skysphere_frame();
 

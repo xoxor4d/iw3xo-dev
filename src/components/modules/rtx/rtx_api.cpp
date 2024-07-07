@@ -2,6 +2,7 @@
 #include "rtx_api.hpp"
 
 #define CHECK_INIT(ret) if (!bridge.initialized) { game::Com_PrintMessage(0, "BridgeApi not initialized!", 0); return ret; }
+#define CHECK_INIT_NO_RET() if (!bridge.initialized) { game::Com_PrintMessage(0, "BridgeApi not initialized!", 0); return; }
 
 namespace components
 {
@@ -18,7 +19,7 @@ namespace components
 		return status;
 	}
 
-	bool rtx_api::create_sphere_light(uint64_t* in_out_handle, uint64_t initial_hash, const float x, const float y, const float z, const float radiance_r, const float radiance_g, const float radiance_b)
+	bool rtx_api::create_sphere_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoSphereEXT* s)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle)
@@ -26,20 +27,23 @@ namespace components
 			return false;
 		}
 
-		x86::remixapi_LightInfoSphereEXT s = {};
+		if (*in_out_handle)
 		{
-			s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
-			s.position = { x, y, z };
-			s.radius = 1.0f;
-			s.shaping_hasvalue = FALSE;
-			s.shaping_value = {};
+			bridge.DestroyLight(*in_out_handle);
 		}
 
-		x86::remixapi_LightInfo l = {};
+		*in_out_handle = bridge.CreateSphereLight(l, s);
+		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
+
+		return true;
+	}
+
+	bool rtx_api::create_rect_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoRectEXT* r)
+	{
+		CHECK_INIT(false);
+		if (!in_out_handle)
 		{
-			l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
-			l.hash = *in_out_handle ? *in_out_handle : initial_hash;
-			l.radiance = { radiance_r, radiance_g, radiance_b };
+			return false;
 		}
 
 		if (*in_out_handle)
@@ -47,7 +51,26 @@ namespace components
 			bridge.DestroyLight(*in_out_handle);
 		}
 
-		*in_out_handle = bridge.CreateSphereLight(&l, &s);
+		*in_out_handle = bridge.CreateRectLight(l, r);
+		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
+
+		return true;
+	}
+
+	bool rtx_api::create_disk_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoDiskEXT* d)
+	{
+		CHECK_INIT(false);
+		if (!in_out_handle)
+		{
+			return false;
+		}
+
+		if (*in_out_handle)
+		{
+			bridge.DestroyLight(*in_out_handle);
+		}
+
+		*in_out_handle = bridge.CreateDiskLight(l, d);
 		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
 
 		return true;
@@ -77,7 +100,7 @@ namespace components
 
 		command::add("api_set_config_var", "<var> <value>", "RemixApi: sets config variable 'var' to 'value'", [this]([[maybe_unused]] command::params parms)
 		{
-			CHECK_INIT();
+			CHECK_INIT_NO_RET();
 			if (parms.length() <= 2)
 			{
 				game::Com_PrintMessage(0, "Usage: api_set_config_var <var> <value> :: eg: /api_set_config_var rtx.enableAlphaBlend 0", 0);
@@ -90,7 +113,7 @@ namespace components
 
 		command::add("api_sky_brightness", "value", "RemixApi: sets config variable 'rtx.skyBrightness'", [this]([[maybe_unused]] command::params parms) 
 		{
-			CHECK_INIT();
+			CHECK_INIT_NO_RET();
 			if (parms.length() == 1)
 			{
 				game::Com_PrintMessage(0, "Usage: api_sky_brightness <brightness value>", 0);
@@ -100,30 +123,66 @@ namespace components
 			bridge.SetConfigVariable("rtx.skyBrightness", parms[1]);
 		});
 
-		command::add("api_create_light", "[optional:position] <x> <y> <z>  [optional:radiance] <r> <g> <b>", "RemixApi: Create a light with the 'CreateLight' func\neg: api_create_light 0 0 100 500 250 300", [this]([[maybe_unused]] command::params parms)
+		command::add("api_create_light", "[opt:position] <x> <y> <z>   [opt:radius] <radius>   [optional:radiance] <r> <g> <b>", "RemixApi: Create a light with the 'CreateLight' func\neg: api_create_light 0 0 100 500 250 300", [this]([[maybe_unused]] command::params parms)
 		{
-			create_sphere_light(
-				&g_light_handle,
-				0x1337,
-				parms.length() >= 1 ? utils::try_stof(parms[1]) : 0,
-				parms.length() >= 2 ? utils::try_stof(parms[2]) : 200,
-				parms.length() >= 3 ? utils::try_stof(parms[3]) : -15,
-				parms.length() >= 4 ? utils::try_stof(parms[4]) : 1000,
-				parms.length() >= 5 ? utils::try_stof(parms[5]) : 1200,
-				parms.length() >= 6 ? utils::try_stof(parms[6]) : 1500);
+			x86::remixapi_LightInfo l = {};
+			{
+				l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+				l.hash = 0x1337;
+				l.radiance =
+				{
+					parms.length() >= 5 ? utils::try_stof(parms[5]) : 1000,  // rad r
+					parms.length() >= 6 ? utils::try_stof(parms[6]) : 1200,  // rad g
+					parms.length() >= 7 ? utils::try_stof(parms[7]) : 1500   // rad b
+				};
+			}
+
+			x86::remixapi_LightInfoSphereEXT s = {};
+			{
+				s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
+				s.position = 
+				{
+					parms.length() >= 1 ? utils::try_stof(parms[1]) : 0,	 // x
+					parms.length() >= 2 ? utils::try_stof(parms[2]) : 200,	 // y
+					parms.length() >= 3 ? utils::try_stof(parms[3]) : -15,	 // z
+				};
+
+				s.radius = parms.length() >= 4 ? utils::try_stof(parms[4]) : 1;
+				s.shaping_hasvalue = false;
+			}
+
+			rtx_api::create_sphere_light(&g_light_handle, &l, &s);
 		});
 
 		command::add("api_create_light2", "[optional:position] <x> <y> <z>  [optional:radiance] <r> <g> <b>", "RemixApi: Create a light with the 'CreateLight' func\neg: api_create_light 0 0 100 500 250 300", [this]([[maybe_unused]] command::params parms)
 		{
-			create_sphere_light(
-				&g_light_handle2,
-				0x1338,
-				parms.length() >= 1 ? utils::try_stof(parms[1]) : 0,
-				parms.length() >= 2 ? utils::try_stof(parms[2]) : 200,
-				parms.length() >= 3 ? utils::try_stof(parms[3]) : -15,
-				parms.length() >= 4 ? utils::try_stof(parms[4]) : 1000,
-				parms.length() >= 5 ? utils::try_stof(parms[5]) : 1200,
-				parms.length() >= 6 ? utils::try_stof(parms[6]) : 1500);
+			x86::remixapi_LightInfo l = {};
+			{
+				l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+				l.hash = 0x1338;
+				l.radiance =
+				{
+					parms.length() >= 5 ? utils::try_stof(parms[5]) : 1000,  // rad r
+					parms.length() >= 6 ? utils::try_stof(parms[6]) : 1200,  // rad g
+					parms.length() >= 7 ? utils::try_stof(parms[7]) : 1500   // rad b
+				};
+			}
+
+			x86::remixapi_LightInfoSphereEXT s = {};
+			{
+				s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
+				s.position =
+				{
+					parms.length() >= 1 ? utils::try_stof(parms[1]) : 0,	 // x
+					parms.length() >= 2 ? utils::try_stof(parms[2]) : 200,	 // y
+					parms.length() >= 3 ? utils::try_stof(parms[3]) : -15,	 // z
+				};
+
+				s.radius = parms.length() >= 4 ? utils::try_stof(parms[4]) : 1;
+				s.shaping_hasvalue = false;
+			}
+
+			rtx_api::create_sphere_light(&g_light_handle2, &l, &s);
 		});
 
 		command::add("api_destroy_light", "<handle>", "RemixApi: Destroy light with given handle", [this]([[maybe_unused]] command::params parms)

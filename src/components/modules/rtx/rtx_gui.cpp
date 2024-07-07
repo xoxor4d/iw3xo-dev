@@ -557,29 +557,11 @@ namespace components
 			{
 				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-				static game::FxEffect* marker_test = nullptr;
-				if (ImGui::Button("Spawn Marker FX"))
-				{
-					if (const auto fx = game::DB_FindXAssetHeader(game::XAssetType::ASSET_TYPE_FX, "rtx/markers/rtx_marker_00").fx; fx)
-					{
-						marker_test = game::FX_SpawnOrientedEffect(game::IDENTITY_AXIS[0], fx, 0, game::vec3_origin);
-					}
-				}
-
-				ImGui::SameLine();
-				if (ImGui::Button("Delete Marker FX"))
-				{
-					if (marker_test)
-					{
-						game::FX_KillEffect(marker_test);
-					}
-				}
-
 				// -------------------
 				gui::title_inside_seperator("Bridge API", true, 0.0f, true, 2.0f);
 
 				const auto interf = rtx_api::bridge;
-				ImGui::Text("Api Initialized: %s", (interf.initialized ? "true" : "false"));
+				//ImGui::Text("API Status: %s", (interf.initialized ? "Initialized" : "Needs Initialization"));
 
 				if (!interf.initialized && ImGui::Button("Initialize Api"))
 				{
@@ -587,28 +569,91 @@ namespace components
 				}
 
 				bool was_modified = false;
+				static int ls = 0;
 				static game::vec3_t light_positions[2] = {};
-				static game::vec3_t light_radiances[2] = {};
+				static game::vec3_t light_radiances[2] = { { 100, 100, 100 }, { 100, 100, 100 } };
+
+				enum LIGHT_TYPES_E { DISTANT, CYLINDER, DISK, RECT, SPHERE, };
+				const char* light_types_str[5] = { "Distant", "Cylinder", "Disk", "Rect", "Sphere" };
+				static LIGHT_TYPES_E light_types[2] = { SPHERE, RECT };
+
+				// sphere
+				static float light_radii[2] = { 1.0f, 1.0f };
+
+				// rect
+				static game::vec3_t rect_xAxis[2] = { { 0, 0, 1 }, { 0, 0, 1 } };
+				static float rect_xScale[2] = { 3.0f, 3.0f };
+				static game::vec3_t rect_yAxis[2] = { { 0, 1, 0 }, { 0, 1, 0 } };
+				static float rect_yScale[2] = { 1.0f, 1.0f };
+				static game::vec3_t rect_direction[2] = { { 1, 0, 0 }, { 1, 0, 0 } };
+
+				// shaping and anim
+				static x86::remixapi_LightInfoLightShaping light_shaping[2] = {};
+
+				static bool light_use_shaping[2] = {};
 				static bool light_anim[2] = {};
-				static int light_selection = 0;
+
+				if (static bool init_once = false; !init_once)
+				{
+					light_shaping[0].direction.y = 1.0f;
+					light_shaping[0].coneAngleDegrees = 80.0f;
+					light_shaping[1].direction.y = 1.0f;
+					light_shaping[1].coneAngleDegrees = 80.0f;
+					init_once = true;
+				}
 
 				if (interf.initialized)
 				{
-					if (ImGui::SliderInt("Light Selector", &light_selection, 0, 1))
+					if (ImGui::SliderInt("Light Selector", &ls, 0, 1))
 					{
-						light_selection = light_selection < 0 ? 0 : light_selection;
-						light_selection = light_selection > 1 ? 1 : light_selection;
+						ls = ls < 0 ? 0 : ls;
+						ls = ls > 1 ? 1 : ls;
 					}
 
-					was_modified = ImGui::DragFloat3("Light Position", light_positions[light_selection], 0.25f, -2000.0f, 2000.0f, "%.0f") ? true : was_modified;
-					was_modified = ImGui::SliderFloat3("Light Radiance", light_radiances[light_selection], 0.0f, 5000.0f, "%.0f") ? true : was_modified;
-					was_modified = ImGui::Checkbox("Animate Light", &light_anim[light_selection]) ? true : was_modified;
+					was_modified = ImGui::SliderInt("Light Type", (int*)&light_types[ls], 2, 4, light_types_str[light_types[ls]]) ? true : was_modified;
+
+					SPACING(0,4);
+
+					// lamdas
+					auto get_type = [&] { return light_types[ls]; };
+
+					if (ImGui::Button("Move to player"))
+					{
+						utils::vector::copy(game::cgs->predictedPlayerState.origin, light_positions[ls], 3);
+						light_positions[ls][2] += game::cgs->predictedPlayerState.viewHeightCurrent;
+						was_modified = true;
+					}
+
+					was_modified = ImGui::DragFloat3("Light Position", light_positions[ls], 0.25f, -2000.0f, 2000.0f, "%.0f") ? true : was_modified;
+					was_modified = ImGui::SliderFloat3("Light Radiance", light_radiances[ls], 0.0f, 10000.0f, "%.0f") ? true : was_modified;
+
+					if (get_type() == SPHERE)
+					{
+						was_modified = ImGui::SliderFloat("Light Radius", &light_radii[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+					}
+					else if (get_type() == RECT)
+					{
+						was_modified = ImGui::SliderFloat("Rect xScale", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Rect yScale", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Rect Direction", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+					}
+					else if (get_type() == DISK)
+					{
+						was_modified = ImGui::SliderFloat("Disk xRadius", &rect_xScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Disk yRadius", &rect_yScale[ls], 0.1f, 100.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::DragFloat3("Disk Direction", (float*)&rect_direction[ls], 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+					}
+
+					SPACING(0, 4);
+
+					was_modified = ImGui::Checkbox("Animate Light", &light_anim[ls]) ? true : was_modified;
+					TT("Animates the red radiance value");
 
 					static float anim_speed = 1.0f;
 					ImGui::SliderFloat("Animation Speed", &anim_speed, 0.1f, 20.0f, "%.1f");
 
 					float anim = 1.0f;
-					if (light_anim[light_selection])
+					if (light_anim[ls])
 					{
 						const auto t = sinf(game::scene->def.floatTime * anim_speed) + 1.0f;
 						//anim = t < 0.5f ? 2 * t : 2 * (1.0f - t);
@@ -616,25 +661,179 @@ namespace components
 						was_modified = true;
 					}
 
-					if (ImGui::Button(utils::va("Create/Update Light #%d", light_selection)) || was_modified)
+					SPACING(0, 4);
+
+					was_modified = ImGui::Checkbox("Shape Light", &light_use_shaping[ls]) ? true : was_modified;
+					if (light_use_shaping[ls])
 					{
-						rtx_api::create_sphere_light(
-							&light_handles[light_selection],
-							light_selection + 1,
-							light_positions[light_selection][0],
-							light_positions[light_selection][1],
-							light_positions[light_selection][2],
-							(light_radiances[light_selection][0] * anim) < 0.0f ? 0.0f : (light_radiances[light_selection][0] * anim),
-							light_radiances[light_selection][1],
-							light_radiances[light_selection][2]);
+						was_modified = ImGui::DragFloat3("Shaping Direction", (float*)&light_shaping[ls].direction, 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Shaping Cone Angle Degrees", &light_shaping[ls].coneAngleDegrees, 0.0f, 360.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Shaping Cone Softness", &light_shaping[ls].coneSoftness, 0.0f, 10.0f, "%.1f") ? true : was_modified;
+						was_modified = ImGui::SliderFloat("Shaping Focus Exponent", &light_shaping[ls].focusExponent, 0.0f, 10.0f, "%.1f") ? true : was_modified;
 					}
 
-					if (light_handles[light_selection])
+					SPACING(0, 4);
+
+					if (get_type() == SPHERE)
 					{
-						if (ImGui::Button(utils::va("Destroy Light #%d", light_selection)))
+						if (ImGui::Button(utils::va("Create/Update Light #%d", ls)) || was_modified)
 						{
-							rtx_api::destroy_light(&light_handles[light_selection]);
+							x86::remixapi_LightInfo l = {};
+							{
+								l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+								l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
+								l.radiance =
+								{
+									light_radiances[ls][0] * anim < 0.0f ? 0.0f : light_radiances[ls][0] * anim,
+									light_radiances[ls][1],
+									light_radiances[ls][2]
+								};
+							}
+
+							x86::remixapi_LightInfoSphereEXT s = {};
+							{
+								s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
+								s.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
+								s.radius = light_radii[ls];
+								s.shaping_hasvalue = light_use_shaping[ls];
+								if (s.shaping_hasvalue)
+								{
+									// ensure the direction is normalized
+									utils::vector::normalize_to((float*)&light_shaping[ls].direction, (float*)&s.shaping_value.direction);
+									s.shaping_value.coneAngleDegrees = light_shaping[ls].coneAngleDegrees;
+									s.shaping_value.coneSoftness = light_shaping[ls].coneSoftness;
+									s.shaping_value.focusExponent = light_shaping[ls].focusExponent;
+								}
+							}
+
+							rtx_api::create_sphere_light(&light_handles[ls], &l, &s);
 						}
+					}
+					else if (get_type() == RECT)
+					{
+						if (ImGui::Button(utils::va("Create/Update Rect Light #%d", ls)) || was_modified)
+						{
+							x86::remixapi_LightInfo l = {};
+							{
+								l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+								l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
+								l.radiance = 
+								{
+									light_radiances[ls][0] * anim < 0.0f ? 0.0f : light_radiances[ls][0] * anim,
+									light_radiances[ls][1],
+									light_radiances[ls][2]
+								};
+							}
+
+							x86::remixapi_LightInfoRectEXT r = {};
+							{
+								r.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_RECT_EXT;
+								r.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
+								r.xAxis = { rect_xAxis[ls][0], rect_xAxis[ls][1], rect_xAxis[ls][2], };
+								r.xSize = rect_xScale[ls];
+								r.yAxis = { rect_yAxis[ls][0], rect_yAxis[ls][1], rect_yAxis[ls][2], };
+								r.ySize = rect_yScale[ls];
+								utils::vector::normalize_to(&rect_direction[ls][0], (float*)&r.direction);
+
+								r.shaping_hasvalue = light_use_shaping[ls];
+								if (r.shaping_hasvalue)
+								{
+									// ensure the direction is normalized
+									utils::vector::normalize_to((float*)&light_shaping[ls].direction, (float*)&r.shaping_value.direction);
+									r.shaping_value.coneAngleDegrees = light_shaping[ls].coneAngleDegrees;
+									r.shaping_value.coneSoftness = light_shaping[ls].coneSoftness;
+									r.shaping_value.focusExponent = light_shaping[ls].focusExponent;
+								}
+							}
+
+							rtx_api::create_rect_light(&light_handles[ls], &l, &r);
+						}
+					}
+					else if (get_type() == DISK)
+					{
+						if (ImGui::Button(utils::va("Create/Update Disk Light #%d", ls)) || was_modified)
+						{
+							x86::remixapi_LightInfo l = {};
+							{
+								l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+								l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
+								l.radiance =
+								{
+									light_radiances[ls][0] * anim < 0.0f ? 0.0f : light_radiances[ls][0] * anim,
+									light_radiances[ls][1],
+									light_radiances[ls][2]
+								};
+							}
+
+							x86::remixapi_LightInfoDiskEXT d = {};
+							{
+								d.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISK_EXT;
+								d.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
+								d.xAxis = { rect_xAxis[ls][0], rect_xAxis[ls][1], rect_xAxis[ls][2], };
+								d.xRadius = rect_xScale[ls];
+								d.yAxis = { rect_yAxis[ls][0], rect_yAxis[ls][1], rect_yAxis[ls][2], };
+								d.yRadius = rect_yScale[ls];
+								utils::vector::normalize_to(&rect_direction[ls][0], (float*)&d.direction);
+
+								d.shaping_hasvalue = light_use_shaping[ls];
+								if (d.shaping_hasvalue)
+								{
+									// ensure the direction is normalized
+									utils::vector::normalize_to((float*)&light_shaping[ls].direction, (float*)&d.shaping_value.direction);
+									d.shaping_value.coneAngleDegrees = light_shaping[ls].coneAngleDegrees;
+									d.shaping_value.coneSoftness = light_shaping[ls].coneSoftness;
+									d.shaping_value.focusExponent = light_shaping[ls].focusExponent;
+								}
+							}
+
+							rtx_api::create_disk_light(&light_handles[ls], &l, &d);
+						}
+					}
+					
+					ImGui::SameLine();
+					if (light_handles[ls])
+					{
+						if (ImGui::Button(utils::va("Destroy Light #%d", ls)))
+						{
+							rtx_api::destroy_light(&light_handles[ls]);
+						}
+					}
+					else
+					{
+						ImGui::Text("Status: Not spawned or failed to spawn.");
+					}
+				}
+
+				// -------------------
+				gui::title_inside_seperator("Misc", true, 0.0f, true, 2.0f);
+
+				static int marker_index = 0;
+				if (ImGui::SliderInt("Marker Index", &marker_index, 0, 99))
+				{
+					marker_index = marker_index < 0 ? 0 : marker_index;
+					marker_index = marker_index > 99 ? 99 : marker_index;
+				}
+
+				static game::FxEffect* marker_test = nullptr;
+				if (ImGui::Button("Spawn Marker FX"))
+				{
+					if (marker_test)
+					{
+						game::FX_KillEffect(marker_test);
+					}
+
+					if (const auto fx = game::DB_FindXAssetHeader(game::XAssetType::ASSET_TYPE_FX, std::format("rtx/markers/rtx_marker_{:02}", marker_index).c_str()).fx; fx)
+					{
+						marker_test = game::FX_SpawnOrientedEffect(game::IDENTITY_AXIS[0], fx, 0, game::cgs->predictedPlayerState.origin);
+					}
+				} TT("Spawns Marker at player position");
+
+				ImGui::SameLine();
+				if (ImGui::Button("Delete Marker FX"))
+				{
+					if (marker_test)
+					{
+						game::FX_KillEffect(marker_test);
 					}
 				}
 
