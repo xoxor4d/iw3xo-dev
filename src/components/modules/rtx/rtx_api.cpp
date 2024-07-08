@@ -9,6 +9,7 @@ namespace components
 	BRIDGEAPI_ErrorCode rtx_api::init()
 	{
 		const auto status = bridgeapi_initialize(&bridge);
+		if (status == BRIDGEAPI_ERROR_CODE_SUCCESS)
 		game::Com_PrintMessage(0, utils::va("[API] bridgeapi_initialize() : %s ", !status ? "success" : utils::va("error : %d", status)), 0);
 
 		if (bridge.initialized)
@@ -18,6 +19,94 @@ namespace components
 
 		return status;
 	}
+
+	bool rtx_api::destroy_mesh(uint64_t* in_out_handle)
+	{
+		CHECK_INIT(false);
+		if (!in_out_handle || !*in_out_handle)
+		{
+			return false;
+		}
+
+		bridge.DestroyMesh(*in_out_handle);
+		*in_out_handle = 0;
+		return true;
+	}
+
+	bool rtx_api::create_cod4_mesh(uint64_t* in_out_handle, const char* model_name, uint64_t* material)
+	{
+		CHECK_INIT(false);
+		if (!in_out_handle || !model_name)
+		{
+			return false;
+		}
+
+		if (const auto mdl = game::DB_FindXAssetHeader(game::XAssetType::ASSET_TYPE_XMODEL, model_name).model; mdl)
+		{
+			std::vector<x86::remixapi_MeshInfoSurfaceTriangles> surfs;
+			std::vector<std::vector<x86::remixapi_HardcodedVertex>> verts;
+			std::vector<std::vector<uint32_t>> indices;
+
+			const uint32_t surf_count = (uint32_t) mdl->numsurfs;
+			for (uint32_t s = 0; s < surf_count; s++)
+			{
+				const auto& surf = mdl->surfs[s];
+				verts.emplace_back(); // add new vector entry for current surface
+
+				const uint32_t vert_count = (uint32_t) surf.vertCount;
+				for (uint32_t v = 0; v < vert_count; v++)
+				{
+					const auto& vert = surf.verts0[v];
+
+					game::vec3_t unpacked_normal;
+					rtx_fixed_function::unpack_normal(&vert.normal, unpacked_normal);
+
+					game::vec2_t unpacked_texcoord;
+					game::Vec2UnpackTexCoords(vert.texCoord.packed, unpacked_texcoord);
+
+					verts.back().emplace_back(x86::remixapi_HardcodedVertex
+					{
+						{ vert.xyz[0], vert.xyz[1], vert.xyz[2] },
+						{ unpacked_normal[0], unpacked_normal[1], unpacked_normal[2] },
+						{ unpacked_texcoord[0], unpacked_texcoord[1] },
+						(uint32_t)vert.color.packed,
+						0u, 0u, 0u, 0u, 0u, 0u, 0u
+					});
+				}
+
+				indices.emplace_back(); // add new vector entry for current surface
+				const uint32_t index_count = (uint32_t)surf.triCount * 3;
+				for (uint32_t i = 0; i < index_count; i++)
+				{
+					indices.back().emplace_back((uint32_t)surf.triIndices[i]);
+				}
+
+				surfs.emplace_back(x86::remixapi_MeshInfoSurfaceTriangles
+				{
+					verts[s].data(),
+					vert_count,
+					indices[s].data(),
+					index_count,
+					FALSE,
+					material ? (x86::remixapi_MaterialHandle) *material : nullptr,
+				});
+			}
+
+			x86::remixapi_MeshInfo i =
+			{
+				.sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
+				.hash = *in_out_handle ? *in_out_handle : 0xDEAD,
+				.surfaces_values = surfs.data(),
+				.surfaces_count = surf_count,
+			};
+
+			rtx_api::destroy_mesh(in_out_handle);
+			*in_out_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+		}
+
+		return true;
+	}
+
 
 	bool rtx_api::create_sphere_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoSphereEXT* s)
 	{

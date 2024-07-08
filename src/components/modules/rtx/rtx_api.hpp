@@ -15,6 +15,9 @@ namespace components
 
 		static BRIDGEAPI_ErrorCode init();
 
+		static bool destroy_mesh(uint64_t* in_out_handle);
+		static bool create_cod4_mesh(uint64_t* in_out_handle, const char* model_name, uint64_t* material = nullptr);
+
 		static bool create_sphere_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoSphereEXT* s);
 		static bool create_rect_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoRectEXT* r);
 		static bool create_disk_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoDiskEXT* d);

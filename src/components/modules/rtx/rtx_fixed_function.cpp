@@ -80,7 +80,7 @@ namespace components
 	 * @param packed	PackedUnitVec
 	 * @param out		vec3 out
 	 */
-	void unpack_normal(const game::PackedUnitVec* packed, game::vec3_t out)
+	void rtx_fixed_function::unpack_normal(const game::PackedUnitVec* packed, game::vec3_t out)
 	{
 		// normal unpacking in a cod4 hlsl shader:
 		// temp0	 = i.normal * float4(0.007874016, 0.007874016, 0.007874016, 0.003921569) + float4(-1, -1, -1, 0.7529412);
@@ -154,7 +154,7 @@ namespace components
 						v->pos[2] = src_vert->xyz[2];
 
 						// unpack and assign vert normal
-						unpack_normal(&src_vert->normal, v->normal);
+						rtx_fixed_function::unpack_normal(&src_vert->normal, v->normal);
 
 						// uv
 						game::Vec2UnpackTexCoords(src_vert->texCoord.packed, v->texcoord);
@@ -521,7 +521,7 @@ namespace components
 				v->pos[2] = src_vert->xyz[2];
 
 				// unpack and assign vert normal
-				unpack_normal(&src_vert->normal, v->normal);
+				rtx_fixed_function::unpack_normal(&src_vert->normal, v->normal);
 
 				// uv's
 				game::Vec2UnpackTexCoords(src_vert->texCoord.packed, v->texcoord);
@@ -623,7 +623,7 @@ namespace components
 					v->pos[2] = src_vert->xyz[2];
 
 					// unpack and assign vert normal
-					unpack_normal(&src_vert->normal, v->normal);
+					rtx_fixed_function::unpack_normal(&src_vert->normal, v->normal);
 
 					// uv's
 					game::Vec2UnpackTexCoords(src_vert->texCoord.packed, v->texcoord);
@@ -1551,7 +1551,7 @@ namespace components
 						v->pos[2] = src_vert->xyz[2];
 
 						// unpack and assign vert normal
-						unpack_normal(&src_vert->normal, v->normal);
+						rtx_fixed_function::unpack_normal(&src_vert->normal, v->normal);
 
 						// packed vertex color : used for alpha blending of decals
 						v->color = src_vert->color.packed;
