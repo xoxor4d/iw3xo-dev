@@ -51,6 +51,21 @@ namespace components
 						}
 					}
 
+					if (rtx_api::bridge.initialized)
+					{
+						// auto apply _on_map_change.conf (there is no logic to reload the rtx.conf so this holds all rtx.conf "defaults")
+						open_and_set_var_config("_on_map_change.conf", false);
+
+						// auto apply {map_name}.conf (if it exists)
+						open_and_set_var_config(s.mapname + ".conf", false);
+
+						// apply other manually defined configs
+						for (const auto& f : s.api_var_configs)
+						{
+							open_and_set_var_config(f);
+						}
+					}
+
 					found = true;
 					break;
 				}
@@ -218,33 +233,86 @@ namespace components
 		}
 	}
 
+	void rtx_map_settings::open_and_set_var_config(const std::string& config, const bool warn_missing_conf)
+	{
+		std::ifstream file;
+		if (utils::fs::open_file_homepath("iw3xo\\rtx\\map_configs", config, false, file))
+		{
+			std::string input;
+			while (std::getline(file, input))
+			{
+				if (utils::starts_with(input, "#"))
+				{
+					continue;
+				}
+
+				if (auto pair = utils::split(input, '=');
+						 pair.size() == 2u)
+				{
+					utils::trim(pair[0]);
+					utils::trim(pair[1]);
+
+					//rtx_api::bridge.DebugPrint(utils::va("Set config var: %s to: %s", pair[0].c_str(), pair[1].c_str()));
+					rtx_api::bridge.SetConfigVariable(pair[0].c_str(), pair[1].c_str());
+				}
+			}
+
+			file.close();
+		}
+
+		if (warn_missing_conf)
+		{
+			game::Com_PrintMessage(0, utils::va("Failed to open map config: %s", config.c_str()), 0);
+		}
+	}
+
+	void rtx_map_settings::parse_api_var_configs()
+	{
+		if (map_settings_s* s = get_or_create_settings(); s)
+		{
+			s->api_var_configs.clear();
+			for (auto a = 1u; a < m_args.size(); a++)
+			{
+				auto str = m_args[a];
+				if (str.empty())
+				{
+					// print msg here
+					continue;
+				}
+
+				utils::trim(str);
+				s->api_var_configs.emplace_back(str);
+			}
+		}
+	}
+
 	void rtx_map_settings::parse_settings()
 	{
 		if (m_args.size() == INI_ARGS_TOTAL)
 		{
 			m_settings.push_back(
+			{
+				m_args[INI_MAPNAME_ARG],
+				utils::try_stof(m_args[INI_FOG_DIST], 5000.0f),
+				D3DCOLOR_XRGB
+				(
+					utils::try_stoi(m_args[INI_FOG_COLOR_BEGIN + 0], 255),
+					utils::try_stoi(m_args[INI_FOG_COLOR_BEGIN + 1], 255),
+					utils::try_stoi(m_args[INI_FOG_COLOR_BEGIN + 2], 255)
+				),
 				{
-					m_args[INI_MAPNAME_ARG],
-					utils::try_stof(m_args[INI_FOG_DIST], 5000.0f),
-					D3DCOLOR_XRGB
-					(
-						utils::try_stoi(m_args[INI_FOG_COLOR_BEGIN + 0], 255),
-						utils::try_stoi(m_args[INI_FOG_COLOR_BEGIN + 1], 255),
-						utils::try_stoi(m_args[INI_FOG_COLOR_BEGIN + 2], 255)
-					),
-					{
-						utils::try_stof(m_args[INI_SUN_DIR_BEGIN + 0], 75.0f),
-						utils::try_stof(m_args[INI_SUN_DIR_BEGIN + 1], -15.0f),
-						utils::try_stof(m_args[INI_SUN_DIR_BEGIN + 2], -35.0f)
-					},
-					{
-						utils::try_stof(m_args[INI_SUN_COLOR_BEGIN + 0], 255),
-						utils::try_stof(m_args[INI_SUN_COLOR_BEGIN + 1], 255),
-						utils::try_stof(m_args[INI_SUN_COLOR_BEGIN + 2], 255)
-					},
-					utils::try_stof(m_args[INI_SUN_INTENSITY], 1.0f),
-					utils::try_stoi(m_args[INI_SKY_INDEX], 2)
-				});
+					utils::try_stof(m_args[INI_SUN_DIR_BEGIN + 0], 75.0f),
+					utils::try_stof(m_args[INI_SUN_DIR_BEGIN + 1], -15.0f),
+					utils::try_stof(m_args[INI_SUN_DIR_BEGIN + 2], -35.0f)
+				},
+				{
+					utils::try_stof(m_args[INI_SUN_COLOR_BEGIN + 0], 255),
+					utils::try_stof(m_args[INI_SUN_COLOR_BEGIN + 1], 255),
+					utils::try_stof(m_args[INI_SUN_COLOR_BEGIN + 2], 255)
+				},
+				utils::try_stof(m_args[INI_SUN_INTENSITY], 1.0f),
+				utils::try_stoi(m_args[INI_SKY_INDEX], 2)
+			});
 		}
 	}
 
@@ -282,6 +350,12 @@ namespace components
 					continue;
 				}
 
+				if (parse_mode == MARKER && utils::starts_with(input, "#API_CONFIGVARS"))
+				{
+					parse_mode = API_VARS;
+					continue;
+				}
+
 				// split string on ','
 				m_args = utils::split(input, ',');
 
@@ -295,6 +369,9 @@ namespace components
 					break;
 				case MARKER:
 					parse_markers();
+					break;
+				case API_VARS:
+					parse_api_var_configs();
 					break;
 				}
 			}

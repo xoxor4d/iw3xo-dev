@@ -10,7 +10,7 @@ namespace components
 	{
 		const auto status = bridgeapi_initialize(&bridge);
 		if (status == BRIDGEAPI_ERROR_CODE_SUCCESS)
-		game::Com_PrintMessage(0, utils::va("[API] bridgeapi_initialize() : %s ", !status ? "success" : utils::va("error : %d", status)), 0);
+		game::Com_PrintMessage(0, utils::va("[BridgeApi] bridgeapi_initialize() : %s ", !status ? "success" : utils::va("error : %d", status)), 0);
 
 		if (bridge.initialized)
 		{
@@ -88,7 +88,7 @@ namespace components
 					indices[s].data(),
 					index_count,
 					FALSE,
-					material ? (x86::remixapi_MaterialHandle) *material : nullptr,
+					material ? *material : 0u,
 				});
 			}
 
@@ -220,10 +220,17 @@ namespace components
 	{
 		p_this = this;
 
+		scheduler::once([]
+		{
+			rtx_api::init();
+		}, scheduler::main);
+
+#if DEBUG
 		command::add("api_init", "", "calls the x64 process func foo", [this]([[maybe_unused]] command::params parms)
 		{
 			init();
 		});
+#endif
 
 		command::add("api_set_config_var", "<var> <value>", "RemixApi: sets config variable 'var' to 'value'", [this]([[maybe_unused]] command::params parms)
 		{
@@ -324,20 +331,6 @@ namespace components
 			game::Com_PrintMessage(0, utils::va("Trying to destroy light with handle: %d \n", handle), 0);
 			destroy_light(&handle);
 		});
-
-		/*command::add("api_draw_light", "", "calls the x64 process func foo", [this]([[maybe_unused]] command::params parms) 
-		{
-			CHECK_INIT();
-			this->draw_light = !this->draw_light;
-			game::Com_PrintMessage(0, utils::va("draw_light = %d", this->draw_light), 0);
-		});
-
-		command::add("api_draw_light2", "", "calls the x64 process func foo", [this]([[maybe_unused]] command::params parms)
-		{
-			CHECK_INIT();
-			this->draw_light2 = !this->draw_light2;
-			game::Com_PrintMessage(0, utils::va("draw_light2 = %d", this->draw_light2), 0);
-		});*/
 	}
 
 	rtx_api::~rtx_api()
