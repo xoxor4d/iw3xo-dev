@@ -574,7 +574,7 @@ namespace components
 				static game::vec3_t light_radiances[2] = { { 100, 100, 100 }, { 100, 100, 100 } };
 
 				enum LIGHT_TYPES_E { DISTANT, CYLINDER, DISK, RECT, SPHERE, };
-				const char* light_types_str[5] = { "Distant", "Cylinder", "Disk", "Rect", "Sphere" };
+				static const char* light_types_str[5] = { "Distant", "Cylinder", "Disk", "Rect", "Sphere" };
 				static LIGHT_TYPES_E light_types[2] = { SPHERE, RECT };
 
 				// sphere
@@ -607,11 +607,22 @@ namespace components
 				}
 
 				// material
+				enum MATERIAL_TYPE_ENUM : uint32_t { Opaque, OpaqueSS, Translucent };
+				static const char* material_type_str[] = { "Opaque", "OpaqueSS", "Translucent" };
+				static MATERIAL_TYPE_ENUM material_type = Opaque;
 				static game::vec3_t material_albedo_color = { 0.0f, 1.0f, 0.0f };
 				static float material_roughness = 0.2f;
 				static float material_metalness = 0.2f;
 				static float material_emissive_intensity = 0.0f;
 				static game::vec3_t material_emissive_color = { 0.0f, 1.0f, 0.0f };
+
+				static bool material_transl_thinwall = false;
+				static float material_transl_refraction = 1.3f;
+
+				static game::vec3_t material_ss_trans_color = { 0.4f, 0.6f, 0.67f };
+				static float material_ss_measurement_dist = 4.0f;
+				static game::vec3_t material_ss_scattering_albedo = { 0.988f, 0.988f, 0.988f };
+				static float material_ss_vol_aniso = 0.2f;
 
 				if (interf.initialized)
 				{
@@ -888,18 +899,50 @@ namespace components
 						}
 					}
 
+					auto fnv1aHash = [](const std::string& str)
+					{
+						const uint64_t FNV_prime = 1099511628211u;
+						const uint64_t offset_basis = 14695981039346656037u;
+						uint64_t hash = offset_basis;
+
+						for (const char c : str)
+						{
+							hash ^= static_cast<uint64_t>(c);
+							hash *= FNV_prime;
+						}
+
+						return hash;
+					};
+
 					// -------------------
 					gui::title_inside_seperator("Bridge API - Material", true, 0.0f, true, 2.0f); SPACING(0, 4);
 					{
 						bool mat_was_modified = false;
+						mat_was_modified = ImGui::SliderInt("Material Type", (int*)&material_type, 0, 2, material_type_str[material_type]) ? true : was_modified;
+
 						if (mesh_material_handle)
 						{
-							mat_was_modified = ImGui::ColorEdit3("Albedo Color", material_albedo_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
-							mat_was_modified = ImGui::DragFloat("Roughness", &material_roughness, 0.05f, 0.0f, 1.0f, "%.2f") ? true : mat_was_modified;
-							mat_was_modified = ImGui::DragFloat("Metalness", &material_metalness, 0.05f, 0.0f, 1.0f, "%.2f") ? true : mat_was_modified;
-							mat_was_modified = ImGui::DragFloat("Emissive Intensity", &material_emissive_intensity, 0.05f, 0.0f, 100.0f, "%.1f") ? true : mat_was_modified;
+							mat_was_modified = ImGui::DragFloat("Emissive Intensity", &material_emissive_intensity, 0.01f, 0.0f, 100.0f, "%.2f") ? true : mat_was_modified;
 							mat_was_modified = ImGui::ColorEdit3("Emissive Color", material_emissive_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
 
+							if (material_type <= OpaqueSS)
+							{
+								mat_was_modified = ImGui::ColorEdit3("Albedo Color", material_albedo_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
+								mat_was_modified = ImGui::DragFloat("Roughness", &material_roughness, 0.05f, 0.0f, 1.0f, "%.2f") ? true : mat_was_modified;
+								mat_was_modified = ImGui::DragFloat("Metalness", &material_metalness, 0.05f, 0.0f, 1.0f, "%.2f") ? true : mat_was_modified;
+							}
+							if (material_type == OpaqueSS)
+							{
+								mat_was_modified = ImGui::ColorEdit3("Transmittance Color", material_ss_trans_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
+								mat_was_modified = ImGui::DragFloat("Measurement Distance", &material_ss_measurement_dist, 0.01f, 0.0f, 10.0f, "%.2f") ? true : mat_was_modified;
+								mat_was_modified = ImGui::ColorEdit3("Scattering Albedo", material_ss_scattering_albedo, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
+								mat_was_modified = ImGui::DragFloat("Volumetric Anisotropy", &material_ss_vol_aniso, 0.01f, 0.0f, 10.0f, "%.2f") ? true : mat_was_modified;
+							}
+							else if (material_type == Translucent)
+							{
+								mat_was_modified = ImGui::DragFloat("Refraction", &material_transl_refraction, 0.01f, 0.0f, 3.0f, "%.2f") ? true : mat_was_modified;
+								mat_was_modified = ImGui::Checkbox("Thin Walled", &material_transl_thinwall) ? true : mat_was_modified;
+							}
 						}
 
 						if (ImGui::Button("Create/Update Material") || mat_was_modified)
@@ -913,7 +956,7 @@ namespace components
 							x86::remixapi_MaterialInfo info = {};
 							{
 								info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
-								info.hash = mesh_material_handle ? mesh_material_handle : 0xDEAD2;
+								info.hash = mesh_material_handle ? mesh_material_handle : fnv1aHash("material01");
 								info.emissiveIntensity = material_emissive_intensity;
 								info.emissiveColorConstant = { material_emissive_color[0], material_emissive_color[1], material_emissive_color[2] };
 								info.albedoTexture = L"";
@@ -922,32 +965,58 @@ namespace components
 								info.emissiveTexture = L"";
 							}
 
-							x86::remixapi_MaterialInfoOpaqueEXT opaque_info = {};
+							x86::remixapi_MaterialInfoOpaqueEXT ext_op = {};
 							{
-								opaque_info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
-								//void* pNext;
+								ext_op.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
 								// path roughnessTexture;
 								// path metallicTexture;
-								opaque_info.anisotropy = 0.0f;
-								opaque_info.albedoConstant = { material_albedo_color[0], material_albedo_color[1], material_albedo_color[2] };
-								opaque_info.opacityConstant = 1.0f;
-								opaque_info.roughnessConstant = material_roughness;
-								opaque_info.metallicConstant = material_metalness;
-								opaque_info.thinFilmThickness_hasvalue = 0;
-								opaque_info.thinFilmThickness_value = 0.0f;
-								opaque_info.alphaIsThinFilmThickness = 0;
+								ext_op.anisotropy = 0.0f;
+								ext_op.albedoConstant = { material_albedo_color[0], material_albedo_color[1], material_albedo_color[2] };
+								ext_op.opacityConstant = 1.0f;
+								ext_op.roughnessConstant = material_roughness;
+								ext_op.metallicConstant = material_metalness;
+								ext_op.thinFilmThickness_hasvalue = 0;
+								ext_op.thinFilmThickness_value = 0.0f;
+								ext_op.alphaIsThinFilmThickness = 0;
 								// path heightTexture;
-								opaque_info.heightTextureStrength = 0.0f;
-								// If true, InstanceInfoBlendEXT is used as a source for alpha state
-								opaque_info.useDrawCallAlphaState = 1;
-								opaque_info.blendType_hasvalue = 0;
-								opaque_info.blendType_value = 0;
-								opaque_info.invertedBlend = 0;
-								opaque_info.alphaTestType = 0;
-								opaque_info.alphaReferenceValue = 0;
+								ext_op.heightTextureStrength = 0.0f;
+								ext_op.useDrawCallAlphaState = 1; // If true, InstanceInfoBlendEXT is used as a source for alpha state
+								ext_op.blendType_hasvalue = 0;
+								ext_op.blendType_value = 0;
+								ext_op.invertedBlend = 0;
+								ext_op.alphaTestType = 0;
+								ext_op.alphaReferenceValue = 0;
 							}
 
-							mesh_material_handle = rtx_api::bridge.CreateOpaqueMaterial(&info, &opaque_info);
+							x86::remixapi_MaterialInfoTranslucentEXT ext_transl = {};
+							{
+								ext_transl.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_TRANSLUCENT_EXT;
+								//ext.transmittanceTexture = L"";
+								ext_transl.refractiveIndex = material_transl_refraction;
+								ext_transl.transmittanceColor = { 1.0f, 1.0f, 1.0f };
+								ext_transl.transmittanceMeasurementDistance = 0.0f;
+								ext_transl.thinWallThickness_hasvalue = (uint32_t) material_transl_thinwall;
+								ext_transl.thinWallThickness_value = 0.0f;
+								ext_transl.useDiffuseLayer = FALSE;
+							}
+
+							x86::remixapi_MaterialInfoOpaqueSubsurfaceEXT ext_ss = {};
+							{
+								ext_ss.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_SUBSURFACE_EXT;
+								ext_ss.subsurfaceTransmittanceColor = { material_ss_trans_color[0], material_ss_trans_color[1], material_ss_trans_color[2]};
+								ext_ss.subsurfaceMeasurementDistance = material_ss_measurement_dist;
+								ext_ss.subsurfaceSingleScatteringAlbedo = { material_ss_scattering_albedo[0], material_ss_scattering_albedo[1], material_ss_scattering_albedo [2]};
+								ext_ss.subsurfaceVolumetricAnisotropy = material_ss_vol_aniso;
+							}
+
+							if (material_type == Translucent)
+							{
+								mesh_material_handle = rtx_api::bridge.CreateTranslucentMaterial(&info, &ext_transl);
+							}
+							else
+							{
+								mesh_material_handle = rtx_api::bridge.CreateOpaqueMaterial(&info, &ext_op, material_type == 1 ? &ext_ss : nullptr);
+							}
 						}
 					}
 
@@ -961,7 +1030,11 @@ namespace components
 						bool switched_model = false;
 						if (!model_names.empty())
 						{
-							switched_model = ImGui::DragInt("Model", &model_index, 0.1f, 0, model_names.size(), model_names[model_index].c_str()) ? true : switched_model;
+							switched_model = ImGui::DragInt("Model", &model_index, 0.1f, 0, model_names.size() - 1, model_names[model_index].c_str()) ? true : switched_model;
+							if ((uint32_t) model_index >= model_names.size())
+							{
+								model_index = (int32_t)(model_names.size() - 1u);
+							}
 						}
 
 						if (ImGui::Button("Update Model List") || !model_names_init)
@@ -1013,7 +1086,7 @@ namespace components
 							  .indices_count = 0,
 							  .skinning_hasvalue = FALSE,
 							  //.skinning_value = { 0 },
-							  .material = mesh_material_handle ? (x86::remixapi_MaterialHandle)mesh_material_handle : nullptr,
+							  .material = mesh_material_handle ? mesh_material_handle : 0,
 							};
 
 							x86::remixapi_MeshInfo i = {
