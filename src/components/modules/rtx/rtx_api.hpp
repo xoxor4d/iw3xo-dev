@@ -25,6 +25,8 @@ namespace components
 		static bool create_distant_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoDistantEXT* d);
 		static bool destroy_light(uint64_t* in_out_handle);
 
+		static void create_quad(x86::remixapi_HardcodedVertex* v_out, uint32_t* i_out, const float scale);
+		static void to_remix_transform(x86::remixapi_Transform* transform, game::vec3_t position, game::vec3_t rotation, game::vec3_t scale);
 
 		static inline bridgeapi_Interface bridge = {};
 

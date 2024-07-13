@@ -31,28 +31,31 @@ namespace components
 			rtx::player_origin_model();
 		}*/
 
-		if (rtx_gui::mesh_handle)
-		{
+		if (rtx_gui::mesh_handle) {
 			rtx_api::bridge.DrawMeshInstance(rtx_gui::mesh_handle, &rtx_gui::mesh_transform, rtx_gui::mesh_double_sided);
 		}
 
-		if (rtx_gui::light_handles[0])
-		{
+		if (rtx_gui::portal0_handle) {
+			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal0_handle, &rtx_gui::portal0_transform, rtx_gui::mesh_double_sided);
+		}
+
+		if (rtx_gui::portal1_handle) {
+			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal1_handle, &rtx_gui::portal1_transform, rtx_gui::mesh_double_sided);
+		}
+
+		if (rtx_gui::light_handles[0]) {
 			rtx_api::bridge.DrawLightInstance(rtx_gui::light_handles[0]);
 		}
 
-		if (rtx_gui::light_handles[1])
-		{
+		if (rtx_gui::light_handles[1]) {
 			rtx_api::bridge.DrawLightInstance(rtx_gui::light_handles[1]);
 		}
 
-		if (rtx_api::g_light_handle)
-		{
+		if (rtx_api::g_light_handle) {
 			rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle);
 		}
 
-		if (rtx_api::g_light_handle2)
-		{
+		if (rtx_api::g_light_handle2) {
 			rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle2);
 		}
 

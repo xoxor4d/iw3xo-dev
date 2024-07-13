@@ -72,6 +72,7 @@
 #define DEBUG_PRINT(_MSG) if constexpr (DEBUG) { OutputDebugStringA(_MSG); std::cout << _MSG; }
 
 #include <glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>

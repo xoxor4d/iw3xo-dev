@@ -1,5 +1,7 @@
 #include "std_include.hpp"
 
+#include "gtx/transform.hpp"
+
 namespace components
 {
 	void rtx_gui::gui()
@@ -610,11 +612,14 @@ namespace components
 				enum MATERIAL_TYPE_ENUM : uint32_t { Opaque, OpaqueSS, Translucent };
 				static const char* material_type_str[] = { "Opaque", "OpaqueSS", "Translucent" };
 				static MATERIAL_TYPE_ENUM material_type = Opaque;
+				static bool material_use_sample_texture = false;
+
 				static game::vec3_t material_albedo_color = { 0.0f, 1.0f, 0.0f };
 				static float material_roughness = 0.2f;
 				static float material_metalness = 0.2f;
 				static float material_emissive_intensity = 0.0f;
 				static game::vec3_t material_emissive_color = { 0.0f, 1.0f, 0.0f };
+				static float material_height_scale = 0.0f;
 
 				static bool material_transl_thinwall = false;
 				static float material_transl_refraction = 1.3f;
@@ -623,6 +628,15 @@ namespace components
 				static float material_ss_measurement_dist = 4.0f;
 				static game::vec3_t material_ss_scattering_albedo = { 0.988f, 0.988f, 0.988f };
 				static float material_ss_vol_aniso = 0.2f;
+
+				static float portal_rotation_speed = 1.0f;
+				static game::vec3_t portal0_translation = { 0.0f, 0.0f, 0.0f };
+				static game::vec3_t portal0_rotation = { 90.0f, 0.0f, 0.0f };
+				static game::vec3_t portal0_scale = { 1.0f, 1.0f, 1.0f };
+
+				static game::vec3_t portal1_translation = { 60.0f, 0.0f, 0.0f };
+				static game::vec3_t portal1_rotation = { 90.0f, 0.0f, 0.0f };
+				static game::vec3_t portal1_scale = { 1.0f, 1.0f, 1.0f };
 
 				if (interf.initialized)
 				{
@@ -917,22 +931,27 @@ namespace components
 					// -------------------
 					gui::title_inside_seperator("Bridge API - Material", true, 0.0f, true, 2.0f); SPACING(0, 4);
 					{
-						bool mat_was_modified = false;
+						bool mat_was_modified = false, portal_mat_was_modified = false;
 						mat_was_modified = ImGui::SliderInt("Material Type", (int*)&material_type, 0, 2, material_type_str[material_type]) ? true : was_modified;
+						mat_was_modified = ImGui::Checkbox("Apply Example Texture", &material_use_sample_texture) ? true : was_modified;
 
-						if (mesh_material_handle)
+						if (mesh_material_handle || portal0_handle || portal1_handle)
 						{
 							mat_was_modified = ImGui::DragFloat("Emissive Intensity", &material_emissive_intensity, 0.01f, 0.0f, 100.0f, "%.2f") ? true : mat_was_modified;
 							mat_was_modified = ImGui::ColorEdit3("Emissive Color", material_emissive_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
+
+							SPACING(0, 4);
 
 							if (material_type <= OpaqueSS)
 							{
 								mat_was_modified = ImGui::ColorEdit3("Albedo Color", material_albedo_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
 								mat_was_modified = ImGui::DragFloat("Roughness", &material_roughness, 0.05f, 0.0f, 1.0f, "%.2f") ? true : mat_was_modified;
 								mat_was_modified = ImGui::DragFloat("Metalness", &material_metalness, 0.05f, 0.0f, 1.0f, "%.2f") ? true : mat_was_modified;
+								mat_was_modified = ImGui::DragFloat("Height Scale", &material_height_scale, 0.005f, 0.0f, 1.0f, "%.3f") ? true : mat_was_modified;
 							}
 							if (material_type == OpaqueSS)
 							{
+								SPACING(0, 4);
 								mat_was_modified = ImGui::ColorEdit3("Transmittance Color", material_ss_trans_color, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
 								mat_was_modified = ImGui::DragFloat("Measurement Distance", &material_ss_measurement_dist, 0.01f, 0.0f, 10.0f, "%.2f") ? true : mat_was_modified;
 								mat_was_modified = ImGui::ColorEdit3("Scattering Albedo", material_ss_scattering_albedo, ImGuiColorEditFlags_Float) ? true : mat_was_modified;
@@ -940,8 +959,14 @@ namespace components
 							}
 							else if (material_type == Translucent)
 							{
+								SPACING(0, 4);
 								mat_was_modified = ImGui::DragFloat("Refraction", &material_transl_refraction, 0.01f, 0.0f, 3.0f, "%.2f") ? true : mat_was_modified;
 								mat_was_modified = ImGui::Checkbox("Thin Walled", &material_transl_thinwall) ? true : mat_was_modified;
+							}
+
+							if (portal0_handle || portal1_handle)
+							{
+								portal_mat_was_modified = ImGui::DragFloat("Portal Rotation Speed", &portal_rotation_speed, 0.01f, 0.0f, 10.0f, "%.2f") ? true : portal_mat_was_modified;
 							}
 						}
 
@@ -953,23 +978,33 @@ namespace components
 								mesh_material_handle = 0;
 							}
 
+							auto folder_path = std::filesystem::path(std::string(game::Dvar_FindVar("fs_homepath")->current.string) + R"(\iw3xo\rtx\example_texture\)");
+							std::filesystem::path albedo_str = folder_path / "example_albedo.dds";
+							std::filesystem::path normal_str = folder_path / "example_normal.dds";
+							std::filesystem::path rough_str = folder_path / "example_roughness.dds";
+							std::filesystem::path metallic_str = folder_path / "example_metallic.dds";
+							std::filesystem::path height_str = folder_path / "example_height.dds";
+
 							x86::remixapi_MaterialInfo info = {};
 							{
 								info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
 								info.hash = mesh_material_handle ? mesh_material_handle : fnv1aHash("material01");
 								info.emissiveIntensity = material_emissive_intensity;
 								info.emissiveColorConstant = { material_emissive_color[0], material_emissive_color[1], material_emissive_color[2] };
-								info.albedoTexture = L"";
-								info.normalTexture = L"";
+								info.albedoTexture = material_use_sample_texture ? albedo_str.c_str() : L"";
+								info.normalTexture = material_use_sample_texture ? normal_str.c_str() : L"";
 								info.tangentTexture = L"";
 								info.emissiveTexture = L"";
+								info.filterMode = 1u;
+								info.wrapModeU = 1u;
+								info.wrapModeV = 1u;
 							}
 
 							x86::remixapi_MaterialInfoOpaqueEXT ext_op = {};
 							{
 								ext_op.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
-								// path roughnessTexture;
-								// path metallicTexture;
+								ext_op.roughnessTexture = material_use_sample_texture ? rough_str.c_str() : L"";
+								ext_op.metallicTexture = material_use_sample_texture ? metallic_str.c_str() : L"";
 								ext_op.anisotropy = 0.0f;
 								ext_op.albedoConstant = { material_albedo_color[0], material_albedo_color[1], material_albedo_color[2] };
 								ext_op.opacityConstant = 1.0f;
@@ -978,8 +1013,8 @@ namespace components
 								ext_op.thinFilmThickness_hasvalue = 0;
 								ext_op.thinFilmThickness_value = 0.0f;
 								ext_op.alphaIsThinFilmThickness = 0;
-								// path heightTexture;
-								ext_op.heightTextureStrength = 0.0f;
+								ext_op.heightTexture = material_use_sample_texture ? height_str.c_str() : L"";
+								ext_op.heightTextureStrength = material_height_scale;
 								ext_op.useDrawCallAlphaState = 1; // If true, InstanceInfoBlendEXT is used as a source for alpha state
 								ext_op.blendType_hasvalue = 0;
 								ext_op.blendType_value = 0;
@@ -1016,6 +1051,102 @@ namespace components
 							else
 							{
 								mesh_material_handle = rtx_api::bridge.CreateOpaqueMaterial(&info, &ext_op, material_type == 1 ? &ext_ss : nullptr);
+							}
+						}
+
+						ImGui::SameLine();
+						const bool btn = ImGui::Button("Create Portals");
+						if (btn || portal_mat_was_modified)
+						{
+							if (portal0_material_handle) {
+								rtx_api::bridge.DestroyMaterial(portal0_material_handle);
+							}
+
+							if (portal1_material_handle) {
+								rtx_api::bridge.DestroyMaterial(portal1_material_handle);
+							}
+
+							x86::remixapi_MaterialInfo info = {};
+							{
+								info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
+								info.hash = portal0_material_handle ? portal0_material_handle : fnv1aHash("mat_portal0");
+								info.emissiveIntensity = material_emissive_intensity;
+								info.emissiveColorConstant = { material_emissive_color[0], material_emissive_color[1], material_emissive_color[2] };
+								info.albedoTexture = L"";
+								info.normalTexture = L"";
+								info.tangentTexture = L"";
+								info.emissiveTexture = L"";
+								info.filterMode = 1u;
+								info.wrapModeU = 1u;
+								info.wrapModeV = 1u;
+							}
+
+							x86::remixapi_MaterialInfoPortalEXT ext = {};
+							{
+								ext.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_PORTAL_EXT;
+								ext.rayPortalIndex = 0;
+								ext.rotationSpeed = portal_rotation_speed;
+							}
+
+							portal0_material_handle = rtx_api::bridge.CreatePortalMaterial(&info, &ext);
+
+							info.hash = portal1_material_handle ? portal1_material_handle : fnv1aHash("mat_portal1");
+							ext.rayPortalIndex = 1;
+							portal1_material_handle = rtx_api::bridge.CreatePortalMaterial(&info, &ext);
+
+							// mesh
+
+							x86::remixapi_HardcodedVertex verts[4] = {};
+							uint32_t indices[6] = {};
+							rtx_api::create_quad(verts, indices, 20.0f);
+
+							x86::remixapi_MeshInfoSurfaceTriangles triangles = {
+							  .vertices_values = verts,
+							  .vertices_count = ARRAYSIZE(verts),
+							  .indices_values = indices,
+							  .indices_count = 6,
+							  .skinning_hasvalue = FALSE,
+							  .material = portal0_material_handle ? portal0_material_handle : 0,
+							};
+
+							x86::remixapi_MeshInfo i = {
+							  .sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
+							  .hash = portal0_handle ? portal0_handle : fnv1aHash("mesh_portal0"),
+							  .surfaces_values = &triangles,
+							  .surfaces_count = 1,
+							};
+
+							rtx_api::destroy_mesh(&portal0_handle);
+							portal0_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+
+							triangles.material = portal1_material_handle ? portal1_material_handle : 0;
+							i.hash = portal1_handle ? portal1_handle : fnv1aHash("mesh_portal1");
+							rtx_api::destroy_mesh(&portal1_handle);
+							portal1_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+						}
+
+						if (btn || portal0_handle || portal1_handle)
+						{
+							bool p0_modified = false;
+							p0_modified = ImGui::DragFloat3("Portal 0 Position", portal0_translation, 0.05f) ? true : p0_modified;
+							p0_modified = ImGui::DragFloat3("Portal 0 Rotation", portal0_rotation, 0.05f) ? true : p0_modified;
+							p0_modified = ImGui::DragFloat3("Portal 0 Scale", portal0_scale, 0.05f) ? true : p0_modified;
+
+							if (p0_modified)
+							{
+								rtx_api::to_remix_transform(&portal0_transform, portal0_translation, portal0_rotation, portal0_scale);
+							}
+
+							SPACING(0, 4);
+
+							bool p1_modified = false;
+							p1_modified = ImGui::DragFloat3("Portal 1 Position", portal1_translation, 0.05f) ? true : p1_modified;
+							p1_modified = ImGui::DragFloat3("Portal 1 Rotation", portal1_rotation, 0.05f) ? true : p1_modified;
+							p1_modified = ImGui::DragFloat3("Portal 1 Scale", portal1_scale, 0.05f) ? true : p1_modified;
+
+							if (p1_modified)
+							{
+								rtx_api::to_remix_transform(&portal1_transform, portal1_translation, portal1_rotation, portal1_scale);
 							}
 						}
 					}

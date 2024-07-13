@@ -107,7 +107,6 @@ namespace components
 		return true;
 	}
 
-
 	bool rtx_api::create_sphere_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoSphereEXT* s)
 	{
 		CHECK_INIT(false);
@@ -214,6 +213,62 @@ namespace components
 		bridge.DestroyLight(*in_out_handle);
 		*in_out_handle = 0;
 		return true;
+	}
+
+	void rtx_api::create_quad(x86::remixapi_HardcodedVertex* v_out, uint32_t* i_out, const float scale)
+	{
+		if (!v_out || !i_out)
+		{
+			return;
+		}
+
+		auto makeVertex = [&](float x, float y, float z, float u, float v) {
+			x86::remixapi_HardcodedVertex vert =
+			{
+			  .position = {x,y,z},
+			  .normal = {0,0,-1},
+			  .texcoord = { u, v },
+			  .color = 0xFFFFFFFF,
+			};
+			return vert;
+		};
+
+		v_out[0] = makeVertex(-1.0f * scale, 1,  1.0f * scale, 1.0f, 1.0f); // t l
+		v_out[1] = makeVertex(-1.0f * scale, 1, -1.0f * scale, 0.0f, 0.0f); // b l
+		v_out[2] = makeVertex( 1.0f * scale, 1,  1.0f * scale, 1.0f, 1.0f); // t r
+		v_out[3] = makeVertex( 1.0f * scale, 1, -1.0f * scale, 1.0f, 0.0f); // b r
+
+		i_out[0] = 0;
+		i_out[1] = 1;
+		i_out[2] = 2;
+		i_out[3] = 3;
+		i_out[4] = 2;
+		i_out[5] = 1;
+	}
+
+	void rtx_api::to_remix_transform(x86::remixapi_Transform* transform, game::vec3_t position, game::vec3_t rotation, game::vec3_t scale)
+	{
+		if (!transform || !position || !rotation || !scale)
+		{
+			return;
+		}
+
+		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::to_vec3(position));
+
+		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[2]), glm::vec3(0, 0, 1));
+		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation[1]), glm::vec3(0, 1, 0));
+		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation[0]), glm::vec3(1, 0, 0));
+
+		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::to_vec3(scale));
+		glm::mat4 transformMatrix = glm::transpose(translationMatrix * rotationMatrix * scaleMatrix); // column to row-major
+
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 4; ++j)
+			{
+				transform->matrix[i][j] = glm::value_ptr(transformMatrix)[i * 4 + j];
+			}
+		}
 	}
 
 	rtx_api::rtx_api()
