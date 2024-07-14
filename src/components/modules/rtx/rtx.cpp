@@ -36,11 +36,11 @@ namespace components
 		}
 
 		if (rtx_gui::portal0_handle) {
-			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal0_handle, &rtx_gui::portal0_transform, rtx_gui::mesh_double_sided);
+			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal0_handle, &rtx_gui::portal0_transform, false);
 		}
 
 		if (rtx_gui::portal1_handle) {
-			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal1_handle, &rtx_gui::portal1_transform, rtx_gui::mesh_double_sided);
+			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal1_handle, &rtx_gui::portal1_transform, false);
 		}
 
 		if (rtx_gui::light_handles[0]) {

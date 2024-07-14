@@ -322,7 +322,7 @@ namespace components
 			ImGui::Indent(-8.0f); SPACING(0.0f, 12.0f);
 		}
 
-		if (ImGui::CollapsingHeader("Debug Light", ImGuiTreeNodeFlags_None))
+		if (ImGui::CollapsingHeader("Lights", ImGuiTreeNodeFlags_None))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -520,7 +520,7 @@ namespace components
 			ImGui::Indent(-8.0f); SPACING(0.0f, 12.0f);
 		}
 
-		if (ImGui::CollapsingHeader("LOD", ImGuiTreeNodeFlags_None))
+		if (ImGui::CollapsingHeader("Level of Detail", ImGuiTreeNodeFlags_None))
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -553,9 +553,9 @@ namespace components
 			ImGui::Indent(-8.0f); SPACING(0.0f, 12.0f);
 		}
 
-		if constexpr (DEBUG)
+		//if constexpr (DEBUG)
 		{
-			if (ImGui::CollapsingHeader("DEV", ImGuiTreeNodeFlags_None))
+			if (ImGui::CollapsingHeader("Developer", ImGuiTreeNodeFlags_None))
 			{
 				ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
@@ -629,19 +629,26 @@ namespace components
 				static game::vec3_t material_ss_scattering_albedo = { 0.988f, 0.988f, 0.988f };
 				static float material_ss_vol_aniso = 0.2f;
 
+				static game::vec3_t mesh_translation = { -30.0f, -50.0f, 100.0f };
+				static game::vec3_t mesh_rotation = { 0.0f, 0.0f, 0.0f };
+				static game::vec3_t mesh_scale = { 1.0f, 1.0f, 1.0f };
+
+				static bool portal_anim_enable = false;
+				static bool portal_enable_quad = false;
+				static int portal_anim_fps = 5;
 				static float portal_rotation_speed = 1.0f;
-				static game::vec3_t portal0_translation = { 0.0f, 0.0f, 0.0f };
-				static game::vec3_t portal0_rotation = { 90.0f, 0.0f, 0.0f };
+				static game::vec3_t portal0_translation = { -30.0f, -50.0f, 100.0f };
+				static game::vec3_t portal0_rotation = { 0.0f, 0.0f, 0.0f };
 				static game::vec3_t portal0_scale = { 1.0f, 1.0f, 1.0f };
 
-				static game::vec3_t portal1_translation = { 60.0f, 0.0f, 0.0f };
-				static game::vec3_t portal1_rotation = { 90.0f, 0.0f, 0.0f };
+				static game::vec3_t portal1_translation = { 60.0f, -50.0f, 100.0f };
+				static game::vec3_t portal1_rotation = { 0.0f, 0.0f, 0.0f };
 				static game::vec3_t portal1_scale = { 1.0f, 1.0f, 1.0f };
 
 				if (interf.initialized)
 				{
 					// -------------------
-					gui::title_inside_seperator("Bridge API - Lights", true, 0.0f, true, 2.0f); SPACING(0, 4);
+					gui::title_inside_seperator("Bridge API - Lights", false, 0.0f, true, 2.0f); SPACING(0, 4);
 					{
 						if (ImGui::SliderInt("Light Selector", &ls, 0, 1))
 						{
@@ -658,7 +665,7 @@ namespace components
 
 						if (get_type() != DISTANT)
 						{
-							if (ImGui::Button("Move to player"))
+							if (ImGui::Button("Move to player", ImVec2(376.0f, 0.0f)))
 							{
 								utils::vector::copy(game::cgs->predictedPlayerState.origin, light_positions[ls], 3);
 								light_positions[ls][2] += game::cgs->predictedPlayerState.viewHeightCurrent;
@@ -704,7 +711,9 @@ namespace components
 						TT("Animates the red radiance value");
 
 						static float anim_speed = 1.0f;
-						ImGui::SliderFloat("Animation Speed", &anim_speed, 0.1f, 20.0f, "%.1f");
+						if (light_anim[ls]) {
+							ImGui::SliderFloat("Animation Speed", &anim_speed, 0.1f, 20.0f, "%.1f");
+						}
 
 						float anim = 1.0f;
 						if (light_anim[ls])
@@ -715,9 +724,14 @@ namespace components
 							was_modified = true;
 						}
 
-						SPACING(0, 4);
+						if (!light_anim[ls]) {
+							ImGui::SameLine();
+						} else {
+							SPACING(0, 4);
+						}
 
 						was_modified = ImGui::Checkbox("Shape Light", &light_use_shaping[ls]) ? true : was_modified;
+						
 						if (light_use_shaping[ls])
 						{
 							was_modified = ImGui::DragFloat3("Shaping Direction", (float*)&light_shaping[ls].direction, 0.001f, -1.0f, 1.0f, "%.2f") ? true : was_modified;
@@ -966,9 +980,25 @@ namespace components
 
 							if (portal0_handle || portal1_handle)
 							{
-								portal_mat_was_modified = ImGui::DragFloat("Portal Rotation Speed", &portal_rotation_speed, 0.01f, 0.0f, 10.0f, "%.2f") ? true : portal_mat_was_modified;
+								SPACING(0, 4);
+								portal_mat_was_modified = ImGui::Checkbox("Portal Quad", &portal_enable_quad) ? true : portal_mat_was_modified;
+
+								if (!portal_enable_quad) {
+									ImGui::SameLine();
+									portal_mat_was_modified = ImGui::Checkbox("Portal Anim", &portal_anim_enable) ? true : portal_mat_was_modified;
+
+									if (portal_anim_enable) {
+										portal_mat_was_modified = ImGui::DragInt("Portal Anim FPS", &portal_anim_fps, 0.5, 0, 60) ? true : portal_mat_was_modified;
+									}
+								}
+
+								if (portal_enable_quad || portal_anim_enable) {
+									portal_mat_was_modified = ImGui::DragFloat("Portal Rotation Speed", &portal_rotation_speed, 0.01f, 0.0f, 10.0f, "%.2f") ? true : portal_mat_was_modified;
+								}
 							}
 						}
+
+						static auto texfolder_path = std::filesystem::path(std::string(game::Dvar_FindVar("fs_homepath")->current.string) + R"(\iw3xo\rtx\example_texture\)");
 
 						if (ImGui::Button("Create/Update Material") || mat_was_modified)
 						{
@@ -978,12 +1008,11 @@ namespace components
 								mesh_material_handle = 0;
 							}
 
-							auto folder_path = std::filesystem::path(std::string(game::Dvar_FindVar("fs_homepath")->current.string) + R"(\iw3xo\rtx\example_texture\)");
-							std::filesystem::path albedo_str = folder_path / "example_albedo.dds";
-							std::filesystem::path normal_str = folder_path / "example_normal.dds";
-							std::filesystem::path rough_str = folder_path / "example_roughness.dds";
-							std::filesystem::path metallic_str = folder_path / "example_metallic.dds";
-							std::filesystem::path height_str = folder_path / "example_height.dds";
+							std::filesystem::path albedo_str = texfolder_path / "example_albedo.dds";
+							std::filesystem::path normal_str = texfolder_path / "example_normal.dds";
+							std::filesystem::path rough_str = texfolder_path / "example_roughness.dds";
+							std::filesystem::path metallic_str = texfolder_path / "example_metallic.dds";
+							std::filesystem::path height_str = texfolder_path / "example_height.dds";
 
 							x86::remixapi_MaterialInfo info = {};
 							{
@@ -1066,6 +1095,9 @@ namespace components
 								rtx_api::bridge.DestroyMaterial(portal1_material_handle);
 							}
 
+							std::filesystem::path portal_str = texfolder_path / "portal_mask.dds";
+							std::filesystem::path portal_quad_str = texfolder_path / "portal_mask_square.dds";
+
 							x86::remixapi_MaterialInfo info = {};
 							{
 								info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
@@ -1075,7 +1107,16 @@ namespace components
 								info.albedoTexture = L"";
 								info.normalTexture = L"";
 								info.tangentTexture = L"";
-								info.emissiveTexture = L"";
+
+								if (portal_enable_quad) {
+									info.emissiveTexture = portal_quad_str.c_str();
+								} else {
+									info.emissiveTexture = portal_anim_enable ? portal_str.c_str() : L"";
+								}
+
+								info.spriteSheetFps = (uint8_t) portal_anim_fps;
+								info.spriteSheetCol = portal_enable_quad ? 1 : 6;
+								info.spriteSheetRow = 1;
 								info.filterMode = 1u;
 								info.wrapModeU = 1u;
 								info.wrapModeV = 1u;
@@ -1125,14 +1166,33 @@ namespace components
 							portal1_handle = rtx_api::bridge.CreateTriangleMesh(&i);
 						}
 
-						if (btn || portal0_handle || portal1_handle)
+						if (portal0_handle || portal1_handle)
 						{
+							ImGui::SameLine();
+							if (ImGui::Button("Delete Portals"))
+							{
+								if (portal0_handle) {
+									rtx_api::bridge.DestroyMesh(portal0_handle);
+									portal0_handle = 0;
+								}
+
+								if (portal1_handle) {
+									rtx_api::bridge.DestroyMesh(portal1_handle);
+									portal1_handle = 0;
+								}
+							}
+						}
+
+						static bool calc_initial_portal_matrices_once = false;
+						if (!calc_initial_portal_matrices_once || btn || portal0_handle || portal1_handle)
+						{
+							
 							bool p0_modified = false;
 							p0_modified = ImGui::DragFloat3("Portal 0 Position", portal0_translation, 0.05f) ? true : p0_modified;
 							p0_modified = ImGui::DragFloat3("Portal 0 Rotation", portal0_rotation, 0.05f) ? true : p0_modified;
 							p0_modified = ImGui::DragFloat3("Portal 0 Scale", portal0_scale, 0.05f) ? true : p0_modified;
 
-							if (p0_modified)
+							if (p0_modified || !calc_initial_portal_matrices_once)
 							{
 								rtx_api::to_remix_transform(&portal0_transform, portal0_translation, portal0_rotation, portal0_scale);
 							}
@@ -1144,10 +1204,12 @@ namespace components
 							p1_modified = ImGui::DragFloat3("Portal 1 Rotation", portal1_rotation, 0.05f) ? true : p1_modified;
 							p1_modified = ImGui::DragFloat3("Portal 1 Scale", portal1_scale, 0.05f) ? true : p1_modified;
 
-							if (p1_modified)
+							if (p1_modified || !calc_initial_portal_matrices_once)
 							{
 								rtx_api::to_remix_transform(&portal1_transform, portal1_translation, portal1_rotation, portal1_scale);
 							}
+
+							calc_initial_portal_matrices_once = true;
 						}
 					}
 
@@ -1184,14 +1246,14 @@ namespace components
 						if (!model_names.empty())
 						{
 							ImGui::SameLine();
-							if (ImGui::Button("Create/Update Model") || switched_model)
+							if (ImGui::Button("Create Model") || switched_model)
 							{
 								rtx_api::create_cod4_mesh(&mesh_handle, model_names[model_index].c_str(), &mesh_material_handle);
 							}
 						}
 
 						ImGui::SameLine();
-						if (ImGui::Button("Create/Update Triangle"))
+						if (ImGui::Button("Create Triangle"))
 						{
 							auto makeVertex = [&](float x, float y, float z) {
 								x86::remixapi_HardcodedVertex v =
@@ -1231,14 +1293,31 @@ namespace components
 							mesh_handle = rtx_api::bridge.CreateTriangleMesh(&i);
 						}
 
+						if (mesh_handle)
+						{
+							ImGui::SameLine();
+							if (ImGui::Button("Delete Mesh"))
+							{
+								rtx_api::bridge.DestroyMesh(mesh_handle);
+								mesh_handle = 0;
+							}
+						}
+
 						SPACING(0, 4);
 						if (mesh_handle)
 						{
-							ImGui::DragFloat4("Transform X", mesh_transform.matrix[0], 0.05f);
-							ImGui::DragFloat4("Transform Y", mesh_transform.matrix[1], 0.05f);
-							ImGui::DragFloat4("Transform Z", mesh_transform.matrix[2], 0.05f);
+							static bool calc_initial_mesh_matrices_once = false;
+							bool mesh_modified = false;
+							mesh_modified = ImGui::DragFloat3("Model Position", mesh_translation, 0.05f) ? true : mesh_modified;
+							mesh_modified = ImGui::DragFloat3("Model Rotation", mesh_rotation, 0.05f) ? true : mesh_modified;
+							mesh_modified = ImGui::DragFloat3("Model Scale", mesh_scale, 0.05f) ? true : mesh_modified;
+
+							if (!calc_initial_mesh_matrices_once || mesh_modified)
+							{
+								rtx_api::to_remix_transform(&mesh_transform, mesh_translation, mesh_rotation, mesh_scale);
+							}
+
 							ImGui::Checkbox("Double Sided", &mesh_double_sided);
-							ImGui::Text("Mesh spawned!");
 						}
 					}
 				}

@@ -233,10 +233,10 @@ namespace components
 			return vert;
 		};
 
-		v_out[0] = makeVertex(-1.0f * scale, 1,  1.0f * scale, 1.0f, 1.0f); // t l
-		v_out[1] = makeVertex(-1.0f * scale, 1, -1.0f * scale, 0.0f, 0.0f); // b l
-		v_out[2] = makeVertex( 1.0f * scale, 1,  1.0f * scale, 1.0f, 1.0f); // t r
-		v_out[3] = makeVertex( 1.0f * scale, 1, -1.0f * scale, 1.0f, 0.0f); // b r
+		v_out[0] = makeVertex(-1.0f * scale, 1, -1.0f * scale, 0.0f, 0.0f); // b l
+		v_out[1] = makeVertex(-1.0f * scale, 1, 1.0f * scale, 0.0f, 1.0f); // t l
+		v_out[2] = makeVertex(1.0f * scale, 1, -1.0f * scale, 1.0f, 0.0f); // b r
+		v_out[3] = makeVertex(1.0f * scale, 1, 1.0f * scale, 1.0f, 1.0f); // t r
 
 		i_out[0] = 0;
 		i_out[1] = 1;
