@@ -1,23 +1,28 @@
 #include "std_include.hpp"
 #include "rtx_api.hpp"
 
-#define CHECK_INIT(ret) if (!bridge.initialized) { game::Com_PrintMessage(0, "BridgeApi not initialized!", 0); return ret; }
-#define CHECK_INIT_NO_RET() if (!bridge.initialized) { game::Com_PrintMessage(0, "BridgeApi not initialized!", 0); return; }
+#define CHECK_INIT(ret) if (!is_initialized()) { game::Com_PrintMessage(0, "BridgeApi not initialized!", 0); return ret; }
+#define CHECK_INIT_NO_RET() if (!is_initialized()) { game::Com_PrintMessage(0, "BridgeApi not initialized!", 0); return; }
 
 namespace components
 {
-	BRIDGEAPI_ErrorCode rtx_api::init()
+	remixapi_ErrorCode rtx_api::init()
 	{
-		const auto status = bridgeapi_initialize(&bridge);
-		if (status == BRIDGEAPI_ERROR_CODE_SUCCESS)
-		game::Com_PrintMessage(0, utils::va("[BridgeApi] bridgeapi_initialize() : %s ", !status ? "success" : utils::va("error : %d", status)), 0);
-
-		if (bridge.initialized)
+		const auto status = remixapi::bridge_initRemixApi(&bridge);
+		if (status == REMIXAPI_ERROR_CODE_SUCCESS)
 		{
-			bridge.RegisterDevice();
+			m_initialized = true;
 		}
 
+		game::Com_PrintMessage(0, utils::va("[BridgeApi] bridgeapi_initialize() : %s ", !status ? "success" : utils::va("error : %d", status)), 0);
+
+		/*if (bridge)
+		{
+			bridge.RegisterDevice();
+		}*/
+
 		return status;
+		//return REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
 	}
 
 	bool rtx_api::destroy_mesh(uint64_t* in_out_handle)
@@ -28,12 +33,12 @@ namespace components
 			return false;
 		}
 
-		bridge.DestroyMesh(*in_out_handle);
+		bridge.DestroyMesh((remixapi_MeshHandle)*in_out_handle);
 		*in_out_handle = 0;
 		return true;
 	}
 
-	bool rtx_api::create_cod4_mesh(uint64_t* in_out_handle, const char* model_name, uint64_t* material)
+	bool rtx_api::create_cod4_mesh(remixapi_MeshHandle* in_out_handle, const char* model_name, uint64_t* material)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle || !model_name)
@@ -43,8 +48,8 @@ namespace components
 
 		if (const auto mdl = game::DB_FindXAssetHeader(game::XAssetType::ASSET_TYPE_XMODEL, model_name).model; mdl)
 		{
-			std::vector<x86::remixapi_MeshInfoSurfaceTriangles> surfs;
-			std::vector<std::vector<x86::remixapi_HardcodedVertex>> verts;
+			std::vector<remixapi_MeshInfoSurfaceTriangles> surfs;
+			std::vector<std::vector<remixapi_HardcodedVertex>> verts;
 			std::vector<std::vector<uint32_t>> indices;
 
 			const uint32_t surf_count = (uint32_t) mdl->numsurfs;
@@ -64,7 +69,7 @@ namespace components
 					game::vec2_t unpacked_texcoord;
 					game::Vec2UnpackTexCoords(vert.texCoord.packed, unpacked_texcoord);
 
-					verts.back().emplace_back(x86::remixapi_HardcodedVertex
+					verts.back().emplace_back(remixapi_HardcodedVertex
 					{
 						{ vert.xyz[0], vert.xyz[1], vert.xyz[2] },
 						{ unpacked_normal[0], unpacked_normal[1], unpacked_normal[2] },
@@ -81,33 +86,39 @@ namespace components
 					indices.back().emplace_back((uint32_t)surf.triIndices[i]);
 				}
 
-				surfs.emplace_back(x86::remixapi_MeshInfoSurfaceTriangles
+				surfs.emplace_back(remixapi_MeshInfoSurfaceTriangles
 				{
 					verts[s].data(),
 					vert_count,
 					indices[s].data(),
 					index_count,
 					FALSE,
-					material ? *material : 0u,
+					{},
+					material ? (remixapi_MaterialHandle)*material : nullptr,
 				});
 			}
 
-			x86::remixapi_MeshInfo i =
+			remixapi_MeshInfo i =
 			{
 				.sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
-				.hash = *in_out_handle ? *in_out_handle : 0xDEAD,
+				.hash = 0xDEAD,
 				.surfaces_values = surfs.data(),
 				.surfaces_count = surf_count,
 			};
 
-			rtx_api::destroy_mesh(in_out_handle);
-			*in_out_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+			if (*in_out_handle)
+			{
+				rtx_api::bridge.DestroyMesh(*in_out_handle);
+				*in_out_handle = nullptr;
+			}
+
+			rtx_api::bridge.CreateMesh(&i, in_out_handle);
 		}
 
 		return true;
 	}
 
-	bool rtx_api::create_sphere_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoSphereEXT* s)
+	bool rtx_api::create_sphere_light(uint64_t* in_out_handle, remixapi_LightInfo* l, const remixapi_LightInfoSphereEXT* s)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle)
@@ -117,16 +128,22 @@ namespace components
 
 		if (*in_out_handle)
 		{
-			bridge.DestroyLight(*in_out_handle);
+			bridge.DestroyLight((remixapi_LightHandle)*in_out_handle);
+			*in_out_handle = 0u;
 		}
 
-		*in_out_handle = bridge.CreateSphereLight(l, s);
+		l->pNext = (void*)s;
+
+		//remixapi_LightHandle handle = nullptr;
+		bridge.CreateLight(l, (remixapi_LightHandle*)in_out_handle);
+		//*in_out_handle = (uint64_t)handle;
+
 		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
 
 		return true;
 	}
 
-	bool rtx_api::create_rect_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoRectEXT* r)
+	bool rtx_api::create_rect_light(uint64_t* in_out_handle, remixapi_LightInfo* l, const remixapi_LightInfoRectEXT* r)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle)
@@ -136,16 +153,17 @@ namespace components
 
 		if (*in_out_handle)
 		{
-			bridge.DestroyLight(*in_out_handle);
+			bridge.DestroyLight((remixapi_LightHandle)*in_out_handle);
 		}
 
-		*in_out_handle = bridge.CreateRectLight(l, r);
+		l->pNext = (void*)r;
+		bridge.CreateLight(l, (remixapi_LightHandle*)in_out_handle);
 		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
 
 		return true;
 	}
 
-	bool rtx_api::create_disk_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoDiskEXT* d)
+	bool rtx_api::create_disk_light(uint64_t* in_out_handle, remixapi_LightInfo* l, const remixapi_LightInfoDiskEXT* d)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle)
@@ -155,16 +173,17 @@ namespace components
 
 		if (*in_out_handle)
 		{
-			bridge.DestroyLight(*in_out_handle);
+			bridge.DestroyLight((remixapi_LightHandle)*in_out_handle);
 		}
 
-		*in_out_handle = bridge.CreateDiskLight(l, d);
+		l->pNext = (void*)d;
+		bridge.CreateLight(l, (remixapi_LightHandle*)in_out_handle);
 		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
 
 		return true;
 	}
 
-	bool rtx_api::create_cylinder_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoCylinderEXT* cy)
+	bool rtx_api::create_cylinder_light(uint64_t* in_out_handle, remixapi_LightInfo* l, const remixapi_LightInfoCylinderEXT* cy)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle)
@@ -174,16 +193,17 @@ namespace components
 
 		if (*in_out_handle)
 		{
-			bridge.DestroyLight(*in_out_handle);
+			bridge.DestroyLight((remixapi_LightHandle)*in_out_handle);
 		}
 
-		*in_out_handle = bridge.CreateCylinderLight(l, cy);
+		l->pNext = (void*)cy;
+		bridge.CreateLight(l, (remixapi_LightHandle*)in_out_handle);
 		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
 
 		return true;
 	}
 
-	bool rtx_api::create_distant_light(uint64_t* in_out_handle, const x86::remixapi_LightInfo* l, const x86::remixapi_LightInfoDistantEXT* d)
+	bool rtx_api::create_distant_light(uint64_t* in_out_handle, remixapi_LightInfo* l, const remixapi_LightInfoDistantEXT* d)
 	{
 		CHECK_INIT(false);
 		if (!in_out_handle)
@@ -193,10 +213,11 @@ namespace components
 
 		if (*in_out_handle)
 		{
-			bridge.DestroyLight(*in_out_handle);
+			bridge.DestroyLight((remixapi_LightHandle)*in_out_handle);
 		}
 
-		*in_out_handle = bridge.CreateDistantLight(l, d);
+		l->pNext = (void*)d;
+		bridge.CreateLight(l, (remixapi_LightHandle*)in_out_handle);
 		//game::Com_PrintMessage(0, utils::va("bridge.CreateLight handle = %d \n", *in_out_handle), 0);
 
 		return true;
@@ -210,12 +231,12 @@ namespace components
 			return false;
 		}
 
-		bridge.DestroyLight(*in_out_handle);
+		bridge.DestroyLight((remixapi_LightHandle)*in_out_handle);
 		*in_out_handle = 0;
 		return true;
 	}
 
-	void rtx_api::create_quad(x86::remixapi_HardcodedVertex* v_out, uint32_t* i_out, const float scale)
+	void rtx_api::create_quad(remixapi_HardcodedVertex* v_out, uint32_t* i_out, const float scale)
 	{
 		if (!v_out || !i_out)
 		{
@@ -223,7 +244,7 @@ namespace components
 		}
 
 		auto makeVertex = [&](float x, float y, float z, float u, float v) {
-			x86::remixapi_HardcodedVertex vert =
+			const remixapi_HardcodedVertex vert =
 			{
 			  .position = {x,y,z},
 			  .normal = {0,0,-1},
@@ -246,21 +267,21 @@ namespace components
 		i_out[5] = 1;
 	}
 
-	void rtx_api::to_remix_transform(x86::remixapi_Transform* transform, game::vec3_t position, game::vec3_t rotation, game::vec3_t scale)
+	void rtx_api::to_remix_transform(remixapi_Transform* transform, game::vec3_t position, game::vec3_t rotation, game::vec3_t scale)
 	{
 		if (!transform || !position || !rotation || !scale)
 		{
 			return;
 		}
 
-		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::to_vec3(position));
+		const glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::to_vec3(position));
 
 		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[2]), glm::vec3(0, 0, 1));
 		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation[1]), glm::vec3(0, 1, 0));
 		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(rotation[0]), glm::vec3(1, 0, 0));
 
-		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::to_vec3(scale));
-		glm::mat4 transformMatrix = glm::transpose(translationMatrix * rotationMatrix * scaleMatrix); // column to row-major
+		const glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::to_vec3(scale));
+		const glm::mat4 transformMatrix = glm::transpose(translationMatrix * rotationMatrix * scaleMatrix); // column to row-major
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -314,7 +335,7 @@ namespace components
 
 		command::add("api_create_light", "[opt:position] <x> <y> <z>   [opt:radius] <radius>   [optional:radiance] <r> <g> <b>", "RemixApi: Create a light with the 'CreateLight' func\neg: api_create_light 0 0 100 500 250 300", [this]([[maybe_unused]] command::params parms)
 		{
-			x86::remixapi_LightInfo l = {};
+			remixapi_LightInfo l = {};
 			{
 				l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 				l.hash = 0x1337;
@@ -326,7 +347,7 @@ namespace components
 				};
 			}
 
-			x86::remixapi_LightInfoSphereEXT s = {};
+			remixapi_LightInfoSphereEXT s = {};
 			{
 				s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
 				s.position = 
@@ -345,7 +366,7 @@ namespace components
 
 		command::add("api_create_light2", "[optional:position] <x> <y> <z>  [optional:radiance] <r> <g> <b>", "RemixApi: Create a light with the 'CreateLight' func\neg: api_create_light 0 0 100 500 250 300", [this]([[maybe_unused]] command::params parms)
 		{
-			x86::remixapi_LightInfo l = {};
+			remixapi_LightInfo l = {};
 			{
 				l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 				l.hash = 0x1338;
@@ -357,7 +378,7 @@ namespace components
 				};
 			}
 
-			x86::remixapi_LightInfoSphereEXT s = {};
+			remixapi_LightInfoSphereEXT s = {};
 			{
 				s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
 				s.position =

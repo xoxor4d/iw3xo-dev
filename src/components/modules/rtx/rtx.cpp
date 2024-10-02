@@ -31,32 +31,65 @@ namespace components
 			rtx::player_origin_model();
 		}*/
 
-		if (rtx_gui::mesh_handle) {
-			rtx_api::bridge.DrawMeshInstance(rtx_gui::mesh_handle, &rtx_gui::mesh_transform, rtx_gui::mesh_double_sided);
+		if (rtx_gui::mesh_handle) 
+		{
+			const remixapi_InstanceInfo info =
+			{
+				.sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
+				.pNext = nullptr,
+				.categoryFlags = 0,
+				.mesh = rtx_gui::mesh_handle,
+				.transform = rtx_gui::mesh_transform,
+				.doubleSided = rtx_gui::mesh_double_sided
+			};
+
+			rtx_api::bridge.DrawInstance(&info);
 		}
 
-		if (rtx_gui::portal0_handle) {
-			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal0_handle, &rtx_gui::portal0_transform, false);
+		if (rtx_gui::portal0_handle) 
+		{
+			const remixapi_InstanceInfo info =
+			{
+				.sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
+				.pNext = nullptr,
+				.categoryFlags = 0,
+				.mesh = (remixapi_MeshHandle)rtx_gui::portal0_handle,
+				.transform = rtx_gui::portal0_transform,
+				.doubleSided = false
+			};
+
+			rtx_api::bridge.DrawInstance(&info);
 		}
 
-		if (rtx_gui::portal1_handle) {
-			rtx_api::bridge.DrawMeshInstance(rtx_gui::portal1_handle, &rtx_gui::portal1_transform, false);
+		if (rtx_gui::portal1_handle) 
+		{
+			const remixapi_InstanceInfo info =
+			{
+				.sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
+				.pNext = nullptr,
+				.categoryFlags = 0,
+				.mesh = (remixapi_MeshHandle)rtx_gui::portal1_handle,
+				.transform = rtx_gui::portal1_transform,
+				.doubleSided = false
+			};
+
+			rtx_api::bridge.DrawInstance(&info);
 		}
 
 		if (rtx_gui::light_handles[0]) {
-			rtx_api::bridge.DrawLightInstance(rtx_gui::light_handles[0]);
+			rtx_api::bridge.DrawLightInstance((remixapi_LightHandle) rtx_gui::light_handles[0]);
 		}
 
 		if (rtx_gui::light_handles[1]) {
-			rtx_api::bridge.DrawLightInstance(rtx_gui::light_handles[1]);
+			rtx_api::bridge.DrawLightInstance((remixapi_LightHandle) rtx_gui::light_handles[1]);
 		}
 
 		if (rtx_api::g_light_handle) {
-			rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle);
+			rtx_api::bridge.DrawLightInstance((remixapi_LightHandle) rtx_api::g_light_handle);
 		}
 
 		if (rtx_api::g_light_handle2) {
-			rtx_api::bridge.DrawLightInstance(rtx_api::g_light_handle2);
+			rtx_api::bridge.DrawLightInstance((remixapi_LightHandle) rtx_api::g_light_handle2);
 		}
 
 		rtx_gui::skysphere_frame();

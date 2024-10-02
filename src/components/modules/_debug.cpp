@@ -560,42 +560,44 @@ namespace components
 					0.25f,
 					smodel->model->name);
 			}
+		}
 
-			for (auto m = 0u; m < static_cast<std::uint32_t>(game::scene->sceneModelCount); m++)
+		// BIG OOF. Looped the below for each smodel above???? test!
+
+		for (auto m = 0u; m < static_cast<std::uint32_t>(game::scene->sceneModelCount); m++)
+		{
+			const auto scene_model = &game::scene->sceneModel[m];
+			if (utils::vector::distance3(view_parms->origin, scene_model->placement.base.origin) <= 1000.0f)
 			{
-				const auto scene_model = &game::scene->sceneModel[m];
-				if (utils::vector::distance3(view_parms->origin, scene_model->placement.base.origin) <= 1000.0f)
-				{
-					const game::vec3_t pos = { scene_model->placement.base.origin[0], scene_model->placement.base.origin[1], scene_model->placement.base.origin[2] + 4.0f };
+				const game::vec3_t pos = { scene_model->placement.base.origin[0], scene_model->placement.base.origin[1], scene_model->placement.base.origin[2] + 4.0f };
 
+				game::R_AddDebugString(
+					&data->debugGlobals,
+					pos,
+					game::COLOR_RED,
+					0.25f,
+					scene_model->model->name);
+			}
+		}
+
+		for (auto o = 0u; o < static_cast<std::uint32_t>(game::scene->sceneDObjCount); o++)
+		{
+			const auto dobj = &game::scene->sceneDObj[o];
+			if (utils::vector::distance3(view_parms->origin, dobj->placement.base.origin) <= 1000.0f)
+			{
+				game::vec3_t pos = { dobj->placement.base.origin[0], dobj->placement.base.origin[1], dobj->placement.base.origin[2] + 4.0f };
+
+				for (auto sub = 0u; sub < static_cast<std::uint8_t>(dobj->obj->numModels); sub++)
+				{
 					game::R_AddDebugString(
 						&data->debugGlobals,
 						pos,
-						game::COLOR_RED,
+						game::COLOR_GREEN,
 						0.25f,
-						scene_model->model->name);
-				}
-			}
+						dobj->obj->models[sub]->name);
 
-			for (auto o = 0u; o < static_cast<std::uint32_t>(game::scene->sceneDObjCount); o++)
-			{
-				const auto dobj = &game::scene->sceneDObj[o];
-				if (utils::vector::distance3(view_parms->origin, dobj->placement.base.origin) <= 1000.0f)
-				{
-					game::vec3_t pos = { dobj->placement.base.origin[0], dobj->placement.base.origin[1], dobj->placement.base.origin[2] + 4.0f };
-
-					for (auto sub = 0u; sub < static_cast<std::uint8_t>(dobj->obj->numModels); sub++)
-					{
-						game::R_AddDebugString(
-							&data->debugGlobals,
-							pos,
-							game::COLOR_GREEN,
-							0.25f,
-							dobj->obj->models[sub]->name);
-
-						pos[0] -= 2.5f;
-						pos[2] -= 5.0f;
-					}
+					pos[0] -= 2.5f;
+					pos[2] -= 5.0f;
 				}
 			}
 		}

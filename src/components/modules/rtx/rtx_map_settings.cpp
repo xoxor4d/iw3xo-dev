@@ -51,7 +51,7 @@ namespace components
 						}
 					}
 
-					if (rtx_api::bridge.initialized)
+					if (rtx_api::is_initialized())
 					{
 						// auto apply _on_map_change.conf (there is no logic to reload the rtx.conf so this holds all rtx.conf "defaults")
 						open_and_set_var_config("_on_map_change.conf", false);

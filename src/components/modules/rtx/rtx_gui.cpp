@@ -565,7 +565,7 @@ namespace components
 				const auto interf = rtx_api::bridge;
 				//ImGui::Text("API Status: %s", (interf.initialized ? "Initialized" : "Needs Initialization"));
 
-				if (!interf.initialized && ImGui::Button("Initialize Api"))
+				if (!rtx_api::is_initialized() && ImGui::Button("Initialize Api"))
 				{
 					rtx_api::init();
 				}
@@ -594,7 +594,7 @@ namespace components
 				static float distant_angularDiaDeg[2] = { 0.1f, 0.1f };
 
 				// shaping and anim
-				static x86::remixapi_LightInfoLightShaping light_shaping[2] = {};
+				static remixapi_LightInfoLightShaping light_shaping[2] = {};
 
 				static bool light_use_shaping[2] = {};
 				static bool light_anim[2] = {};
@@ -645,7 +645,7 @@ namespace components
 				static game::vec3_t portal1_rotation = { 0.0f, 0.0f, 0.0f };
 				static game::vec3_t portal1_scale = { 1.0f, 1.0f, 1.0f };
 
-				if (interf.initialized)
+				if (rtx_api::is_initialized())
 				{
 					// -------------------
 					gui::title_inside_seperator("Bridge API - Lights", false, 0.0f, true, 2.0f); SPACING(0, 4);
@@ -746,7 +746,7 @@ namespace components
 						{
 							if (ImGui::Button(utils::va("Create/Update Light #%d", ls)) || was_modified)
 							{
-								x86::remixapi_LightInfo l = {};
+								remixapi_LightInfo l = {};
 								{
 									l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 									l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
@@ -758,7 +758,7 @@ namespace components
 									};
 								}
 
-								x86::remixapi_LightInfoSphereEXT s = {};
+								remixapi_LightInfoSphereEXT s = {};
 								{
 									s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
 									s.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
@@ -781,7 +781,7 @@ namespace components
 						{
 							if (ImGui::Button(utils::va("Create/Update Rect Light #%d", ls)) || was_modified)
 							{
-								x86::remixapi_LightInfo l = {};
+								remixapi_LightInfo l = {};
 								{
 									l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 									l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
@@ -793,7 +793,7 @@ namespace components
 									};
 								}
 
-								x86::remixapi_LightInfoRectEXT r = {};
+								remixapi_LightInfoRectEXT r = {};
 								{
 									r.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_RECT_EXT;
 									r.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
@@ -821,7 +821,7 @@ namespace components
 						{
 							if (ImGui::Button(utils::va("Create/Update Disk Light #%d", ls)) || was_modified)
 							{
-								x86::remixapi_LightInfo l = {};
+								remixapi_LightInfo l = {};
 								{
 									l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 									l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
@@ -833,7 +833,7 @@ namespace components
 									};
 								}
 
-								x86::remixapi_LightInfoDiskEXT d = {};
+								remixapi_LightInfoDiskEXT d = {};
 								{
 									d.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISK_EXT;
 									d.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
@@ -861,7 +861,7 @@ namespace components
 						{
 							if (ImGui::Button(utils::va("Create/Update Cylinder Light #%d", ls)) || was_modified)
 							{
-								x86::remixapi_LightInfo l = {};
+								remixapi_LightInfo l = {};
 								{
 									l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 									l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
@@ -873,7 +873,7 @@ namespace components
 									};
 								}
 
-								x86::remixapi_LightInfoCylinderEXT cy = {};
+								remixapi_LightInfoCylinderEXT cy = {};
 								{
 									cy.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_CYLINDER_EXT;
 									cy.position = { light_positions[ls][0], light_positions[ls][1], light_positions[ls][2], };
@@ -889,7 +889,7 @@ namespace components
 						{
 							if (ImGui::Button(utils::va("Create/Update Distant Light #%d", ls)) || was_modified)
 							{
-								x86::remixapi_LightInfo l = {};
+								remixapi_LightInfo l = {};
 								{
 									l.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
 									l.hash = light_handles[ls] ? light_handles[ls] : ls + 1;
@@ -901,7 +901,7 @@ namespace components
 									};
 								}
 
-								x86::remixapi_LightInfoDistantEXT d = {};
+								remixapi_LightInfoDistantEXT d = {};
 								{
 									d.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;
 									utils::vector::normalize_to(&distant_direction[ls][0], (float*)&d.direction);
@@ -1004,7 +1004,7 @@ namespace components
 						{
 							if (mesh_material_handle)
 							{
-								rtx_api::bridge.DestroyMaterial(mesh_material_handle);
+								rtx_api::bridge.DestroyMaterial((remixapi_MaterialHandle) mesh_material_handle);
 								mesh_material_handle = 0;
 							}
 
@@ -1014,10 +1014,10 @@ namespace components
 							std::filesystem::path metallic_str = texfolder_path / "example_metallic.dds";
 							std::filesystem::path height_str = texfolder_path / "example_height.dds";
 
-							x86::remixapi_MaterialInfo info = {};
+							remixapi_MaterialInfo info = {};
 							{
 								info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
-								info.hash = mesh_material_handle ? mesh_material_handle : fnv1aHash("material01");
+								info.hash = fnv1aHash("material01");
 								info.emissiveIntensity = material_emissive_intensity;
 								info.emissiveColorConstant = { material_emissive_color[0], material_emissive_color[1], material_emissive_color[2] };
 								info.albedoTexture = material_use_sample_texture ? albedo_str.c_str() : L"";
@@ -1029,7 +1029,7 @@ namespace components
 								info.wrapModeV = 1u;
 							}
 
-							x86::remixapi_MaterialInfoOpaqueEXT ext_op = {};
+							remixapi_MaterialInfoOpaqueEXT ext_op = {};
 							{
 								ext_op.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
 								ext_op.roughnessTexture = material_use_sample_texture ? rough_str.c_str() : L"";
@@ -1052,10 +1052,10 @@ namespace components
 								ext_op.alphaReferenceValue = 0;
 							}
 
-							x86::remixapi_MaterialInfoTranslucentEXT ext_transl = {};
+							remixapi_MaterialInfoTranslucentEXT ext_transl = {};
 							{
 								ext_transl.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_TRANSLUCENT_EXT;
-								//ext.transmittanceTexture = L"";
+								ext_transl.transmittanceTexture = L"";
 								ext_transl.refractiveIndex = material_transl_refraction;
 								ext_transl.transmittanceColor = { 1.0f, 1.0f, 1.0f };
 								ext_transl.transmittanceMeasurementDistance = 0.0f;
@@ -1064,22 +1064,36 @@ namespace components
 								ext_transl.useDiffuseLayer = FALSE;
 							}
 
-							x86::remixapi_MaterialInfoOpaqueSubsurfaceEXT ext_ss = {};
+							remixapi_MaterialInfoOpaqueSubsurfaceEXT ext_ss = {};
 							{
 								ext_ss.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_SUBSURFACE_EXT;
 								ext_ss.subsurfaceTransmittanceColor = { material_ss_trans_color[0], material_ss_trans_color[1], material_ss_trans_color[2]};
 								ext_ss.subsurfaceMeasurementDistance = material_ss_measurement_dist;
 								ext_ss.subsurfaceSingleScatteringAlbedo = { material_ss_scattering_albedo[0], material_ss_scattering_albedo[1], material_ss_scattering_albedo [2]};
 								ext_ss.subsurfaceVolumetricAnisotropy = material_ss_vol_aniso;
+								ext_ss.subsurfaceTransmittanceTexture = L"";
+								ext_ss.subsurfaceThicknessTexture = L"";
+								ext_ss.subsurfaceSingleScatteringAlbedoTexture = L"";
 							}
 
 							if (material_type == Translucent)
 							{
-								mesh_material_handle = rtx_api::bridge.CreateTranslucentMaterial(&info, &ext_transl);
+								info.pNext = &ext_transl;
+								rtx_api::bridge.CreateMaterial(&info, (remixapi_MaterialHandle*)&mesh_material_handle);
 							}
 							else
 							{
-								mesh_material_handle = rtx_api::bridge.CreateOpaqueMaterial(&info, &ext_op, material_type == 1 ? &ext_ss : nullptr);
+								if (material_type == 1)
+								{
+									ext_ss.pNext = &ext_op;
+									info.pNext = &ext_ss;
+								}
+								else
+								{
+									info.pNext = &ext_op;
+								}
+
+								rtx_api::bridge.CreateMaterial(&info, (remixapi_MaterialHandle*)&mesh_material_handle);
 							}
 						}
 
@@ -1088,20 +1102,20 @@ namespace components
 						if (btn || portal_mat_was_modified)
 						{
 							if (portal0_material_handle) {
-								rtx_api::bridge.DestroyMaterial(portal0_material_handle);
+								rtx_api::bridge.DestroyMaterial((remixapi_MaterialHandle) portal0_material_handle);
 							}
 
 							if (portal1_material_handle) {
-								rtx_api::bridge.DestroyMaterial(portal1_material_handle);
+								rtx_api::bridge.DestroyMaterial((remixapi_MaterialHandle) portal1_material_handle);
 							}
 
 							std::filesystem::path portal_str = texfolder_path / "portal_mask.dds";
 							std::filesystem::path portal_quad_str = texfolder_path / "portal_mask_square.dds";
 
-							x86::remixapi_MaterialInfo info = {};
+							remixapi_MaterialInfo info = {};
 							{
 								info.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
-								info.hash = portal0_material_handle ? portal0_material_handle : fnv1aHash("mat_portal0");
+								info.hash = fnv1aHash("mat_portal0");
 								info.emissiveIntensity = material_emissive_intensity;
 								info.emissiveColorConstant = { material_emissive_color[0], material_emissive_color[1], material_emissive_color[2] };
 								info.albedoTexture = L"";
@@ -1122,48 +1136,51 @@ namespace components
 								info.wrapModeV = 1u;
 							}
 
-							x86::remixapi_MaterialInfoPortalEXT ext = {};
+							remixapi_MaterialInfoPortalEXT ext = {};
 							{
 								ext.sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_PORTAL_EXT;
 								ext.rayPortalIndex = 0;
 								ext.rotationSpeed = portal_rotation_speed;
 							}
 
-							portal0_material_handle = rtx_api::bridge.CreatePortalMaterial(&info, &ext);
+							info.pNext = &ext;
 
-							info.hash = portal1_material_handle ? portal1_material_handle : fnv1aHash("mat_portal1");
+							rtx_api::bridge.CreateMaterial(&info, (remixapi_MaterialHandle*)&portal0_material_handle);
+
+							info.hash = fnv1aHash("mat_portal1");
 							ext.rayPortalIndex = 1;
-							portal1_material_handle = rtx_api::bridge.CreatePortalMaterial(&info, &ext);
+							rtx_api::bridge.CreateMaterial(&info, (remixapi_MaterialHandle*)&portal1_material_handle);
 
 							// mesh
 
-							x86::remixapi_HardcodedVertex verts[4] = {};
+							remixapi_HardcodedVertex verts[4] = {};
 							uint32_t indices[6] = {};
 							rtx_api::create_quad(verts, indices, 20.0f);
 
-							x86::remixapi_MeshInfoSurfaceTriangles triangles = {
+							remixapi_MeshInfoSurfaceTriangles triangles = {
 							  .vertices_values = verts,
 							  .vertices_count = ARRAYSIZE(verts),
 							  .indices_values = indices,
 							  .indices_count = 6,
 							  .skinning_hasvalue = FALSE,
-							  .material = portal0_material_handle ? portal0_material_handle : 0,
+							  .skinning_value = {},
+							  .material = portal0_material_handle ? (remixapi_MaterialHandle)portal0_material_handle : nullptr,
 							};
 
-							x86::remixapi_MeshInfo i = {
+							remixapi_MeshInfo i = {
 							  .sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
-							  .hash = portal0_handle ? portal0_handle : fnv1aHash("mesh_portal0"),
+							  .hash = fnv1aHash("mesh_portal0"),
 							  .surfaces_values = &triangles,
 							  .surfaces_count = 1,
 							};
 
 							rtx_api::destroy_mesh(&portal0_handle);
-							portal0_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+							rtx_api::bridge.CreateMesh(&i, (remixapi_MeshHandle*)&portal0_handle);
 
-							triangles.material = portal1_material_handle ? portal1_material_handle : 0;
-							i.hash = portal1_handle ? portal1_handle : fnv1aHash("mesh_portal1");
+							triangles.material = portal1_material_handle ? (remixapi_MaterialHandle)portal1_material_handle : nullptr;
+							i.hash = fnv1aHash("mesh_portal1");
 							rtx_api::destroy_mesh(&portal1_handle);
-							portal1_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+							rtx_api::bridge.CreateMesh(&i, (remixapi_MeshHandle*)&portal1_handle);
 						}
 
 						if (portal0_handle || portal1_handle)
@@ -1172,12 +1189,12 @@ namespace components
 							if (ImGui::Button("Delete Portals"))
 							{
 								if (portal0_handle) {
-									rtx_api::bridge.DestroyMesh(portal0_handle);
+									rtx_api::bridge.DestroyMesh((remixapi_MeshHandle)portal0_handle);
 									portal0_handle = 0;
 								}
 
 								if (portal1_handle) {
-									rtx_api::bridge.DestroyMesh(portal1_handle);
+									rtx_api::bridge.DestroyMesh((remixapi_MeshHandle)portal1_handle);
 									portal1_handle = 0;
 								}
 							}
@@ -1256,7 +1273,7 @@ namespace components
 						if (ImGui::Button("Create Triangle"))
 						{
 							auto makeVertex = [&](float x, float y, float z) {
-								x86::remixapi_HardcodedVertex v =
+								remixapi_HardcodedVertex v =
 								{
 								  .position = {x,y,z},
 								  .normal = {0,0,-1},
@@ -1266,31 +1283,40 @@ namespace components
 								return v;
 								};
 
-							x86::remixapi_HardcodedVertex verts[] = {
+							remixapi_HardcodedVertex verts[] = {
 								makeVertex(30, -30, 6),
 								makeVertex(0, 30, 6),
 								makeVertex(-30, -30, 6),
 							};
 
-							x86::remixapi_MeshInfoSurfaceTriangles triangles = {
+							remixapi_MeshInfoSurfaceTriangles triangles = {
 							  .vertices_values = verts,
 							  .vertices_count = ARRAYSIZE(verts),
 							  .indices_values = nullptr,
 							  .indices_count = 0,
 							  .skinning_hasvalue = FALSE,
-							  //.skinning_value = { 0 },
-							  .material = mesh_material_handle ? mesh_material_handle : 0,
+							  .skinning_value = { 0 },
+							  .material = mesh_material_handle ? (remixapi_MaterialHandle)mesh_material_handle : nullptr,
 							};
 
-							x86::remixapi_MeshInfo i = {
+							remixapi_MeshInfo i = {
 							  .sType = REMIXAPI_STRUCT_TYPE_MESH_INFO,
-							  .hash = mesh_handle ? mesh_handle : 0xDEAD,
+							  .hash = 0xDEAD,
 							  .surfaces_values = &triangles,
 							  .surfaces_count = 1,
 							};
 
-							rtx_api::destroy_mesh(&mesh_handle);
-							mesh_handle = rtx_api::bridge.CreateTriangleMesh(&i);
+							//rtx_api::destroy_mesh(&mesh_handle);
+							//tx_api::bridge.DestroyMesh(mesh_handle);
+
+							if (mesh_handle)
+							{
+								rtx_api::bridge.DestroyMesh(mesh_handle);
+								mesh_handle = nullptr;
+							}
+
+							rtx_api::bridge.CreateMesh(&i, &mesh_handle);
+							int dbg = 0;
 						}
 
 						if (mesh_handle)
@@ -1299,7 +1325,7 @@ namespace components
 							if (ImGui::Button("Delete Mesh"))
 							{
 								rtx_api::bridge.DestroyMesh(mesh_handle);
-								mesh_handle = 0;
+								mesh_handle = nullptr;
 							}
 						}
 

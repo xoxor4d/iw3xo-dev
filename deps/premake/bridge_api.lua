@@ -20,10 +20,7 @@ function bridge_api.project()
 		bridge_api.includes()
 
 		files {
-            path.join(bridge_api.source, "*.cpp"),
-			path.join(bridge_api.source, "*.hpp"),
-            path.join(bridge_api.source, "*.c"),
-            path.join(bridge_api.source, "*.h"),
+            path.join(bridge_api.source, "**"),
 		}
 
 		warnings "Off"

@@ -85,17 +85,17 @@ namespace components
 		static inline int d3d_alpha_blend = 4;
 
 		static inline uint64_t light_handles[2] = {};
-		static inline uint64_t mesh_handle = 0;
+		static inline remixapi_MeshHandle mesh_handle = nullptr;
 		static inline uint64_t mesh_material_handle = 0;
-		static inline x86::remixapi_Transform mesh_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,0}} };
+		static inline remixapi_Transform mesh_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,0}} };
 		static inline bool mesh_double_sided = true;
 
 		static inline uint64_t portal0_handle = 0;
 		static inline uint64_t portal1_handle = 0;
 		static inline uint64_t portal0_material_handle = 0;
 		static inline uint64_t portal1_material_handle = 0;
-		static inline x86::remixapi_Transform portal0_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,60}} };
-		static inline x86::remixapi_Transform portal1_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,30}} };
+		static inline remixapi_Transform portal0_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,60}} };
+		static inline remixapi_Transform portal1_transform = { {{1,0,0,0}, {0,1,0,0}, {0,0,1,30}} };
 
 	private:
 		static const char* skysphere_get_name_for_variant(std::uint32_t variant);
