@@ -463,6 +463,18 @@ namespace components
 		game::Scr_AddInt(game::glob::lpmove_check_jump);
 	}
 
+	void playercmd_toggleRtxFlashlight(scr_entref_t arg)
+	{
+		rtx_lights::rtx_debug_lights[1].type = D3DLIGHT_SPOT;
+		rtx_lights::rtx_debug_lights[1].attach_to_weapon = true;
+		rtx_lights::rtx_debug_lights[1].attach_to_head = false;
+		rtx_lights::rtx_debug_lights[1].color_scale = 10.0f;
+		rtx_lights::rtx_debug_lights[1].inner_angle = 16.0f;
+		rtx_lights::rtx_debug_lights[1].outer_angle = 36.0f;
+		rtx_lights::rtx_debug_lights[1].enable = !rtx_lights::rtx_debug_lights[1].enable;
+		game::Cmd_ExecuteSingleCommand(0, 0, "snd_playlocal rtxflashlight\n");
+	}
+
 	// *
 	// Add GScr Methods
 	void add_stock_player_methods() 
@@ -479,6 +491,10 @@ namespace components
 		add_method("rightButtonPressed",		(xfunction_t)(playercmd_right_button_pressed), 0);
 		add_method("leftButtonPressed",			(xfunction_t)(playercmd_left_button_pressed), 0);
 		add_method("checkJump",					(xfunction_t)(playercmd_check_jump), 0);
+
+		if (game::glob::has_rtx_comp_flag) {
+			add_method("toggleRtxFlashlight", (xfunction_t)(playercmd_toggleRtxFlashlight), 0);
+		}
 	}
 
 	// *

@@ -55,6 +55,8 @@ namespace game
 		float xo_blur_size = 32.0f;
 		float xo_blur_alpha = 1.0f;
 #endif
+
+		bool has_rtx_comp_flag = false;
 	}
 
 	game::TestLod g_testLods[4] = {};

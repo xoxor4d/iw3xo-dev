@@ -75,15 +75,28 @@ namespace utils
 			return set<T>(reinterpret_cast<void*>(place), value);
 		}
 
-		static void set(std::uintptr_t address, void* buffer, size_t size)
+		// set multiple bytes
+		static void set(void* place, const BYTE* bytes, size_t size)
 		{
-			DWORD oldProtect = 0;
-
-			auto* place = reinterpret_cast<void*>(address);
+			DWORD oldProtect;
 			VirtualProtect(place, size, PAGE_EXECUTE_READWRITE, &oldProtect);
-			memcpy(place, buffer, size);
+			memcpy(place, bytes, size);
 			VirtualProtect(place, size, oldProtect, &oldProtect);
 			FlushInstructionCache(GetCurrentProcess(), place, size);
+		}
+
+		// Variadic template to accept multiple BYTE arguments
+		template <typename... Args>
+		static void set(void* place, BYTE first, Args... rest)
+		{
+			BYTE bytes[] = { first, static_cast<BYTE>(rest)... };
+			set(place, bytes, sizeof(bytes));
+		}
+
+		template <typename... Args>
+		static void set(DWORD place, BYTE first, Args... rest)
+		{
+			set(reinterpret_cast<void*>(place), first, rest...);
 		}
 
 	private:

@@ -1142,6 +1142,15 @@ namespace components
 		dvars::bool_override("r_depthPrepass", false);
 		dvars::bool_override("r_dof_enable", false);
 
+		if (game::glob::has_rtx_comp_flag)
+		{
+			dvars::float_override("rtx_culling_plane_dist", 13000.0f);
+			dvars::float_override("rtx_fx_alpha_scalar", 0.3f);
+			dvars::bool_override("rtx_culling_tweak_maxs", true);
+			dvars::bool_override("rtx_culling_tweak_smodel", true);
+			dvars::bool_override("rtx_culling_tweak_frustum", true);
+		}
+
 		if (dvars::rtx_culling_plane_dist)
 		{
 			for (auto& plane : rtx::m_frustum_plane_offsets)
@@ -1332,7 +1341,8 @@ namespace components
 
 		// modellight alloc
 		//utils::hook::set<BYTE>(0x62ED7B + 2, 0x7F); // inc. modellight alloc break from 32 to 127
-		utils::hook::set(0x62ECA0, (PBYTE)"\xB8\x01\x00\x00\x00\xC3", 6); // always "alloc" and return 1 as lightingHandle
+		//utils::hook::set(0x62ECA0, (PBYTE)"\xB8\x01\x00\x00\x00\xC3", 6); // always "alloc" and return 1 as lightingHandle
+		utils::hook::set(0x62ECA0, 0xB8, 0x01, 0x00, 0x00, 0x00, 0xC3); // always "alloc" and return 1 as lightingHandle
 
 		// disable loading of specular and normalmaps (de-clutter remix ui)
 		if (!flags::has_flag("load_normal_spec"))

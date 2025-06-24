@@ -47,6 +47,7 @@ namespace components
 		if (flags::has_flag("rtx"))
 		{
 			activate_rtx = true;
+			game::glob::has_rtx_comp_flag = flags::has_flag("rtx_comp");
 		}
 
 		active.rtx					= activate_rtx;

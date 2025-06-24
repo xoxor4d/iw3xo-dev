@@ -57,6 +57,8 @@ namespace game
 		extern float xo_blur_size;
 		extern float xo_blur_alpha;
 #endif
+
+		extern bool has_rtx_comp_flag;
 	}
 
 	static inline float COLOR_WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
