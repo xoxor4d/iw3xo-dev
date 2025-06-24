@@ -40,6 +40,8 @@ namespace components
 		static void on_map_load();
 		static void on_map_shutdown();
 
+		static void on_device_creation();
+
 		static void sky_material_update(std::string_view buffer, bool use_dvar = false);
 
 	private:

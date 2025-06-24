@@ -745,7 +745,9 @@ namespace components
 		
 		*ppReturnedDeviceInterface = new d3d9ex::D3D9Device(*ppReturnedDeviceInterface);
 		game::glob::d3d9_device = *ppReturnedDeviceInterface;
-		
+
+		rtx::on_device_creation();
+
 		return hres;
 	}
 
@@ -851,6 +853,8 @@ namespace components
 		
 		*ppReturnedDeviceInterface = new d3d9ex::D3D9Device(*ppReturnedDeviceInterface);
 		game::glob::d3d9_device = *ppReturnedDeviceInterface;
+
+		rtx::on_device_creation();
 
 		return hres;
 	}

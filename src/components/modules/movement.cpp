@@ -1881,7 +1881,8 @@ namespace components
 			return;
 		}
 
-		game::glob::lpmove_pml_frame_time = pml->msec;
+		game::glob::lpmove_pml_msec = pml->msec;
+		game::glob::lpmove_pml_frametime = pml->frametime;
 
 		const int frame_rate = (1000 / pml->msec) * number_of_frames_to_wait;
 

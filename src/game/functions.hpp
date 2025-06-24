@@ -46,7 +46,8 @@ namespace game
 		extern int lpmove_server_time;
 		extern int lpmove_server_time_old;
 		extern int lpmove_server_frame_time;
-		extern int lpmove_pml_frame_time;
+		extern int lpmove_pml_msec;
+		extern float lpmove_pml_frametime;
 		
 		// Misc
 		extern int q3_last_projectile_weapon_used; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired

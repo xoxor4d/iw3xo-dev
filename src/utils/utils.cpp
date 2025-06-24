@@ -5,6 +5,27 @@
 
 namespace utils
 {
+	bool float_equal(const float a, const float b, const float eps)
+	{
+		return std::fabs(a - b) < eps;
+	}
+
+	//fnv1a
+	std::uint64_t string_hash64(const std::string_view& str)
+	{
+		const uint64_t FNV_prime = 1099511628211u;
+		const uint64_t offset_basis = 14695981039346656037u;
+		uint64_t hash = offset_basis;
+
+		for (const char c : str)
+		{
+			hash ^= static_cast<uint64_t>(c);
+			hash *= FNV_prime;
+		}
+
+		return hash;
+	}
+
 	// kej
 	bool world_to_screen(const game::vec3_t world_location, game::vec2_t xy)
 	{

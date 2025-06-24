@@ -16,7 +16,8 @@ namespace components
 		{
 			SETTINGS,
 			CULL,
-			MARKER
+			MARKER,
+			API_VARS
 		};
 
 		struct cell_settings_s
@@ -33,6 +34,12 @@ namespace components
 			bool active = false;
 		};
 
+		struct api_config_var
+		{
+			std::string variable;
+			std::string value;
+		};
+
 		struct map_settings_s
 		{
 			std::string		mapname;
@@ -45,10 +52,16 @@ namespace components
 			std::vector<cell_settings_s> cell_settings;
 			bool			cell_overrides_exist = false;
 			std::vector<marker_settings_s> map_markers;
+			std::vector<std::string> api_var_configs;
 		};
 
 		static inline const map_settings_s* settings() { return &m_loaded_map_settings; }
 		void set_settings_for_loaded_map(bool reload_settings = false);
+
+		void open_and_set_var_config(const std::string& config, bool no_error = false, bool ignore_hashes = false, const char* custom_path = nullptr);
+		void parse_api_var_configs();
+
+		static void on_map_load();
 
 	private:
 		static inline map_settings_s m_loaded_map_settings = {};
@@ -60,5 +73,7 @@ namespace components
 		void parse_markers();
 		void parse_settings();
 		bool load_settings();
+
+		static inline bool m_loaded = false;
 	};
 }

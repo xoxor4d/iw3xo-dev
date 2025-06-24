@@ -44,7 +44,8 @@ namespace game
 		int lpmove_server_time = 0;
 		int lpmove_server_time_old = 0;
 		int lpmove_server_frame_time = 0;
-		int lpmove_pml_frame_time = 0;
+		int lpmove_pml_msec = 0;
+		float lpmove_pml_frametime = 0.0f;
 
 		// misc
 		int q3_last_projectile_weapon_used = 0; // ENUM Q3WeaponNames :: this var holds the last proj. weapon that got fired

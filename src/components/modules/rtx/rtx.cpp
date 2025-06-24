@@ -1,4 +1,6 @@
 #include "std_include.hpp"
+#include "components/modules/rtx/remix_api.hpp"
+#include "components/modules/rtx//remix_vars.hpp"
 
 namespace components
 {
@@ -1270,7 +1272,7 @@ namespace components
 	// > _map::init_fixed_function_buffers_stub
 	void rtx::on_map_load()
 	{
-		rtx_map_settings::get()->set_settings_for_loaded_map();
+		rtx_map_settings::on_map_load();
 		rtx::set_dvars_defaults_on_mapload();
 
 		// increase culling distances for certain objects
@@ -1290,6 +1292,15 @@ namespace components
 	void rtx::on_map_shutdown()
 	{
 		rtx_gui::skysphere_reset();
+	}
+
+	void rtx::on_device_creation()
+	{
+		// init remix api
+		remix_api::initialize(nullptr, nullptr, nullptr, false);
+
+		// init remix variable system
+		remix_vars::initialize(nullptr, &game::glob::lpmove_pml_frametime);
 	}
 
 	rtx::rtx()

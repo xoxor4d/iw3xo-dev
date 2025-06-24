@@ -2,7 +2,9 @@
 
 namespace utils
 {
-	bool	world_to_screen(const game::vec3_t world_location, game::vec2_t xy);
+	bool float_equal(float a, float b, float eps = 1.e-6f);
+	std::uint64_t string_hash64(const std::string_view& str);
+	bool world_to_screen(const game::vec3_t world_location, game::vec2_t xy);
 
 	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer();
 	std::chrono::time_point<std::chrono::steady_clock> clock_start_timer_print(const char *string /*no fmt*/);
