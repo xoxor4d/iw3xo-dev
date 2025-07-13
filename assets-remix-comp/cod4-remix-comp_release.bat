@@ -1,0 +1,1 @@
+START iw3xo.exe -rtx -rtx_comp +set r_fullscreen 0 +set fs_game "mods/rtxcomp_release" +set g_gametype "rtx" +devmap mp_crash
