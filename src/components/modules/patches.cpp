@@ -99,7 +99,9 @@ namespace components
 			jmp		retn_addr;
 		}
 	}
-	
+
+	//static game::dxBody realloc_ode_bodies[1024] = {};
+
 	patches::patches()
 	{
 		// Force debug logging
@@ -172,7 +174,25 @@ namespace components
 		// Fix fps on windows 10 (stuck at 500) :: sleep(1) to sleep(0)
 
 		utils::hook::set<BYTE>(0x500014 + 1, 0x0);
-		utils::hook::set<BYTE>(0x50007F + 1, 0x0); 
+		utils::hook::set<BYTE>(0x50007F + 1, 0x0);
+
+#if 0
+		// inc ode dynamic bodies from 512 to 1024
+		utils::hook::set(0x5B6AC1 + 1, 0xB0, 0x3E, 0x05, 0x00);
+
+		// body loop - set from 511 to 1023 in odeGlob_t init
+		//utils::hook::set(0x5B697C + 1, 0xFF, 0x03, 0x00, 0x00);
+
+		{
+			const size_t ALLOC_SIZE = sizeof(game::dxBody) * 1024;
+			const auto body_arr = utils::memory::get_allocator()->allocate_array<game::dxBody>(ALLOC_SIZE);
+			{
+				utils::hook::set<game::dxBody*>(0x5B6AA2 + 6, &body_arr[0]);
+				utils::hook::set<game::dxBody*>(0x5B6AB6 + 2, &body_arr[0]);
+				utils::hook::set<game::dxBody*>(0x5B6AB0 + 2, &body_arr[1]);
+			}
+		}
+#endif
 
 		command::add("xasset_spworld", "[optional] <offset array by num>", "creates a node_dump (sp maps only)", [this](command::params parms)
 		{

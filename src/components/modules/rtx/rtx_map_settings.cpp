@@ -1,5 +1,8 @@
 #include "std_include.hpp"
 
+#include "remix_api.hpp"
+#include "remix_vars.hpp"
+
 namespace components
 {
 	constexpr auto INI_MAPNAME_ARG = 0;
@@ -10,6 +13,75 @@ namespace components
 	constexpr auto INI_SUN_INTENSITY = 11;
 	constexpr auto INI_SKY_INDEX = 12;
 	constexpr auto INI_ARGS_TOTAL = 13;
+
+	void rtx_map_settings::open_and_set_var_config(const std::string& config, const bool no_error, const bool ignore_hashes, const char* custom_path)
+	{
+		std::string path = "iw3xo\\rtx\\map_configs";
+		if (custom_path)
+		{
+			path = custom_path;
+		}
+
+		std::ifstream file;
+		if (utils::fs::open_file_homepath(path, config, false, file))
+		{
+			std::string input;
+			while (std::getline(file, input))
+			{
+				if (utils::starts_with(input, "#")) {
+					continue;
+				}
+
+				if (auto pair = utils::split(input, '=');
+					pair.size() == 2u)
+				{
+					utils::trim(pair[0]);
+					utils::trim(pair[1]);
+
+					if (ignore_hashes && pair[1].starts_with("0x")) {
+						continue;
+					}
+
+					if (pair[1].empty()) {
+						continue;
+					}
+
+					if (const auto o = remix_vars::get_option(pair[0].c_str()); o)
+					{
+						const auto& v = remix_vars::string_to_option_value(o->second.type, pair[1]);
+						remix_vars::set_option(o, v, true);
+					}
+				}
+			}
+
+			file.close();
+		}
+		else if (!no_error)
+		{
+			common::console();
+			printf("[MapSettings] Failed to find config: \"%s\" in %s \n", config.c_str(), custom_path ? custom_path : "\"" "rtx_comp\\map_configs\"");
+		}
+	}
+
+	void rtx_map_settings::parse_api_var_configs()
+	{
+		if (map_settings_s* s = get_or_create_settings(); s)
+		{
+			s->api_var_configs.clear();
+			for (auto a = 1u; a < m_args.size(); a++)
+			{
+				auto str = m_args[a];
+				if (str.empty())
+				{
+					// print msg here 
+					continue;
+				}
+
+				utils::trim(str);
+				s->api_var_configs.emplace_back(str);
+			}
+		}
+	}
 
 	void rtx_map_settings::set_settings_for_loaded_map(bool reload_settings)
 	{
@@ -48,6 +120,20 @@ namespace components
 							{
 								m_loaded_map_settings.map_markers[i].handle = game::FX_SpawnOrientedEffect(game::IDENTITY_AXIS[0], fx, 0, &s.map_markers[i].origin[0]);
 							}
+						}
+					}
+
+					if (remix_api::is_initialized())
+					{
+						// resets all modified variables back to rtx.conf level
+						remix_vars::reset_all_modified();
+
+						// auto apply {map_name}.conf (if it exists)
+						open_and_set_var_config(s.mapname + ".conf", true);
+
+						// apply other manually defined configs
+						for (const auto& f : s.api_var_configs) {
+							open_and_set_var_config(f);
 						}
 					}
 
@@ -282,6 +368,12 @@ namespace components
 					continue;
 				}
 
+				if (parse_mode == MARKER && utils::starts_with(input, "#API_CONFIGVARS"))
+				{
+					parse_mode = API_VARS;
+					continue;
+				}
+
 				// split string on ','
 				m_args = utils::split(input, ',');
 
@@ -296,6 +388,9 @@ namespace components
 				case MARKER:
 					parse_markers();
 					break;
+				case API_VARS:
+					parse_api_var_configs();
+					break;
 				}
 			}
 
@@ -304,6 +399,12 @@ namespace components
 		}
 
 		return false;
+	}
+
+	void rtx_map_settings::on_map_load()
+	{
+		auto* ms = get();
+		ms->set_settings_for_loaded_map();
 	}
 
 	rtx_map_settings::rtx_map_settings()

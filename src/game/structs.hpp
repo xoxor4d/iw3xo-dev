@@ -7735,6 +7735,61 @@ namespace game
 		std::int16_t prev;
 	};
 
+	struct dMass
+	{
+		float mass;
+		float c[4];
+		float I[12];
+	};
+
+	struct dxAutoDisable
+	{
+		float linear_threshold;
+		float angular_threshold;
+		float idle_time;
+		int idle_steps;
+	};
+
+	struct dxBodyInfo
+	{
+		float pos[4];
+		float q[4];
+		float R[12];
+		float lvel[4];
+		float avel[4];
+	};
+
+	struct dBase
+	{
+	};
+
+	struct dObject : dBase
+	{
+		void* world; // dxWorld
+		dObject* next;
+		dObject** tome;
+		void* userdata;
+		int tag;
+	};
+
+	struct dxBody : dObject
+	{
+		void* firstjoint; // dxJointNode
+		int flags;
+		void* geom; // dxGeom
+		dMass mass;
+		float invI[12];
+		float invMass;
+		float facc[4];
+		float tacc[4];
+		float finite_rot_axis[4];
+		dxAutoDisable adis;
+		float adis_timeleft;
+		int adis_stepsleft;
+		dxBodyInfo info;
+	}; STATIC_ASSERT_SIZE(dxBody, 0x150);
+
+
 #ifdef __cplusplus
 }
 #endif

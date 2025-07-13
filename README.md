@@ -109,6 +109,7 @@ https://www.moddb.com/mods/cod4-mp-rtx-remix-iw3xo
 - A. Commandline Arguments:  
 
   - `-rtx` :: enable rtx modules (⚠️ required for rtx-remix)
+  - `-rtx_comp` :: enables functions required for my rtx remix competition entry (`assets-remix-comp`)
   - `-no_default_sky` :: disable sky spawning (map settings)
   - `-no_sun` :: disable sun spawning (map settings)
   - `-no_fog` :: disable fog (map settings)

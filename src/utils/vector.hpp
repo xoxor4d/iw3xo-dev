@@ -1,10 +1,20 @@
 #pragma once
 
-#define	PITCH				0		// up / down
-#define	YAW					1		// left / right
-#define	ROLL				2		// fall over
+#define	PITCH		0		// up / down
+#define	YAW			1		// left / right
+#define	ROLL		2		// fall over
 
-#define M_PI				3.14159265358979323846f
+#define M_RADPI		57.295779513082f
+#define M_PI		3.14159265358979323846f
+
+#define DotProduct(x,y)	 ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
+
+#define DEG2RAD(x)	(static_cast<float>(x) * (M_PI / 180.0f))
+#define RAD2DEG(x)	(static_cast<float>(x) * (180.0f / M_PI))
+
+#define DEG2RADF(f)	(f * (M_PI / 180.0f))
+#define RAD2DEGF(f)	(f * (180.0f / M_PI))
+#include "remix/remix_c.h"
 
 namespace glm
 {
@@ -19,6 +29,591 @@ namespace glm
 	void set_float3(float *dest, const glm::vec3 &src);
 	void set_float4(float *dest, const glm::vec4 &src);
 }
+
+class Vector4D
+{
+public:
+	Vector4D(void)
+	{
+		x = y = z = w = 0.0f;
+	}
+
+	Vector4D(float X, float Y, float Z, float W)
+	{
+		x = X; y = Y; z = Z; w = W;
+	}
+
+	Vector4D(float* v)
+	{
+		x = v[0]; y = v[1]; z = v[2]; w = v[3];
+	}
+
+	Vector4D operator+(const Vector4D& v) const
+	{
+		return Vector4D(x + v.x, y + v.y, z + v.z, w + v.w);
+	}
+
+	Vector4D operator-(const Vector4D& v) const
+	{
+		return Vector4D(x - v.x, y - v.y, z - v.z, w - v.w);
+	}
+
+	Vector4D operator*(const Vector4D& v) const
+	{
+		return Vector4D(x * v.x, y * v.y, z * v.z, w * v.w);
+	}
+
+	Vector4D operator/(const Vector4D& v) const
+	{
+		return Vector4D(x / v.x, y / v.y, z / v.z, w / v.w);
+	}
+
+	Vector4D operator+(float v) const
+	{
+		return Vector4D(x + v, y + v, z + v, w + v);
+	}
+
+	Vector4D operator-(float v) const
+	{
+		return Vector4D(x - v, y - v, z - v, w - v);
+	}
+
+	Vector4D operator*(float v) const
+	{
+		return Vector4D(x * v, y * v, z * v, w * v);
+	}
+
+	friend Vector4D operator*(float v, const Vector4D& vec)
+	{
+		return Vector4D(vec.x * v, vec.y * v, vec.z * v, vec.w * v);
+	}
+
+	Vector4D operator/(float v) const
+	{
+		return Vector4D(x / v, y / v, z / v, w / v);
+	}
+
+	Vector4D operator-() const
+	{
+		return Vector4D(-x, -y, -z, -w);
+	}
+
+	game::vec_t x, y, z, w;
+};
+
+class Vector2D
+{
+public:
+	Vector2D(void)
+	{
+		x = y = 0.0f;
+	}
+
+	Vector2D(float X, float Y)
+	{
+		x = X; y = Y;
+	}
+
+	Vector2D(float* v)
+	{
+		x = v[0]; y = v[1];
+	}
+
+	Vector2D(const float* v)
+	{
+		x = v[0]; y = v[1];
+	}
+
+	Vector2D(const Vector2D& v)
+	{
+		x = v.x; y = v.y;
+	}
+
+	Vector2D& operator=(const Vector2D& v)
+	{
+		x = v.x; y = v.y; return *this;
+	}
+
+	float& operator[](int i)
+	{
+		return ((float*)this)[i];
+	}
+
+	float operator[](int i) const
+	{
+		return ((float*)this)[i];
+	}
+
+	Vector2D& operator+=(const Vector2D& v)
+	{
+		x += v.x; y += v.y; return *this;
+	}
+
+	Vector2D& operator-=(const Vector2D& v)
+	{
+		x -= v.x; y -= v.y; return *this;
+	}
+
+	Vector2D& operator*=(const Vector2D& v)
+	{
+		x *= v.x; y *= v.y; return *this;
+	}
+
+	Vector2D& operator/=(const Vector2D& v)
+	{
+		x /= v.x; y /= v.y; return *this;
+	}
+
+	Vector2D& operator+=(float v)
+	{
+		x += v; y += v; return *this;
+	}
+
+	Vector2D& operator-=(float v)
+	{
+		x -= v; y -= v; return *this;
+	}
+
+	Vector2D& operator*=(float v)
+	{
+		x *= v; y *= v; return *this;
+	}
+
+	Vector2D& operator/=(float v)
+	{
+		x /= v; y /= v; return *this;
+	}
+
+	Vector2D operator+(const Vector2D& v) const
+	{
+		return Vector2D(x + v.x, y + v.y);
+	}
+
+	Vector2D operator-(const Vector2D& v) const
+	{
+		return Vector2D(x - v.x, y - v.y);
+	}
+
+	Vector2D operator*(const Vector2D& v) const
+	{
+		return Vector2D(x * v.x, y * v.y);
+	}
+
+	Vector2D operator/(const Vector2D& v) const
+	{
+		return Vector2D(x / v.x, y / v.y);
+	}
+
+	Vector2D operator+(float v) const
+	{
+		return Vector2D(x + v, y + v);
+	}
+
+	Vector2D operator-(float v) const
+	{
+		return Vector2D(x - v, y - v);
+	}
+
+	Vector2D operator*(float v) const
+	{
+		return Vector2D(x * v, y * v);
+	}
+
+	Vector2D operator/(float v) const
+	{
+		return Vector2D(x / v, y / v);
+	}
+
+	void Set(float X = 0.0f, float Y = 0.0f)
+	{
+		x = X; y = Y;
+	}
+
+	float Length(void) const
+	{
+		return ::sqrtf(x * x + y * y);
+	}
+
+	float LengthSqr(void) const
+	{
+		return (x * x + y * y);
+	}
+
+	float DistTo(const Vector2D& v) const
+	{
+		return (*this - v).Length();
+	}
+
+	float DistToSqr(const Vector2D& v) const
+	{
+		return (*this - v).LengthSqr();
+	}
+
+	float Dot(const Vector2D& v) const
+	{
+		return (x * v.x + y * v.y);
+	}
+
+	bool IsZero(void) const
+	{
+		return (x > -0.01f && x < 0.01f &&
+			y > -0.01f && y < 0.01f);
+	}
+
+public:
+	game::vec_t x, y;
+};
+
+class Vector
+{
+public:
+	Vector(void)
+	{
+		x = y = z = 0.0f;
+	}
+
+	Vector(float X, float Y, float Z)
+	{
+		x = X; y = Y; z = Z;
+	}
+
+	Vector(float* v)
+	{
+		x = v[0]; y = v[1]; z = v[2];
+	}
+
+	Vector(const float* v)
+	{
+		x = v[0]; y = v[1]; z = v[2];
+	}
+
+	Vector(const Vector& v)
+	{
+		x = v.x; y = v.y; z = v.z;
+	}
+
+	Vector(const Vector4D& v)
+	{
+		x = v.x; y = v.y; z = v.z;
+	}
+
+	Vector(const Vector2D& v)
+	{
+		x = v.x; y = v.y; z = 0.0f;
+	}
+
+	Vector& operator=(const Vector& v)
+	{
+		x = v.x; y = v.y; z = v.z; return *this;
+	}
+
+	Vector& operator=(const Vector2D& v)
+	{
+		x = v.x; y = v.y; z = 0.0f; return *this;
+	}
+
+	float& operator[](int i)
+	{
+		return ((float*)this)[i];
+	}
+
+	float operator[](int i) const
+	{
+		return ((float*)this)[i];
+	}
+
+	Vector& operator+=(const Vector& v)
+	{
+		x += v.x; y += v.y; z += v.z; return *this;
+	}
+
+	Vector& operator-=(const Vector& v)
+	{
+		x -= v.x; y -= v.y; z -= v.z; return *this;
+	}
+
+	Vector& operator*=(const Vector& v)
+	{
+		x *= v.x; y *= v.y; z *= v.z; return *this;
+	}
+
+	Vector& operator/=(const Vector& v)
+	{
+		x /= v.x; y /= v.y; z /= v.z; return *this;
+	}
+
+	Vector& operator+=(float v)
+	{
+		x += v; y += v; z += v; return *this;
+	}
+
+	Vector& operator-=(float v)
+	{
+		x -= v; y -= v; z -= v; return *this;
+	}
+
+	Vector& operator*=(float v)
+	{
+		x *= v; y *= v; z *= v; return *this;
+	}
+
+	Vector& operator/=(float v)
+	{
+		x /= v; y /= v; z /= v; return *this;
+	}
+
+	Vector operator+(const Vector& v) const
+	{
+		return Vector(x + v.x, y + v.y, z + v.z);
+	}
+
+	Vector operator-(const Vector& v) const
+	{
+		return Vector(x - v.x, y - v.y, z - v.z);
+	}
+
+	Vector operator*(const Vector& v) const
+	{
+		return Vector(x * v.x, y * v.y, z * v.z);
+	}
+
+	Vector operator/(const Vector& v) const
+	{
+		return Vector(x / v.x, y / v.y, z / v.z);
+	}
+
+	Vector operator+(float v) const
+	{
+		return Vector(x + v, y + v, z + v);
+	}
+
+	Vector operator-(float v) const
+	{
+		return Vector(x - v, y - v, z - v);
+	}
+
+	Vector operator*(float v) const
+	{
+		return Vector(x * v, y * v, z * v);
+	}
+
+	friend Vector operator*(float v, const Vector& vec)
+	{
+		return Vector(vec.x * v, vec.y * v, vec.z * v);
+	}
+
+	Vector operator/(float v) const
+	{
+		return Vector(x / v, y / v, z / v);
+	}
+
+	Vector operator-() const
+	{
+		return Vector(-x, -y, -z);
+	}
+
+	bool operator==(const Vector& vec) const
+	{
+		if (std::fabs(x - vec.x) < 1.e-6f
+			&& std::fabs(y - vec.y) < 1.e-6f
+			&& std::fabs(z - vec.z) < 1.e-6f)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool operator!=(const Vector& vec) const
+	{
+		if (std::fabs(x - vec.x) >= 1.e-6f
+			|| std::fabs(y - vec.y) >= 1.e-6f
+			|| std::fabs(z - vec.z) >= 1.e-6f)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool operator>(const Vector& vec) const
+	{
+		if (x > vec.x && y > vec.y && z > vec.z) {
+			return true;
+		}
+
+		return false;
+	}
+
+	bool operator<(const Vector& vec) const
+	{
+		if (x < vec.x && y < vec.y && z < vec.z) {
+			return true;
+		}
+
+		return false;
+	}
+
+	float Length(void) const
+	{
+		return sqrtf(x * x + y * y + z * z);
+	}
+
+	float LengthSqr(void) const
+	{
+		return (x * x + y * y + z * z);
+	}
+
+	float Normalize()
+	{
+		float fl_lenght = Length();
+		float fl_lenght_normal = 1.f / ((1.19209290E-07F) + fl_lenght);
+
+		x = x * fl_lenght_normal;
+		y = y * fl_lenght_normal;
+		z = z * fl_lenght_normal;
+
+		return fl_lenght;
+	}
+
+	float NormalizeChecked()
+	{
+		const float fl_lenght = Length();
+		if (fl_lenght != 0.0f)
+		{
+			const float ilength = 1.0f / fl_lenght;
+			x *= ilength;
+			y *= ilength;
+			z *= ilength;
+		}
+
+		return fl_lenght;
+	}
+
+	void Rotate(const float flYaw)
+	{
+		const float r = DEG2RAD(flYaw);
+		const float s = sinf(r), c = cosf(r);
+		const float flX = x, flY = y;
+
+		x = (flX * c) - (flY * s);
+		y = (flX * s) + (flY * c);
+	}
+
+	float NormalizeInPlace()
+	{
+		return Normalize();
+	}
+
+	float Length2D(void) const
+	{
+		return sqrtf(x * x + y * y);
+	}
+
+	float Lenght2DSqr(void) const
+	{
+		return (x * x + y * y);
+	}
+
+	float DistTo(const Vector& v) const
+	{
+		return (*this - v).Length();
+	}
+
+	float DistToSqr(const Vector& v) const
+	{
+		return (*this - v).LengthSqr();
+	}
+
+	float Dot(const Vector& v) const
+	{
+		return (x * v.x + y * v.y + z * v.z);
+	}
+
+	Vector Cross(const Vector& v) const
+	{
+		return Vector(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+	}
+
+	bool IsZero(float epsilon = 1.e-6f) const
+	{
+		return (
+			x >= -epsilon && x <= epsilon &&
+			y >= -epsilon && y <= epsilon &&
+			z >= -epsilon && z <= epsilon);
+	}
+
+	Vector Scale(float fl) {
+		return Vector(x * fl, y * fl, z * fl);
+	}
+
+	void Init(float ix = 0.0f, float iy = 0.0f, float iz = 0.0f)
+	{
+		x = ix; y = iy; z = iz;
+	}
+
+	void Add(const Vector& a, const Vector& b)
+	{
+		x = (a.x + b.x);
+		y = (a.y + b.y);
+		z = (a.z + b.z);
+	}
+
+	bool is_position_within_aabb(const Vector& min_bounds, const Vector& max_bounds, const Vector& position)
+	{
+		return	position.x >= min_bounds.x && position.x <= max_bounds.x &&
+			position.y >= min_bounds.y && position.y <= max_bounds.y &&
+			position.z >= min_bounds.z && position.z <= max_bounds.z;
+	}
+
+	remixapi_Float3D ToRemixFloat3D() const
+	{
+		return remixapi_Float3D{ x, y, z };
+	}
+
+public:
+	game::vec_t x, y, z;
+};
+
+
+class __declspec(align(16))VectorAligned : public Vector
+{
+public:
+	inline VectorAligned(void) {};
+
+	inline VectorAligned(float x, float y, float z) {
+		Init(x, y, z);
+	}
+
+	explicit VectorAligned(const Vector& othr) {
+		Init(othr.x, othr.y, othr.z);
+	}
+
+	VectorAligned& operator=(const Vector& othr) {
+		Init(othr.x, othr.y, othr.z);
+		return *this;
+	}
+
+	game::vec_t w = 0.0f;
+};
+
+struct Vertex_t
+{
+	Vertex_t() {}
+	Vertex_t(const Vector2D& pos, const Vector2D& coord = Vector2D(0, 0))
+	{
+		m_Position = pos;
+		m_TexCoord = coord;
+	}
+	void Init(const Vector2D& pos, const Vector2D& coord = Vector2D(0, 0))
+	{
+		m_Position = pos;
+		m_TexCoord = coord;
+	}
+
+	Vector2D m_Position;
+	Vector2D m_TexCoord;
+};
 
 namespace utils
 {

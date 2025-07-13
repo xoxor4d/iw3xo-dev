@@ -71,6 +71,8 @@
 
 #define DEBUG_PRINT(_MSG) if constexpr (DEBUG) { OutputDebugStringA(_MSG); } //{ game::Com_PrintMessage(0, _MSG, 0); }
 
+#include "bridge_remix_api.h"
+
 #include <glm.hpp>
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -78,6 +80,9 @@
 #include <imgui_md.h>
 #include <WinHttpClient.h>
 
+#include <MinHook.h>
+
+#include "components/modules/common/console.hpp"
 #include "game/structs.hpp"
 #include "utils/vector.hpp"
 #include "utils/utils.hpp"

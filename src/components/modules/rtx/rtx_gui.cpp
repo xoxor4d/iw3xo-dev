@@ -1,5 +1,7 @@
 #include "std_include.hpp"
 
+#include "remix_vars.hpp"
+
 namespace components
 {
 	void rtx_gui::gui()
@@ -8,9 +10,66 @@ namespace components
 		{
 			ImGui::Indent(8.0f); SPACING(0.0f, 4.0f);
 
-			if (ImGui::Button("Reload Mapsettings.ini", ImVec2(ImGui::GetContentRegionAvail().x - 8.0f, 0)))
+			if (ImGui::Button("Toggle Screenshot Mode", ImVec2(ImGui::GetContentRegionAvail().x - 8.0f, 40)))
+			{
+				if (const auto var = game::Dvar_FindVar("cg_draw2d"); var && var->current.enabled) 
+				{
+					CMDEXEC("cg_draw2D 0");
+					CMDEXEC("cg_drawgun 0");
+					CMDEXEC("cg_drawfps 0");
+				}
+				else 
+				{
+					CMDEXEC("cg_draw2D 1");
+					CMDEXEC("cg_drawgun 1");
+				}
+			}
+
+			if (ImGui::Button("Reload Mapsettings.ini", ImVec2(ImGui::GetContentRegionAvail().x * 0.48f, 0)))
 			{
 				rtx_map_settings::get()->set_settings_for_loaded_map(true);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Reload rtx.conf", ImVec2(ImGui::GetContentRegionAvail().x - 8.0f, 0)))
+			{
+				if (!ImGui::IsPopupOpen("Reload RtxConf?")) {
+					ImGui::OpenPopup("Reload RtxConf?");
+				}
+			}
+
+			// popup
+			if (ImGui::BeginPopupModal("Reload RtxConf?", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
+			{
+				ImGui::Spacing();
+
+				const auto half_width = ImGui::GetContentRegionMax().x * 0.5f;
+				auto line1_str = "This will reload the rtx.conf file and re-apply all of it's variables.  ";
+				auto line3_str = "(excluding texture hashes)";
+
+				ImGui::Spacing();
+				ImGui::SetCursorPosX(5.0f + half_width - (ImGui::CalcTextSize(line1_str).x * 0.5f));
+				ImGui::TextUnformatted(line1_str);
+
+				ImGui::SetCursorPosX(5.0f + half_width - (ImGui::CalcTextSize(line3_str).x * 0.5f));
+				ImGui::TextUnformatted(line3_str);
+
+				SPACING(0, 8);
+				SPACING(0, 0); ImGui::SameLine();
+
+				ImVec2 button_size(half_width - 6.0f - ImGui::GetStyle().WindowPadding.x, 0.0f);
+				if (ImGui::Button("Reload", button_size))
+				{
+					remix_vars::xo_vars_parse_options_fn();
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::SameLine(0, 6.0f);
+				if (ImGui::Button("Cancel", button_size)) {
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
 			}
 
 			SPACING(0.0f, 4.0f);
@@ -732,6 +791,7 @@ namespace components
 		if (skysphere_is_valid())
 		{
 			skysphere_change_model(variant);
+			skysphere_update_pos();
 			return;
 		}
 
