@@ -59,6 +59,7 @@ namespace game
 		extern float xo_blur_alpha;
 #endif
 
+		extern bool has_rtx_flag;
 		extern bool has_rtx_comp_flag;
 	}
 
@@ -221,6 +222,9 @@ namespace game
 	static utils::function<bool()>
 		CreateDebugLinesIfNeeded = 0x462080;
 
+	static utils::function<bool()>
+		CG_LookingThroughNightVision = 0x453640;
+
 	// get handle using DB_FindXAssetHeader
 	static utils::function<Font_s* (const char* fontName, int fontSize)>
 		R_RegisterFont = 0x5F1EC0;
@@ -314,6 +318,9 @@ namespace game
 	void Scr_GetVector(unsigned int arg_index /*eax*/, float* out /*edx*/); // ASM
 	void Scr_AddVector(float* out /*esi*/); // ASM
 	float Scr_GetFloat(unsigned int arg_index /*eax*/); // ASM
+
+	unsigned int Scr_GetConstLowercaseString(unsigned int index /*ecx*/);
+	const char* Scr_GetString(const unsigned int index);
 
 	int GetTagPos(std::uint16_t tag, game::centity_s* ent, float* origin_out); // ASM
 	int DObjGetBoneIndex(DObj_s* obj /*ecx*/, int tag_name, BYTE* bone_index); // ASM
@@ -597,7 +604,7 @@ namespace game
 	void Cbuf_AddText(const char* text /*eax*/, int local_client_num /*ecx*/);
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char);
 	void Cmd_AddCommand(const char* name, const char* args, const char* description, void(*callback)(), cmd_function_s* data, char);
-	const char* SL_ConvertToString(int idx);
+	const char* SL_ConvertToString(unsigned int idx);
 
 	game::PackedUnitVec Vec3PackUnitVec(const float *unitVec);
 	void Vec3UnpackUnitVec(unsigned int packed, float* texcoord_out /*ecx*/);

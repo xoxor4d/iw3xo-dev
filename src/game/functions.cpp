@@ -57,6 +57,7 @@ namespace game
 		float xo_blur_alpha = 1.0f;
 #endif
 
+		bool has_rtx_flag = false;
 		bool has_rtx_comp_flag = false;
 	}
 
@@ -801,10 +802,26 @@ namespace game
 		const static uint32_t Scr_GetFloat_func = 0x523360;
 		__asm
 		{
-			mov		eax, arg_index;
 			xor		eax, eax;
+			mov		eax, arg_index;
 			call	Scr_GetFloat_func;
 		}
+	}
+
+	unsigned int Scr_GetConstLowercaseString(unsigned int index /*ecx*/)
+	{
+		const static uint32_t Scr_GetConstLowercaseString_func = 0x523490;
+		__asm
+		{
+			mov     ecx, index;
+			call	Scr_GetConstLowercaseString_func;
+		}
+	}
+
+	const char* Scr_GetString(const unsigned int index)
+	{
+		const auto string_id = Scr_GetConstLowercaseString(index);
+		return SL_ConvertToString(string_id);
 	}
 
 	int GetTagPos(std::uint16_t tag, game::centity_s* ent, float* origin_out)
@@ -1597,7 +1614,7 @@ namespace game
 		*cmd_ptr = data;
 	}
 
-	const char* SL_ConvertToString(int idx)
+	const char* SL_ConvertToString(unsigned int idx)
 	{
 		struct stringList
 		{

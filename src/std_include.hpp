@@ -80,6 +80,8 @@
 #include <imgui_md.h>
 #include <WinHttpClient.h>
 
+#include <MinHook.h>
+
 #include "components/modules/common/console.hpp"
 #include "game/structs.hpp"
 #include "utils/vector.hpp"

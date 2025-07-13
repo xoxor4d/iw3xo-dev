@@ -4,6 +4,10 @@
 
 namespace components
 {
+	bool g_nightvision_remix_state = false;
+	game::gentity_s* g_compmod_water = nullptr;
+	bool g_compmod_water_underwater = false;
+
 	/**
 	 * @brief - send camera matrices down the fixed-function pipeline so that the remix runtime finds the camera
 	 *		  - update fixed-function debug lights (spawned via the dev-gui)
@@ -27,11 +31,139 @@ namespace components
 
 		rtx_lights::spawn_light();
 		rtx::force_dvars_on_frame();
+		remix_vars::on_client_frame();
 
 		/*if (flags::has_flag("thirdperson"))
 		{
 			rtx::player_origin_model();
 		}*/
+
+		if (game::CG_LookingThroughNightVision())
+		{
+			if (!g_nightvision_remix_state)
+			{
+				g_nightvision_remix_state = true;
+				remix_vars::parse_and_apply_conf_with_lerp("nightvision.conf", utils::string_hash64("nightvision"), remix_vars::EASE_TYPE_EXPO_OUT, 0.1f, 0.0f);
+
+				rtx_lights::rtx_debug_lights[3].type = D3DLIGHT_POINT;
+				rtx_lights::rtx_debug_lights[3].attach_to_weapon = true;
+				rtx_lights::rtx_debug_lights[3].attach_to_head = false;
+				rtx_lights::rtx_debug_lights[3].color_scale = 0.6f;
+				rtx_lights::rtx_debug_lights[3].enable = true;
+			}
+
+			// restore water effect and disable light
+			if (game::glob::has_rtx_comp_flag && g_compmod_water_underwater) 
+			{
+				remix_vars::parse_and_apply_conf_with_lerp("underwater_fast.conf", utils::string_hash64("underwater_fast"), remix_vars::EASE_TYPE_EXPO_OUT, 0.0f, 0.0f);
+				rtx_lights::rtx_debug_lights[3].enable = false;
+			}
+		}
+		else if (g_nightvision_remix_state)
+		{
+			g_nightvision_remix_state = false;
+			//remix_api::get().m_bridge.SetConfigVariable("rtx.tonemappingMode", "1");
+			//remix_api::get().m_bridge.SetConfigVariable("rtx.tonemap.colorGradingEnabled", "False");
+
+			// instantly set these
+			remix_vars::set_option(remix_vars::get_option("rtx.tonemappingMode"), remix_vars::string_to_option_value(remix_vars::OPTION_TYPE_FLOAT, "1"));
+			remix_vars::set_option(remix_vars::get_option("rtx.tonemap.colorGradingEnabled"), remix_vars::string_to_option_value(remix_vars::OPTION_TYPE_BOOL, "False"));
+			remix_vars::set_option(remix_vars::get_option("rtx.postfx.chromaticAberrationAmount"), remix_vars::string_to_option_value(remix_vars::OPTION_TYPE_FLOAT, "20.0"));
+
+			// restore water effect
+			if (game::glob::has_rtx_comp_flag && g_compmod_water_underwater) 
+			{
+				remix_vars::transition_config_to_level_state("nightvision_off.conf", utils::string_hash64("nightvision"), 0.3f, 0.0f, remix_vars::EASE_TYPE_CUBIC_OUT);
+				remix_vars::parse_and_apply_conf_with_lerp("underwater_fast.conf", utils::string_hash64("underwater_fast"), remix_vars::EASE_TYPE_EXPO_OUT, 0.0f, 0.3f);
+			}
+			else {
+				remix_vars::transition_config_to_level_state("nightvision_off.conf", utils::string_hash64("nightvision"), 0.85f, 0.0f, remix_vars::EASE_TYPE_CUBIC_OUT);
+			}
+
+			rtx_lights::rtx_debug_lights[3].enable = false;
+
+			
+		}
+
+		if (game::glob::has_rtx_comp_flag)
+		{
+			if (auto handle = remix_vars::get_custom_option("#SUN_SCALE"); handle) {
+				rtx_lights::rtx_debug_lights[0].color_scale = handle->second.current.value;
+			}
+
+			if (auto handle = remix_vars::get_custom_option("#SUN_DIR"); handle) 
+			{
+				rtx_lights::rtx_debug_lights[0].dir[0] = handle->second.current.vector[0];
+				rtx_lights::rtx_debug_lights[0].dir[1] = handle->second.current.vector[1];
+				rtx_lights::rtx_debug_lights[0].dir[2] = handle->second.current.vector[2];
+			}
+
+			if (auto handle = remix_vars::get_custom_option("#SUN_COLOR"); handle)
+			{
+				rtx_lights::rtx_debug_lights[0].color[0] = handle->second.current.vector[0];
+				rtx_lights::rtx_debug_lights[0].color[1] = handle->second.current.vector[1];
+				rtx_lights::rtx_debug_lights[0].color[2] = handle->second.current.vector[2];
+			}
+
+			if (auto handle = remix_vars::get_custom_option("#SKY_ROT"); handle)
+			{
+				rtx_gui::skysphere_model_rotation[0] = handle->second.current.vector[0];
+				rtx_gui::skysphere_model_rotation[1] = handle->second.current.vector[1];
+				rtx_gui::skysphere_model_rotation[2] = handle->second.current.vector[2];
+				rtx_gui::skysphere_update_pos();
+			}
+
+			{
+				if (!g_compmod_water)
+				{
+					for (auto i = 0u; i < 1024; i++)
+					{
+						if (game::scr_g_entities[i].model)
+						{
+							const auto handle = game::sv->configstrings[(unsigned int) game::scr_g_entities[i].model + 830];
+							std::string_view str = game::SL_ConvertToString(handle);
+							if (str.contains("rtx_water_plane"))
+							{
+								g_compmod_water = &game::scr_g_entities[i];
+								break;
+							}
+						}
+					}
+				}
+
+				else
+				{
+					const auto fdata = game::get_frontenddata();
+
+					if (game::ps_loc)
+					{
+						const auto eye = fdata->viewInfo->viewParms.origin[2]; //game::ps_loc->origin[2] + game::ps_loc->viewHeightCurrent;
+
+						if (!g_compmod_water_underwater && g_compmod_water->r.currentOrigin[2] > eye)
+						{
+							remix_vars::parse_and_apply_conf_with_lerp("underwater_fast.conf", utils::string_hash64("underwater_fast"), remix_vars::EASE_TYPE_EXPO_OUT, 0.0f, 0.0f);
+							//rtxSetConfig("underwater_fast", 0.0);
+							g_compmod_water_underwater = true;
+						}
+						else if (g_compmod_water_underwater && g_compmod_water->r.currentOrigin[2] <= eye)
+						{
+							remix_vars::transition_config_to_level_state("underwater_fast.conf", utils::string_hash64("underwater_fast"), 0.0f, 0.0f, remix_vars::EASE_TYPE_EXPO_OUT);
+							//rtx.autoExposure.autoExposureSpeed = 400
+
+							
+							if (const auto o = remix_vars::get_option("rtx.autoExposure.autoExposureSpeed"); o)
+							{
+								remix_vars::set_option(o, remix_vars::string_to_option_value(remix_vars::OPTION_TYPE_FLOAT, "400"));
+								remix_vars::option_value goal = { .value = o->second.reset_level.value };
+								remix_vars::get().add_interpolate_entry(utils::string_hash64("#SUN_SCALE"), o, goal, 2, 0, 0, remix_vars::EASE_TYPE_LINEAR);
+							}
+
+							g_compmod_water_underwater = false;
+						}
+					}
+				}
+			}
+		}
 
 		rtx_gui::skysphere_frame();
 
@@ -1272,6 +1404,12 @@ namespace components
 	// > _map::init_fixed_function_buffers_stub
 	void rtx::on_map_load()
 	{
+		rtx_lights::rtx_debug_lights[0].enable = false;
+		rtx_gui::skysphere_model_rotation[0] = 0.0f;
+		rtx_gui::skysphere_model_rotation[1] = 0.0f;
+		rtx_gui::skysphere_model_rotation[2] = 0.0f;
+
+		remix_vars::on_map_load();
 		rtx_map_settings::on_map_load();
 		rtx::set_dvars_defaults_on_mapload();
 
@@ -1296,11 +1434,14 @@ namespace components
 
 	void rtx::on_device_creation()
 	{
-		// init remix api
-		remix_api::initialize(nullptr, nullptr, nullptr, false);
+		if (game::glob::has_rtx_flag)
+		{
+			// init remix api
+			remix_api::initialize(nullptr, nullptr, nullptr, false);
 
-		// init remix variable system
-		remix_vars::initialize(nullptr, &game::glob::lpmove_pml_frametime);
+			// init remix variable system
+			remix_vars::initialize(nullptr, &game::glob::lpmove_pml_frametime);
+		}
 	}
 
 	rtx::rtx()
@@ -1380,7 +1521,6 @@ namespace components
 		utils::hook(0x5F4182, resolution::R_EnumDisplayModes_stub, HOOK_JUMP).install()->quick();
 		utils::hook(0x5F41C9, resolution::R_EnumDisplayModes_stub2, HOOK_JUMP).install()->quick();
 		utils::hook::set<BYTE>(0x5F4170 + 2, 0x04); // set max array size check to 1024 (check within loop)
-
 
 		// *
 		// culling

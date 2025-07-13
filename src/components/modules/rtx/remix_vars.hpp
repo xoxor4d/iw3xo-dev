@@ -101,6 +101,7 @@ namespace components
 		static option_handle	add_custom_option(const std::string& name, const option_s& o);
 		static option_handle	get_custom_option(const char* o);
 		static option_handle	get_custom_option(const std::string& o);
+		static bool				remove_custom_option(const char* o);
 
 		static option_handle	get_option(const char*);
 		static option_handle	get_option(const std::string& o);
@@ -112,7 +113,7 @@ namespace components
 		static void				parse_rtx_options();
 		static void				parse_and_apply_conf_with_lerp(const std::string& conf_name, const std::uint64_t& identifier, const EASE_TYPE ease, float duration, float delay = 0.0f, float delay_transition_back = 0.0f);
 
-		static void				on_map_load(std::string map_name);
+		static void				on_map_load();
 		//static void				on_sound_start(std::uint32_t hash, const std::string_view& sound_name);
 		static void				on_client_frame();
 
@@ -138,6 +139,8 @@ namespace components
 		//static bool add_progressive_interpolate_entry(option_handle handle, const option_value& goal, float speed, const std::string& remix_var_name = "");
 
 		bool add_interpolate_entry(const std::uint64_t& identifier, option_handle handle, const option_value& goal, float duration, float delay, float delay_transition_back, EASE_TYPE ease, const std::string& remix_var_name = "");
+		static void transition_all_to_level_state(float duration, float delay, EASE_TYPE ease = EASE_TYPE_SIN_INOUT);
+		static void transition_config_to_level_state(const std::string& conf_name, const std::uint64_t& identifier, float duration, float delay, EASE_TYPE ease);
 
 		static bool is_paused()
 		{
@@ -156,7 +159,7 @@ namespace components
 		static float get_frametime()
 		{
 			if (get().is_initialized()) {
-				return *get().m_frametime_ptr;
+				return *get().m_frametime_ptr * *game::com_timescaleValue;
 			}
 
 			return get().m_frametime_internal;

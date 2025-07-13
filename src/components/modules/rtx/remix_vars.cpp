@@ -87,12 +87,22 @@ namespace components
 
 	remix_vars::option_handle remix_vars::get_custom_option(const std::string& o)
 	{
-		if (const auto it = custom_options.find(o); it != custom_options.end())
-		{
+		if (const auto it = custom_options.find(o); it != custom_options.end()) {
 			return &*it;
 		}
 
 		return nullptr;
+	}
+
+	bool remix_vars::remove_custom_option(const char* o)
+	{
+		if (const auto it = custom_options.find(o); it != custom_options.end()) 
+		{
+			custom_options.erase(it);
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -359,7 +369,7 @@ namespace components
 	void remix_vars::parse_and_apply_conf_with_lerp(const std::string& conf_name, const std::uint64_t& identifier, const EASE_TYPE ease, const float duration, const float delay, const float delay_transition_back)
 	{
 		std::ifstream file;
-		if (utils::fs::open_file_homepath("rtx_comp\\map_configs", conf_name, false, file))
+		if (utils::fs::open_file_homepath("iw3xo\\rtx\\map_configs", conf_name, false, file))
 		{
 			std::string input;
 			while (std::getline(file, input))
@@ -393,7 +403,7 @@ namespace components
 		else
 		{
 			common::console();
-			std::cout << "[RemixVars] Failed to find config : \"rtx_comp\\map_configs\" in \"" << conf_name << "\"\n";
+			std::cout << "[RemixVars] Failed to find config : " << conf_name << " in \"iw3xo\\rtx\\map_configs\"\n";
 		}
 	}
 
@@ -468,6 +478,64 @@ namespace components
 		return false;
 	}
 
+	void remix_vars::transition_all_to_level_state(float duration, float delay, EASE_TYPE ease)
+	{
+		if (!remix_api::is_initialized()) {
+			return;
+		}
+
+		auto& rv = remix_vars::get();
+		for (auto& o : remix_vars::options)
+		{
+			rv.add_interpolate_entry(1337, &o, o.second.reset_level, duration, delay, 0, ease);
+			//o.second.current = o.second.reset_level;
+			//remix_vars::set_option(&o, o.second.current);
+		}
+	}
+
+	void remix_vars::transition_config_to_level_state(const std::string& conf_name, const std::uint64_t& identifier, float duration, float delay, EASE_TYPE ease)
+	{
+		if (!remix_api::is_initialized()) {
+			return;
+		}
+
+		auto& rv = remix_vars::get();
+
+		std::ifstream file;
+		if (utils::fs::open_file_homepath("iw3xo\\rtx\\map_configs", conf_name, false, file))
+		{
+			std::string input;
+			while (std::getline(file, input))
+			{
+				if (utils::starts_with(input, "#") || input.empty()) {
+					continue;
+				}
+
+				if (auto pair = utils::split(input, '=');
+					pair.size() == 2u)
+				{
+					utils::trim(pair[0]);
+					utils::trim(pair[1]);
+
+					if (pair[1].starts_with("0x") || pair[1].empty()) {
+						continue;
+					}
+
+					if (const auto o = get_option(pair[0].c_str()); o) {
+						rv.add_interpolate_entry(identifier, o, o->second.reset_level, duration, delay, 0, ease);
+					}
+				}
+			}
+
+			file.close();
+		}
+		else
+		{
+			common::console();
+			std::cout << "[RemixVars] Failed to find config : " << conf_name << "in \"iw3xo\\rtx\\map_configs\"\n";
+		}
+	}
+
 
 	void lerp_float(float* current, const float from, const float to, float fraction, remix_vars::EASE_TYPE style)
 	{
@@ -538,18 +606,24 @@ namespace components
 		}
 	}
 
-	void remix_vars::on_map_load(std::string map_name)
+	void remix_vars::on_map_load()
 	{
 		remix_vars::custom_options.clear();
 		remix_vars::interpolate_stack.clear();
 
-		utils::replace_all(map_name, ".bms", ".conf");
+		//if (game::rgp->world && game::rgp->world->name)
+		//{
+		//	std::string map_name = game::rgp->world->name;
+		//	utils::replace_all(map_name, std::string("maps/mp/"), "");	// if mp map
+		//	utils::replace_all(map_name, std::string("maps/"), "");		// if sp map
+		//	utils::replace_all(map_name, std::string(".d3dbsp"), "");
+		//utils::replace_all(map_name, ".bms", ".conf");
 
-		if (!map_name.ends_with(".conf")) {
-			map_name += ".conf";
-		}
+		//if (!map_name.ends_with(".conf")) {
+		//	map_name += ".conf";
+		//}
 
-		parse_and_apply_conf_with_lerp(map_name, utils::string_hash64(map_name), EASE_TYPE_SIN_IN, 0.0f, 0.0f);
+		//parse_and_apply_conf_with_lerp(map_name, utils::string_hash64(map_name), EASE_TYPE_SIN_IN, 0.0f, 0.0f);
 	}
 
 	// Interpolates all variables on the 'interpolate_stack' and removes them once they reach their goal. \n
@@ -562,11 +636,17 @@ namespace components
 				// remove completed transitions - we do that in-front of the loop so that the final values (complete) can be used for the entire frame
 				auto completed_condition = [](const interpolate_entry_s& ip)
 					{
-						//if (ip._complete)
-						//{
+						if (ip._complete)
+						{
 							//int break_me = 1;
 							//DEBUG_PRINT("[VAR-LERP] Complete: %s\n", ip.option->first.c_str());
-						//}
+
+							if (ip.option->second.not_a_remix_var) 
+							{
+								remove_custom_option(ip.option->first.c_str()); // custom_options.erase(ip.option->first);
+								return true;
+							}
+						}
 
 						return ip._complete;
 					};

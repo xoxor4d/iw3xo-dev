@@ -62,6 +62,12 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD  ul_reason_for_call, LPVOID /*l
 		main::entry_point_hook_.initialize(0x67493C, entry_point)->install();
 		FreeConsole();
 
+		if (const auto MH_INIT_STATUS = MH_Initialize(); MH_INIT_STATUS != MH_STATUS::MH_OK)
+		{
+			std::cout << "[!][INIT FAILED] MinHook failed to initialize with code: " << MH_INIT_STATUS << "\n";
+			return TRUE;
+		}
+
 		// load additional libaries from '\iw3xo\bin\'
 		load_addon_libaries();
 	}

@@ -43,18 +43,17 @@ namespace components
 		active.postfx_shaders = true;
 		active.radiant_livelink = true;
 
-		bool activate_rtx = false;
 		if (flags::has_flag("rtx"))
 		{
-			activate_rtx = true;
+			game::glob::has_rtx_flag = true;
 			game::glob::has_rtx_comp_flag = flags::has_flag("rtx_comp");
 		}
 
-		active.rtx					= activate_rtx;
-		active.rtx_fixed_function	= activate_rtx;
-		active.rtx_gui				= activate_rtx;
-		active.rtx_lights			= activate_rtx;
-		active.rtx_map_settings		= activate_rtx;
+		active.rtx					= game::glob::has_rtx_flag;
+		active.rtx_fixed_function	= game::glob::has_rtx_flag;
+		active.rtx_gui				= game::glob::has_rtx_flag;
+		active.rtx_lights			= game::glob::has_rtx_flag;
+		active.rtx_map_settings		= game::glob::has_rtx_flag;
 		
 		// General Modules that need to be loaded
 		REGISTER_MODULE(_cg);
@@ -92,6 +91,8 @@ namespace components
 		REGISTER_MODULE(rtx_gui);
 		REGISTER_MODULE(rtx_lights);
 		REGISTER_MODULE(rtx_map_settings);
+
+		MH_EnableHook(MH_ALL_HOOKS);
 	}
 
 	void loader::uninitialize_()

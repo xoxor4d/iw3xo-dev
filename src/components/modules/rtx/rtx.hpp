@@ -2,6 +2,8 @@
 
 namespace components
 {
+	extern bool g_compmod_water_underwater;
+
 	class rtx final : public component
 	{
 	public:
