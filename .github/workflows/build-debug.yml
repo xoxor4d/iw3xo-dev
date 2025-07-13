@@ -32,7 +32,7 @@ jobs:
           lfs: false
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
 
       - name: Generate project files
         run: tools/premake5 vs2022
@@ -49,9 +49,10 @@ jobs:
           move build/bin/${{matrix.configuration}}/iw3x.pdb ./
 
       - name: Upload ${{matrix.configuration}}-binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.configuration}}-binaries
+          include-hidden-files: true
           path: |
             ./iw3x.dll
             ./iw3x.pdb
