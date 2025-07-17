@@ -14,6 +14,7 @@ game::scr_function_t *scr_methods = nullptr; // only for PlayerMethods
 
 namespace components
 {
+#pragma optimize("", off)
 	//bool scr_add_function(const char* cmd_name, xfunction_t function, bool developer) 
 	//{
 	//	game::scr_function_t* cmd;
@@ -1099,4 +1100,5 @@ namespace components
 
 		add_stock_player_methods();
 	}
+#pragma optimize("", on)
 }

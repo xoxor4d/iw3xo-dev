@@ -741,6 +741,7 @@ namespace game
 		}
 	}
 
+#pragma optimize("", off)
 	void Scr_ObjectError(const char *string /*eax*/)
 	{
 		const static uint32_t Scr_ObjectError_func = 0x523F90;
@@ -813,6 +814,7 @@ namespace game
 	{
 		return ((float(*)(uint32_t _prm))0x523360)(param);
 	}
+#pragma optimize("", on)
 
 	unsigned int Scr_GetConstLowercaseString(unsigned int index /*ecx*/)
 	{
