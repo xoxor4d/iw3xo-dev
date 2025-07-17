@@ -902,6 +902,69 @@ namespace components
 		rtx_lights::rtx_debug_lights[index].enable = state;
 	}
 
+
+	unsigned int BG_GetViewmodelWeaponIndex(const game::playerState_s* ps)
+	{
+		if ((ps->weapFlags & 2) == 0) {
+			return ps->weapon;
+		}
+
+		return ps->offHandIndex;
+	}
+
+	int CG_WeaponDObjHandle(unsigned int weaponNum)
+	{
+		return weaponNum + 1024u;
+	}
+
+	void CG_PlayBoltedEffect(int localClientNum /*eax*/, int boneName /*edx*/, int dobjHandle /*edi*/, const game::FxEffectDef* fx)
+	{
+		const static uint32_t CG_PlayBoltedEffect_func = 0x435A90;
+		__asm
+		{
+			xor		eax, eax;
+			mov		eax, localClientNum;
+
+			xor		edx, edx;
+			mov		edx, boneName;
+
+			xor		edi, edi;
+			mov		edi, dobjHandle;
+
+			push	fx;
+
+			Call	CG_PlayBoltedEffect_func;
+			add     esp, 4;
+		}
+	}
+
+	void CScr_PlayViewmodelFX()
+	{
+		if (*game::scr_numParam != 2) {
+			scr_error("PlayViewmodelFX() called with wrong params.\n");
+		}
+
+		const auto fx_id = static_cast<int>(game::Scr_GetFloat(0u));
+		if (fx_id <= 0 || fx_id >= 100) 
+		{
+			scr_error("PlayViewmodelFX() effect id is invalid -> not in range 0 - 100\n");
+			return;
+		}
+
+		// realTagName
+		const auto tag_string_id = utils::hook::call<unsigned int(__fastcall)(unsigned int)>(0x523490)(1u);
+		if (!tag_string_id) 
+		{
+			scr_error("PlayViewmodelFX(): unable to find viewmodel tag.\n");
+			return;
+		}
+
+		const auto weapon_num = BG_GetViewmodelWeaponIndex(game::ps_loc);
+		const auto dobj_handle = CG_WeaponDObjHandle(weapon_num);
+
+		CG_PlayBoltedEffect(0, tag_string_id, dobj_handle, game::cgsArray->fxs[fx_id]);
+	}
+
 	// *
 	// Add GScr Methods
 	void add_stock_player_methods() 
@@ -936,6 +999,9 @@ namespace components
 			add_function("rtxIsUnderwater", (xfunction_t)fn_rtxIsUnderwater, false);
 			add_method("rtxToggleFlashlight", (xfunction_t)(playercmd_rtxToggleFlashlight), 0);
 			add_function("rtxEnableDebugLight", (xfunction_t)fn_rtxEnableDebugLight, false);
+
+			add_function("playViewmodelFX", (xfunction_t)CScr_PlayViewmodelFX, false);
+			// CScr_PlayViewmodelFX
 		}
 	}
 

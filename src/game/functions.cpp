@@ -70,6 +70,7 @@ namespace game
 	game::clientStatic_t*		cls = reinterpret_cast<game::clientStatic_t*>(0x956D80);
 	game::clientConnection_t&	clc = *reinterpret_cast<game::clientConnection_t*>(0x8F4CE0);
 	game::cg_s*					cgs = reinterpret_cast<game::cg_s*>(0x74E338);
+	game::cgs_t*				cgsArray = reinterpret_cast<game::cgs_t*>(0x74A908);
 	game::GfxBuffers*			gfx_buf = reinterpret_cast<game::GfxBuffers*>(0xD2B0840);
 	game::GfxScene*				scene = reinterpret_cast<game::GfxScene*>(0xCF10280);
 	//Game::serverStatic_t* svs = reinterpret_cast<Game::serverStatic_t*>(0x185C480); // cba

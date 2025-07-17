@@ -6584,6 +6584,119 @@ namespace game
 		int lastPlayedTime;
 	};
 
+	enum ShockViewTypes : __int32
+	{                                       // ...
+		SHELLSHOCK_VIEWTYPE_BLURRED = 0x0,
+		SHELLSHOCK_VIEWTYPE_FLASHED = 0x1,
+		SHELLSHOCK_VIEWTYPE_NONE = 0x2,
+	};
+
+	struct shellshock_parms_t_screenblend // sizeof=0x14
+	{                                       // ...
+		int32_t blurredFadeTime;
+		int32_t blurredEffectTime;
+		int32_t flashWhiteFadeTime;
+		int32_t flashShotFadeTime;
+		ShockViewTypes type;
+	};
+	static_assert(sizeof(shellshock_parms_t_screenblend) == 0x14);
+
+	struct shellshock_parms_t_view // sizeof=0xC
+	{                                       // ...
+		int32_t fadeTime;
+		float kickRate;
+		float kickRadius;
+	};
+	static_assert(sizeof(shellshock_parms_t_view) == 0xC);
+
+	struct shellshock_parms_t_sound // sizeof=0x230
+	{                                       // ...
+		bool affect;
+		char loop[64];
+		char loopSilent[64];
+		char end[64];
+		char endAbort[64];
+		// padding byte
+		// padding byte
+		// padding byte
+		int32_t fadeInTime;
+		int32_t fadeOutTime;
+		float drylevel;
+		float wetlevel;
+		char roomtype[16];
+		float channelvolume[64];
+		int32_t modEndDelay;
+		int32_t loopFadeTime;
+		int32_t loopEndDelay;
+	};
+	static_assert(sizeof(shellshock_parms_t_sound) == 0x230);
+
+	struct shellshock_parms_t_lookcontrol // sizeof=0x14
+	{                                       // ...
+		bool affect;
+		// padding byte
+		// padding byte
+		// padding byte
+		int32_t fadeTime;
+		float mouseSensitivity;
+		float maxPitchSpeed;
+		float maxYawSpeed;
+	};
+	static_assert(sizeof(shellshock_parms_t_lookcontrol) == 0x14);
+
+	struct shellshock_parms_t_movement // sizeof=0x1
+	{                                       // ...
+		bool affect;
+	};
+	static_assert(sizeof(shellshock_parms_t_movement) == 0x1);
+
+	const struct shellshock_parms_t // sizeof=0x268
+	{                                       // ...
+		shellshock_parms_t_screenblend screenBlend;
+		shellshock_parms_t_view view;
+		shellshock_parms_t_sound sound;
+		shellshock_parms_t_lookcontrol lookControl;
+		shellshock_parms_t_movement movement;
+		// padding byte
+		// padding byte
+		// padding byte
+	};
+	static_assert(sizeof(shellshock_parms_t) == 0x268);
+
+	struct cgs_t
+	{
+		int viewX;
+		int viewY;
+		int viewWidth;
+		int viewHeight;
+		float viewAspect;
+		int serverCommandSequence;
+		int processedSnapshotNum;
+		int localServer;
+		char gametype[32];
+		char szHostName[256];
+		int maxclients;
+		char mapname[64];
+		int gameEndTime;
+		int voteTime;
+		int voteYes;
+		int voteNo;
+		char voteString[256];
+		XModel* gameModels[512];
+		const FxEffectDef* fxs[100];
+		const FxEffectDef* smokeGrenadeFx;
+		shellshock_parms_t holdBreathParams;
+		char teamChatMsgs[8][160];
+		int teamChatMsgTimes[8];
+		int teamChatPos;
+		int teamLastChatPos;
+		float compassWidth;
+		float compassHeight;
+		float compassY;
+		clientInfo_t corpseinfo[8];
+	};
+
+
 	struct cg_s
 	{
 		int clientNum;

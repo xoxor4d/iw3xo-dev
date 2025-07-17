@@ -63,6 +63,25 @@ namespace game
 		extern bool has_rtx_comp_flag;
 	}
 
+	static bool g_external_console_created = false;
+	inline void console()
+	{
+		if (!g_external_console_created)
+		{
+			g_external_console_created = true;
+
+			setvbuf(stdout, nullptr, _IONBF, 0);
+			if (AllocConsole())
+			{
+				FILE* file = nullptr;
+				freopen_s(&file, "CONIN$", "r", stdin);
+				freopen_s(&file, "CONOUT$", "w", stdout);
+				freopen_s(&file, "CONOUT$", "w", stderr);
+				SetConsoleTitleA("iw3xo console");
+			}
+		}
+	}
+
 	static inline float COLOR_WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	static inline float COLOR_BLACK[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	static inline float COLOR_RED[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -80,6 +99,7 @@ namespace game
 	extern game::clientStatic_t*		cls;
 	extern game::clientConnection_t&	clc;
 	extern game::cg_s*					cgs;
+	extern game::cgs_t*					cgsArray;
 	extern game::GfxBuffers*			gfx_buf;
 	extern game::GfxScene*				scene;
 	//extern Game::serverStatic_t* svs; // cba

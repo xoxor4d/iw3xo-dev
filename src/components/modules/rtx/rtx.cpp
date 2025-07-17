@@ -141,22 +141,27 @@ namespace components
 
 						if (!g_compmod_water_underwater && g_compmod_water->r.currentOrigin[2] > eye)
 						{
+							remix_vars::interpolate_stack.clear();
 							remix_vars::parse_and_apply_conf_with_lerp("underwater_fast.conf", utils::string_hash64("underwater_fast"), remix_vars::EASE_TYPE_EXPO_OUT, 0.0f, 0.0f);
-							//rtxSetConfig("underwater_fast", 0.0);
+							remix_vars::parse_and_apply_conf_with_lerp("underwater_slow.conf", utils::string_hash64("underwater_slow"), remix_vars::EASE_TYPE_EXPO_OUT, 0.5f, 0.25f);
 							g_compmod_water_underwater = true;
 						}
 						else if (g_compmod_water_underwater && g_compmod_water->r.currentOrigin[2] <= eye)
 						{
-							remix_vars::transition_config_to_level_state("underwater_fast.conf", utils::string_hash64("underwater_fast"), 0.0f, 0.0f, remix_vars::EASE_TYPE_EXPO_OUT);
+							remix_vars::transition_config_to_level_state("underwater_fast.conf", utils::string_hash64("underwater_fast"), 0.0f, 0.0f, remix_vars::EASE_TYPE_SIN_IN);
+
+							remix_vars::parse_and_apply_conf_with_lerp("underwater_out.conf", utils::string_hash64("underwater_out"), remix_vars::EASE_TYPE_EXPO_OUT, 0.0f, 0.0f);
+							remix_vars::transition_config_to_level_state("underwater_out.conf", utils::string_hash64("underwater_out"), 4.5f, 0.5f, remix_vars::EASE_TYPE_SIN_INOUT);
+
 							//rtx.autoExposure.autoExposureSpeed = 400
 
 							
-							if (const auto o = remix_vars::get_option("rtx.autoExposure.autoExposureSpeed"); o)
+							/*if (const auto o = remix_vars::get_option("rtx.autoExposure.autoExposureSpeed"); o)
 							{
 								remix_vars::set_option(o, remix_vars::string_to_option_value(remix_vars::OPTION_TYPE_FLOAT, "400"));
 								remix_vars::option_value goal = { .value = o->second.reset_level.value };
 								remix_vars::get().add_interpolate_entry(utils::string_hash64("#SUN_SCALE"), o, goal, 2, 0, 0, remix_vars::EASE_TYPE_LINEAR);
-							}
+							}*/
 
 							g_compmod_water_underwater = false;
 						}
@@ -1201,6 +1206,85 @@ namespace components
 		}
 	}
 
+	void load_texture_hk(const game::GfxImage* img)
+	{
+		if (img && img->name)
+		{
+			game::console();
+			std::cout << "[TEX] Loading: '" << img->name << "' of type: '" << 
+				(img->mapType == game::MAPTYPE_2D ? "2D" :
+				 img->mapType == game::MAPTYPE_3D ? "3D" :
+				 img->mapType == game::MAPTYPE_CUBE ? "CUBE" :
+					"Unkown") << "' | " << std::to_string(img->width) << "x" << std::to_string(img->height) << "\n";
+		}
+	}
+
+	__declspec(naked) void load_texture_stub()
+	{
+		const static uint32_t retn_addr = 0x616E9C;
+		__asm
+		{
+			pushad;
+			push	esi;
+			call	load_texture_hk;
+			add		esp, 4;
+			popad;
+
+			push    edi;
+			mov     edi, [eax];
+			xor		eax, eax;
+			jmp		retn_addr;
+		}
+	}
+
+	void load_gfx_image_ptr_hk()
+	{
+//#if DEBUG
+//		game::console();
+//		std::cout << "[Load_GfxImagePtr] Sleep ... \n";
+//#endif
+		Sleep(1);
+	}
+
+	__declspec(naked) void load_gfx_image_ptr_stub()
+	{
+		const static uint32_t retn_addr = 0x47AC1A;
+		__asm
+		{
+			pushad;
+			call	load_gfx_image_ptr_hk;
+			popad;
+
+			add     esi, 1;
+			push    0;
+			jmp		retn_addr;
+		}
+	}
+
+	void init_db_thread_hk()
+	{
+//#if DEBUG
+//		game::console();
+//		std::cout << "[Init_DB_Thread] Sleep ... \n";
+//#endif
+		Sleep(100);
+	}
+
+	__declspec(naked) void init_db_thread_stub()
+	{
+		const static uint32_t retn_addr = 0x48AD76;
+		__asm
+		{
+			pushad;
+			call	init_db_thread_hk;
+			popad;
+
+			mov     ebp, esp;
+			and		esp, 0xFFFFFFF8;
+			jmp		retn_addr;
+		}
+	}
+
 
 	// *
 	// dvars
@@ -1662,6 +1746,21 @@ namespace components
 		// hook FX_CullSphere to implement an additional radius check
 		utils::hook(0x4A6290, fx_cullsphere_stub, HOOK_JUMP).install()->quick();
 
+
+		// slightly delay / slow down loading of GfxImages to prevent "invalid call" assert in Create2DTexture
+		// likelyhood of the assert increases with increasing amount of remix replacements / textures
+		if (game::glob::has_rtx_comp_flag)
+		{
+#if DEBUG
+			//utils::hook(0x616E97, load_texture_stub, HOOK_JUMP).install()->quick();
+#endif
+			//utils::hook(0x47AC15, load_gfx_image_ptr_stub, HOOK_JUMP).install()->quick();
+			//utils::hook(0x48AD71, init_db_thread_stub, HOOK_JUMP).install()->quick();
+
+			// nop gun bob functions for droplet fx
+			utils::hook::nop(0x4570BE, 5);
+			utils::hook::nop(0x4554DA, 5);
+		}
 
 		// *
 		// dvars
