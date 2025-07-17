@@ -798,15 +798,20 @@ namespace game
 		}
 	}
 
-	float Scr_GetFloat(unsigned int arg_index /*eax*/)
+	//float Scr_GetFloat(unsigned int arg_index /*eax*/)
+	//{
+	//	const static uint32_t Scr_GetFloat_func = 0x523360;
+	//	__asm
+	//	{
+	//		xor		eax, eax;
+	//		mov		eax, arg_index;
+	//		call	Scr_GetFloat_func;
+	//	}
+	//}
+
+	float Scr_GetFloat(uint32_t param)
 	{
-		const static uint32_t Scr_GetFloat_func = 0x523360;
-		__asm
-		{
-			xor		eax, eax;
-			mov		eax, arg_index;
-			call	Scr_GetFloat_func;
-		}
+		return ((float(*)(uint32_t _prm))0x523360)(param);
 	}
 
 	unsigned int Scr_GetConstLowercaseString(unsigned int index /*ecx*/)
