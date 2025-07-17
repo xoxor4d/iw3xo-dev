@@ -35,8 +35,16 @@ main()
 	rtx\_rtx_setup::serverDvars();
 	
 	level water_init();
-	thread water_rise(300, 20);
 
+	if (isDefined(level.water_plane_init) && level.water_plane_init) 
+	{
+		if (level.dev) {
+			thread water_rise(level.water_plane_goal_time, 0);
+		} else {
+			thread water_rise(level.water_plane_goal_time, level.water_plane_goal_start_delay);
+		}
+	}
+	
 	level spawn_poles();
 	thread onPlayerConnect();
 
@@ -99,11 +107,16 @@ player_setup_on_spawn()
 	if( level.dbgPrints )
         println( " ++ ^2rtx^7::onPlayerSpawned ++ -> spawned client!" );
 
+	setDvar("g_speed", 190);
+	setDvar("g_gravity", 800);
+	setDvar("jump_height", 39);
+
 	// disable debug lights used for flashlight
 	rtxEnableDebugLight(1, 0);
 	rtxEnableDebugLight(2, 0);
 
-	self stopLocalSound("suzanne_ambient");
+	ambientStop(1);
+	//self stopLocalSound("suzanne_ambient");
 	//self stopLocalSound("suspense");
 
 	self thread intro();
@@ -126,7 +139,8 @@ player_setup_on_spawn()
 	self playSound("spawn");
 
 	wait 1.0;
-	self playLocalSound("suzanne_ambient"); // 1:46
+	//self playLocalSound("suzanne_ambient"); // 1:46
+	ambientPlay("suzanne_ambient");
 
 	if (!level.dev)
 	{
@@ -200,6 +214,42 @@ water_life(initial_wait)
 	}
 }
 
+water_reverb_in()
+{
+	//self deactivateReverb("snd_enveffectsprio_level", 1.0);
+	//wait 2.0;
+	self setReverb("snd_enveffectsprio_level", "underwater", 0.2, 0.8, 0.3);
+}
+
+water_reverb_out()
+{
+	self setReverb("snd_enveffectsprio_level", "alley", 1.0, 0.05, 0.2);
+}
+
+get_value_for_water_height(height, lerp_from, lerp_to, goal_at_height)
+{
+    if (height <= 0) {
+		return lerp_from;
+	} 
+	
+	if (height > goal_at_height) {
+        return lerp_to;
+	}
+
+	return lerp_from + (lerp_to - lerp_from) * (height / goal_at_height);
+}
+
+// re-check if still above water after slight delay
+water_out_fx()
+{
+	wait 0.35;
+	if (!self.is_underwater)
+	{
+		playViewmodelFX(level.water_transition_out, "tag_view");
+		self.time_since_last_water_effect = 0;
+	}
+}
+
 water_sound()
 {
 	self endon("death");
@@ -208,23 +258,98 @@ water_sound()
 	self endon("killed_player");
 
 	self.is_underwater = false;
+	self.is_touching_water = false;
 	underwater_timer = 0;
+	self.time_since_last_water_effect = 0;
+	time_since_last_water_move_sound = 0;
 
 	while(1)
 	{
 		was_underwater = self.is_underwater;
 		self.is_underwater = rtxIsUnderwater();
 
-		if (!was_underwater && self.is_underwater) {
+		if (!was_underwater && self.is_underwater) // goes underwater
+		{	
+			self thread water_reverb_in();
 			self playLocalSound("underwater");
+
+			if (self.time_since_last_water_effect > 2)
+			{
+				playViewmodelFX(level.water_transition_in, "tag_view");
+				self.time_since_last_water_effect = 0;
+			}
 		}
-		else if (was_underwater && !self.is_underwater) 
+		else if (was_underwater && !self.is_underwater) // out of water
 		{
+			// deactivateReverb does not work - the function is broken
+			//self deactivateReverb("snd_enveffectsprio_level", 1);
+			self thread water_reverb_out();
+
 			self stopLocalSound("underwater");
+
+			// needs to be underwater for at least 2 seconds to trigger this effect
+			if (underwater_timer > 2) 
+			{
+				self thread water_out_fx();
+				//playViewmodelFX(level.water_transition_out, "tag_view");
+				//self.time_since_last_water_effect = 0;
+			}
+
 			underwater_timer = 0;
 		}
 
+		// water movement sounds + underwater gravity/speed/jump height
+		// checking if our feet are at or below the water surface
+		if (self.origin[2] <= level.water_plane.origin[2]) 
+		{
+			water_height = level.water_plane.origin[2] - self.origin[2];
+			adjusted_speed = get_value_for_water_height(water_height, 190, 130, 60);
+			setDvar("g_speed", adjusted_speed);
+
+			adjusted_gravity = get_value_for_water_height(water_height, 800, 200, 120);
+			setDvar("g_gravity", adjusted_gravity);
+
+			adjusted_jump = get_value_for_water_height(water_height, 39, 64, 120);
+			setDvar("jump_height", adjusted_jump);
+
+			//self iPrintLn("Touching greatness");
+			vel = self getVelocity();
+			speed = sqrt((vel[0] * vel[0]) + (vel[1] * vel[1]) + (vel[2] * vel[2]));
+			
+			// jumped into water
+			if (speed > 280 && !self.is_touching_water) 
+			{
+				self playSound("water_wave_in");
+				time_since_last_water_move_sound = 0;
+			}
+			
+			rnd = randomFloatRange(0.75, 1.6);
+			if (speed > 80 && time_since_last_water_move_sound >= rnd) 
+			{
+				if (self.is_underwater) {
+					self playSound("underwater_wave");
+				}
+				else {
+					self playSound("water_wave");
+				}
+				time_since_last_water_move_sound = 0;
+			}
+
+			self.is_touching_water = true;
+		}
+		else {
+			self.is_touching_water = false;
+			setDvar("g_speed", 190);
+			setDvar("g_gravity", 800);
+		}
+
+		/* if (self isTouching(level.water_plane)) {
+			self iPrintLn("Touching greatness");
+		} */
+
 		wait 0.05;
+		self.time_since_last_water_effect += 0.05;
+		time_since_last_water_move_sound += 0.05;
 
 		if (self.is_underwater)
 		{
@@ -256,17 +381,16 @@ water_bubbles(initial_wait)
 	wait 1; // linkto needs wait */
 	wait initial_wait;
 
+	//PlayFX(level.water_transition_out, self.origin)
+	// level.water_transition_out
+
 	while(1)
 	{
-		if(!isdefined(self) )
-		{
-			/* if( isdefined(tag)) {
-				tag delete();
-			} */
+		if(!isdefined(self)) {
 			break;
 		}
 
-		eye = self getTagOrigin("tag_eye") + (0, 0, 2);
+		eye = self getTagOrigin("tag_eye") + (0, 0, 0);
 		if (rtxIsUnderwater()) {
 			PlayFX( level.water_bubbles, eye);
 		}
@@ -278,7 +402,9 @@ water_bubbles(initial_wait)
 water_init()
 {
 	level.water_plane_initial_height = 40;
-	level.water_plane_goal_height = 145;
+	level.water_plane_goal_height = 240; //145;
+	level.water_plane_goal_time = 300;
+	level.water_plane_goal_start_delay = 10;
 	level.water_plane = spawn("script_model", (0, 0, level.water_plane_initial_height));
 	level.water_plane SetModel("rtx_water_plane");
 	level.water_plane.angles = (0, 0, 0);
@@ -294,16 +420,20 @@ water_reset()
 
 water_rise(time, delay)
 {
+	level endon("use_water_btn");
+
 	wait delay;
 	if (isDefined(level.water_plane_init) && level.water_plane_init)
 	{
 		water_reset();
-		level.water_plane MoveTo( (0, 0, level.water_plane_goal_height), time, 20.0, 20.0 );
+		level.water_plane MoveTo( (0, 0, level.water_plane_goal_height), time, time * 0.1, time * 0.1 );
 	}
 }
 
 water_set_height(time, delay, z_height)
 {
+	level endon("use_water_btn");
+
 	wait delay;
 
 	if (isDefined(level.water_plane_init) && level.water_plane_init) {
@@ -365,18 +495,28 @@ watch_buttons()
 
 		if (level.dev)
 		{
-			if (self fragButtonPressed())
+			/* if (self fragButtonPressed())
 			{
 				thread poles_reset();
 				thread do_meteor();
 				thread spawn_control_buttons();
 				wait 10;
+			} */
+
+			if (self fragButtonPressed())
+			{
+				playViewmodelFX(level.water_transition_out, "tag_camera");
+				//eye = self getTagOrigin("tag_eye") + (0, 0, 0);
+				//PlayFX( level.water_transition_out, eye);
+				wait 1;
 			}
 
 			if (self MeleeButtonPressed())
 			{
-				rtxTransitionDay();
-				wait 10;
+				//rtxTransitionDay();
+				rtxTimeCycle("day", 1);
+				level.water_plane MoveZ( 50, 0.05, 0, 0 );
+				wait 2;
 			}
 		}
 
@@ -608,7 +748,8 @@ suzanne_on_finish()
 	{
 		if (level.suzanne_finished)
 		{
-			self stopLocalSound("suzanne_ambient");
+			ambientStop(2);
+			//self stopLocalSound("suzanne_ambient");
 
 			self playSound("suzanne_finish");
 			wait 1;
@@ -622,6 +763,7 @@ suzanne_on_finish()
 			wait 0.05;
 
 			self SwitchToWeapon("deserteagle_rtx_mp");
+			ambientPlay("ambient_armada_ext0_sur");
 			break;
 		}
 		
@@ -974,7 +1116,7 @@ suzanne_init(total)
 	level.suzanne_spawn_count = 0;
 	level.suzanne_shot_count = 0;
 	level.suzanne_max_count = total;
-	level.suzanne_timer = 100;
+	level.suzanne_timer = 85 + (level.suzanne_tries * 15);
 	level.suzanne_failed = false;
 	level.suzanne_finished = false;
 
@@ -1296,6 +1438,14 @@ do_meteor()
 
 	//IPrintLnBold("Spawned meteor!");
 
+	// stop water rising
+	level notify ("use_water_btn"); 
+	level.water_plane MoveTo((0, 0, level.water_plane.origin[2]), 0.05, 0, 0); // stop any running moveTo's
+
+	if (level.water_plane.origin[2] > 175) {
+		thread water_set_height(5, 0, 175);
+	}
+
 	level.meteor_fx = spawnFx(level.rtx_meteor, (12000, 12000, 5700));
 	triggerFx(level.meteor_fx);
 
@@ -1321,6 +1471,10 @@ do_meteor()
 	nvexpl_fx playSound("meteor_explode");
 	level.meteor_fx delete();
 	level.meteor_fx = undefined;
+
+	if (level.water_plane.origin[2] > 145) {
+		thread water_set_height(1, 0, 145);
+	}
 
 	earthquake(0.5, 1.8, (621, 498, 157), 5000);
 	poles_make_dynamic();
@@ -1489,14 +1643,18 @@ btn2_logic()
 
 		if (player leanLeftButtonPressed())
 		{
-			if (isDefined(level.water_plane_init) && level.water_plane_init) {
+			if (isDefined(level.water_plane_init) && level.water_plane_init) 
+			{
 				level.water_plane MoveZ( -3, 0.05, 0, 0 );
+				level notify ("use_water_btn");
 			}
 		}
 		else if (player leanRightButtonPressed())
 		{
-			if (isDefined(level.water_plane_init) && level.water_plane_init) {
+			if (isDefined(level.water_plane_init) && level.water_plane_init) 
+			{
 				level.water_plane MoveZ( 3, 0.05, 0, 0 );
+				level notify ("use_water_btn");
 			}
 		}
 

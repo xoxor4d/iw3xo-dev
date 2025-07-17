@@ -37,6 +37,8 @@ _loadFx()
 	level.rtx_rain = loadFx( "rtxcomp/rain" );
 	level.water_bubbles = loadFx( "rtxcomp/water_bubbles" );
 	level.water_life = loadFx( "rtxcomp/water_life" );
+	level.water_transition_out = loadFx( "rtxcomp/water_transition_out" );
+	level.water_transition_in = loadFx( "rtxcomp/water_transition_in" );
 }
 
 addDvar( scriptName, varName, varDefault, min, max, type ) 
@@ -93,6 +95,8 @@ serverDvars()
     //setDvar( "g_speed",                 "416" );
 	//setDvar( "jump_height",     		"46.0" );
 	setDvar( "jump_slowdownenable",     false );
+
+	setDvar( "bg_bobMax",  "0.0" );
    
 	//setDvar( "sv_fps", "20" );
 	//setDvar( "g_deadChat", 1 );
