@@ -1938,44 +1938,36 @@ namespace components
 	{
 		game::glob::lpmove_check_jump = false;
 
-		if (pm->ps->pm_flags & 0x80000) 
-		{
+		if (pm->ps->pm_flags & 0x80000)  {
 			return false; // PMF_RESPAWNED? // Stock
 		}
 
 		// If Stock movement
 		if (dvars::pm_movementType->current.integer == game::PM_MTYPE::STOCK)
 		{
-			if (pm->cmd.serverTime - pm->ps->jumpTime < 500) 
-			{
+			if (pm->cmd.serverTime - pm->ps->jumpTime < 500) {
 				return false; // Stock
 			}
-
 		}
 
 		// must wait for jump to be released
-		if (pm->ps->pm_flags & PMF_JUMP_HELD) 
-		{
+		if (pm->ps->pm_flags & PMF_JUMP_HELD) {
 			return false; // Stock
 		}
 			
-		if (pm->ps->pm_flags & 4) 
-		{
+		if (pm->ps->pm_flags & 4) {
 			return false; // Stock
 		}
 
-		if (pm->ps->pm_type >= 7) 
-		{
+		if (pm->ps->pm_type >= 7) {
 			return false; // Stock
 		}
 
-		if(pm->ps->viewHeightTarget == 11 || pm->ps->viewHeightTarget == 40)
-		{
+		if(pm->ps->viewHeightTarget == 11 || pm->ps->viewHeightTarget == 22 || pm->ps->viewHeightTarget == 40) {
 			return false; // Stock
 		}
 
-		if (!(pm->cmd.buttons & PMF_JUMP_HELD)) 
-		{
+		if (!(pm->cmd.buttons & PMF_JUMP_HELD)) {
 			return false; // Stock
 		}
 
@@ -1983,14 +1975,14 @@ namespace components
 		{
 			if (pm->oldcmd.buttons & PMF_JUMP_HELD) // Stock
 			{
-				pm->cmd.buttons &= 0xFFFFFBFF;
+				pm->cmd.buttons &= ~PMF_JUMP_HELD;
 				return false;
 			}
 		}
 
 		// Jump_Start
 		const auto& jump_height = game::Dvar_FindVar("jump_height")->current.value;
-		float jump_velocity = sqrtf(static_cast<float>(pm->ps->gravity) * (jump_height + jump_height));
+		float velocity_sqrd = (jump_height + jump_height) * static_cast<float>(pm->ps->gravity);
 
 		// if stock movement
 		if (dvars::pm_movementType->current.integer == game::PM_MTYPE::STOCK)
@@ -2002,27 +1994,25 @@ namespace components
 
 				if (jump_slowdownEnable->current.enabled)
 				{
-					reduce_friction = static_cast<float>(pm->ps->pm_time) * 1.5f * 0.0005882352706976235f + 1.0f;
-
-					if (pm->ps->pm_time >= 1700)
-					{
+					reduce_friction = static_cast<float>((double)pm->ps->pm_time * 1.5 * 0.0005882352706976235 + 1.0);
+					if (pm->ps->pm_time >= 1700) {
 						reduce_friction = 2.5f;
 					}
 				}
 
-				jump_velocity /= reduce_friction;
+				velocity_sqrd /= reduce_friction;
 			}
 
 			pm->ps->jumpOriginZ = pm->ps->origin[2];
 			pm->ps->jumpTime	= pm->cmd.serverTime;
-			
+
+			pm->ps->pm_time = 0;
 			pm->ps->sprintState.sprintButtonUpRequired = 0;
 
 			const auto& jump_spreadAdd = game::Dvar_FindVar("jump_spreadAdd");
 			pm->ps->aimSpreadScale += jump_spreadAdd->current.value;
 
-			if (pm->ps->aimSpreadScale > 255.0f) 
-			{
+			if (pm->ps->aimSpreadScale > 255.0f) {
 				pm->ps->aimSpreadScale = 255.0f;
 			}
 		}
@@ -2031,16 +2021,19 @@ namespace components
 		pml->almostGroundPlane	= false;
 		pml->walking			= false;
 
-		pm->ps->pm_flags = pm->ps->pm_flags & 0xFFFFFE7F | 0x4000;
-		//pm->ps->pm_time = 0;
+		pm->ps->pm_flags &= ~0x180u;
+		pm->ps->pm_flags |= 0x4000u;
 
 		pm->ps->groundEntityNum = ENTITYNUM_NONE;
 
-		pm->ps->velocity[2] = jump_velocity; // Q3 JUMP_VELOCITY = 270; cod4 = 250
+		pm->ps->velocity[2] = sqrt(velocity_sqrd); // Q3 JUMP_VELOCITY = 270; cod4 = 250
 		pm->ps->jumpOriginZ = pm->ps->origin[2]; // <- what if we enable this for q3 too?
 
-		// old bug?
-		pm->ps->pm_time = CPM_PM_CLIPTIME; //clip through walls // corners <- dvar?
+		if (dvars::pm_movementType->current.integer == game::PM_MTYPE::DEFRAG)
+		{
+			// old bug?
+			pm->ps->pm_time = CPM_PM_CLIPTIME; //clip through walls // corners <- dvar?
+		}
 
 		game::glob::lpmove_check_jump = true; // used for GScr_Method :: checkJump()
 
@@ -2048,8 +2041,7 @@ namespace components
 
 		//Game::Jump_AddSurfaceEvent(ps, pml);
 
-		if (pm->ps->pm_flags & 8) 
-		{
+		if (pm->ps->pm_flags & 8) {
 			Jump_PushOffLadder(pm->ps, pml); // do we really need this?
 		}
 
